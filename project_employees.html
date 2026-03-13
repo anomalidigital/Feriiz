@@ -7,6 +7,53 @@
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="Style.css">
+    <style>
+        /* Manage Employee Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-overlay .modal-card {
+            animation: modalSlideIn 0.25s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .manage-pag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 16px;
+        }
+        .manage-pag button {
+            min-width: 32px; height: 32px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background: #fff;
+            color: #666;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .manage-pag button.active {
+            background: #166DBA;
+            color: #fff;
+            border-color: #166DBA;
+        }
+        .manage-pag button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+    </style>
 </head>
 
 <body>
@@ -65,7 +112,7 @@
             <h1 class="page-title">Activity</h1>
             <div class="page-actions" style="display: flex; gap: 12px; align-items: center;">
                 <div style="position:relative;">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter" onclick=\"this.nextElementSibling.classList.toggle('show')\">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter" onclick="this.nextElementSibling.classList.toggle('show')">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <!-- Filter Dropdown Menu -->
@@ -98,7 +145,7 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" style="background:#2975BB; border-radius:6px; padding: 10px 20px;">
+                <button class="btn btn-primary" style="background:#2975BB; border-radius:6px; padding: 10px 20px;" onclick="openManageEmpModal()">
                     Manage Employees
                 </button>
                 <div style="display:flex; align-items:center; position:relative;">
@@ -805,6 +852,18 @@
                                 <span style="font-size:14px; color:#333;">Zicky Affan</span>
                             </label>
                         </div>
+                        <!-- Pagination -->
+                        <div class="manage-pag">
+                            <button disabled>&laquo;</button>
+                            <button disabled>&lsaquo;</button>
+                            <button class="active">1</button>
+                            <button>2</button>
+                            <button>3</button>
+                            <button>4</button>
+                            <button>5</button>
+                            <button>&rsaquo;</button>
+                            <button>&raquo;</button>
+                        </div>
                     </div>
                     <div>
                         <div id="empCodeArea" style="border:1px solid #e5e5e5; border-radius:10px; padding:20px; min-height:260px; font-family:monospace; font-size:13px; color:#888; white-space:pre-line; line-height:1.8;">Enter Employee
@@ -818,17 +877,32 @@ Separated By</div>
     </div>
     
     <script>
+        // === Manage Employee Modal ===
+        function openManageEmpModal() {
+            document.getElementById('manageEmpModal').classList.add('show');
+        }
+        function closeManageEmpModal() {
+            document.getElementById('manageEmpModal').classList.remove('show');
+        }
+        // Close when clicking overlay background
+        document.getElementById('manageEmpModal').addEventListener('click', function(e) {
+            if (e.target === this) closeManageEmpModal();
+        });
+
+        // Checkbox → Code Area sync
         document.querySelectorAll('.manage-emp-cb').forEach(cb => {
             cb.addEventListener('change', updateCodeArea);
         });
         function updateCodeArea() {
             const codeArea = document.getElementById('empCodeArea');
+            const btn = document.getElementById('verifyDataBtn');
             const checked = document.querySelectorAll('.manage-emp-cb:checked');
-            if(checked.length === 0) {
+            if (checked.length === 0) {
                 codeArea.textContent = 'Enter Employee\nCode (...)\nSeparated By';
-                document.getElementById('verifyDataBtn').textContent = 'Verify Data';
-                document.getElementById('verifyDataBtn').style.background = '#fff';
-                document.getElementById('verifyDataBtn').style.color = '#333';
+                btn.textContent = 'Verify Data';
+                btn.style.background = '#fff';
+                btn.style.color = '#333';
+                btn.style.borderColor = '#e5e5e5';
                 return;
             }
             let text = '';
@@ -836,9 +910,31 @@ Separated By</div>
                 text += 'Enter Employee\nCode ( ' + cb.dataset.code + ' )\nSeparated By\n\n';
             });
             codeArea.textContent = text.trim();
-            document.getElementById('verifyDataBtn').textContent = 'Verify Data';
-            document.getElementById('verifyDataBtn').style.background = '#fff';
-            document.getElementById('verifyDataBtn').style.color = '#333';
+            // Activate Import Employees button
+            btn.textContent = 'Import Employees';
+            btn.style.background = '#166DBA';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#166DBA';
+        }
+
+        function verifyEmployeeData() {
+            const checked = document.querySelectorAll('.manage-emp-cb:checked');
+            if (checked.length > 0) {
+                alert('Importing ' + checked.length + ' employee(s)...');
+                closeManageEmpModal();
+            }
+        }
+
+        // Search filter
+        const searchInput = document.getElementById('manageEmpSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const q = this.value.toLowerCase();
+                document.querySelectorAll('.manage-emp-cb').forEach(cb => {
+                    const name = cb.dataset.name.toLowerCase();
+                    cb.closest('label').style.display = name.includes(q) ? 'flex' : 'none';
+                });
+            });
         }
     </script>
 

@@ -20,10 +20,7 @@
                 .report-filter-bar { display: none; } /* removed old bar */
 
         .daily-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
-        .daily-toggle input[type="checkbox"] { accent-color: #166DBA; width: 16px; height: 16px; }
-
-        .report-table-wrap { overflow-x: auto; border: 1px solid #e5e5e5; border-radius: 8px; }
-        .report-table { width: 100%; min-width: 1400px; border-collapse: collapse; font-family: 'Poppins', sans-serif; font-size: 12px; }
+        .daily-toggle input[type="checkbox"] { accent-color: #166DBA; width: 16px; height: 16px; }.report-table { width: 100%; min-width: 1400px; border-collapse: collapse; font-family: 'Poppins', sans-serif; font-size: 12px; }
         .report-table thead th { border-right: 1px solid #e5e5e5; background: #fff; color: #1a1a1a; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 2px solid #e5e5e5; white-space: nowrap; font-size: 12px; }
         .report-table thead th.group-header { text-align: center; border-bottom: 1px solid #ddd; font-size: 13px; font-weight: 700; }
         .report-table tbody td { border-right: 1px solid #f0f0f0; padding: 12px 12px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; white-space: nowrap; }
@@ -33,16 +30,13 @@
         .rate-cell { color: #166DBA; }
         .note-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #166DBA; color: #166DBA; cursor: pointer; font-size: 12px; }
             .filter-dropdown.show { display: block !important; }
-    
+        /* Clean layout overrides for report pages */
         .report-table-wrap {
             overflow-x: auto;
             width: 100%;
+            margin-top: 0;
         }
-        .main-content {
-            min-width: 0;
-            overflow-x: hidden;
-        }
-    </style>
+        </style>
 </head>
 
 <body>
@@ -67,8 +61,8 @@
     </aside>
 
     <main class="main-content">
-        <div class="fixed-toolbar" style="position:sticky; top:0; background:#FAFAFA; z-index:90; padding-top:40px; padding-bottom:16px; border-bottom:1px solid #D9D9D9;">
-<div class="breadcrumb">
+        <div class="fixed-toolbar" style="position:sticky; top:0; background:#F2F2F2; z-index:90; padding-top:24px; padding-bottom:16px; border-bottom:1px solid #D9D9D9;">
+        <div class="breadcrumb">
             <a href="projects.html">Projects</a> <span>&gt;</span>
             <a href="project_employees.html">Anomali</a> <span>&gt;</span>
             <a href="project_report.html">Report</a> <span>&gt;</span>

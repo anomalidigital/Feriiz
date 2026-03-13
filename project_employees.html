@@ -60,7 +60,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <img src="_Asset_/icon_feriiz.png" alt="Feriiz Logo">
             <div class="logo-text">FERIIZ</div>
         </div>
         <nav class="sidebar-nav">
@@ -960,6 +960,42 @@ Separated By</div>
                 // Initialize default state (unchecked = hidden)
                 absenceToggle.checked = false;
                 absenceToggle.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Activity Table Filter Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const applyBtn = document.querySelector('.filter-apply-btn');
+            const clearBtn = document.querySelector('.filter-clear-btn');
+            
+            if (applyBtn) {
+                applyBtn.addEventListener('click', function() {
+                    const occFilter = document.querySelector('.filter-occ').value.toLowerCase();
+                    const rows = document.querySelectorAll('.data-table tbody tr');
+                    
+                    rows.forEach(row => {
+                        let show = true;
+                        const occCell = row.querySelectorAll('td')[3]; // 4th column is Occupation
+                        if (occCell && occFilter !== 'all occupations') {
+                            if (!occCell.textContent.toLowerCase().includes(occFilter)) {
+                                show = false;
+                            }
+                        }
+                        row.style.display = show ? '' : 'none';
+                    });
+                    this.closest('.filter-dropdown').classList.remove('show');
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    document.querySelector('.filter-occ').value = 'All Occupations';
+                    document.querySelectorAll('.filter-date').forEach(el => el.value = '');
+                    document.querySelectorAll('.data-table tbody tr').forEach(row => {
+                        row.style.display = '';
+                    });
+                    this.closest('.filter-dropdown').classList.remove('show');
+                });
             }
         });
     </script>

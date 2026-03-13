@@ -36,13 +36,82 @@
             width: 100%;
             margin-top: 0;
         }
+        
+        /* Flexbox Viewport Sticky Overrides */
+        body { margin: 0; overflow: hidden; height: 100vh; }
+        .main-content {
+            height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 0 !important; /* Reset padding so flex takes full height properly */
+            overflow: hidden !important;
+            box-sizing: border-box;
+        }
+        .fixed-toolbar {
+            flex-shrink: 0;
+            position: relative !important; /* Remove sticky to let flex manage it */
+            padding: 24px 40px 16px 40px !important; /* Restore horizontal padding */
+        }
+        .report-table-wrap {
+            flex: 1;
+            overflow: auto !important; /* Both X and Y scrolling allowed solely in this area */
+            margin: 0 !important;
+            padding: 0 40px; /* Horizontal padding for table */
+        }
+        .fixed-bottom-bar {
+            flex-shrink: 0;
+            background: #fff;
+            padding: 16px 40px;
+            border-top: 1px solid #D9D9D9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 90;
+        }
+        .version-text {
+            position: absolute;
+            left: 40px;
+            font-size: 12px;
+            color: #bbb;
+        }
+        .pagination {
+            position: relative !important; /* Override any absolute positioning if exist */
+            margin: 0 !important;
+        }
+        
+        
+        /* Fix for Webkit Sticky overlap bug */
+        .report-table {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+        .report-table thead th {
+             border-top: 1px solid #e5e5e5; /* Restore top border since collapse is separate */
+        }
+        .sticky-col {
+            background-clip: padding-box !important; /* Prevent background bleeding out of borders */
+        }
+        
+        /* Sticky Column Layout Additions */
+        .sticky-col {
+            position: sticky !important;
+            left: 0 !important;
+            background-color: #fff !important;
+            z-index: 10 !important;
+            box-shadow: 5px 0 15px -3px rgba(0,0,0,0.15) !important;
+            border-right: 1px solid #f0f0f0 !important; /* Optional subtle border matching older inline */
+        }
+        th.sticky-col {
+            z-index: 20 !important;
+        }
         </style>
 </head>
 
 <body>
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <img src="_Asset_/icon_feriiz.png" alt="Feriiz Logo">
             <div class="logo-text">FERIIZ</div>
         </div>
         <nav class="sidebar-nav">
@@ -61,17 +130,17 @@
     </aside>
 
     <main class="main-content">
-        <div class="fixed-toolbar" style="position:sticky; top:0; background:#F2F2F2; z-index:90; padding-top:24px; padding-bottom:16px; border-bottom:1px solid #D9D9D9;">
-        <div class="breadcrumb">
-            <a href="projects.html">Projects</a> <span>&gt;</span>
-            <a href="project_employees.html">Anomali</a> <span>&gt;</span>
-            <a href="project_report.html">Report</a> <span>&gt;</span>
-            <span style="color:#333;font-weight:600;">Indra Naftali</span>
-        </div>
+        <div class="fixed-toolbar" style="position:sticky; top:0; background:#F2F2F2; z-index:90; padding-top:24px; padding-bottom:16px; border-bottom:1px solid #D9D9D9; display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+                <div class="breadcrumb" style="margin-bottom:12px;">
+                    <a href="projects.html">Projects</a> <span>&gt;</span>
+                    <a href="project_employees.html">Anomali</a> <span>&gt;</span>
+                    <a href="project_report.html">Report</a> <span>&gt;</span>
+                    <span style="color:#333;font-weight:600;">Indra Naftali</span>
+                </div>
+                <h1 class="page-title" style="margin-bottom:0;">Report</h1>
+            </div>
 
-        
-        <div class="page-header" style="flex-wrap: wrap; gap:16px;">
-            <h1 class="page-title">Report</h1>
             <div class="report-actions" style="display:flex; gap:12px; align-items:center;">
                 
                 <!-- 1. Main Filter Button (Icon Only) -->
@@ -199,109 +268,987 @@
             <table class="report-table">
                 <thead>
                     <tr>
-                        <th rowspan="2">Name</th><th rowspan="2">Pin</th><th rowspan="2">Occupation</th>
+                        <th rowspan="2" class="sticky-col">Name</th>
+                        <th rowspan="2">Pin</th>
+                        <th rowspan="2">Occupation</th>
                         <th colspan="3" class="group-header">Time Period</th>
-                        <th rowspan="2">Total Days</th><th rowspan="2">Total Hour</th><th rowspan="2">Total Overtime</th>
+                        <th rowspan="2">Total Days</th>
+                        <th rowspan="2">Total Hour</th>
+                        <th rowspan="2">Total Overtime</th>
                         <th colspan="4" class="group-header">Employee</th>
                         <th colspan="4" class="group-header">Client</th>
                         <th colspan="2" class="group-header">Additional</th>
-
                         <th colspan="5" class="group-header">March 2026</th>
                     </tr>
                     <tr>
-                        <th style="min-width: 200px;">Mon 09</th>
-                        <th style="min-width: 200px;">Tue 10</th>
-                        <th style="min-width: 200px;">Wed 11</th>
-                        <th style="min-width: 200px;">Thu 12</th>
-                        <th style="min-width: 200px;">Fri 13</th>
-
-                        <th>Start</th><th>End</th><th>Period</th>
-                        <th>Daily Rate</th><th>Rate Overtime</th><th>Total Rate</th><th>Total Rate Overtime</th>
-                        <th>Daily Rate</th><th>Rate Overtime</th><th>Total Rate</th><th>Total Rate Overtime</th>
-                        <th>Amount</th><th>Note</th>
+                        <!-- Time Period -->
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Period</th>
+                        <!-- Employee -->
+                        <th>Daily Rate</th>
+                        <th>Rate Overtime</th>
+                        <th>Total Rate</th>
+                        <th>Total Rate Overtime</th>
+                        <!-- Client -->
+                        <th>Daily Rate</th>
+                        <th>Rate Overtime</th>
+                        <th>Total Rate</th>
+                        <th>Total Rate Overtime</th>
+                        <!-- Additional -->
+                        <th>Amount</th>
+                        <th>Note</th>
+                        <!-- March 2026 Details (Photo 3 shows complex detailed blocks, we'll put Mon 09 etc here) -->
+                        <th style="min-width:280px;">Mon 09</th>
+                        <th style="min-width:280px;">Tue 10</th>
+                        <th style="min-width:280px;">Wed 11</th>
+                        <th style="min-width:280px;">Thu 12</th>
+                        <th style="min-width:280px;">Fri 13</th>
                     </tr>
                 </thead>
-                <tbody>
+                                <tbody>
                     <tr>
-                        <td><div class="emp-code-cell">IND693283053999</div><div class="emp-name-cell">Indra Naftali</div></td>
-                        <td>-</td><td>Meneger</td>
-                        <td>08:00:00</td><td>17:00:00</td><td>9h</td>
-                        <td>2.02d</td><td>18.18h</td><td>4h</td>
-                        <td>IDR0.00</td><td class="rate-cell">IDR0.00</td><td class="rate-cell">IDR0.00</td><td>IDR0.00</td>
-                        <td>IDR0.00</td><td>IDR0.00</td><td>IDR0.00</td><td>IDR0.00</td>
-                        <td style="text-align:center;"><span class="note-icon"><i class="fa-solid fa-plus"></i></span></td><td></td>
-                        <td>
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:8px;">
-                                <span style="font-size:11px; color:#555;">Hours / Overtime : <strong style="color:#1a1a1a;">9.58h</strong> / <strong style="color:#1a1a1a;">2h</strong></span>
-                                <div style="display:flex; gap:4px;">
-                                    <span class="btn-icon" style="background:#166DBA; color:white; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-pen" style="font-size:10px;"></i></span>
-                                    <span class="btn-icon" style="border:1px solid #166DBA; color:#166DBA; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-plus" style="font-size:10px;"></i></span>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">ADA27B1B2E650H0X</div>
+                            <div class="emp-name-cell">Adam Ferial</div>
+                        </td>
+                        <td>-</td>
+                        <td>Graphic Design</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:4px; font-weight:600; font-size:11px; align-items:center;">
-                                <span>09:10:29 <i class="fa-regular fa-trash-can" style="color:#dc3545; cursor:pointer; margin-left:4px;"></i></span>
-                                <span>18:45:07 <i class="fa-regular fa-trash-can" style="color:#dc3545; cursor:pointer; margin-left:4px;"></i></span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:8px;">
-                                <span style="font-size:11px; color:#555;">Hours / Overtime : <strong style="color:#1a1a1a;">8.6h</strong> / <strong style="color:#1a1a1a;">2h</strong></span>
-                                <div style="display:flex; gap:4px;">
-                                    <span class="btn-icon" style="background:#166DBA; color:white; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-pen" style="font-size:10px;"></i></span>
-                                    <span class="btn-icon" style="border:1px solid #166DBA; color:#166DBA; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-plus" style="font-size:10px;"></i></span>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
                                 </div>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:4px; font-weight:600; font-size:11px; align-items:center;">
-                                <span>09:36:47 <i class="fa-regular fa-trash-can" style="color:#dc3545; cursor:pointer; margin-left:4px;"></i></span>
-                                <span>18:13:03 <i class="fa-regular fa-trash-can" style="color:#dc3545; cursor:pointer; margin-left:4px;"></i></span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="display:flex; justify-content:center; align-items:center; height:100%;">
-                                <span class="btn-icon" style="border:1px solid #166DBA; color:#166DBA; border-radius:50%; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-plus" style="font-size:12px;"></i></span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:8px;">
-                                <span style="font-size:11px; color:#555;">Hours / Overtime : <strong style="color:#1a1a1a;">0h</strong> / <strong style="color:#1a1a1a;">0h</strong></span>
-                                <div style="display:flex; gap:4px;">
-                                    <span class="btn-icon" style="background:#166DBA; color:white; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-pen" style="font-size:10px;"></i></span>
-                                    <span class="btn-icon" style="border:1px solid #166DBA; color:#166DBA; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-plus" style="font-size:10px;"></i></span>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
                                 </div>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:4px; font-weight:600; font-size:11px; align-items:center;">
-                                <span>17:45:44 <i class="fa-regular fa-trash-can" style="color:#dc3545; cursor:pointer; margin-left:4px;"></i></span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:8px;">
-                                <span style="font-size:11px; color:#555;">Hours / Overtime : <strong style="color:#1a1a1a;">0h</strong> / <strong style="color:#1a1a1a;">0h</strong></span>
-                                <div style="display:flex; gap:4px;">
-                                    <span class="btn-icon" style="background:#166DBA; color:white; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-pen" style="font-size:10px;"></i></span>
-                                    <span class="btn-icon" style="border:1px solid #166DBA; color:#166DBA; border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"><i class="fa-solid fa-plus" style="font-size:10px;"></i></span>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:4px; font-weight:600; font-size:11px; align-items:center;">
-                                <span>09:44:13 <i class="fa-regular fa-trash-can" style="color:#dc3545; cursor:pointer; margin-left:4px;"></i></span>
-                            </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">APR8940K8VB44L8</div>
+                            <div class="emp-name-cell">Apriyanto Apriyanto</div>
                         </td>
+                        <td>-</td>
+                        <td>Teknisi</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">BILFBY9N8YJ1YDN</div>
+                            <div class="emp-name-cell">Baldyas Satrio</div>
+                        </td>
+                        <td>-</td>
+                        <td>Graphic Design</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">IND693283053999</div>
+                            <div class="emp-name-cell">Indra Naftali</div>
+                        </td>
+                        <td>-</td>
+                        <td>Meneger</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">MAUNZ1TL5H0Q7GG</div>
+                            <div class="emp-name-cell">Mauli Hidayat</div>
+                        </td>
+                        <td>-</td>
+                        <td>Marketing</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">STEPRQTY99</div>
+                            <div class="emp-name-cell">Steven Febrianto</div>
+                        </td>
+                        <td>-</td>
+                        <td>Backend</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">VER2FWV8L80S5SX</div>
+                            <div class="emp-name-cell">Veronica Nathalia</div>
+                        </td>
+                        <td>-</td>
+                        <td>graphic Design</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">YENX6LH3X9</div>
+                            <div class="emp-name-cell">Yenni Tedjakoesoemo</div>
+                        </td>
+                        <td>-</td>
+                        <td>HR Administrator</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                    </tr>
+                    <tr>
+                        <td class="sticky-col">
+                            <div class="emp-code-cell">ZICOJMQN8SQ5RDT</div>
+                            <div class="emp-name-cell">Zicky Affan</div>
+                        </td>
+                        <td>-</td>
+                        <td>3D Artist</td>
+                        <td>08:00:00</td>
+                        <td>17:00:00</td>
+                        <td>9h</td>
+                        <td>2.02d</td>
+                        <td>18.18h</td>
+                        <td>4h</td>
+                        <!-- Employee Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <td class="rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td></td>
+                        <!-- Days -->
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
+                        <td style="min-width: 250px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
+                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
+                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
+                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
+                                </div>
+</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
-        <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.88
-        <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:32px; margin-bottom:24px; padding-right:24px;">
-            <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666;" disabled>Prev</button>
-            <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; border-radius:6px; background:#166DBA; color:#fff; border:none;">1</button>
-            <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">2</button>
-            <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">3</button>
-            <span style="color:#666;">...</span>
-            <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">10</button>
-            <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">Next</button>
+        <div class="fixed-bottom-bar">
+            <div class="version-text">version : 2.0.88</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666;" disabled>Prev</button>
+                <button class="btn btn-primary" style="padding:6px 12px; font-size:12px; border-radius:6px; background:#166DBA; color:#fff; border:none;">1</button>
+                <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">2</button>
+                <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">3</button>
+                <span style="color:#666;">...</span>
+                <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">10</button>
+                <button class="btn btn-outline" style="padding:6px 12px; font-size:12px; border-radius:6px; color:#666; background:#fff; border:1px solid #d9d9d9;">Next</button>
+            </div>
         </div>
-
-</div>
     </main>
 </body>
 </html>

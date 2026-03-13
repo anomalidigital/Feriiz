@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Request</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Style.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <div class="logo-text">FERIIZ</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="Index.html">
+                <i class="fa-solid fa-table-cells-large"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <div class="nav-group open">
+                <a href="projects.html" class="active">
+                    <i class="fa-solid fa-clipboard"></i>
+                    <span class="nav-label">Projects</span>
+                </a>
+                <div class="nav-submenu">
+                    <a href="project_employees.html" class="">
+                        <i class="fa-solid fa-clock"></i>
+                        <span class="nav-label">Activity</span>
+                    </a>
+                    <a href="project_report.html" class="">
+                        <i class="fa-regular fa-file-lines"></i>
+                        <span class="nav-label">Report</span>
+                    </a>
+                    <a href="employee_request.html" class="active">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span class="nav-label">Requests</span>
+                    </a>
+                </div>
+            </div>
+            <a href="employees.html">
+                <i class="fa-solid fa-users"></i>
+                <span class="nav-label">Employees</span>
+            </a>
+            <a href="my account.html">
+                <i class="fa-regular fa-user"></i>
+                <span class="nav-label">My Account</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div style="font-size:13px; color:#888; margin-bottom:6px; font-weight: 500;">
+                    <a href="projects.html" style="color:inherit; text-decoration:none;">Project</a> &gt; <span
+                        style="color:#2975BB;">Request</span>
+                </div>
+                <h1 class="page-title">Request</h1>
+            </div>
+            <div class="page-actions">
+                <!-- Filter Icon -->
+                <div style="position:relative;">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter" onclick="this.nextElementSibling.classList.toggle('show')">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
+                        <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter Requests
+                        </div>
+                        <label>Type</label>
+                        <select class="select filter-type" style="margin-bottom: 12px;">
+                            <option value="">-- All Types --</option>
+                            <option value="annual_leave">Annual Leave</option>
+                            <option value="public_holiday">Public Holiday</option>
+                            <option value="time_in_lieu">Time in lieu</option>
+                            <option value="long_service_leave">Long Service Leave</option>
+                            <option value="national_leave">National Leave</option>
+                            <option value="sick_leave">Sick Leave</option>
+                            <option value="unpaid_leave">Unpaid Leave</option>
+                            <option value="marriage_leave">Marriage Leave</option>
+                            <option value="remote_work">Remote Work</option>
+                            <option value="meal">Meal</option>
+                            <option value="medical_claim">Medical Claim</option>
+                            <option value="others">Others</option>
+                            <option value="transport">Transport</option>
+                        </select>
+                        <label>Date Range</label>
+                        <div style="display:flex; gap:8px; align-items:center; margin-bottom: 12px;">
+                            <input type="date" class="input filter-date" style="flex:1;">
+                            <span style="color:#666; font-weight:600;">-</span>
+                            <input type="date" class="input filter-date" style="flex:1;">
+                        </div>
+                        <label>Status</label>
+                        <select class="select filter-status">
+                            <option value="">-- All Status --</option>
+                            <option value="pending">Pending</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                            <button class="btn btn-outline filter-clear-btn"
+                                style="padding:6px 12px; font-size:12px;">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn"
+                                style="padding:6px 12px; font-size:12px;">Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openAddRequestModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Request
+                </button>
+                <div style="display:flex; align-items:center; position:relative;">
+                    <i class="fa-solid fa-magnifying-glass"
+                        style="position:absolute; left:12px; color:#999; font-size:14px;"></i>
+                    <input type="text" placeholder="Search Employee Name"
+                        style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stat-cards" style="gap:24px;">
+            <div class="stat-card"
+                style="background:#E67E22; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon"
+                    style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number"
+                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">3
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card"
+                style="background:#27AE60; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon"
+                    style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number"
+                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">3
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Accepted</div>
+                </div>
+            </div>
+            <div class="stat-card"
+                style="background:#E74C3C; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon"
+                    style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number"
+                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">0
+
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Rejected</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;"></th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Date Request</th>
+                        <th>Date Range</th>
+                        <th>Approval</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="openModal('Indra Naftali','Remote Work','Mon, 23 Feb 2026','Mon, 23 Feb 2026','Pending')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell"><img class="employee-avatar"
+                                    src="https://i.pravatar.cc/150?img=47" alt="">
+                                <div>
+                                    <div class="employee-name">Indra Naftali</div>
+                                    <div class="employee-code">IND693283053999</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Remote Work</td>
+                        <td>Mon, 23 Feb 2026</td>
+                        <td>Mon, 23 Feb 2026</td>
+                        <td>Anne Naftali</td>
+                        <td><span class="badge badge-pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="openModal('Yenni Tedjakoesoemo','Sick Leave','Mon, 23 Feb 2026','Mon, 23 Feb 2026','Pending')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell"><img class="employee-avatar"
+                                    src="https://i.pravatar.cc/150?img=32" alt="">
+                                <div>
+                                    <div class="employee-name">Yenni Tedjakoesoemo</div>
+                                    <div class="employee-code">YENX6LH3X9</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Sick Leave</td>
+                        <td>Mon, 23 Feb 2026</td>
+                        <td>Mon, 23 Feb 2026</td>
+                        <td>Judith Anastalio</td>
+                        <td><span class="badge badge-pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="openModal('Zicky Affan','Remote Work','Fri, 20 Feb 2026','Fri, 20 Feb 2026','Pending')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell"><img class="employee-avatar"
+                                    src="https://i.pravatar.cc/150?img=12" alt="">
+                                <div>
+                                    <div class="employee-name">Zicky Affan</div>
+                                    <div class="employee-code">ZICOJMQN8SQ5RDT</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Remote Work</td>
+                        <td>Fri, 20 Feb 2026</td>
+                        <td>Fri, 20 Feb 2026</td>
+                        <td>Judith Anastalio</td>
+                        <td><span class="badge badge-pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="openModal('Zicky Affan','Remote Work','Thu, 19 Feb 2026','Thu, 19 Feb 2026','Accepted')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell"><img class="employee-avatar"
+                                    src="https://i.pravatar.cc/150?img=12" alt="">
+                                <div>
+                                    <div class="employee-name">Zicky Affan</div>
+                                    <div class="employee-code">ZICOJMQN8SQ5RDT</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Remote Work</td>
+                        <td>Thu, 19 Feb 2026</td>
+                        <td>Thu, 19 Feb 2026</td>
+                        <td>Judith Anastalio</td>
+                        <td><span class="badge badge-accepted">Accepted</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="openModal('Adam Ferial','Remote Work','Thu, 19 Feb 2026','Thu, 19 Feb 2026','Accepted')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell"><img class="employee-avatar"
+                                    src="https://i.pravatar.cc/150?img=22" alt="">
+                                <div>
+                                    <div class="employee-name">Adam Ferial</div>
+                                    <div class="employee-code">ADA27B1B2E650H0X</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Remote Work</td>
+                        <td>Thu, 19 Feb 2026</td>
+                        <td>Thu, 19 Feb 2026</td>
+                        <td>Judith Anastalio</td>
+                        <td><span class="badge badge-accepted">Accepted</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit"
+                                    onclick="openModal('Apriyanto Apriyanto','Sick Leave','Thu, 19 Feb 2026','Thu, 19 Feb 2025','Accepted')">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell"><img class="employee-avatar"
+                                    src="https://i.pravatar.cc/150?img=51" alt="">
+                                <div>
+                                    <div class="employee-name">Apriyanto Apriyanto</div>
+                                    <div class="employee-code">APR8940K8VB44L8</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Sick Leave</td>
+                        <td>Thu, 19 Feb 2026</td>
+                        <td>Thu, 19 Feb 2025</td>
+                        <td>Judith Anastalio</td>
+                        <td><span class="badge badge-accepted">Accepted</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info">Showing 1 - 7 of 97 results</div>
+                <div class="pagination-buttons">
+                    <button disabled>&lt; Previous</button>
+                    <a href="#" class="active">1</a>
+                    <a href="#">2</a>
+                    <a href="#">3</a>
+                    <span class="page-dots">...</span>
+                    <a href="#">Next &gt;</a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Approval Modal Overlay -->
+    <div class="modal-overlay" id="approvalModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modalTitle">Approval</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="modal-field">
+                        <label>Status</label>
+                        <select class="select" id="modalStatus"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                            <option>Pending</option>
+                            <option>Accepted</option>
+                            <option>Rejected</option>
+                        </select>
+                    </div>
+                    <div class="modal-field">
+                        <label>Remark</label>
+                        <input type="text" class="input" placeholder="e.g. Radang, demam"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                    </div>
+                    <div class="modal-field">
+                        <label>Amount</label>
+                        <input type="number" class="input" value="1"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                    </div>
+                    <div class="modal-field">
+                        <label>Note To Sender</label>
+                        <input type="text" id="modalNoteInput" class="input" placeholder="e.g. Get Well Soon!"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                    </div>
+                </div>
+                <div id="modalNotificationWrapper" style="margin:16px 0 20px; display:none;">
+                    <label
+                        style="display:flex; align-items:center; gap:8px; font-size:13px; color:#555; cursor:pointer;">
+                        <input type="checkbox" checked style="accent-color:#2975BB; width:16px; height:16px;">
+                        Send Notification
+                    </label>
+                </div>
+                <div class="modal-divider"></div>
+                <div class="modal-info-grid">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Request</span>
+                        <span class="modal-info-value" id="modalRequest">Sick Leave</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Date Request</span>
+                        <span class="modal-info-value" id="modalDateRequest">Thu, 05 Mar 2026</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Date</span>
+                        <span class="modal-info-value" id="modalDate">Thu, 05 Mar 2026</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Attachment</span>
+                        <span class="modal-info-value" style="color:#aaa;">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" style="margin-right:auto;">Delete</button>
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="closeModal()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Request Modal Overlay -->
+    <div class="modal-overlay" id="addRequestModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="addRequestTitle">Request</h2>
+                <button class="modal-close" onclick="closeAddRequestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Part 1: Always visible -->
+                <div class="modal-grid">
+                    <div class="modal-field">
+                        <label>Employee Name</label>
+                        <input type="text" id="addReqEmployee" class="input" placeholder="eg. John Doe"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
+                    </div>
+                    <div class="modal-field">
+                        <label>Project Name</label>
+                        <input type="text" class="input" placeholder="eg. Google Cloud"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
+                    </div>
+                    <div class="modal-field">
+                        <label>Start Date</label>
+                        <input type="date" class="input"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
+                    </div>
+                    <div class="modal-field">
+                        <label>End Date</label>
+                        <input type="date" class="input"
+                            style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
+                    </div>
+                </div>
+
+                <!-- Part 2: Progressive disclosure -->
+                <div id="addReqProgressive" style="margin-top:16px;">
+                    <div class="modal-grid">
+                        <div class="modal-field">
+                            <label>Remark</label>
+                            <input type="text" class="input" placeholder="Give a note"
+                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
+                        </div>
+                        <div class="modal-field">
+                            <label>Request</label>
+                            <select class="select"
+                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                                <option>Annual Leave</option>
+                                <option>Sick Leave</option>
+                                <option>Permit</option>
+                                <option>Others</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Status</label>
+                            <select class="select"
+                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                                <option>Pending</option>
+                                <option>Accepted</option>
+                                <option>Rejected</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Approval</label>
+                            <select class="select"
+                                style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
+                                <option>Ifan Faizal Adnan</option>
+                                <option>Judith Anastalio</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Attachment</label>
+                            <input type="file" class="input"
+                                style="width:100%; padding:7px 12px; border-radius:8px; border:1px solid #D9D9D9; background:#fff; outline:none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="addReqFooter" style="display:flex; justify-content:flex-end;">
+                <button class="btn btn-outline" style="margin-right:12px;"
+                    onclick="closeAddRequestModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="closeAddRequestModal()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: flex-start; padding-top: 6vh; padding-bottom: 6vh;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #fff;
+            border-radius: 14px;
+            width: 560px;
+            max-width: 92vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+            animation: slideUp 0.25s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 28px 0;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #F2F2F2;
+            border-radius: 50%;
+            font-size: 20px;
+            color: #777;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .modal-close:hover {
+            background: #E8E8E8;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px 28px;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .modal-divider {
+            height: 1px;
+            background: #F2F2F2;
+            margin: 4px 0 16px;
+        }
+
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .modal-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .modal-info-label {
+            font-size: 11px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .modal-info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 28px 24px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script>
+        function openModal(name, type, dateReq, dateRange, status) {
+            document.getElementById('modalTitle').textContent = 'Approval ' + name;
+            document.getElementById('modalRequest').textContent = type || 'Sick Leave';
+            document.getElementById('modalDateRequest').textContent = dateReq || 'Thu, 05 Mar 2026';
+            document.getElementById('modalDate').textContent = dateRange || 'Thu, 05 Mar 2026';
+            const sel = document.getElementById('modalStatus');
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].text === status) { sel.selectedIndex = i; break; }
+            }
+            document.getElementById('approvalModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            document.getElementById('approvalModal').classList.remove('show');
+            document.body.style.overflow = '';
+
+            // Reset dynamic fields
+            const noteInput = document.getElementById('modalNoteInput');
+            const notifWrapper = document.getElementById('modalNotificationWrapper');
+            if (noteInput && notifWrapper) {
+                noteInput.value = '';
+                notifWrapper.style.display = 'none';
+            }
+        }
+        document.getElementById('approvalModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Add Request Modal handlers
+        function openAddRequestModal() {
+            document.getElementById('addRequestModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddRequestModal() {
+            document.getElementById('addRequestModal').classList.remove('show');
+            document.body.style.overflow = '';
+
+            // Clean up progressive layout changes
+            // Progressive disclosure removed - all fields visible immediately
+        }
+
+        // Dynamic Notification Checkbox logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalNoteInput = document.getElementById('modalNoteInput');
+            const modalNotificationWrapper = document.getElementById('modalNotificationWrapper');
+
+            if (modalNoteInput && modalNotificationWrapper) {
+                modalNoteInput.addEventListener('input', function () {
+                    if (this.value.trim() !== '') {
+                        modalNotificationWrapper.style.display = 'block';
+                    } else {
+                        modalNotificationWrapper.style.display = 'none';
+                    }
+                });
+            }
+
+            // Progressive disclosure for Add Request Modal
+            // Progressive disclosure removed - all fields visible immediately
+
+            const toggleBtn = document.querySelector('.filter-toggle-btn');
+            const dropdown = document.querySelector('.filter-dropdown');
+            const applyBtn = document.querySelector('.filter-apply-btn');
+            const clearBtn = document.querySelector('.filter-clear-btn');
+            const statusSelect = document.querySelector('.filter-status');
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+            if (toggleBtn && dropdown) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                    toggleBtn.classList.toggle('active');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                        toggleBtn.classList.remove('active');
+                    }
+                });
+
+                dropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
+            const applyFilter = () => {
+                const statusVal = statusSelect.value.toLowerCase();
+
+                tableRows.forEach(row => {
+                    // Status is column 7
+                    const statusCell = row.querySelector('td:nth-child(7)');
+                    if (!statusCell) return;
+
+                    const statusText = statusCell.textContent.toLowerCase();
+
+                    if (statusVal === '' || statusText.includes(statusVal)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                dropdown.classList.remove('show');
+                toggleBtn.classList.remove('active');
+            };
+
+            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    statusSelect.value = '';
+                    applyFilter();
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>

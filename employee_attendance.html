@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Employee Attendance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <div class="logo-text">FERIIZ</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="Index.html">
+                <i class="fa-solid fa-table-cells-large"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <div class="nav-group open">
+                <a href="projects.html" class="active">
+                    <i class="fa-solid fa-clipboard"></i>
+                    <span class="nav-label">Projects</span>
+                </a>
+                <div class="nav-submenu">
+                    <a href="project_employees.html" class="active">
+                        <i class="fa-solid fa-clock"></i>
+                        <span class="nav-label">Activity</span>
+                    </a>
+                    <a href="project_report.html" class="">
+                        <i class="fa-regular fa-file-lines"></i>
+                        <span class="nav-label">Report</span>
+                    </a>
+                    <a href="employee_request.html" class="">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span class="nav-label">Requests</span>
+                    </a>
+                </div>
+            </div>
+            <a href="employees.html">
+                <i class="fa-solid fa-users"></i>
+                <span class="nav-label">Employees</span>
+            </a>
+            <a href="my account.html">
+                <i class="fa-regular fa-user"></i>
+                <span class="nav-label">My Account</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="project_employees.html">Activity</a>
+            <span>&gt;</span>
+            <span style="color:#333;font-weight:600;">Report Attendance</span>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <a href="project_employees.html"
+                    style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; border:1px solid #D9D9D9; background:#fff; text-decoration:none; color:#555;">
+                    <i class="fa-solid fa-chevron-left" style="font-size:14px;"></i>
+                </a>
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <img src="Employee_pictures/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
+                    <div>
+                        <h1 class="page-title" style="font-size:22px; margin:0;">Adam Ferial</h1>
+                        <div style="font-size:12px; color:#888; font-weight:500; letter-spacing:0.5px; margin-top:2px;">
+                            ADA27B1B2E650H0X</div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-actions" style="display:flex; gap:12px; align-items:center;">
+                <div style="position:relative;">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter"
+                        onclick="this.nextElementSibling.style.display = 'block';">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <!-- Filter Dropdown Menu -->
+                    <div class="filter-dropdown" style="text-align:left; font-weight:normal; right:0;">
+                        <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter
+                            Attendance</div>
+                        <label>Date Range</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="date" class="input filter-date" style="flex:1;">
+                            <span style="color:#666; font-weight:600;">-</span>
+                            <input type="date" class="input filter-date" style="flex:1;">
+                        </div>
+
+                        <label style="margin-top:12px;">Period</label>
+                        <select class="input" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif;">
+                            <option>Custom</option>
+                            <option>Weekly</option>
+                            <option>Monthly</option>
+                        <option>Per Days</option>
+                        </select>
+                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                            <button class="btn btn-outline filter-clear-btn" style="padding:6px 12px; font-size:12px;"
+                                onclick="this.closest('.filter-dropdown').style.display='none';">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn" style="padding:6px 12px; font-size:12px;"
+                                onclick="this.closest('.filter-dropdown').style.display='none';">Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; position:relative;">
+                    <i class="fa-solid fa-magnifying-glass"
+                        style="position:absolute; left:12px; color:#999; font-size:14px;"></i>
+                    <input type="text" placeholder="Search attendance..."
+                        style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stat-cards" style="gap:24px;">
+            <div class="stat-card"
+                style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon"
+                    style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number" style="color:#fff; font-size:24px; font-weight:800; line-height:1;">78:32
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:13px; font-weight:600;">Attendance Hours</div>
+                </div>
+            </div>
+            <div class="stat-card"
+                style="background:#E74C3C; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon"
+                    style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number" style="color:#fff; font-size:24px; font-weight:800; line-height:1;">1:28
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:13px; font-weight:600;">Hours Deficit</div>
+                </div>
+            </div>
+            <div class="stat-card"
+                style="background:#27AE60; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon"
+                    style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number" style="color:#fff; font-size:24px; font-weight:800; line-height:1;">0:00
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:13px; font-weight:600;">Hours Surplus</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-container">
+            <table class="data-table" style="text-align:center;">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="vertical-align:middle; text-align:left;">Date</th>
+                        <th colspan="3" style="text-align:center; border-bottom:1px solid #eee;">Time Period</th>
+                        <th colspan="3" style="text-align:center; border-bottom:1px solid #eee;">Attendance</th>
+                        <th colspan="2" style="text-align:center; border-bottom:1px solid #eee;">Absent</th>
+                        <th rowspan="2" style="vertical-align:middle; text-align:center;">Request</th>
+                        <th rowspan="2" style="vertical-align:middle; text-align:center;">Note</th>
+                    </tr>
+                    <tr>
+                        <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">Start</th>
+                        <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">End</th>
+                        <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">Period</th>
+                                                <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">Start</th>
+                        <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">End</th>
+                        <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">Period</th>
+                                                <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">Period</th>
+                        <th style="text-align:center; font-weight:600; font-size:12px; color:#555;">Day</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Sunday, 01 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Monday, 02 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#27ae60; font-weight:600;">08:06:10</td>
+                        <td style="text-align:center;">19:49:38</td>
+                        <td style="text-align:center;">11:43:28</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#2975bb; font-weight:600;">Remote Work</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Tuesday, 03 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">09:10:24</td>
+                        <td style="text-align:center;">19:49:30</td>
+                        <td style="text-align:center;">10:39:06</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#2975bb; font-weight:600;">Remote Work</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Wednesday, 04 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">08:58:39</td>
+                        <td style="text-align:center;">17:38:24</td>
+                        <td style="text-align:center;">08:39:45</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-00:20:15</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Thursday, 05 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">08:59:51</td>
+                        <td style="text-align:center;">19:24:33</td>
+                        <td style="text-align:center;">10:24:42</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Friday, 06 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">09:32:19</td>
+                        <td style="text-align:center;">17:29:09</td>
+                        <td style="text-align:center;">07:56:50</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-01:03:10</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Saturday, 07 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Sunday, 08 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Monday, 09 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">09:12:01</td>
+                        <td style="text-align:center;">17:26:41</td>
+                        <td style="text-align:center;">08:14:40</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-00:45:20</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Tuesday, 10 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">09:20:34</td>
+                        <td style="text-align:center;">17:28:54</td>
+                        <td style="text-align:center;">08:08:20</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-00:51:40</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Wednesday, 11 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center;">09:02:39</td>
+                        <td style="text-align:center;">17:37:31</td>
+                        <td style="text-align:center;">08:34:52</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-00:25:08</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Thursday, 12 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#2975bb; font-weight:600;">Sick Leave</td>
+                        <td style="text-align:left; font-size:12px;">Pagi bu, saya ijin tidak dapat hadir...</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Friday, 13 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Saturday, 14 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Sunday, 15 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Monday, 16 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Tuesday, 17 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Wednesday, 18 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Thursday, 19 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#2975bb; font-weight:600;">Hari Suci Nyepi</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Friday, 20 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Saturday, 21 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#2975bb; font-weight:600;">Hari Idul Fitri (belum pasti)</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Sunday, 22 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#2975bb; font-weight:600;">Hari Idul Fitri (belum pasti)</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Monday, 23 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Tuesday, 24 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Wednesday, 25 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Thursday, 26 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Friday, 27 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Saturday, 28 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Sunday, 29 March 2026</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Monday, 30 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left; font-weight:500; color:#333;">Tuesday, 31 March 2026</td>
+                        <td style="text-align:center;">08:00:00</td>
+                        <td style="text-align:center;">17:00:00</td>
+                        <td style="text-align:center;">09:00:00</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-09:00:00</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:600;">-1</td>
+                        <td style="text-align:center; color:#ccc;">-</td>
+                        <td style="text-align:left; font-size:12px;">-</td>
+                    </tr>
+                    <tr style="background-color:#f8f9fa; font-weight:700;">
+                        <td style="text-align:center; border-top:2px solid #ddd;"></td>
+                        <td style="text-align:center; border-top:2px solid #ddd;"></td>
+                        <td style="text-align:center; border-top:2px solid #ddd;"></td>
+                        <td style="text-align:center; border-top:2px solid #ddd; color:#333;">198:00:00</td>
+                        <td style="text-align:center; border-top:2px solid #ddd;"></td>
+                        <td style="text-align:center; border-top:2px solid #ddd;"></td>
+                        <td style="text-align:center; border-top:2px solid #ddd; color:#333;">74:21:43</td>
+                        <td style="text-align:center; border-top:2px solid #ddd; color:#e74c3c;">-120:25:33</td>
+                        <td style="text-align:center; border-top:2px solid #ddd; color:#e74c3c;">-13</td>
+                        <td colspan="2" style="border-top:2px solid #ddd;"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">Showing 1 - 8 of 20 results</div>
+                <div class="pagination-buttons">
+                    <button disabled>&lt; Previous</button>
+                    <a href="#" class="active">1</a>
+                    <a href="#">2</a>
+                    <a href="#">3</a>
+                    <a href="#">Next &gt;</a>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.86</div>
+    </main>
+
+</body>
+
+</html>

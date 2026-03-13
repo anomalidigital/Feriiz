@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Employee Projects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Style.css">
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <div class="logo-text">FERIIZ</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="Index.html"><i class="fa-solid fa-table-cells-large"></i><span class="nav-label">Dashboard</span></a>
+            <a href="projects.html"><i class="fa-solid fa-clipboard"></i><span class="nav-label">Projects</span></a>
+            <a href="employees.html" class="active"><i class="fa-solid fa-users"></i><span class="nav-label">Employees</span></a>
+            <a href="my account.html"><i class="fa-regular fa-user"></i><span class="nav-label">My Account</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="employees.html">Employees</a>
+            <span>&gt;</span>
+            <span style="color:#333;font-weight:600;">Adam Ferial - Projects</span>
+        </div>
+
+        <div class="page-header">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <a href="employees.html" style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; border:1px solid #D9D9D9; background:#fff; text-decoration:none; color:#555;">
+                    <i class="fa-solid fa-chevron-left" style="font-size:14px;"></i>
+                </a>
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <img src="Employee_pictures/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
+                    <div>
+                        <h1 class="page-title" style="font-size:22px; margin:0;">Adam Ferial</h1>
+                        <div style="font-size:12px; color:#888; font-weight:500; letter-spacing:0.5px; margin-top:2px;">ADA27B1B2E650H0X</div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-actions">
+                <div style="display:flex; align-items:center; position:relative;">
+                    <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; color:#999; font-size:14px;"></i>
+                    <input type="text" placeholder="Search projects..." style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Card -->
+        <div class="stat-cards" style="gap:24px; margin-bottom:24px;">
+            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-folder"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number" style="color:#fff; font-size:28px; font-weight:700; line-height:1;">3</div>
+                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Assigned Projects</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Table -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Project Code</th>
+                        <th>Type</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight:600; color:#1a1a1a;">Anomali</td>
+                        <td>ANOMALI01</td>
+                        <td>Attendance</td>
+                        <td>01 January 2025</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600; color:#1a1a1a;">Diamond Crystal Golf No. 15</td>
+                        <td>DCG15</td>
+                        <td>Attendance</td>
+                        <td>15 March 2025</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600; color:#1a1a1a;">Diamond Golf H3 No. 105</td>
+                        <td>DGH3105</td>
+                        <td>Attendance</td>
+                        <td>20 June 2025</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.88</div>
+    </main>
+</body>
+</html>

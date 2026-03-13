@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feriiz - My Account</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="Style.css">
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <div class="logo-text">FERIIZ</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="Index.html" class="">
+                <i class="fa-solid fa-table-cells-large"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="projects.html">
+                <i class="fa-solid fa-clipboard"></i>
+                <span class="nav-label">Projects</span>
+            </a>
+            <a href="employees.html" class="">
+                <i class="fa-solid fa-users"></i>
+                <span class="nav-label">Employees</span>
+            </a>
+            <a href="my account.html" class="active">
+                <i class="fa-regular fa-user"></i>
+                <span class="nav-label">My Account</span>
+            </a>
+        </nav>
+    </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="page-header">
+      <h1 class="page-title">Account</h1>
+      <div class="page-actions">
+        <button class="btn btn-danger">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-Column Grid -->
+    <div class="three-col-grid">
+
+      <!-- Column 1: Profile Info -->
+      <div class="card">
+        <div
+          style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #F2F2F2;">
+          <div
+            style="width:56px;height:56px;border-radius:50%;background:#E8E8E8;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+            <i class="fa-solid fa-user" style="color:#bbb; font-size:20px;"></i>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:#1a1a1a;">Baldyas Satrio</div>
+            <div style="font-size:12px;color:#888;font-weight:500;">Admin</div>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Code</span>
+          <span class="info-value" style="font-size:11px;color:#2975BB;font-family:monospace;">BILFBY9N8YJ1YDN</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value" style="font-size:13px;">baldy@anomalistudio.co.id</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Mobile</span>
+          <span class="info-value">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Gender</span>
+          <span class="info-value">Male</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Company</span>
+          <span class="info-value">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Pin</span>
+          <span class="info-value" style="font-family:monospace;letter-spacing:0.1em;">3131</span>
+        </div>
+      </div>
+
+      <!-- Column 2: OTP & Security -->
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;gap:10px;">
+          <i class="fa-solid fa-lock" style="color:#2975BB; font-size:16px;"></i>
+          Security
+        </div>
+
+        <!-- OTP Display -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:13px;color:#888;font-weight:500;margin-bottom:8px;">OTP</div>
+          <div class="otp-display">
+            <div class="otp-number">4536</div>
+          </div>
+        </div>
+
+        <!-- OTP Change In -->
+        <div>
+          <div style="font-size:13px;color:#888;font-weight:500;margin-bottom:8px;">OTP Change In</div>
+          <div style="background:#F2F2F2;border:1px solid #D9D9D9;border-radius:7px;padding:20px;text-align:center;">
+            <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:12px;">1340 Minutes 55 Second</div>
+            <div class="cooldown-bar">
+              <div class="cooldown-progress" style="width: 85%;"></div>
+            </div>
+            <div class="cooldown-text" style="margin-top:10px;">Cooldown active — please wait for reset</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: Assigned Projects -->
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-folder" style="color:#2975BB; font-size:16px;"></i>
+            Assigned Projects
+          </span>
+        </div>
+
+        <div class="project-list" style="display:flex;flex-direction:column;">
+          <a href="project_employees.html" class="project-item" style="text-decoration:none;color:inherit;">
+            <div>
+              <div class="project-item-name">Anomali</div>
+              <div class="project-item-type">Attendance</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="project-item-employee">129</div>
+              <i class="fa-solid fa-chevron-right" style="color:#bbb; font-size:12px;"></i>
+            </div>
+          </a>
+          <a href="project_employees.html" class="project-item" style="text-decoration:none;color:inherit;">
+            <div>
+              <div class="project-item-name">Test 1</div>
+              <div class="project-item-type">Attendance</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="project-item-employee">4</div>
+              <i class="fa-solid fa-chevron-right" style="color:#bbb; font-size:12px;"></i>
+            </div>
+          </a>
+          <a href="project_employees.html" class="project-item" style="text-decoration:none;color:inherit;">
+            <div>
+              <div class="project-item-name">Test 2</div>
+              <div class="project-item-type">Attendance</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="project-item-employee">3</div>
+              <i class="fa-solid fa-chevron-right" style="color:#bbb; font-size:12px;"></i>
+            </div>
+          </a>
+          <a href="project_employees.html" class="project-item" style="text-decoration:none;color:inherit;">
+            <div>
+              <div class="project-item-name">Test 3</div>
+              <div class="project-item-type">Attendance</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="project-item-employee">0</div>
+              <i class="fa-solid fa-chevron-right" style="color:#bbb; font-size:12px;"></i>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Version -->
+    <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.86</div>
+
+  </main>
+
+</body>
+
+</html>

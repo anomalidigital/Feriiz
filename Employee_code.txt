@@ -1,0 +1,14 @@
+daftar employee untuk di table activity, Report, Request
+dan sesuaikan.
+
+
+Nama Karyawan,ID / Kode
+Adam Ferial,ADA27B1B2E650H0X Graphic Design
+Apriyanto Apriyanto,APR8940K8VB44L8 Teknisi
+Baldyas Satrio,BILFBY9N8YJ1YDN Graphic Design
+Indra Naftali,IND693283053999 Meneger
+Mauli Hidayat,MAUNZ1TL5H0Q7GG Marketing
+Steven Febrianto,STEPRQTY99 Backend
+Veronica Nathalia,VER2FWV8L80S5SX graphic Design
+Yenni Tedjakoesoemo,YENX6LH3X9 HR Administrator
+Zicky Affan,ZICOJMQN8SQ5RDT 3D Artist

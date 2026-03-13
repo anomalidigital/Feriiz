@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Employees</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="_Asset_/icon feriiz.png" alt="Feriiz Logo">
+            <div class="logo-text">FERIIZ</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="Index.html" class="">
+                <i class="fa-solid fa-table-cells-large"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="projects.html">
+                <i class="fa-solid fa-clipboard"></i>
+                <span class="nav-label">Projects</span>
+            </a>
+            <a href="employees.html" class="active">
+                <i class="fa-solid fa-users"></i>
+                <span class="nav-label">Employees</span>
+            </a>
+            <a href="my account.html" class="">
+                <i class="fa-regular fa-user"></i>
+                <span class="nav-label">My Account</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Employees</h1>
+            <div class="page-actions">
+                <div style="position:relative;">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
+                        <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter
+                            Employees</div>
+                        <label>Date Range (Last Activity)</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="date" class="input filter-date" style="flex:1;">
+                            <span style="color:#666; font-weight:600;">-</span>
+                            <input type="date" class="input filter-date" style="flex:1;">
+                        </div>
+                        <label>Occupation</label>
+                        <select class="input filter-occ"
+                            style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif;">
+                            <option>All Occupations</option>
+                            <option>Tukang Marmer</option>
+                            <option>Tukang Batu</option>
+                            <option>Tukang Kayu</option>
+                            <option>Backend Engineer</option>
+                            <option>Frontend Engineer</option>
+                            <option>UI/UX Designer</option>
+                        </select>
+                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                            <button class="btn btn-outline filter-clear-btn"
+                                style="padding:6px 12px; font-size:12px;">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn"
+                                style="padding:6px 12px; font-size:12px;">Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary">
+                    <i class="fa-solid fa-file-export"></i>
+                    Export
+                </button>
+                <button class="btn btn-primary" onclick="openEmployeeDetailModal(true, null)">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Employee
+                </button>
+                <div style="display:flex; align-items:center; position:relative;">
+                    <i class="fa-solid fa-magnifying-glass"
+                        style="position:absolute; left:12px; color:#999; font-size:14px;"></i>
+                    <input type="text" placeholder="Search"
+                        style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-cards" style="gap:24px;">
+            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number"
+                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">9
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Employees</div>
+                </div>
+            </div>
+            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
+                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number"
+                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">3
+                    </div>
+                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Occupations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                                <thead>
+                    <tr>
+                        <th style="width:60px;"></th>
+                        <th>Name</th>
+                        <th class="col-pictures">Pictures</th>
+                        <th>Occupation</th>
+                        <th>Pin</th>
+                        <th>Last Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Adam Ferial')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Adam Ferial</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">ADA27B1B2E650H0X</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Graphic Design</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Apriyanto Apriyanto')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Apriyanto Apriyanto</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">APR8940K8VB44L8</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Teknisi</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Baldyas Satrio')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Baldyas Satrio</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">BILFBY9N8YJ1YDN</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Graphic Design</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Indra Naftali')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Indra Naftali</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">IND693283053999</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Meneger</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Mauli Hidayat')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Mauli Hidayat</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">MAUNZ1TL5H0Q7GG</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Marketing</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Steven Febrianto')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Steven Febrianto</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">STEPRQTY99</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Backend</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Veronica Nathalia')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Veronica Nathalia</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">VER2FWV8L80S5SX</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>Graphic Design</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Yenni Tedjakoesoemo')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Yenni Tedjakoesoemo</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">YENX6LH3X9</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>HR Administrator</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Zicky Affan')"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell">
+                                <div>
+                                    <div class="employee-name">Zicky Affan</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">ZICOJMQN8SQ5RDT</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <img src="Employee_pictures/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                        </td>
+                        <td>3D Artist</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="pagination">
+                <div class="pagination-info">Showing 1 - 3 of 500 results</div>
+                <div class="pagination-buttons">
+                    <button disabled>&lt; Previous</button>
+                    <a href="#" class="active">1</a>
+                    <a href="#">2</a>
+                    <a href="#">3</a>
+                    <span class="page-dots">...</span>
+                    <a href="#">Next &gt;</a>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.86</div>
+    </main>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.querySelector('.filter-toggle-btn');
+            const dropdown = document.querySelector('.filter-dropdown');
+            const applyBtn = document.querySelector('.filter-apply-btn');
+            const clearBtn = document.querySelector('.filter-clear-btn');
+            const occSelect = document.querySelector('.filter-occ');
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+            if (toggleBtn && dropdown) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                    toggleBtn.classList.toggle('active');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                        toggleBtn.classList.remove('active');
+                    }
+                });
+
+                dropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
+            const applyFilter = () => {
+                const occVal = occSelect ? occSelect.value.toLowerCase() : 'all occupations';
+
+                tableRows.forEach(row => {
+                    // Occupation is in column 3
+                    const occCell = row.querySelector('td:nth-child(3)');
+
+                    if (!occCell) return;
+
+                    const occText = occCell.textContent.toLowerCase();
+
+                    // If 'all occupations' or matches occupation
+                    if (occVal === 'all occupations' || occVal === '' || occText.includes(occVal)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                dropdown.classList.remove('show');
+                toggleBtn.classList.remove('active');
+            };
+
+            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (occSelect) occSelect.selectedIndex = 0;
+                    
+                    const dateInputs = document.querySelectorAll('.filter-date');
+                    dateInputs.forEach(input => input.value = '');
+
+                    applyFilter();
+                });
+            }
+        });
+    </script>
+
+    
+
+
+    <!-- Employee Detail Modal Overlay -->
+    <div class="modal-overlay" id="employeeDetailModal">
+        <div class="modal-card" style="width:760px; max-width:92vw; max-height:85vh; overflow-y:auto; border-radius:14px;">
+            <div style="display:flex; justify-content:flex-end; padding:16px 20px 0;">
+                <button onclick="closeEmployeeDetailModal()" style="width:28px; height:28px; background:#e74c3c; color:#fff; border:none; border-radius:4px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+            <div style="padding:0 32px 32px;">
+                <h2 id="employeeDetailTitle" style="font-size:18px; font-weight:700; margin-bottom:24px; color:#1a1a1a;">Employee Detail</h2>
+                <div style="display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(0, 1fr); gap:24px;">
+                    <div>
+                        <div style="background:#f5f5f5; padding:10px 16px; border-radius:6px; font-weight:700; font-size:13px; color:#333; margin-bottom:16px;">Personal Information</div>
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px; margin-bottom:16px;">
+                            <input type="text" id="empModalFirstName" placeholder="First Name" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                            <input type="text" placeholder="Last Name" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                            <input type="text" placeholder="Occupation" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px; margin-bottom:16px;">
+                            <input type="text" placeholder="Pin" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                            <input type="text" placeholder="Date of Birth" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                            <select style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; font-size:13px; background:#fff;">
+                                <option>Gender</option><option>Male</option><option>Female</option>
+                            </select>
+                        </div>
+                        <textarea placeholder="Note" rows="4" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px; resize:vertical; margin-bottom:24px;"></textarea>
+                        <div style="background:#f5f5f5; padding:10px 16px; border-radius:6px; font-weight:700; font-size:13px; color:#333; margin-bottom:16px;">Working Time</div>
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px; margin-bottom:16px;">
+                            <input type="text" placeholder="Start Hour" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                            <input type="text" placeholder="End Hour" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                            <input type="text" placeholder="Cut Off Hour" style="padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                        </div>
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px;">
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#7c3aed; width:16px; height:16px;">Mon</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#7c3aed; width:16px; height:16px;">Tue</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#7c3aed; width:16px; height:16px;">Wed</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#7c3aed; width:16px; height:16px;">Thu</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#7c3aed; width:16px; height:16px;">Fri</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" style="accent-color:#7c3aed; width:16px; height:16px;">Sat</label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#333;"><input type="checkbox" style="accent-color:#7c3aed; width:16px; height:16px;">Sun</label>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="background:#f5f5f5; padding:10px 16px; border-radius:6px; font-weight:700; font-size:13px; color:#333; margin-bottom:16px;">Account Configuration</div>
+                        <select style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; font-size:13px; background:#fff; margin-bottom:12px;">
+                            <option>Select Role</option><option>Employee</option><option>Admin</option>
+                        </select>
+                        <input type="email" placeholder="Email" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px; margin-bottom:12px;">
+                        <button style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; background:#fff; font-family:'Poppins',sans-serif; font-size:13px; cursor:pointer; color:#555; margin-bottom:24px;">Reset Password</button>
+                        <div style="background:#f5f5f5; padding:10px 16px; border-radius:6px; font-weight:700; font-size:13px; color:#333; margin-bottom:16px;">Payment Rate</div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                            <span style="font-size:14px; font-weight:600; color:#555;">$</span>
+                            <input type="text" placeholder="Hourly Rate" style="flex:1; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                            <span style="font-size:14px; font-weight:600; color:#555;">$</span>
+                            <input type="text" placeholder="Hourly Overtime Rate" style="flex:1; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                            <span style="font-size:14px; font-weight:600; color:#555;">$</span>
+                            <input type="text" placeholder="Client Rate" style="flex:1; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:24px;">
+                            <span style="font-size:14px; font-weight:600; color:#555;">$</span>
+                            <input type="text" placeholder="Client Overtime Rate" style="flex:1; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif; font-size:13px;">
+                        </div>
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button onclick="closeEmployeeDetailModal()" style="padding:12px 32px; background:#166DBA; color:#fff; border:none; border-radius:6px; font-family:'Poppins',sans-serif; font-weight:600; font-size:14px; cursor:pointer;">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000;
+            align-items: flex-start; padding-top: 6vh; justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-card { background: #fff; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); animation: slideUp 0.25s ease; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    </style>
+
+    <script>
+        function openEmployeeDetailModal(isNew, name) {
+            const title = document.getElementById('employeeDetailTitle');
+            if(isNew) {
+                title.textContent = 'Add Employee';
+            } else {
+                title.textContent = 'Employee Detail';
+            }
+            const firstName = document.getElementById('empModalFirstName');
+            if(firstName && !isNew && name) {
+                firstName.value = name.split(' ')[0];
+            } else if(firstName && isNew) {
+                firstName.value = '';
+            }
+            document.getElementById('employeeDetailModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeEmployeeDetailModal() {
+            document.getElementById('employeeDetailModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        document.getElementById('employeeDetailModal').addEventListener('click', function(e) {
+            if(e.target === this) closeEmployeeDetailModal();
+        });
+    </script>
+
+</body>
+
+</html>

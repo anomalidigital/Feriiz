@@ -43,10 +43,38 @@
                     </div>
                 </div>
             </div>
-            <div class="page-actions">
+            <div class="page-actions" style="display:flex; gap:12px; align-items:center;">
+                <div style="position:relative;">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <!-- Filter Dropdown Menu -->
+                    <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
+                        <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter Projects</div>
+                        
+                        <label>Project Type</label>
+                        <select class="input filter-type" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif;">
+                            <option>All Types</option>
+                            <option>Attendance</option>
+                            <option>Overtime</option>
+                        </select>
+
+                        <label>Start Date Range</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="date" class="input filter-date-start" style="flex:1;">
+                            <span style="color:#666; font-weight:600;">-</span>
+                            <input type="date" class="input filter-date-end" style="flex:1;">
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                            <button class="btn btn-outline filter-clear-btn" style="padding:6px 12px; font-size:12px;">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn" style="padding:6px 12px; font-size:12px;">Apply</button>
+                        </div>
+                    </div>
+                </div>
                 <div style="display:flex; align-items:center; position:relative;">
                     <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; color:#999; font-size:14px;"></i>
-                    <input type="text" placeholder="Search projects..." style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
+                    <input type="text" id="projectSearch" placeholder="Search projects..." style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
                 </div>
             </div>
         </div>
@@ -104,5 +132,87 @@
 
         <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.88</div>
     </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.querySelector('.filter-toggle-btn');
+            const dropdown = document.querySelector('.filter-dropdown');
+            const applyBtn = document.querySelector('.filter-apply-btn');
+            const clearBtn = document.querySelector('.filter-clear-btn');
+            const typeSelect = document.querySelector('.filter-type');
+            const dateStart = document.querySelector('.filter-date-start');
+            const dateEnd = document.querySelector('.filter-date-end');
+            const searchInput = document.getElementById('projectSearch');
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+            if (toggleBtn && dropdown) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            const applyFilters = () => {
+                const typeVal = typeSelect.value.toLowerCase();
+                const startVal = dateStart.value;
+                const endVal = dateEnd.value;
+                const searchVal = searchInput.value.toLowerCase();
+
+                tableRows.forEach(row => {
+                    const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    const code = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const type = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const dateText = row.querySelector('td:nth-child(4)').textContent; // e.g. "01 January 2025"
+                    
+                    let show = true;
+
+                    // Search match
+                    if (searchVal && !name.includes(searchVal) && !code.includes(searchVal)) {
+                        show = false;
+                    }
+
+                    // Type match
+                    if (show && typeVal !== 'all types' && !type.includes(typeVal)) {
+                        show = false;
+                    }
+
+                    // Date range match
+                    if (show && (startVal || endVal)) {
+                        const rowDate = new Date(dateText);
+                        if (startVal && rowDate < new Date(startVal)) show = false;
+                        if (endVal && rowDate > new Date(endVal)) show = false;
+                    }
+
+                    row.style.display = show ? '' : 'none';
+                });
+            };
+
+            if (applyBtn) {
+                applyBtn.addEventListener('click', () => {
+                    applyFilters();
+                    dropdown.classList.remove('show');
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    typeSelect.selectedIndex = 0;
+                    dateStart.value = '';
+                    dateEnd.value = '';
+                    applyFilters();
+                    dropdown.classList.remove('show');
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', applyFilters);
+            }
+        });
+    </script>
 </body>
 </html>

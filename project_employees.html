@@ -724,22 +724,47 @@
             document.getElementById('manageEmpModal').classList.remove('show');
             document.body.style.overflow = '';
         }
-        document.getElementById('manageEmpModal').addEventListener('click', function(e) {
-            if(e.target === this) closeManageEmpModal();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('manageEmpModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if(e.target === this) closeManageEmpModal();
+                });
+            }
+
+            // Checkbox → code area logic
+            document.querySelectorAll('.manage-emp-cb').forEach(cb => {
+                cb.addEventListener('change', updateCodeArea);
+            });
+
+            // Search filter
+            const searchInput = document.getElementById('manageEmpSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.toLowerCase();
+                    document.querySelectorAll('.manage-emp-cb').forEach(cb => {
+                        const name = cb.dataset.name.toLowerCase();
+                        cb.closest('label').style.display = name.includes(q) ? 'flex' : 'none';
+                    });
+                });
+            }
         });
 
-        // Checkbox → code area logic
-        document.querySelectorAll('.manage-emp-cb').forEach(cb => {
-            cb.addEventListener('change', updateCodeArea);
-        });
         function updateCodeArea() {
             const codeArea = document.getElementById('empCodeArea');
             const checked = document.querySelectorAll('.manage-emp-cb:checked');
+            const btn = document.getElementById('verifyDataBtn');
+            
+            // Reset button to Verify Data state anytime selection changes
+            btn.textContent = 'Verify Data';
+            btn.onclick = verifyEmployeeData; // ensure it resets the onclick
+            
             if(checked.length === 0) {
                 codeArea.textContent = 'Enter Employee\nCode (...)\nSeparated By';
-                document.getElementById('verifyDataBtn').textContent = 'Verify Data';
-                document.getElementById('verifyDataBtn').style.background = '#fff';
-                document.getElementById('verifyDataBtn').style.color = '#333';
+                btn.style.background = '#fff';
+                btn.style.color = '#333';
+                btn.style.borderColor = '#e5e5e5';
                 return;
             }
             let text = '';
@@ -747,9 +772,10 @@
                 text += 'Enter Employee\nCode ( ' + cb.dataset.code + ' )\nSeparated By\n\n';
             });
             codeArea.textContent = text.trim();
-            document.getElementById('verifyDataBtn').textContent = 'Verify Data';
-            document.getElementById('verifyDataBtn').style.background = '#fff';
-            document.getElementById('verifyDataBtn').style.color = '#333';
+            // Highlight button to indicate readiness to verify
+            btn.style.background = '#166DBA';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#166DBA';
         }
 
         function verifyEmployeeData() {
@@ -785,8 +811,13 @@
             document.getElementById('empDetailOverlay').classList.remove('show');
             document.body.style.overflow = '';
         }
-        document.getElementById('empDetailOverlay').addEventListener('click', function(e) {
-            if(e.target === this) closeEmpDetailOverlay();
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('empDetailOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    if(e.target === this) closeEmpDetailOverlay();
+                });
+            }
         });
     </script>
 
@@ -876,67 +907,7 @@ Separated By</div>
         </div>
     </div>
     
-    <script>
-        // === Manage Employee Modal ===
-        function openManageEmpModal() {
-            document.getElementById('manageEmpModal').classList.add('show');
-        }
-        function closeManageEmpModal() {
-            document.getElementById('manageEmpModal').classList.remove('show');
-        }
-        // Close when clicking overlay background
-        document.getElementById('manageEmpModal').addEventListener('click', function(e) {
-            if (e.target === this) closeManageEmpModal();
-        });
-
-        // Checkbox → Code Area sync
-        document.querySelectorAll('.manage-emp-cb').forEach(cb => {
-            cb.addEventListener('change', updateCodeArea);
-        });
-        function updateCodeArea() {
-            const codeArea = document.getElementById('empCodeArea');
-            const btn = document.getElementById('verifyDataBtn');
-            const checked = document.querySelectorAll('.manage-emp-cb:checked');
-            if (checked.length === 0) {
-                codeArea.textContent = 'Enter Employee\nCode (...)\nSeparated By';
-                btn.textContent = 'Verify Data';
-                btn.style.background = '#fff';
-                btn.style.color = '#333';
-                btn.style.borderColor = '#e5e5e5';
-                return;
-            }
-            let text = '';
-            checked.forEach(cb => {
-                text += 'Enter Employee\nCode ( ' + cb.dataset.code + ' )\nSeparated By\n\n';
-            });
-            codeArea.textContent = text.trim();
-            // Activate Import Employees button
-            btn.textContent = 'Import Employees';
-            btn.style.background = '#166DBA';
-            btn.style.color = '#fff';
-            btn.style.borderColor = '#166DBA';
-        }
-
-        function verifyEmployeeData() {
-            const checked = document.querySelectorAll('.manage-emp-cb:checked');
-            if (checked.length > 0) {
-                alert('Importing ' + checked.length + ' employee(s)...');
-                closeManageEmpModal();
-            }
-        }
-
-        // Search filter
-        const searchInput = document.getElementById('manageEmpSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                const q = this.value.toLowerCase();
-                document.querySelectorAll('.manage-emp-cb').forEach(cb => {
-                    const name = cb.dataset.name.toLowerCase();
-                    cb.closest('label').style.display = name.includes(q) ? 'flex' : 'none';
-                });
-            });
-        }
-    </script>
+    
 
 
     <script>

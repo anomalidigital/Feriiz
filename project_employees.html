@@ -112,7 +112,7 @@
             <h1 class="page-title">Activity</h1>
             <div class="page-actions" style="display: flex; gap: 12px; align-items: center;">
                 <div style="position:relative;">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter" onclick="this.nextElementSibling.classList.toggle('show')">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <!-- Filter Dropdown Menu -->
@@ -122,10 +122,15 @@
                         <label>Occupation</label>
                         <select class="input filter-occ"
                             style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif;">
-                            <option>All Occupations</option>
-                            <option>Backend Engineer</option>
-                            <option>Frontend Engineer</option>
-                            <option>UI/UX Designer</option>
+                            <option value="all occupations">All Occupations</option>
+                            <option value="backend">Backend</option>
+                            <option value="frontend">Frontend</option>
+                            <option value="graphic design">Graphic Design</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="meneger">Manager</option>
+                            <option value="teknisi">Teknisi</option>
+                            <option value="hr administrator">HR Administrator</option>
+                            <option value="3d artist">3D Artist</option>
                         </select>
                         <label>Last Activity</label>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -363,6 +368,36 @@
                             </div>
                         </td>
                         <td>Marketing</td>
+                        <td>-</td>
+                        <td>25 January 2025, 12:35pm</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-icon" title="Edit" onclick="openEmployeeDetailOverlay('Raden Maulana')"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
+                                <a href="employee_report.html" class="btn-icon" title="Report"><i class="fa-regular fa-file-lines"></i></a>
+                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i class="fa-solid fa-clipboard-list"></i></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-cell" style="display:flex; align-items:center; gap:12px;">
+                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                                <div>
+                                    <div class="employee-name">Raden Maulana</div>
+                                    <div class="employee-code" style="font-size:11px; color:#888;">RADVBYR5171FSC6</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-pictures">
+                            <div style="display:flex; gap:6px;">
+                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" style="width:40px; height:40px; border-radius:7px; object-fit:cover;">
+                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" style="width:40px; height:40px; border-radius:7px; object-fit:cover;">
+                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" style="width:40px; height:40px; border-radius:7px; object-fit:cover;">
+                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" style="width:40px; height:40px; border-radius:7px; object-fit:cover;">
+                            </div>
+                        </td>
+                        <td>Frontend</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
                     </tr>
@@ -826,61 +861,66 @@
     <!-- Manage Employee Overlay -->
     <div class="modal-overlay" id="manageEmpModal">
         <div class="modal-card" style="width:900px; max-width:95vw; max-height:85vh; overflow-y:auto; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.18); background:#fff;">
-            <div class="modal-header" style="padding:28px 32px 20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+            <div class="modal-header" style="padding:32px 40px 24px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                 <h2 style="font-size:20px; font-weight:700; color:#1a1a1a; margin:0;">Manage Employee</h2>
                 <button class="modal-close" onclick="closeManageEmpModal()" style="font-size:24px; background:none; border:none; cursor:pointer; color:#888;">&times;</button>
             </div>
-            <div class="modal-body" style="padding:28px 32px;">
-                <div style="display:flex; gap:12px; align-items:center; margin-bottom:24px;">
-                    <select id="assignedFilter" style="padding:8px 20px; background:#166DBA; color:#fff; border:none; border-radius:6px; font-family:'Poppins',sans-serif; font-weight:600; font-size:13px; cursor:pointer; outline:none;">
+            <div class="modal-body" style="padding:32px 40px;">
+                <div style="display:flex; gap:16px; align-items:center; margin-bottom:28px;">
+                    <select id="assignedFilter" style="padding:10px 24px; background:#166DBA; color:#fff; border:none; border-radius:8px; font-family:'Poppins',sans-serif; font-weight:600; font-size:13px; cursor:pointer; outline:none; height:44px;">
                         <option>Assigned</option>
                         <option>Unassigned</option>
                     </select>
                     <div style="position:relative; flex:1;">
                         <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#999;"></i>
-                        <input type="text" id="manageEmpSearch" placeholder="Search Employee" style="width:100%; padding:8px 12px 8px 38px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; font-size:13px; outline:none; height:40px;">
+                        <input type="text" id="manageEmpSearch" placeholder="Search Employee" style="width:100%; padding:10px 14px 10px 40px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; font-size:13px; outline:none; height:44px;">
                     </div>
+                    <button id="importCodeBtn" onclick="toggleImportArea()" style="padding:10px 24px; background:#fff; color:#166DBA; border:1px solid #166DBA; border-radius:8px; font-family:'Poppins',sans-serif; font-weight:600; font-size:13px; cursor:pointer; height:44px; transition:all 0.2s;">Import Code</button>
                 </div>
-                <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:24px;">
-                    <div style="border:1px solid #e5e5e5; border-radius:10px; padding:20px;">
+                <div id="manageEmpLayout" style="display:grid; grid-template-columns:1fr; gap:28px;">
+                    <div style="border:1px solid #e5e5e5; border-radius:10px; padding:20px; background:#FAFAFA;">
                         <div style="font-weight:700; font-size:14px; margin-bottom:16px; color:#1a1a1a;">List Employee</div>
                         <div id="manageEmpList" style="max-height: 250px; overflow-y: auto;">
                             <!-- Checkboxes injected by script logic -->
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Adam Ferial" data-code="ADA27B1B2E650H0X" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Adam Ferial</span>
+                                <span style="font-size:14px; color:#333;">Adam Ferial <span style="color:#aaa; font-size:12px;">( ADA27B1B2E650H0X )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Apriyanto Apriyanto" data-code="APR8940K8VB44L8" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Apriyanto Apriyanto</span>
+                                <span style="font-size:14px; color:#333;">Apriyanto Apriyanto <span style="color:#aaa; font-size:12px;">( APR8940K8VB44L8 )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Baldyas Satrio" data-code="BILFBY9N8YJ1YDN" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Baldyas Satrio</span>
+                                <span style="font-size:14px; color:#333;">Baldyas Satrio <span style="color:#aaa; font-size:12px;">( BILFBY9N8YJ1YDN )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Indra Naftali" data-code="IND693283053999" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Indra Naftali</span>
+                                <span style="font-size:14px; color:#333;">Indra Naftali <span style="color:#aaa; font-size:12px;">( IND693283053999 )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Mauli Hidayat" data-code="MAUNZ1TL5H0Q7GG" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Mauli Hidayat</span>
+                                <span style="font-size:14px; color:#333;">Mauli Hidayat <span style="color:#aaa; font-size:12px;">( MAUNZ1TL5H0Q7GG )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
+                                <input type="checkbox" class="manage-emp-cb" data-name="Raden Maulana" data-code="RADVBYR5171FSC6" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
+                                <span style="font-size:14px; color:#333;">Raden Maulana <span style="color:#aaa; font-size:12px;">( RADVBYR5171FSC6 )</span></span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Steven Febrianto" data-code="STEPRQTY99" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Steven Febrianto</span>
+                                <span style="font-size:14px; color:#333;">Steven Febrianto <span style="color:#aaa; font-size:12px;">( STEPRQTY99 )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Veronica Nathalia" data-code="VER2FWV8L80S5SX" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Veronica Nathalia</span>
+                                <span style="font-size:14px; color:#333;">Veronica Nathalia <span style="color:#aaa; font-size:12px;">( VER2FWV8L80S5SX )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Yenni Tedjakoesoemo" data-code="YENX6LH3X9" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Yenni Tedjakoesoemo</span>
+                                <span style="font-size:14px; color:#333;">Yenni Tedjakoesoemo <span style="color:#aaa; font-size:12px;">( YENX6LH3X9 )</span></span>
                             </label>
-                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e5e5e5; cursor:pointer; background:#fff; padding:12px; border-radius:6px; margin-bottom:4px;">
                                 <input type="checkbox" class="manage-emp-cb" data-name="Zicky Affan" data-code="ZICOJMQN8SQ5RDT" style="accent-color:#166DBA; width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:14px; color:#333;">Zicky Affan</span>
+                                <span style="font-size:14px; color:#333;">Zicky Affan <span style="color:#aaa; font-size:12px;">( ZICOJMQN8SQ5RDT )</span></span>
                             </label>
                         </div>
                         <!-- Pagination -->
@@ -896,12 +936,17 @@
                             <button>&raquo;</button>
                         </div>
                     </div>
-                    <div>
-                        <div id="empCodeArea" style="border:1px solid #e5e5e5; border-radius:10px; padding:20px; min-height:260px; font-family:monospace; font-size:13px; color:#888; white-space:pre-line; line-height:1.8;">Enter Employee
-Code (...)
-Separated By</div>
-                        <button id="verifyDataBtn" onclick="verifyEmployeeData()" style="width:100%; padding:14px; background:#fff; border:1.5px solid #e5e5e5; border-radius:10px; font-family:'Poppins',sans-serif; font-weight:700; font-size:15px; color:#333; cursor:pointer; margin-top:16px; transition:all 0.2s ease;">Verify Data</button>
+                    <div id="importAreaWrapper" style="display:none; flex-direction:column; height: 100%;">
+                        <textarea id="empCodeArea" style="flex:1; width:100%; border:1px solid #e5e5e5; border-radius:10px; padding:20px; font-family:monospace; font-size:13px; color:#333; resize:none; outline:none; margin-bottom:16px;" placeholder="Please enter employee code, separated by new line..."></textarea>
+                        <div id="codeErrorBox" style="display:none; color:#de3a46; font-size:12px; background:#fff2f4; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #ffccd3;"></div>
+                        <button id="verifyDataBtn" onclick="verifyEmployeeData()" style="width:100%; padding:14px; background:#fff; border:1px solid #aaa; border-radius:8px; font-family:'Poppins',sans-serif; font-weight:600; font-size:15px; color:#555; cursor:pointer; transition:all 0.2s ease;">Verify Data</button>
                     </div>
+                </div>
+            </div>
+            <div id="empModalFooter" style="padding: 0 40px 32px; display:flex; justify-content:flex-end; gap:12px;">
+                <button class="btn btn-outline" onclick="closeManageEmpModal()" style="color:#166DBA; border:1px solid #166DBA; padding:10px 32px; border-radius:6px; background:#fff; font-weight:600; cursor:pointer;">Cancel</button>
+                <button id="saveChangesBtn" class="btn btn-primary" onclick="closeManageEmpModal()" style="background:#166DBA; color:#fff; border:none; padding:10px 32px; border-radius:6px; font-weight:600; cursor:pointer; opacity:0.5; pointer-events:none;">Save Changes</button>
+            </div>
                 </div>
             </div>
         </div>
@@ -933,44 +978,124 @@ Separated By</div>
                 absenceToggle.dispatchEvent(new Event('change'));
             }
         });
-
-        // Activity Table Filter Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const applyBtn = document.querySelector('.filter-apply-btn');
-            const clearBtn = document.querySelector('.filter-clear-btn');
-            
-            if (applyBtn) {
-                applyBtn.addEventListener('click', function() {
-                    const occFilter = document.querySelector('.filter-occ').value.toLowerCase();
-                    const rows = document.querySelectorAll('.data-table tbody tr');
-                    
-                    rows.forEach(row => {
-                        let show = true;
-                        const occCell = row.querySelectorAll('td')[3]; // 4th column is Occupation
-                        if (occCell && occFilter !== 'all occupations') {
-                            if (!occCell.textContent.toLowerCase().includes(occFilter)) {
-                                show = false;
-                            }
-                        }
-                        row.style.display = show ? '' : 'none';
-                    });
-                    this.closest('.filter-dropdown').classList.remove('show');
-                });
-            }
-
-            if (clearBtn) {
-                clearBtn.addEventListener('click', function() {
-                    document.querySelector('.filter-occ').value = 'All Occupations';
-                    document.querySelectorAll('.filter-date').forEach(el => el.value = '');
-                    document.querySelectorAll('.data-table tbody tr').forEach(row => {
-                        row.style.display = '';
-                    });
-                    this.closest('.filter-dropdown').classList.remove('show');
-                });
-            }
-        });
     </script>
+    <script>
+        // Manage Employee JS Logic
+        function toggleImportArea() {
+            const layout = document.getElementById('manageEmpLayout');
+            const wrapper = document.getElementById('importAreaWrapper');
+            const btn = document.getElementById('importCodeBtn');
+            
+            if (wrapper.style.display === 'none') {
+                wrapper.style.display = 'flex';
+                layout.style.gridTemplateColumns = '1.4fr 1fr';
+                btn.style.display = 'none'; // hide import btn
+            }
+        }
+        
+        function verifyEmployeeData() {
+            const area = document.getElementById('empCodeArea');
+            const errorBox = document.getElementById('codeErrorBox');
+            const checkboxes = document.querySelectorAll('.manage-emp-cb');
+            const saveBtn = document.getElementById('saveChangesBtn');
+            const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            errorBox.style.display = 'none';
+            errorBox.innerHTML = '';
+            
+            // clear all checkboxes first
+            checkboxes.forEach(cb => cb.checked = false);
+            
+            if (lines.length === 0) {
+                errorBox.innerHTML = 'Please enter at least one employee code.';
+                errorBox.style.display = 'block';
+                saveBtn.style.opacity = '0.5';
+                saveBtn.style.pointerEvents = 'none';
+                return;
+            }
+            
+            let invalidCodes = [];
+            
+            lines.forEach(code => {
+                let found = false;
+                checkboxes.forEach(cb => {
+                    if (cb.getAttribute('data-code') === code) {
+                        cb.checked = true;
+                        found = true;
+                    }
+                });
+                
+                if (!found) {
+                    invalidCodes.push(code);
+                }
+            });
+            
+            if (invalidCodes.length > 0) {
+                errorBox.innerHTML = '<b>Verification Failed:</b><br/>The following codes are invalid or employee inactive:<br/>- ' + invalidCodes.join('<br/>- ') + '<br/><br/>Please fix the codes to proceed.';
+                errorBox.style.display = 'block';
+                saveBtn.style.opacity = '0.5';
+                saveBtn.style.pointerEvents = 'none';
+            } else {
+                // Success!
+                errorBox.innerHTML = '<span style="color:#2ecc71;"><b>Verification Successful!</b> All employee codes matched. You can now save changes.</span>';
+                errorBox.style.display = 'block';
+                errorBox.style.background = '#f0fdf4';
+                errorBox.style.borderColor = '#bbf7d0';
+                errorBox.style.color = '#166534';
+                
+                const btn = document.getElementById('verifyDataBtn');
+                btn.textContent = 'Data Verified';
+                btn.style.background = '#f5f5f5';
+                btn.style.pointerEvents = 'none';
+                
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
 
+                // Move checked elements to the top of the list
+                const container = document.getElementById('manageEmpList');
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        container.prepend(cb.closest('label'));
+                    }
+                });
+            }
+        }
+        
+        function closeManageEmpModal() {
+            const modal = document.getElementById('manageEmpModal');
+            if(modal) modal.classList.remove('show');
+            // reset state
+            const layout = document.getElementById('manageEmpLayout');
+            const wrapper = document.getElementById('importAreaWrapper');
+            const btn = document.getElementById('importCodeBtn');
+            const area = document.getElementById('empCodeArea');
+            const errorBox = document.getElementById('codeErrorBox');
+            const verifyBtn = document.getElementById('verifyDataBtn');
+            const saveBtn = document.getElementById('saveChangesBtn');
+            const checkboxes = document.querySelectorAll('.manage-emp-cb');
+            
+            if (layout) {
+                layout.style.gridTemplateColumns = '1fr';
+                wrapper.style.display = 'none';
+                btn.style.display = 'block';
+                area.value = '';
+                errorBox.style.display = 'none';
+                errorBox.style.background = '#fff2f4';
+                errorBox.style.borderColor = '#ffccd3';
+                errorBox.style.color = '#de3a46';
+                if(verifyBtn) {
+                    verifyBtn.textContent = 'Verify Data';
+                    verifyBtn.style.background = '#fff';
+                    verifyBtn.style.pointerEvents = 'auto';
+                }
+                if(saveBtn) {
+                    saveBtn.style.opacity = '0.5';
+                    saveBtn.style.pointerEvents = 'none';
+                }
+                checkboxes.forEach(cb => cb.checked = false);
+            }
+        }
+    </script>
 </body>
 
 

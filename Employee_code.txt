@@ -8,6 +8,7 @@ Apriyanto Apriyanto,APR8940K8VB44L8 Teknisi
 Baldyas Satrio,BILFBY9N8YJ1YDN Graphic Design
 Indra Naftali,IND693283053999 Meneger
 Mauli Hidayat,MAUNZ1TL5H0Q7GG Marketing
+Raden Maulana,RADVBYR5171FSC6 Frontend
 Steven Febrianto,STEPRQTY99 Backend
 Veronica Nathalia,VER2FWV8L80S5SX graphic Design
 Yenni Tedjakoesoemo,YENX6LH3X9 HR Administrator

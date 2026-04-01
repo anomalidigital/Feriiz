@@ -53,18 +53,24 @@
                     <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
                         <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter Request</div>
                         <label>Request</label>
-                        <select class="input" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px;">
+                        <select class="input filter-type" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; margin-bottom: 12px;">
                             <option value="">-- All Request --</option>
-                            <option>Annual Leave</option><option>Sick Leave</option><option>Permit</option><option>Others</option>
+                            <option value="annual leave">Annual Leave</option><option value="sick leave">Sick Leave</option><option value="permit">Permit</option><option value="others">Others</option>
                         </select>
+                        <label>Date Range</label>
+                        <div style="display:flex; gap:8px; align-items:center; margin-bottom: 12px;">
+                            <input type="date" class="input filter-date" style="flex:1;">
+                            <span style="color:#666; font-weight:600;">-</span>
+                            <input type="date" class="input filter-date" style="flex:1;">
+                        </div>
                         <label>Status</label>
-                        <select class="input" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px;">
+                        <select class="input filter-status" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px;">
                             <option value="">-- All Status --</option>
-                            <option>Pending</option><option>Accepted</option><option>Rejected</option>
+                            <option value="pending">Pending</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
                         </select>
                         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
-                            <button class="btn btn-outline" style="padding:6px 12px; font-size:12px;">Clear</button>
-                            <button class="btn btn-primary" style="padding:6px 12px; font-size:12px;">Apply</button>
+                            <button class="btn btn-outline filter-clear-btn" style="padding:6px 12px; font-size:12px;">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn" style="padding:6px 12px; font-size:12px;">Apply</button>
                         </div>
                     </div>
                 </div>
@@ -123,10 +129,73 @@
         document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = document.querySelector('.filter-toggle-btn');
             const dropdown = document.querySelector('.filter-dropdown');
+            const applyBtn = document.querySelector('.filter-apply-btn');
+            const clearBtn = document.querySelector('.filter-clear-btn');
+            const typeSelect = document.querySelector('.filter-type');
+            const statusSelect = document.querySelector('.filter-status');
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+
             if (toggleBtn && dropdown) {
                 toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); });
                 document.addEventListener('click', (e) => { if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) dropdown.classList.remove('show'); });
                 dropdown.addEventListener('click', (e) => { e.stopPropagation(); });
+            }
+
+            const applyFilter = () => {
+                const typeVal = typeSelect.value.toLowerCase();
+                const statusVal = statusSelect.value.toLowerCase();
+                const dateInputs = document.querySelectorAll('.filter-date');
+                const startDateStr = dateInputs[0].value;
+                const endDateStr = dateInputs[1].value;
+                
+                let startFilter = null;
+                let endFilter = null;
+                if (startDateStr) startFilter = new Date(startDateStr).getTime();
+                if (endDateStr) endFilter = new Date(endDateStr).getTime();
+
+                tableRows.forEach(row => {
+                    const startDateCell = row.querySelector('td:nth-child(3)');
+                    const typeCell = row.querySelector('td:nth-child(6)');
+                    const statusCell = row.querySelector('td:nth-child(7)');
+                    if (!typeCell || !statusCell || !startDateCell) return;
+
+                    const typeText = typeCell.textContent.toLowerCase();
+                    const statusText = statusCell.textContent.toLowerCase();
+                    const rowDateStr = startDateCell.textContent.trim();
+                    let rowDateTime = null;
+                    if (rowDateStr && rowDateStr !== '-') {
+                        rowDateTime = new Date(rowDateStr).getTime();
+                    }
+
+                    let matchType = (typeVal === '' || typeText.includes(typeVal));
+                    let matchStatus = (statusVal === '' || statusText.includes(statusVal));
+                    let matchDate = true;
+                    
+                    if (rowDateTime) {
+                        if (startFilter && rowDateTime < startFilter) matchDate = false;
+                        if (endFilter && rowDateTime > endFilter + 86400000) matchDate = false;
+                    } else if (startFilter || endFilter) {
+                        matchDate = false;
+                    }
+
+                    if (matchType && matchStatus && matchDate) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                dropdown.classList.remove('show');
+            };
+
+            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    typeSelect.selectedIndex = 0;
+                    statusSelect.selectedIndex = 0;
+                    document.querySelectorAll('.filter-date').forEach(input => input.value = '');
+                    applyFilter();
+                });
             }
         });
     </script>

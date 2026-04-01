@@ -68,7 +68,7 @@
             <div class="page-actions">
                 <!-- Filter Icon -->
                 <div style="position:relative;">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter" onclick="this.nextElementSibling.classList.toggle('show')">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
@@ -729,16 +729,43 @@
             }
 
             const applyFilter = () => {
+                const typeVal = document.querySelector('.filter-type').value.toLowerCase();
                 const statusVal = statusSelect.value.toLowerCase();
+                const dateInputs = document.querySelectorAll('.filter-date');
+                const startDateStr = dateInputs[0].value;
+                const endDateStr = dateInputs[1].value;
+                
+                let startFilter = null;
+                let endFilter = null;
+                if (startDateStr) startFilter = new Date(startDateStr).getTime();
+                if (endDateStr) endFilter = new Date(endDateStr).getTime();
 
                 tableRows.forEach(row => {
-                    // Status is column 7
+                    const typeCell = row.querySelector('td:nth-child(3)');
+                    const startDateCell = row.querySelector('td:nth-child(4)');
                     const statusCell = row.querySelector('td:nth-child(7)');
-                    if (!statusCell) return;
+                    if (!typeCell || !statusCell || !startDateCell) return;
 
+                    const typeText = typeCell.textContent.toLowerCase();
                     const statusText = statusCell.textContent.toLowerCase();
+                    const rowDateStr = startDateCell.textContent.trim();
+                    let rowDateTime = null;
+                    if (rowDateStr && rowDateStr !== '-') {
+                        rowDateTime = new Date(rowDateStr).getTime();
+                    }
 
-                    if (statusVal === '' || statusText.includes(statusVal)) {
+                    let matchType = (typeVal === '' || typeText.includes(typeVal.replace(/_/g, ' ')));
+                    let matchStatus = (statusVal === '' || statusText.includes(statusVal));
+                    let matchDate = true;
+                    
+                    if (rowDateTime) {
+                        if (startFilter && rowDateTime < startFilter) matchDate = false;
+                        if (endFilter && rowDateTime > endFilter + 86400000) matchDate = false;
+                    } else if (startFilter || endFilter) {
+                        matchDate = false;
+                    }
+
+                    if (matchType && matchStatus && matchDate) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -752,7 +779,9 @@
 
             if (clearBtn) {
                 clearBtn.addEventListener('click', () => {
-                    statusSelect.value = '';
+                    document.querySelector('.filter-type').selectedIndex = 0;
+                    document.querySelector('.filter-status').selectedIndex = 0;
+                    document.querySelectorAll('.filter-date').forEach(input => input.value = '');
                     applyFilter();
                 });
             }

@@ -427,98 +427,122 @@
                 <button class="modal-close" onclick="closeEmployeeDetailModal()" style="font-size:24px; background:none; border:none; cursor:pointer; color:#888;">&times;</button>
             </div>
             
-            <div class="modal-body" style="padding: 32px;">
+            <div class="modal-body" style="padding: 32px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px;">
                 
-                <!-- Employee Info -->
-                <div style="margin-bottom: 32px;">
-                    <h3 style="font-size:15px; font-weight:700; margin-bottom:16px; color:#1a1a1a;">Employee Info</h3>
-                    
-                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:24px; margin-bottom:24px;">
-                        <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">First Name</label>
-                            <input type="text" id="empModalFirstName" placeholder="eg. John" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                <!-- LEFT COLUMN -->
+                <div>
+                    <!-- Employee Info -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                            <h3 style="font-size:15px; font-weight:700; color:#1a1a1a; margin:0;">Personal Information</h3>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Last Name</label>
-                            <input type="text" placeholder="eg. Doe" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">First Name</label>
+                                <input type="text" id="empModalFirstName" placeholder="eg. John" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Last Name</label>
+                                <input type="text" placeholder="eg. Doe" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Occupation</label>
+                                <input type="text" placeholder="eg. IT Consultant" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                            </div>
                         </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Pin</label>
+                                <input type="text" placeholder="eg. 1330" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Date of Birth</label>
+                                <input type="text" placeholder="eg. Sun, 30 June 2002" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif; color:#888;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Gender</label>
+                                <select style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif; background:#fff;">
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        
                         <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Occupation</label>
-                            <input type="text" placeholder="eg. IT Consultant" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Note</label>
+                            <textarea placeholder="Additional notes..." rows="3" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif; font-size:13px; resize:vertical;"></textarea>
                         </div>
                     </div>
                     
-                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 0.6fr; gap:24px; margin-bottom:24px;">
-                        <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Pin</label>
-                            <input type="text" placeholder="eg. 1330" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
+                    <!-- Working Time -->
+                    <div style="margin-bottom:24px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                            <h3 style="font-size:14px; font-weight:700; color:#1a1a1a; margin:0;">Working Time</h3>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Date of Birth</label>
-                            <input type="text" placeholder="eg. Sun, 30 June 2002" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif; color:#888;">
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Email</label>
-                            <input type="email" placeholder="eg. johndoe@mail" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Gender</label>
-                            <select style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif; background:#fff;">
-                                <option>Male</option>
-                                <option>Female</option>
-                            </select>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+                            <div>
+                                <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Start Time</label>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <input type="text" placeholder="HH" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
+                                    <span>:</span>
+                                    <input type="text" placeholder="MM" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">End Time</label>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <input type="text" placeholder="HH" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
+                                    <span>:</span>
+                                    <input type="text" placeholder="MM" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Cut Off</label>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <input type="text" placeholder="HH" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
+                                    <span style="visibility:hidden;">:</span>
+                                    <input type="text" placeholder="MM" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
+                    <!-- Working Day -->
                     <div>
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Note</label>
-                        <textarea placeholder="Additional notes..." rows="3" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif; font-size:13px; resize:vertical;"></textarea>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                            <h3 style="font-size:14px; font-weight:700; color:#1a1a1a; margin:0;">Working Day</h3>
+                        </div>
+                        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Mon</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Tue</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Wed</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Thu</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Fri</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" style="accent-color:#166DBA; width:18px; height:18px;">Sat</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#333;"><input type="checkbox" style="accent-color:#166DBA; width:18px; height:18px;">Sun</label>
+                        </div>
                     </div>
                 </div>
                 
-                <div style="height:1px; background:#ddd; margin-bottom:24px;"></div>
-                
-                <!-- Working Time -->
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:32px; margin-bottom:24px;">
-                    <div>
-                        <h3 style="font-size:14px; font-weight:700; margin-bottom:12px; color:#1a1a1a;">Working Time</h3>
-                        <div style="display:flex; gap:16px; margin-bottom:16px;">
-                            <div style="flex:1;">
-                                <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Start</label>
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <input type="text" placeholder="HH" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
-                                    <span>:</span>
-                                    <input type="text" placeholder="MM" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
-                                </div>
-                            </div>
-                            <div style="flex:1;">
-                                <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">End</label>
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <input type="text" placeholder="HH" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
-                                    <span>:</span>
-                                    <input type="text" placeholder="MM" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Cut Off</label>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <input type="text" placeholder="HH" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
-                                <span style="visibility:hidden;">:</span>
-                                <input type="text" placeholder="MM" style="width:100%; padding:10px; border:1px solid #D9D9D9; border-radius:8px; text-align:center; font-family:'Poppins',sans-serif;">
-                            </div>
-                        </div>
-                    </div>
-                    
+                <!-- RIGHT COLUMN -->
+                <div>
                     <!-- Account Configuration -->
-                    <div>
-                        <h3 style="font-size:14px; font-weight:700; margin-bottom:12px; color:#1a1a1a;">Account Configuration</h3>
+                    <div style="margin-bottom:32px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                            <h3 style="font-size:14px; font-weight:700; color:#1a1a1a; margin:0;">Account Configuration</h3>
+                        </div>
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Role</label>
                             <select style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; background:#fff;">
                                 <option>Employee</option>
                                 <option>Admin</option>
                             </select>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Email</label>
+                            <input type="email" placeholder="eg. johndoe@mail" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins', sans-serif;">
                         </div>
                         <div>
                             <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Reset Password</label>
@@ -528,42 +552,27 @@
                     
                     <!-- Payment Rate -->
                     <div>
-                        <h3 style="font-size:14px; font-weight:700; margin-bottom:12px; color:#1a1a1a;">Payment Rate</h3>
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Hourly Rate</label>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                            <h3 style="font-size:14px; font-weight:700; color:#1a1a1a; margin:0;">Payment Rate</h3>
+                        </div>
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">$ Hourly Rate</label>
                             <input type="text" placeholder="eg. 10.000" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif;">
                         </div>
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Hourly Overtime Rate</label>
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">$ Hourly Overtime Rate</label>
                             <input type="text" placeholder="eg. 5.000" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif;">
                         </div>
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Client Rate</label>
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">$ Client Rate</label>
                             <input type="text" placeholder="eg. 12.000" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif;">
                         </div>
-                        <div>
-                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Client Overtime Rate</label>
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; color:#555; margin-bottom:6px;">$ Client Overtime Rate</label>
                             <input type="text" placeholder="eg. 7.000" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; outline:none; font-family:'Poppins',sans-serif;">
                         </div>
                     </div>
                 </div>
-                
-                <div style="height:1px; background:#ddd; margin-bottom:24px;"></div>
-                
-                <!-- Working Day -->
-                <div>
-                    <h3 style="font-size:14px; font-weight:700; margin-bottom:12px; color:#1a1a1a;">Working Day</h3>
-                    <div style="display:flex; gap:32px; flex-wrap:wrap;">
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Mon</label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Tue</label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Wed</label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Thu</label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" checked style="accent-color:#166DBA; width:18px; height:18px;">Fri</label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" style="accent-color:#166DBA; width:18px; height:18px;">Sat</label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#333;"><input type="checkbox" style="accent-color:#166DBA; width:18px; height:18px;">Sun</label>
-                    </div>
-                </div>
-                
             </div>
             
             <div id="empModalFooter" style="padding: 0 32px 32px; display:flex; justify-content:flex-end; gap:12px;">

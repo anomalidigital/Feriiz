@@ -87,10 +87,17 @@
             border-spacing: 0 !important;
         }
         .report-table thead th {
-             border-top: 1px solid #e5e5e5; /* Restore top border since collapse is separate */
+             border-top: 1px solid #e5e5e5;
+             position: sticky;
+             top: 0;
+             background: #fff;
+             z-index: 1;
         }
         .sticky-col {
-            background-clip: padding-box !important; /* Prevent background bleeding out of borders */
+            background-clip: padding-box !important;
+        }
+        .day-col-hidden {
+            display: none !important;
         }
         
         /* Sticky Column Layout Additions */
@@ -98,12 +105,12 @@
             position: sticky !important;
             left: 0 !important;
             background-color: #fff !important;
-            z-index: 10 !important;
+            z-index: 2 !important;
             box-shadow: 5px 0 15px -3px rgba(0,0,0,0.15) !important;
-            border-right: 1px solid #f0f0f0 !important; /* Optional subtle border matching older inline */
+            border-right: 1px solid #f0f0f0 !important;
         }
         th.sticky-col {
-            z-index: 20 !important;
+            z-index: 3 !important;
         }
         </style>
 </head>
@@ -145,7 +152,7 @@
                 
                 <!-- 1. Main Filter Button (Icon Only) -->
                 <div style="position:relative;">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter" onclick="this.nextElementSibling.classList.toggle('show');" style="display:inline-flex; align-items:center; gap:8px; width:38px; height:38px; justify-content:center; padding:0;">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter" style="display:inline-flex; align-items:center; gap:8px; width:38px; height:38px; justify-content:center; padding:0;">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <!-- Filter Dropdown Menu -->
@@ -160,11 +167,16 @@
                         </div>
 
                         <label style="font-size:12px; font-weight:600; color:#444; display:block; margin-bottom:4px;">Period</label>
-                        <select class="input" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif; margin-bottom:12px;">
-                            <option>Custom</option>
-                            <option>Weekly</option>
-                            <option>Monthly</option>
-                            <option>Per Days</option>
+                        <select class="input filter-period" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif; margin-bottom:12px;">
+                            <option value="custom">Custom</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="this_week">This Week</option>
+                            <option value="last_week">Last Week</option>
+                            <option value="this_month">This Month</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="this_year">This Year</option>
+                            <option value="all_time">All Time</option>
                         </select>
 
                         <label style="font-size:12px; font-weight:600; color:#444; display:block; margin-bottom:4px;">Occupation</label>
@@ -187,13 +199,13 @@
 
                 <!-- 2. Columns Filter Button -->
                 <div style="position:relative;">
-                    <button class="btn btn-outline filter-toggle-btn" title="Columns" onclick="this.nextElementSibling.classList.toggle('show');" style="height:38px; width:auto; padding:0 14px; gap:8px; display:inline-flex; align-items:center;">
+                    <button class="btn btn-outline filter-toggle-btn" title="Columns" style="height:38px; width:auto; padding:0 14px; gap:8px; display:inline-flex; align-items:center;">
                         <i class="fa-solid fa-table-columns"></i> Columns
                     </button>
                     <!-- Columns Dropdown Menu -->
                     <div class="filter-dropdown" style="text-align:left; font-weight:normal; left:0; right:auto; width:220px; padding:12px 0;">
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
-                            <input type="checkbox" id="colActiveHour" style="accent-color:#166DBA;">
+                            <input type="checkbox" id="colActiveHour" checked style="accent-color:#166DBA;">
                             <label for="colActiveHour" style="font-size:13px; color:#333; cursor:pointer; margin:0;">Active Hour</label>
                         </div>
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
@@ -204,7 +216,7 @@
                         <div style="height:1px; background:#eee; margin:8px 0;"></div>
 
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
-                            <input type="checkbox" id="colInOutHour" style="accent-color:#166DBA;">
+                            <input type="checkbox" id="colInOutHour" checked style="accent-color:#166DBA;">
                             <label for="colInOutHour" style="font-size:13px; color:#333; cursor:pointer; margin:0;">In Out Hour</label>
                         </div>
 
@@ -215,7 +227,7 @@
                             <label for="colEmployee" style="font-size:13px; color:#333; cursor:pointer; margin:0;">Employee</label>
                         </div>
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
-                            <input type="checkbox" id="colEmpDailyRate" style="accent-color:#166DBA;">
+                            <input type="checkbox" id="colEmpDailyRate" checked style="accent-color:#166DBA;">
                             <label for="colEmpDailyRate" style="font-size:13px; color:#333; cursor:pointer; margin:0;">Daily Rate</label>
                         </div>
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
@@ -223,7 +235,7 @@
                             <label for="colEmpRateOvertime" style="font-size:13px; color:#333; cursor:pointer; margin:0;">Rate Overtime</label>
                         </div>
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
-                            <input type="checkbox" id="colEmpTotalRate" style="accent-color:#166DBA;">
+                            <input type="checkbox" id="colEmpTotalRate" checked style="accent-color:#166DBA;">
                             <label for="colEmpTotalRate" style="font-size:13px; color:#333; cursor:pointer; margin:0;">Total Rate</label>
                         </div>
                         <div style="padding:4px 16px; display:flex; align-items:center; gap:8px;">
@@ -268,147 +280,77 @@
             <table class="report-table">
                 <thead>
                     <tr>
-                        <th rowspan="2" class="sticky-col">Name</th>
-                        <th rowspan="2">Pin</th>
-                        <th rowspan="2">Occupation</th>
-                        <th colspan="3" class="group-header">Time Period</th>
-                        <th rowspan="2">Total Days</th>
-                        <th rowspan="2">Total Hour</th>
-                        <th rowspan="2">Total Overtime</th>
-                        <th colspan="4" class="group-header">Employee</th>
-                        <th colspan="4" class="group-header">Client</th>
-                        <th colspan="2" class="group-header">Additional</th>
-                        <th colspan="5" class="group-header">March 2026</th>
+                        <th rowspan="2" class="col-name sticky-col">Name</th>
+                        <th rowspan="2" class="col-pin">Pin</th>
+                        <th rowspan="2" class="col-occupation">Occupation</th>
+                        <th colspan="3" class="group-header" id="grpTimePeriod">Time Period</th>
+                        <th rowspan="2" class="col-totaldays">Total Days</th>
+                        <th rowspan="2" class="col-totalhour">Total Hour</th>
+                        <th rowspan="2" class="col-totalovertime">Total Overtime</th>
+                        <th colspan="4" class="group-header" id="grpEmployee">Employee</th>
+                        <th colspan="4" class="group-header" id="grpClient">Client</th>
+                        <th colspan="2" class="group-header" id="grpAdditional">Additional</th>
+                        <th colspan="5" class="group-header" id="monthHeader">March 2026</th>
                     </tr>
                     <tr>
                         <!-- Time Period -->
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Period</th>
+                        <th class="col-inouthour">Start</th>
+                        <th class="col-inouthour">End</th>
+                        <th class="col-activehour">Period</th>
                         <!-- Employee -->
-                        <th>Daily Rate</th>
-                        <th>Rate Overtime</th>
-                        <th>Total Rate</th>
-                        <th>Total Rate Overtime</th>
+                        <th class="col-emp-dailyrate">Daily Rate</th>
+                        <th class="col-emp-rateovertime">Rate Overtime</th>
+                        <th class="col-emp-totalrate">Total Rate</th>
+                        <th class="col-emp-totalovertime">Total Rate Overtime</th>
                         <!-- Client -->
-                        <th>Daily Rate</th>
-                        <th>Rate Overtime</th>
-                        <th>Total Rate</th>
-                        <th>Total Rate Overtime</th>
+                        <th class="col-cli-dailyrate">Daily Rate</th>
+                        <th class="col-cli-rateovertime">Rate Overtime</th>
+                        <th class="col-cli-totalrate">Total Rate</th>
+                        <th class="col-cli-totalovertime">Total Rate Overtime</th>
                         <!-- Additional -->
-                        <th>Amount</th>
-                        <th>Note</th>
+                        <th class="col-additional-amount">Amount</th>
+                        <th class="col-additional-note">Note</th>
                         <!-- March 2026 Details (Photo 3 shows complex detailed blocks, we'll put Mon 09 etc here) -->
-                        <th style="min-width:280px;">Mon 09</th>
-                        <th style="min-width:280px;">Tue 10</th>
-                        <th style="min-width:280px;">Wed 11</th>
-                        <th style="min-width:280px;">Thu 12</th>
-                        <th style="min-width:280px;">Fri 13</th>
+                        <th class="day-col" data-date="2026-03-09" style="min-width:280px;">Mon 09</th>
+                        <th class="day-col" data-date="2026-03-10" style="min-width:280px;">Tue 10</th>
+                        <th class="day-col" data-date="2026-03-11" style="min-width:280px;">Wed 11</th>
+                        <th class="day-col" data-date="2026-03-12" style="min-width:280px;">Thu 12</th>
+                        <th class="day-col" data-date="2026-03-13" style="min-width:280px;">Fri 13</th>
                     </tr>
                 </thead>
                                 <tbody>
                     <tr>
-                        <td class="sticky-col">
+                        <td class="col-name sticky-col">
                             <div class="emp-code-cell">IND693283053999</div>
                             <div class="emp-name-cell">Indra Naftali</div>
                         </td>
-                        <td>-</td>
-                        <td>Meneger</td>
-                        <td>08:00:00</td>
-                        <td>17:00:00</td>
-                        <td>9h</td>
-                        <td>2.02d</td>
-                        <td>18.18h</td>
-                        <td>4h</td>
+                        <td class="col-pin">-</td>
+                        <td class="col-occupation">Meneger</td>
+                        <td class="col-inouthour">08:00:00</td>
+                        <td class="col-inouthour">17:00:00</td>
+                        <td class="col-activehour">9h</td>
+                        <td class="col-totaldays">2.02d</td>
+                        <td class="col-totalhour">18.18h</td>
+                        <td class="col-totalovertime">4h</td>
                         <!-- Employee Rates -->
-                        <td class="rate-cell">IDR0.00</td>
-                        <td class="rate-cell">IDR0.00</td>
-                        <td class="rate-cell">IDR0.00</td>
-                        <td class="rate-cell">IDR0.00</td>
+                        <td class="col-emp-dailyrate rate-cell">IDR0.00</td>
+                        <td class="col-emp-rateovertime rate-cell">IDR0.00</td>
+                        <td class="col-emp-totalrate rate-cell">IDR0.00</td>
+                        <td class="col-emp-totalovertime rate-cell">IDR0.00</td>
                         <!-- Client Rates -->
-                        <td class="rate-cell">IDR0.00</td>
-                        <td class="rate-cell">IDR0.00</td>
-                        <td class="rate-cell">IDR0.00</td>
-                        <td class="rate-cell">IDR0.00</td>
+                        <td class="col-cli-dailyrate rate-cell">IDR0.00</td>
+                        <td class="col-cli-rateovertime rate-cell">IDR0.00</td>
+                        <td class="col-cli-totalrate rate-cell">IDR0.00</td>
+                        <td class="col-cli-totalovertime rate-cell">IDR0.00</td>
                         <!-- Additional -->
-                        <td style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
-                        <td></td>
+                        <td class="col-additional-amount" style="text-align:center;"><span class="note-icon" style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i class="fa-solid fa-plus"></i></span></td>
+                        <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td style="min-width: 250px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
-                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
-                                    <div style="display:flex; gap:4px;">
-                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
-                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
-                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-</td>
-                        <td style="min-width: 250px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
-                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
-                                    <div style="display:flex; gap:4px;">
-                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
-                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
-                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-</td>
-                        <td style="min-width: 250px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
-                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
-                                    <div style="display:flex; gap:4px;">
-                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
-                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
-                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-</td>
-                        <td style="min-width: 250px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
-                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
-                                    <div style="display:flex; gap:4px;">
-                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
-                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
-                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-</td>
-                        <td style="min-width: 250px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:6px;">
-                                    <span style="font-size:11px; color:#555;">Hours / Overtime : <b>9.58h / 2h</b></span>
-                                    <div style="display:flex; gap:4px;">
-                                        <button class="btn btn-primary" style="padding:2px 6px; font-size:10px; border-radius:4px;"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-outline" style="padding:2px 6px; font-size:10px; border-radius:4px; color:#166DBA; border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a; margin-bottom:4px;">
-                                    09:10:29 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-                                <div style="text-align:center; font-size:11px; color:#c72a2a;">
-                                    18:45:07 <i class="fa-solid fa-trash-can" style="cursor:pointer; margin-left:4px;"></i>
-                                </div>
-</td>
+                        <td class="day-col" data-date="2026-03-09" style="min-width:250px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="display:flex;gap:6px;"><span style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h OT</span></div><div style="display:flex;gap:4px;"><button class="btn btn-primary" style="padding:4px 8px;font-size:10px;border-radius:6px;"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline" style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div></div></td>
+                        <td class="day-col" data-date="2026-03-10" style="min-width:250px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="display:flex;gap:6px;"><span style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h OT</span></div><div style="display:flex;gap:4px;"><button class="btn btn-primary" style="padding:4px 8px;font-size:10px;border-radius:6px;"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline" style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div></div></td>
+                        <td class="day-col" data-date="2026-03-11" style="min-width:250px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="display:flex;gap:6px;"><span style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h OT</span></div><div style="display:flex;gap:4px;"><button class="btn btn-primary" style="padding:4px 8px;font-size:10px;border-radius:6px;"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline" style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div></div></td>
+                        <td class="day-col" data-date="2026-03-12" style="min-width:250px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="display:flex;gap:6px;"><span style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h OT</span></div><div style="display:flex;gap:4px;"><button class="btn btn-primary" style="padding:4px 8px;font-size:10px;border-radius:6px;"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline" style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div></div></td>
+                        <td class="day-col" data-date="2026-03-13" style="min-width:250px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="display:flex;gap:6px;"><span style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h OT</span></div><div style="display:flex;gap:4px;"><button class="btn btn-primary" style="padding:4px 8px;font-size:10px;border-radius:6px;"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline" style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i class="fa-solid fa-plus"></i></button></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div><div style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;"><span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div></div></td>
                     </tr>
                 </tbody>
             </table>
@@ -426,5 +368,204 @@
             </div>
         </div>
     </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterBtn = document.querySelector('.filter-toggle-btn');
+        const filterDD = filterBtn ? filterBtn.nextElementSibling : null;
+        const colBtn = document.querySelector('.col-toggle-btn');
+        const colDD = colBtn ? colBtn.nextElementSibling : null;
+
+        [filterBtn, colBtn].forEach((btn, i) => {
+            const dd = i === 0 ? filterDD : colDD;
+            if (!btn || !dd) return;
+            btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('show'); });
+            dd.addEventListener('click', (e) => e.stopPropagation());
+        });
+        document.addEventListener('click', () => {
+            if (filterDD) filterDD.classList.remove('show');
+            if (colDD) colDD.classList.remove('show');
+        });
+
+        const periodSelect = document.querySelector('.filter-period');
+        const dateInputs = document.querySelectorAll('.filter-date');
+
+        if (periodSelect && dateInputs.length >= 2) {
+            periodSelect.addEventListener('change', function() {
+                const v = this.value;
+                const now = new Date();
+                let s = '', e = '';
+                const fmt = (d) => d.toISOString().slice(0,10);
+                if (v === 'today') { s = e = fmt(now); }
+                else if (v === 'yesterday') { const y = new Date(now); y.setDate(y.getDate()-1); s = e = fmt(y); }
+                else if (v === 'this_week') { const d = new Date(now); d.setDate(d.getDate() - d.getDay() + 1); s = fmt(d); e = fmt(now); }
+                else if (v === 'last_week') { const d = new Date(now); d.setDate(d.getDate() - d.getDay() - 6); s = fmt(d); const d2 = new Date(d); d2.setDate(d.getDate()+6); e = fmt(d2); }
+                else if (v === 'this_month') { s = fmt(new Date(now.getFullYear(), now.getMonth(), 1)); e = fmt(now); }
+                else if (v === 'last_month') { s = fmt(new Date(now.getFullYear(), now.getMonth()-1, 1)); e = fmt(new Date(now.getFullYear(), now.getMonth(), 0)); }
+                else if (v === 'this_year') { s = fmt(new Date(now.getFullYear(), 0, 1)); e = fmt(now); }
+                else if (v === 'all_time') { s = ''; e = ''; }
+                dateInputs[0].value = s;
+                dateInputs[1].value = e;
+            });
+        }
+
+        const allDayCols = document.querySelectorAll('.day-col');
+        const allDates = [...new Set([...document.querySelectorAll('th.day-col')].map(th => th.dataset.date))].sort();
+        const defaultDates = allDates.slice(-2);
+
+        function showDays(datesToShow) {
+            allDayCols.forEach(el => {
+                if (datesToShow.includes(el.dataset.date)) {
+                    el.classList.remove('day-col-hidden');
+                } else {
+                    el.classList.add('day-col-hidden');
+                }
+            });
+            const header = document.getElementById('monthHeader');
+            if (header) header.colSpan = datesToShow.length || 1;
+        }
+        showDays(defaultDates);
+
+        const applyBtn = document.querySelector('.filter-apply-btn');
+        const clearBtn = document.querySelector('.filter-clear-btn');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                const startStr = dateInputs[0].value;
+                const endStr = dateInputs[1].value;
+                if (startStr && endStr) {
+                    const sTime = new Date(startStr).getTime();
+                    const eTime = new Date(endStr).getTime();
+                    const visibleDates = allDates.filter(d => {
+                        const t = new Date(d).getTime();
+                        return t >= sTime && t <= eTime;
+                    });
+                    showDays(visibleDates.length > 0 ? visibleDates : defaultDates);
+                } else { showDays(defaultDates); }
+                if (filterDD) filterDD.classList.remove('show');
+            });
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                dateInputs.forEach(i => i.value = '');
+                if (periodSelect) periodSelect.selectedIndex = 0;
+                const occSelect = document.querySelector('.filter-occ');
+                if (occSelect) occSelect.selectedIndex = 0;
+                showDays(defaultDates);
+                if (filterDD) filterDD.classList.remove('show');
+            });
+        }
+
+        // Column mapping: Checkbox ID -> CSS classes to hide/show
+        const colMap = {
+            colActiveHour: ['.col-activehour'],
+            colPin: ['.col-pin'],
+            colInOutHour: ['.col-inouthour'],
+            colEmpDailyRate: ['.col-emp-dailyrate'],
+            colEmpRateOvertime: ['.col-emp-rateovertime'],
+            colEmpTotalRate: ['.col-emp-totalrate'],
+            colEmpTotalOvertime: ['.col-emp-totalovertime'],
+            colClientDailyRate: ['.col-cli-dailyrate'],
+            colClientRateOvertime: ['.col-cli-rateovertime'],
+            colClientTotalRate: ['.col-cli-totalrate'],
+            colClientTotalOvertime: ['.col-cli-totalovertime']
+        };
+
+        // Master-slave logic for Employee and Client groups
+        const masterGroups = {
+            colEmployee: ['colEmpDailyRate', 'colEmpRateOvertime', 'colEmpTotalRate', 'colEmpTotalOvertime'],
+            colClient: ['colClientDailyRate', 'colClientRateOvertime', 'colClientTotalRate', 'colClientTotalOvertime']
+        };
+
+        // Header groups to update colspan dynamically
+        const groupHeaders = {
+            grpTimePeriod: ['.col-inouthour', '.col-activehour'],
+            grpEmployee: ['.col-emp-dailyrate', '.col-emp-rateovertime', '.col-emp-totalrate', '.col-emp-totalovertime'],
+            grpClient: ['.col-cli-dailyrate', '.col-cli-rateovertime', '.col-cli-totalrate', '.col-cli-totalovertime'],
+            grpAdditional: ['.col-additional-amount', '.col-additional-note']
+        };
+
+        // Master checkbox logic
+        Object.keys(masterGroups).forEach(masterId => {
+            const masterCb = document.getElementById(masterId);
+            if (!masterCb) return;
+            const slaveIds = masterGroups[masterId];
+            
+            masterCb.addEventListener('change', () => {
+                slaveIds.forEach(id => {
+                    const cb = document.getElementById(id);
+                    if (cb && cb.checked !== masterCb.checked) {
+                        cb.checked = masterCb.checked;
+                        cb.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+
+            slaveIds.forEach(id => {
+                const cb = document.getElementById(id);
+                if (!cb) return;
+                cb.addEventListener('change', () => {
+                    // Update master state based on slaves
+                    const allChecked = slaveIds.every(sid => document.getElementById(sid).checked);
+                    const someChecked = slaveIds.some(sid => document.getElementById(sid).checked);
+                    masterCb.checked = allChecked;
+                    masterCb.indeterminate = someChecked && !allChecked;
+                });
+            });
+        });
+
+        const updateVisibility = () => {
+            // Apply visibility via day-col-hidden class to avoid inline style conflicts
+            Object.keys(colMap).forEach(id => {
+                const cb = document.getElementById(id);
+                if (!cb) return;
+                const classes = colMap[id];
+                classes.forEach(cls => {
+                    document.querySelectorAll(cls).forEach(el => {
+                        if (cb.checked) {
+                            el.classList.remove('day-col-hidden');
+                        } else {
+                            el.classList.add('day-col-hidden');
+                        }
+                    });
+                });
+            });
+
+            // Recalculate colspans for group headers
+            Object.keys(groupHeaders).forEach(headerId => {
+                const th = document.getElementById(headerId);
+                if (!th) return;
+                const classes = groupHeaders[headerId];
+                // Count visible columns governed by this header
+                // We check the first body row to see which columns are actually visible
+                const firstRow = document.querySelector('tbody tr');
+                if (!firstRow) return;
+                let visibleCount = 0;
+                classes.forEach(cls => {
+                    // .col-inouthour appears twice (Start, End), others appear once
+                    const cells = firstRow.querySelectorAll(cls);
+                    cells.forEach(c => {
+                        if (!c.classList.contains('day-col-hidden')) visibleCount++;
+                    });
+                });
+                if (visibleCount > 0) {
+                    th.colSpan = visibleCount;
+                    th.classList.remove('day-col-hidden');
+                } else {
+                    th.classList.add('day-col-hidden');
+                }
+            });
+        };
+
+        // Bind standard columns
+        Object.keys(colMap).forEach(id => {
+            const cb = document.getElementById(id);
+            if (!cb) return;
+            cb.addEventListener('change', updateVisibility);
+        });
+        
+        // Initial sync
+        updateVisibility();
+    });
+    </script>
 </body>
 </html>

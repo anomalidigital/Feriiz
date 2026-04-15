@@ -1,68 +1,143 @@
 # Feriiz Platform - Memory & Architecture Handover Report
 
 **Dokumen ini berfungsi sebagai Knowledge Base & Memory State untuk Feriiz Platform.**
-Dokumen ini dibuat agar AI agent di msa depan dapat dengan cepat memahami konteks, struktur kode, logika aplikasi, dan riwayat pekerjaan yang telah diterapkan pada platform ini.
+Dokumen ini dibuat agar AI agent di masa depan dapat dengan cepat memahami konteks, struktur kode, logika aplikasi, dan riwayat pekerjaan yang telah diterapkan pada platform ini.
+
+> **Last Updated:** 15 April 2026
 
 ---
 
 ## 1. Tujuan Utama & Deskripsi Platform (What is Feriiz?)
-**Feriiz** adalah web application sistem manajemen perusahaan yang berfokus pada:
-- **Project Tracking**: Memantau aktivitas karyawan per project (Anomali).
-- **Timesheet & Attendance**: Mencatat jam kerja harian karyawan (In/Out time, Active Hour, Overtime).
-- **Financial Reporting**: Terdapat sistem kalkulasi rate/profitabilitas yang sangat mendetail, yang mengatur "Employee Billing/Rates" (upah harian/lembur) dan "Client Billing" untuk mengetahui total pengeluaran vs pemasukan.
-- **Employee Management**: Mengatur data absensi, data diri, gaji, serta approval request untuk masing-masing karyawan. 
 
-Semua interface dirancang dengan desain modern, dinamis, dengan micro-animations dan table responsif dengan fitur freeze pane/ sticky columns.
+**Feriiz** adalah web application **sistem manajemen proyek dan ketenagakerjaan** yang digunakan oleh perusahaan konstruksi/properti. Platform ini berfokus pada:
+
+- **Project Tracking**: Memantau aktivitas karyawan per proyek (contoh proyek: Anomali, Diamond Crystal Golf No. 15, Diamond Golf H3 No. 105, Mangunsarkoro No. 53).
+- **Timesheet & Attendance**: Mencatat jam kerja harian karyawan (In/Out time, Active Hour, Overtime).
+- **Financial Reporting**: Sistem kalkulasi rate/profitabilitas yang sangat mendetail — mengatur "Employee Billing/Rates" (upah harian/lembur) dan "Client Billing" untuk mengetahui total pengeluaran vs pemasukan.
+- **Employee Management**: Mengatur data absensi, data diri, gaji, serta approval request untuk masing-masing karyawan.
+
+Semua interface dirancang dengan desain modern, dinamis, warna utama `#2975BB` (biru), dengan micro-animations dan table responsif dengan fitur freeze pane / sticky columns.
+
+### Status Platform Saat Ini
+- **Fase: Prototipe Frontend (HTML Statis)**. Belum terhubung ke database manapun.
+- **Konteks produksi**: Data proyek sesungguhnya memiliki **ratusan karyawan** per proyek dan **belasan proyek aktif**. Oleh karena itu, fase selanjutnya yang direncanakan adalah **integrasi backend + database** agar data tidak lagi di-hardcode ke HTML.
+- **Rencana Database**: Pihak klien/atasan sudah menyampaikan keinginan untuk menyambungkan ke database agar laporan bisa otomatis ter-generate. Opsi stack yang diusulkan: Node.js + Express + MySQL/PostgreSQL, atau Python + Django, atau PHP + Laravel.
 
 ---
 
 ## 2. Struktur File HTML dan Logika Pages (Code Structure Mapping)
-Berikut adalah daftar kerangka file `.html` di Feriiz, serta apa saja perannya berdasarkan sidebar dan alur kerja aplikasi (sesuai navigasi UI):
 
 ### Dashboard & Setting
-*   **`index.html`** : Dashboard utama berisikan statistik secara general saat pertama login.
-*   **`my account.html`** : Halaman profil dan setting admin.
+| File | Fungsi |
+|------|--------|
+| `index.html` | Dashboard utama, statistik general saat login |
+| `my account.html` | Halaman profil dan setting admin |
 
 ### Modul: Projects
 Menangani aktivitas operasional berbasis Project/Proyek.
-*   **`projects.html`** : Beranda proyek, menampilkan list project yang berjalan.
-*   **`project_employees.html`** : *Sub: Activity*. Menampilkan absensi, jadwal IN/OUT, log detail harian orang-orang dalam spesifik project.
-*   **`project_report.html`** : *Sub: Report*. **(Ini adalah halaman paling kompleks di platform)**. Sebuah sistem tabel laporan finansial & timesheet harian yang digabungkan. Berisi perhitungan total gaji karyawan vs tagihan klien.
-*   **`employee_request.html`** : *Sub: Requests*. Menampilkan permintaan dari karyawan di dalam scope project (misal permintaan cuti, reimbursement).
+
+| File | Fungsi |
+|------|--------|
+| `projects.html` | **Beranda proyek**. List project + stat cards (Total Project, Project Active). Tabel berisi kolom: Name, Status, Date Created, First/Last Activity, Employee (total assign), **Daily** (kehadiran hari ini, default 0). |
+| `project_employees.html` | **Sub: Activity**. Menampilkan absensi dan log detail harian orang di project. Ada fitur **Manage Employee** modal dengan Import Employee Code, Verify Data, filter Assigned/Unassigned, dan search. |
+| `project_report.html` | **Sub: Report. (Halaman PALING KOMPLEKS)**. Tabel laporan finansial + timesheet harian. Berisi kolom: Name (sticky), Pin, Occupation, Time Period (Start/End/Period), Total Days/Hour/Overtime, Employee Rates (4 kolom), Client Rates (4 kolom), Additional (Amount/Note), dan Day Columns (dinamis per tanggal). |
+| `employee_request.html` | **Sub: Requests**. Permintaan dari karyawan dalam scope project (cuti, reimbursement). |
 
 ### Modul: Employees
 Menangani database pekerja secara menyeluruh.
-*   **`employees.html`** : Halaman utama daftar karyawan dengan modal popup interaktif untuk "Add Employee" / "Edit Employee".
-*   **`employee_detail.html`** : Tampilan detail profil perseorangan (biodata, pin, rate gaji).
-*   **`employee_projects.html`** : Menampilkan daftar project yang sedang dikerjakan orang tersebut.
-*   **`employee_attendance.html`** : Log kehadiran spesifik individu.
-*   **`employee_report.html`** : Tabel report mirip dengan `project_report.html`, tetapi ini digenerate spesifik menjabarkan rekapan komulatif dari **satu orang** bulan ini.
-*   **`employee_personal_request.html`** : List requests (seperti Cuti) dari satu specific employee.
 
-### Aset Tambahan
-*   **`Style.css`** : File core stylesheet utama penopang seluruh UI platform Feriiz.
-*   **`_Asset_/` & `Employee_pictures/`** : Repositori global untuk foto ikon dan foto avatar staf.
+| File | Fungsi |
+|------|--------|
+| `employees.html` | Daftar karyawan + modal "Add/Edit Employee" (2-kolom: biodata kiri, account config + payment rate kanan). Ada field Role, Email, Reset Password. |
+| `employee_detail.html` | Detail profil individu (biodata, pin, rate gaji) |
+| `employee_projects.html` | Daftar project yang sedang dikerjakan oleh employee |
+| `employee_attendance.html` | Log kehadiran spesifik individu |
+| `employee_report.html` | Report mirip `project_report.html`, tapi per individu |
+| `employee_personal_request.html` | List requests (cuti, dll) dari satu employee |
 
----
-
-## 3. History Pekerjaan & Update Terkini (Work Progress so Far)
-
-Berikut adalah ringkasan pekerjaan yang sudah **berhasil dikerjakan dan stabil** hingga titik ini:
-
-**A. Revamp UI / Desain Modal (UX Polishing)**
-- Memperbaiki UX Modal di seluruh pages (`employees.html`, `projects.html`) untuk menggunakan struktur yang rapi (UI rounded modern, grid 2 kolom, warna form selaras).
-
-**B. Logic Paging & Pengecekan Aktivitas**
-- Memperbaiki behavior filter ceklis (misal pergantian tag dari "Show Absences" menjadi "Show Activity" sesuai kebutuhan klien) agar mudah dipahami.
-
-**C. Bug Fixing Tingkat Lanjut: Tabel `project_report.html` & `employee_report.html`**
-- Tabel pelaporan finansial ini sebelumnya mengalami **bug overlap kolom (Z-index conflict)** ketika digeser menyebrangi Sidebar, ini telah dikoreksi dengan menetapkan *Webkit Sticky Layout Z-index hierarchial rules* pada CSS.
-- **Sistem Default View 2-Hari Terbaru**: Secara live, report table memiliki JS yang mengkalkulasi dan secara default hanya menampilkan 2 hari terakhir (Thu 12, Fri 13) saat dibuka, dengan sinkronisasi `Colspan` Date Period yang interaktif.
-- **Rombakan Sistem Hide/Show Kolom JS (Class-Based Toggling)**:
-  Awalnya, JS untuk mematikan/menyalakan kolom filter (Employee Rates, Client Rates) membaca dengan struktur hitungan matematika (indeks). Cara itu salah total untuk HTML dengan pola multibar rowspan/colspan yang rumit, lalu menimbulkan bug header bergeser dan kolom tabel menumpuk hilang.
-  - *Current Solution*: JS yang baru telah dimodifikasi menggunakan identifikasi `<td class="col-emp-dailyrate">` dsb di seluruh loop, dengan sinkronisasi Group Header (`grpEmployee.colspan`). UI tabel ini kini sempurna tidak bocor/patah saat menu Columns difilter berulang kali.
+### Aset & Pendukung
+| File/Folder | Fungsi |
+|-------------|--------|
+| `Style.css` | Core stylesheet utama, penopang seluruh UI |
+| `_Asset_/` | Repositori ikon & gambar platform |
+| `Employee_pictures/` | Foto avatar staf |
+| `UI/` | Folder referensi screenshot UI |
+| `UI_overlay/` | Folder referensi overlay UI |
 
 ---
 
-**Note to Future AI Agent:**
-Apabila Anda dipanggil untuk memperbaiki tampilan atau fitur tabel (terutama di report), periksa di area `<!-- Columns Filter -->` dan script Javascript di file bagian bawah untuk memodifikasi konstan `colMap` mapping class. Selain itu, pastikan untuk menghormati layout *modern minimalis* ketika menambah elemen UI di CSS di Feriiz.
+## 3. Data Proyek yang Sudah Ada di Prototype
+
+### Projects (`projects.html`)
+| Kode | Nama | Status | Employee |
+|------|------|--------|----------|
+| 0000 | Anomali | Active | 129 |
+| 0259 | Diamond Crystal Golf No. 15 | Active | 81 |
+| 0251 | Diamond Golf H3 No. 105 | Active | 139 |
+| 0254 | Mangunsarkoro No. 53 | Active | 178 |
+
+### Employees Proyek Anomali (`project_employees.html`)
+Adam Ferial, Apriyanto Apriyanto, Baldyas Satrio, Ifan Faizal Adnan, Indra Naftali, Mauli Hidayat, Raden Moulana, Steven Febrianto, Veronica Nathalia, Yenni Tedjakoesoemo, Zicky Alfian.
+
+---
+
+## 4. History Pekerjaan & Update (Work Progress)
+
+### A. Revamp UI / Desain Modal (UX Polishing)
+- Memperbaiki UX Modal di seluruh pages (`employees.html`, `projects.html`) menggunakan grid 2 kolom, modern rounded corner, warna form selaras.
+- Menambahkan modal "Edit Project" dan "Add Project" dengan struktur yang konsisten.
+
+### B. Logic Paging & Pengecekan Aktivitas
+- Mengubah label "Show Absences" → "Show Activity" sesuai kebutuhan klien.
+
+### C. Bug Fixing Tabel Report (`project_report.html` & `employee_report.html`)
+- **Bug overlap kolom Z-index**: Sticky "Name" column sebelumnya konflik z-index dengan sidebar. Diperbaiki dengan hierarchical `z-index` rules (sticky-col: 2, th.sticky-col: 3, sidebar: 100).
+- **Default View 2-Hari Terbaru**: JS mengkalkulasi dan default hanya menampilkan 2 hari terakhir saat dibuka, dengan sinkronisasi `colspan` pada header bulan.
+- **Rombakan Sistem Hide/Show Kolom (Class-Based Toggling)**:
+  - Problem: JS lama menggunakan indeks kolom (angka urutan), tidak kompatibel dengan tabel multi-row header (rowspan/colspan).
+  - Solution: Setiap `<td>` dan `<th>` di-inject class CSS spesifik (contoh: `.col-emp-dailyrate`, `.col-cli-totalrate`). JS sekarang toggle visibility berdasarkan class selector, bukan index. Group header (Employee, Client, Additional) colspan dihitung ulang secara dinamis.
+
+### D. Manage Employee Modal (`project_employees.html`)
+- Rebuild fitur "Manage Employee" modal dengan:
+  - **Import Employee Code**: Area textarea untuk paste kode karyawan bulk.
+  - **Verify Data**: Validasi kode vs database lokal, tombol berubah hijau ✓ jika valid.
+  - **Filter dropdown**: All / Assigned / Unassigned untuk mengelola daftar karyawan.
+  - **Search**: Pencarian real-time di dalam modal.
+  - **Reset otomatis**: Semua state di-reset saat modal ditutup.
+
+### E. Employee Modal Redesign (`employees.html`)
+- Layout 2-kolom: Biodata (kiri), Account Config + Payment Rate (kanan).
+- Field baru: Role (Employee/Admin dropdown), Email, Reset Password.
+- Payment Rate: Hourly Rate, Overtime Rate, Client Rate, Client Overtime Rate.
+
+### F. Kolom "Daily" di Projects (`projects.html`)
+- **Baru ditambahkan**: Kolom "Daily" menampilkan jumlah kehadiran hari ini per proyek (default: 0, warna orange `#e67e22`).
+- Stat cards diupdate: 4 Project, 2 Project Active.
+
+---
+
+## 5. Panduan Teknis untuk AI Agent Baru
+
+### Report Table (`project_report.html` / `employee_report.html`)
+- **Jangan gunakan indeks kolom** untuk hide/show. Selalu gunakan **class CSS** (`.col-pin`, `.col-emp-dailyrate`, dll).
+- Cek area `<!-- Columns Filter -->` untuk checkbox mapping.
+- Cek konstanta `colMap` di `<script>` di bagian bawah file untuk mapping class.
+- Group header IDs: `grpTimePeriod`, `grpEmployee`, `grpClient`, `grpAdditional`, `monthHeader`.
+- Sticky column menggunakan `z-index: 2` (body) dan `z-index: 3` (header). Sidebar `z-index: 100`.
+
+### Manage Employee (`project_employees.html`)
+- Fungsi kunci: `verifyEmployeeData()`, `closeManageEmpModal()`, `applyAllEmpFilters()`, `updateSelectedCount()`.
+- Checkbox default state dikelola via `cb.defaultChecked`.
+
+### General Design Rules
+- Font: Poppins (via Google Fonts).
+- Primary color: `#2975BB` / `#166DBA`.
+- Desain minimalis modern, rounded corners (`border-radius: 8-14px`).
+- Semua modal menggunakan pattern `.modal-overlay` + `.modal-card`.
+- Jangan tambah elemen yang merusak konsistensi visual existing.
+
+### Fase Berikutnya (Roadmap)
+1. **Backend Integration**: Pilih stack (Node/Python/PHP), buat REST API.
+2. **Database**: Migrasi data statis ke MySQL/PostgreSQL.
+3. **Authentication**: Sistem login berbasis Role (Admin/Employee).
+4. **Dynamic Rendering**: Tabel report, employee list, project list di-generate dari API, bukan hardcode HTML.

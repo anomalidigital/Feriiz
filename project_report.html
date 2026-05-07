@@ -2210,10 +2210,19 @@
             const colBtn = document.querySelector('.col-toggle-btn');
             const colDD = colBtn ? colBtn.nextElementSibling : null;
 
+            // Close other dropdown when one opens
+            const allDropdowns = [filterDD, colDD].filter(Boolean);
+
             [filterBtn, colBtn].forEach((btn, i) => {
                 const dd = i === 0 ? filterDD : colDD;
+                const otherDD = i === 0 ? colDD : filterDD;
                 if (!btn || !dd) return;
-                btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('show'); });
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Close the OTHER dropdown first
+                    if (otherDD) otherDD.classList.remove('show');
+                    dd.classList.toggle('show');
+                });
                 dd.addEventListener('click', (e) => e.stopPropagation());
             });
             document.addEventListener('click', () => {

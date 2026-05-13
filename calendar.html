@@ -14,8 +14,33 @@
         .cal-nav-btn:hover { background:#f0f4f8; border-color:#2975BB; color:#2975BB; }
         .cal-today-btn { padding:6px 16px; border:1px solid #2975BB; border-radius:8px; background:#2975BB; color:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
         .cal-month-label { font-size:22px; font-weight:700; color:#1a1a1a; min-width:180px; }
-        .cal-project-select { padding:8px 14px; border:1px solid #ddd; border-radius:8px; font-size:13px; font-family:'Poppins',sans-serif; color:#333; outline:none; cursor:pointer; }
-        .cal-project-select:focus { border-color:#2975BB; }
+        /* Search Project */
+        .cal-search-wrap { position:relative; }
+        .cal-search-input { padding:10px 12px 10px 38px; border-radius:8px; border:1px solid #D9D9D9; height:42px; width:260px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s; }
+        .cal-search-input:focus { border-color:#2975BB; }
+        .cal-search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#999; font-size:14px; }
+        .cal-search-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); z-index:200; max-height:240px; overflow-y:auto; border:1px solid #eee; }
+        .cal-search-dropdown.show { display:block; }
+        .cal-search-item { padding:10px 16px; font-size:13px; color:#333; cursor:pointer; transition:background 0.12s; display:flex; align-items:center; gap:8px; }
+        .cal-search-item:hover, .cal-search-item.active { background:#f0f6ff; color:#2975BB; }
+        .cal-search-item i { color:#2975BB; width:16px; font-size:12px; }
+        /* Filter Dropdown */
+        .cal-filter-wrap { position:relative; }
+        .cal-filter-btn { width:42px; height:42px; border:1px solid #D9D9D9; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#666; font-size:15px; transition:all 0.15s; }
+        .cal-filter-btn:hover, .cal-filter-btn.active { border-color:#2975BB; color:#2975BB; background:#f0f6ff; }
+        .cal-filter-dropdown { display:none; position:absolute; top:calc(100% + 6px); right:0; background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.15); width:320px; z-index:200; padding:20px; border:1px solid #eee; }
+        .cal-filter-dropdown.show { display:block; }
+        .cal-filter-dropdown label { display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; margin-top:12px; }
+        .cal-filter-dropdown label:first-child { margin-top:0; }
+        .cal-filter-dropdown .f-title { font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px; }
+        .cal-filter-dropdown select, .cal-filter-dropdown input[type=date] { width:100%; padding:8px 12px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; font-size:13px; outline:none; height:38px; }
+        .cal-filter-dropdown select:focus, .cal-filter-dropdown input[type=date]:focus { border-color:#2975BB; }
+        .cal-filter-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+        .cal-filter-actions button { padding:6px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
+        .f-btn-clear { background:#fff; border:1px solid #D9D9D9; color:#666; }
+        .f-btn-clear:hover { border-color:#999; }
+        .f-btn-apply { background:#2975BB; border:1px solid #2975BB; color:#fff; }
+        .f-btn-apply:hover { background:#1e5f9e; }
 
         .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
         .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
@@ -82,12 +107,45 @@
         <div class="cal-header-bar">
             <h1 class="cal-title"><i class="fa-regular fa-calendar" style="margin-right:8px;"></i>Calendar</h1>
             <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                <select class="cal-project-select" id="projectFilter">
-                    <option value="all">All Projects</option>
-                    <option value="anomali">Anomali (BSD Residence)</option>
-                    <option value="diamond15">Diamond Crystal Golf No. 15</option>
-                    <option value="diamond105">Diamond Golf H3 No. 105</option>
-                </select>
+                <!-- Filter -->
+                <div class="cal-filter-wrap">
+                    <button class="cal-filter-btn" id="filterToggle" title="Filter"><i class="fa-solid fa-filter"></i></button>
+                    <div class="cal-filter-dropdown" id="filterDropdown">
+                        <div class="f-title">Filter Calendar</div>
+                        <label>Type</label>
+                        <select id="filterType">
+                            <option value="">-- All Types --</option>
+                            <option value="work">Remote Work</option>
+                            <option value="leave">Cuti (Leave)</option>
+                            <option value="sick">Sakit (Sick)</option>
+                            <option value="other">Libur & Lainnya</option>
+                        </select>
+                        <label>Status</label>
+                        <select id="filterStatus">
+                            <option value="">-- All Status --</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                        <label>Date Range</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="date" id="filterDateFrom" style="flex:1;">
+                            <span style="color:#666; font-weight:600;">-</span>
+                            <input type="date" id="filterDateTo" style="flex:1;">
+                        </div>
+                        <div class="cal-filter-actions">
+                            <button class="f-btn-clear" onclick="clearFilter()">Clear</button>
+                            <button class="f-btn-apply" onclick="applyFilter()">Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Search Project -->
+                <div class="cal-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass cal-search-icon"></i>
+                    <input type="text" class="cal-search-input" id="projectSearch" placeholder="Search Project" autocomplete="off">
+                    <div class="cal-search-dropdown" id="projectDropdown"></div>
+                    <input type="hidden" id="projectFilter" value="all">
+                </div>
             </div>
         </div>
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
@@ -151,11 +209,76 @@
         const CAT_LABELS = { work:'Remote Work', leave:'Cuti (Leave)', sick:'Sakit (Sick)', other:'Libur' };
         const CAT_CSS = { work:'cat-work-bg', leave:'cat-leave-bg', sick:'cat-sick-bg', other:'cat-other-bg' };
 
+        const PROJECTS = [
+            { id:'all', label:'All Projects' },
+            { id:'anomali', label:'Anomali (BSD Residence)' },
+            { id:'diamond15', label:'Diamond Crystal Golf No. 15' },
+            { id:'diamond105', label:'Diamond Golf H3 No. 105' },
+        ];
         let currentYear=2026, currentMonth=4;
+        let activeFilter = { type:'', status:'', dateFrom:'', dateTo:'' };
+
+        // === Project Search ===
+        const searchInput = document.getElementById('projectSearch');
+        const searchDropdown = document.getElementById('projectDropdown');
+        const projectHidden = document.getElementById('projectFilter');
+
+        searchInput.addEventListener('focus', () => showProjectList(searchInput.value));
+        searchInput.addEventListener('input', () => showProjectList(searchInput.value));
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) searchDropdown.classList.remove('show');
+        });
+
+        function showProjectList(query) {
+            const q = query.toLowerCase().trim();
+            const filtered = PROJECTS.filter(p => p.label.toLowerCase().includes(q));
+            if (filtered.length === 0) { searchDropdown.classList.remove('show'); return; }
+            searchDropdown.innerHTML = filtered.map(p =>
+                `<div class="cal-search-item" onclick="selectProject('${p.id}','${p.label}')">`+
+                `<i class="fa-solid fa-clipboard"></i> ${p.label}</div>`
+            ).join('');
+            searchDropdown.classList.add('show');
+        }
+
+        function selectProject(id, label) {
+            projectHidden.value = id;
+            searchInput.value = id === 'all' ? '' : label;
+            searchDropdown.classList.remove('show');
+            renderCalendar();
+        }
+
+        // === Filter ===
+        const filterToggle = document.getElementById('filterToggle');
+        const filterDropdown = document.getElementById('filterDropdown');
+        filterToggle.addEventListener('click', (e) => { e.stopPropagation(); filterDropdown.classList.toggle('show'); filterToggle.classList.toggle('active'); });
+        filterDropdown.addEventListener('click', (e) => e.stopPropagation());
+        document.addEventListener('click', () => { filterDropdown.classList.remove('show'); filterToggle.classList.remove('active'); });
+
+        function applyFilter() {
+            activeFilter.type = document.getElementById('filterType').value;
+            activeFilter.status = document.getElementById('filterStatus').value;
+            activeFilter.dateFrom = document.getElementById('filterDateFrom').value;
+            activeFilter.dateTo = document.getElementById('filterDateTo').value;
+            filterDropdown.classList.remove('show');
+            filterToggle.classList.toggle('active', !!(activeFilter.type||activeFilter.status||activeFilter.dateFrom||activeFilter.dateTo));
+            renderCalendar();
+        }
+        function clearFilter() {
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            applyFilter();
+        }
 
         function getFilteredEvents() {
-            const proj = document.getElementById('projectFilter').value;
-            return proj === 'all' ? EVENTS : EVENTS.filter(e => e.project === proj);
+            const proj = projectHidden.value;
+            let ev = proj === 'all' ? EVENTS : EVENTS.filter(e => e.project === proj);
+            if (activeFilter.type) ev = ev.filter(e => e.cat === activeFilter.type);
+            if (activeFilter.status) ev = ev.filter(e => e.status === activeFilter.status);
+            if (activeFilter.dateFrom) ev = ev.filter(e => e.dateEnd >= activeFilter.dateFrom);
+            if (activeFilter.dateTo) ev = ev.filter(e => e.dateStart <= activeFilter.dateTo);
+            return ev;
         }
 
         function renderCalendar() {
@@ -178,18 +301,15 @@
                 let cls='cal-cell';
                 if(isToday)cls+=' today';
                 if(dow===0||dow===6)cls+=' weekend';
-
                 const dayEv=events.filter(e=>e.dateStart<=ds&&e.dateEnd>=ds);
                 const dayH=HOLIDAYS.filter(h=>h.date===ds);
-                // Aggregate by category
                 const counts={};
                 dayEv.forEach(e=>{if(!counts[e.cat])counts[e.cat]=[];counts[e.cat].push(e);});
                 let inner=`<div class="cal-date">${d}</div>`;
                 dayH.forEach(h=>{inner+=`<div class="cal-holiday-bar">${h.name}</div>`;});
                 for(const cat of ['work','leave','sick','other']){
                     if(counts[cat]&&counts[cat].length>0){
-                        const c=counts[cat].length;
-                        inner+=`<div class="cal-count-badge ${CAT_CSS[cat]}" onclick="event.stopPropagation();showList('${cat}','${ds}')"><span class="badge-dot"></span>${CAT_LABELS[cat]}: ${c}</div>`;
+                        inner+=`<div class="cal-count-badge ${CAT_CSS[cat]}" onclick="event.stopPropagation();showList('${cat}','${ds}')"><span class="badge-dot"></span>${CAT_LABELS[cat]}: ${counts[cat].length}</div>`;
                     }
                 }
                 html+=`<div class="${cls}">${inner}</div>`;
@@ -218,7 +338,6 @@
         }
         function closeOverlay(){document.getElementById('calOverlay').classList.remove('show');}
 
-        document.getElementById('projectFilter').addEventListener('change', renderCalendar);
         renderCalendar();
     </script>
 </body>

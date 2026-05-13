@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Style.css">
+    <style>
+        .cal-header-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+        .cal-title { font-size:24px; font-weight:800; color:#2975BB; margin:0; }
+        .cal-nav { display:flex; align-items:center; gap:8px; }
+        .cal-nav-btn { width:36px; height:36px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#555; transition:all 0.15s; }
+        .cal-nav-btn:hover { background:#f0f4f8; border-color:#2975BB; color:#2975BB; }
+        .cal-today-btn { padding:6px 16px; border:1px solid #2975BB; border-radius:8px; background:#2975BB; color:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
+        .cal-month-label { font-size:22px; font-weight:700; color:#1a1a1a; min-width:180px; }
+        .cal-project-select { padding:8px 14px; border:1px solid #ddd; border-radius:8px; font-size:13px; font-family:'Poppins',sans-serif; color:#333; outline:none; cursor:pointer; }
+        .cal-project-select:focus { border-color:#2975BB; }
+
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
+        .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
+        .cal-cell { min-height:120px; padding:6px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; transition:background 0.15s; }
+        .cal-cell:hover { background:#fafcff; }
+        .cal-cell.today { background:#eef5ff; }
+        .cal-cell.other-month { background:#fafafa; }
+        .cal-cell.other-month .cal-date { color:#ccc; }
+        .cal-cell.weekend { background:#fdf8f4; }
+        .cal-date { font-size:12px; font-weight:600; color:#555; margin-bottom:4px; }
+
+        .cal-count-badge { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; color:#fff; margin-bottom:3px; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
+        .cal-count-badge:hover { transform:scale(1.03); box-shadow:0 2px 8px rgba(0,0,0,0.12); }
+        .cal-count-badge .badge-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .cat-work-bg { background:rgba(39,174,96,0.12); color:#1e8449; }
+        .cat-work-bg .badge-dot { background:#27AE60; }
+        .cat-leave-bg { background:rgba(41,128,185,0.12); color:#1a6da5; }
+        .cat-leave-bg .badge-dot { background:#2980B9; }
+        .cat-sick-bg { background:rgba(231,76,60,0.12); color:#c0392b; }
+        .cat-sick-bg .badge-dot { background:#E74C3C; }
+        .cat-other-bg { background:rgba(230,126,34,0.12); color:#d35400; }
+        .cat-other-bg .badge-dot { background:#E67E22; }
+        .cal-holiday-bar { padding:3px 8px; border-radius:4px; background:#E67E22; color:#fff; font-size:10px; font-weight:500; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+        /* Overlay */
+        .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:flex-start; padding-top:10vh; justify-content:center; }
+        .cal-overlay.show { display:flex; }
+        .cal-detail { background:#fff; border-radius:14px; width:480px; max-width:92vw; max-height:75vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.18); animation:slideUp 0.25s ease; }
+        .cal-detail-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #eee; position:sticky; top:0; background:#fff; z-index:1; border-radius:14px 14px 0 0; }
+        .cal-detail-header h3 { font-size:15px; font-weight:700; color:#1a1a1a; margin:0; }
+        .cal-detail-close { width:32px; height:32px; border:none; background:#f2f2f2; border-radius:50%; font-size:18px; color:#777; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .cal-detail-close:hover { background:#e8e8e8; }
+        .cal-detail-body { padding:16px 24px 24px; }
+        .emp-list-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; }
+        .emp-list-item:last-child { border-bottom:none; }
+        .emp-list-num { width:24px; height:24px; border-radius:50%; background:#f0f4f8; color:#2975BB; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .emp-list-info { flex:1; }
+        .emp-list-name { font-size:13px; font-weight:600; color:#1a1a1a; }
+        .emp-list-sub { font-size:11px; color:#888; margin-top:2px; }
+        .emp-list-sub .badge-sm { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:600; color:#fff; }
+        .badge-accepted { background:#27AE60; }
+        .badge-pending { background:#E67E22; }
+        .badge-rejected { background:#E74C3C; }
+        .total-bar { padding:10px 0 0; margin-top:8px; border-top:1px solid #eee; font-size:12px; font-weight:600; color:#888; }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="_Asset_/icon_feriiz.png" alt="Feriiz Logo">
+            <div class="logo-text">FERIIZ</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html"><i class="fa-solid fa-table-cells-large"></i><span class="nav-label">Dashboard</span></a>
+            <a href="projects.html"><i class="fa-solid fa-clipboard"></i><span class="nav-label">Projects</span></a>
+            <a href="employees.html"><i class="fa-solid fa-users"></i><span class="nav-label">Employees</span></a>
+            <a href="calendar.html" class="active"><i class="fa-regular fa-calendar"></i><span class="nav-label">Calendar</span></a>
+            <a href="my account.html"><i class="fa-regular fa-user"></i><span class="nav-label">My Account</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="cal-header-bar">
+            <h1 class="cal-title"><i class="fa-regular fa-calendar" style="margin-right:8px;"></i>Calendar</h1>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <select class="cal-project-select" id="projectFilter">
+                    <option value="all">All Projects</option>
+                    <option value="anomali">Anomali (BSD Residence)</option>
+                    <option value="diamond15">Diamond Crystal Golf No. 15</option>
+                    <option value="diamond105">Diamond Golf H3 No. 105</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <div class="cal-month-label" id="calMonthTitle">May 2026</div>
+            <div class="cal-nav">
+                <button class="cal-today-btn" onclick="goToday()">Today</button>
+                <button class="cal-nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="cal-nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#27AE60;display:inline-block;"></span> Remote Work</div>
+            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#2980B9;display:inline-block;"></span> Cuti (Leave)</div>
+            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#E74C3C;display:inline-block;"></span> Sakit (Sick)</div>
+            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#E67E22;display:inline-block;"></span> Libur & Lainnya</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div style="margin-top:24px;font-size:12px;color:#bbb;">version : 2.0.93</div>
+    </main>
+
+    <!-- Overlay -->
+    <div class="cal-overlay" id="calOverlay" onclick="if(event.target===this)closeOverlay()">
+        <div class="cal-detail">
+            <div class="cal-detail-header">
+                <h3 id="overlayTitle">Sick Leave — Tue, 13 May 2026</h3>
+                <button class="cal-detail-close" onclick="closeOverlay()">&times;</button>
+            </div>
+            <div class="cal-detail-body" id="overlayBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const EVENTS = [
+            { name:'Sandi Santuy', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Steven Febrianto', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Yenni Tedjakoesoemo', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Adam Ferial', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Adam Ferial', type:'Remote Work', cat:'work', project:'diamond15', dateStart:'2026-05-07', dateEnd:'2026-05-07', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', project:'diamond15', dateStart:'2026-05-11', dateEnd:'2026-05-11', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Ifan Faizal Adnan', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-12', dateEnd:'2026-05-12', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Ifan Faizal Adnan', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Pending', pic:'Judith Anastasio' },
+            { name:'Mauli Hidayat', type:'Sick Leave', cat:'sick', project:'diamond15', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Pending', pic:'Judith Anastasio' },
+            { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-08', dateEnd:'2026-05-08', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Veronica Nathalia', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-15', dateEnd:'2026-05-15', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Steven Febrianto', type:'Remote Work', cat:'work', project:'diamond105', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Zicky Affan', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-07', dateEnd:'2026-05-07', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Baldyas Satrio', type:'Remote Work', cat:'work', project:'diamond15', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Indra Naftali', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Accepted', pic:'Judith Anastasio' },
+            { name:'Apriyanto', type:'Sick Leave', cat:'sick', project:'diamond105', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Accepted', pic:'Judith Anastasio' },
+        ];
+        const HOLIDAYS = [
+            { name:'Hari Buruh Internasional', date:'2026-05-01' },
+            { name:'Kenaikan Isa Al Masih', date:'2026-05-14' },
+            { name:'Idul Adha (Lebaran Haji)', date:'2026-05-27' },
+            { name:'Idul Adha (Lebaran Haji)', date:'2026-05-28' },
+            { name:'Hari Raya Waisak', date:'2026-05-31' },
+        ];
+        const CAT_LABELS = { work:'Remote Work', leave:'Cuti (Leave)', sick:'Sakit (Sick)', other:'Libur' };
+        const CAT_CSS = { work:'cat-work-bg', leave:'cat-leave-bg', sick:'cat-sick-bg', other:'cat-other-bg' };
+
+        let currentYear=2026, currentMonth=4;
+
+        function getFilteredEvents() {
+            const proj = document.getElementById('projectFilter').value;
+            return proj === 'all' ? EVENTS : EVENTS.filter(e => e.project === proj);
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calGrid');
+            const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            document.getElementById('calMonthTitle').textContent = mn[currentMonth] + ' ' + currentYear;
+            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            let html = days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const dim = new Date(currentYear, currentMonth+1, 0).getDate();
+            const prevDim = new Date(currentYear, currentMonth, 0).getDate();
+            const today = new Date();
+            const events = getFilteredEvents();
+
+            for(let i=firstDay-1;i>=0;i--) html+=`<div class="cal-cell other-month"><div class="cal-date">${prevDim-i}</div></div>`;
+            for(let d=1;d<=dim;d++){
+                const ds=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const dow=new Date(currentYear,currentMonth,d).getDay();
+                const isToday=today.getFullYear()===currentYear&&today.getMonth()===currentMonth&&today.getDate()===d;
+                let cls='cal-cell';
+                if(isToday)cls+=' today';
+                if(dow===0||dow===6)cls+=' weekend';
+
+                const dayEv=events.filter(e=>e.dateStart<=ds&&e.dateEnd>=ds);
+                const dayH=HOLIDAYS.filter(h=>h.date===ds);
+                // Aggregate by category
+                const counts={};
+                dayEv.forEach(e=>{if(!counts[e.cat])counts[e.cat]=[];counts[e.cat].push(e);});
+                let inner=`<div class="cal-date">${d}</div>`;
+                dayH.forEach(h=>{inner+=`<div class="cal-holiday-bar">${h.name}</div>`;});
+                for(const cat of ['work','leave','sick','other']){
+                    if(counts[cat]&&counts[cat].length>0){
+                        const c=counts[cat].length;
+                        inner+=`<div class="cal-count-badge ${CAT_CSS[cat]}" onclick="event.stopPropagation();showList('${cat}','${ds}')"><span class="badge-dot"></span>${CAT_LABELS[cat]}: ${c}</div>`;
+                    }
+                }
+                html+=`<div class="${cls}">${inner}</div>`;
+            }
+            const tot=firstDay+dim; const rem=(7-(tot%7))%7;
+            for(let i=1;i<=rem;i++) html+=`<div class="cal-cell other-month"><div class="cal-date">${i}</div></div>`;
+            grid.innerHTML=html;
+        }
+
+        function changeMonth(dir){currentMonth+=dir;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar();}
+        function goToday(){const t=new Date();currentYear=t.getFullYear();currentMonth=t.getMonth();renderCalendar();}
+
+        function showList(cat, dateStr) {
+            const events = getFilteredEvents().filter(e=>e.cat===cat&&e.dateStart<=dateStr&&e.dateEnd>=dateStr);
+            const dt = new Date(dateStr+'T00:00:00');
+            const dateLabel = dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+            document.getElementById('overlayTitle').textContent = `${CAT_LABELS[cat]} — ${dateLabel}`;
+            let html='';
+            events.forEach((e,i)=>{
+                const sc=e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
+                html+=`<div class="emp-list-item"><div class="emp-list-num">${i+1}</div><div class="emp-list-info"><div class="emp-list-name">${e.name}</div><div class="emp-list-sub"><span class="badge-sm ${sc}">${e.status}</span> · PIC: ${e.pic}</div></div></div>`;
+            });
+            html+=`<div class="total-bar">Total: ${events.length} employee${events.length>1?'s':''}</div>`;
+            document.getElementById('overlayBody').innerHTML=html;
+            document.getElementById('calOverlay').classList.add('show');
+        }
+        function closeOverlay(){document.getElementById('calOverlay').classList.remove('show');}
+
+        document.getElementById('projectFilter').addEventListener('change', renderCalendar);
+        renderCalendar();
+    </script>
+</body>
+</html>

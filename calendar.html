@@ -74,6 +74,11 @@
         .cal-detail-close { width:32px; height:32px; border:none; background:#f2f2f2; border-radius:50%; font-size:18px; color:#777; cursor:pointer; display:flex; align-items:center; justify-content:center; }
         .cal-detail-close:hover { background:#e8e8e8; }
         .cal-detail-body { padding:16px 24px 24px; }
+        .cal-detail-row { display:flex; gap:12px; padding:8px 0; font-size:13px; border-bottom:1px solid #f5f5f5; }
+        .cal-detail-row:last-child { border-bottom:none; }
+        .cal-detail-label { width:110px; font-weight:600; color:#666; flex-shrink:0; }
+        .cal-detail-value { color:#1a1a1a; font-weight:500; flex:1; }
+        .cal-detail-value .badge-sm { display:inline-block; padding:3px 8px; border-radius:999px; color:#fff; font-size:11px; font-weight:700; line-height:1; }
         .emp-list-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; }
         .emp-list-item:last-child { border-bottom:none; }
         .emp-list-num { width:24px; height:24px; border-radius:50%; background:#f0f4f8; color:#2975BB; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -85,6 +90,59 @@
         .badge-pending { background:#E67E22; }
         .badge-rejected { background:#E74C3C; }
         .total-bar { padding:10px 0 0; margin-top:8px; border-top:1px solid #eee; font-size:12px; font-weight:600; color:#888; }
+        .calendar-layout { display:flex; gap:20px; align-items:flex-start; }
+        .request-panel { width:320px; flex:0 0 320px; background:#fff; border:1px solid #E5E8EC; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.04); overflow:hidden; position:sticky; top:24px; max-height:calc(100vh - 96px); display:flex; flex-direction:column; }
+        .request-panel-head { padding:18px 18px 14px; border-bottom:1px solid #EEF1F4; }
+        .request-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+        .request-title { display:flex; align-items:center; gap:8px; color:#1a1a1a; font-size:16px; font-weight:700; }
+        .request-title i { color:#2975BB; font-size:17px; }
+        .request-count-pill { background:#EBF3FA; color:#2975BB; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; white-space:nowrap; }
+        .request-toggle { display:flex; border:1px solid #2975BB; border-radius:8px; overflow:hidden; background:#fff; margin-bottom:14px; }
+        .request-toggle button { flex:1; border:none; background:#fff; color:#2975BB; height:34px; font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.16s ease; }
+        .request-toggle button.active { background:#2975BB; color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18); }
+        .request-search-wrap { position:relative; margin-bottom:12px; }
+        .request-search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#999; font-size:12px; }
+        .request-search-wrap input { width:100%; height:36px; border:1px solid #D9D9D9; border-radius:8px; padding:8px 10px 8px 32px; font-family:'Poppins',sans-serif; font-size:12px; outline:none; }
+        .request-search-wrap input:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
+        .request-chip-row { display:flex; gap:6px; flex-wrap:wrap; }
+        .request-chip { border:1px solid #D9D9D9; background:#fff; color:#666; border-radius:999px; padding:5px 9px; font-family:'Poppins',sans-serif; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+        .request-chip:hover, .request-chip.active { border-color:#2975BB; color:#2975BB; background:#F2F7FC; }
+        .request-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:14px 18px; border-bottom:1px solid #EEF1F4; background:#FBFCFE; }
+        .request-summary-card { border:1px solid #EEF1F4; background:#fff; border-radius:8px; padding:9px 10px; }
+        .summary-label { display:flex; align-items:center; gap:6px; font-size:10px; color:#777; font-weight:600; white-space:nowrap; }
+        .summary-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .summary-number { margin-top:4px; color:#1a1a1a; font-size:18px; font-weight:800; line-height:1; }
+        .request-list { padding:10px 12px 14px; overflow-y:auto; flex:1; }
+        .request-card { display:block; width:100%; text-align:left; border:1px solid #EEF1F4; border-left:4px solid #2975BB; background:#fff; border-radius:10px; padding:11px 12px; margin-bottom:9px; cursor:pointer; font-family:'Poppins',sans-serif; transition:all 0.15s ease; }
+        .request-card:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(41,117,187,0.1); border-color:#D9E8F5; }
+        .request-card.cat-work { border-left-color:#27AE60; }
+        .request-card.cat-leave { border-left-color:#2980B9; }
+        .request-card.cat-sick { border-left-color:#E74C3C; }
+        .request-card.cat-other { border-left-color:#E67E22; }
+        .request-card-top { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+        .request-card-name { color:#1a1a1a; font-size:12px; font-weight:700; line-height:1.25; }
+        .request-card-type { color:#555; font-size:11px; font-weight:500; margin-top:3px; }
+        .request-card .badge-sm { display:inline-flex; align-items:center; height:20px; padding:2px 7px; border-radius:999px; color:#fff; font-size:10px; font-weight:700; line-height:1; flex-shrink:0; }
+        .request-card-meta { display:flex; align-items:center; gap:7px; flex-wrap:wrap; color:#888; font-size:10.5px; font-weight:500; margin-top:9px; }
+        .request-card-meta i { color:#2975BB; font-size:10px; }
+        .request-project { max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .request-empty { text-align:center; color:#888; padding:34px 18px; font-size:12px; }
+        .request-empty i { display:block; color:#C7D2DE; font-size:30px; margin-bottom:10px; }
+        .calendar-board { flex:1; min-width:0; }
+        .calendar-board-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:16px; }
+        .calendar-legend { display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap; }
+        .calendar-legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#555; }
+        .calendar-legend-item span { width:10px; height:10px; border-radius:50%; display:inline-block; }
+        @media (max-width: 1180px) {
+            .calendar-layout { flex-direction:column; }
+            .request-panel { width:100%; flex-basis:auto; position:static; max-height:none; }
+            .request-list { max-height:360px; }
+        }
+        @media (max-width: 768px) {
+            .calendar-board-top { align-items:flex-start; flex-direction:column; }
+            .cal-grid { min-width:760px; }
+            .calendar-board { width:100%; overflow-x:auto; }
+        }
         @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     </style>
 </head>
@@ -148,23 +206,51 @@
                 </div>
             </div>
         </div>
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-            <div class="cal-month-label" id="calMonthTitle">May 2026</div>
-            <div class="cal-nav">
-                <button class="cal-today-btn" onclick="goToday()">Today</button>
-                <button class="cal-nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-                <button class="cal-nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
+        <div class="calendar-layout">
+            <aside class="request-panel" aria-label="Request overview">
+                <div class="request-panel-head">
+                    <div class="request-title-row">
+                        <div class="request-title"><i class="fa-solid fa-clipboard-list"></i>Request</div>
+                        <div class="request-count-pill" id="requestCountPill">0 Items</div>
+                    </div>
+                    <div class="request-toggle">
+                        <button class="active" type="button" onclick="setRequestView(this,'today')">Today</button>
+                        <button type="button" onclick="setRequestView(this,'month')">Month</button>
+                    </div>
+                    <div class="request-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="requestSearch" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="request-chip-row">
+                        <button type="button" class="request-chip active" data-status="all" onclick="setRequestStatus(this,'all')">All</button>
+                        <button type="button" class="request-chip" data-status="Pending" onclick="setRequestStatus(this,'Pending')">Pending</button>
+                        <button type="button" class="request-chip" data-status="Accepted" onclick="setRequestStatus(this,'Accepted')">Accepted</button>
+                    </div>
+                </div>
+                <div class="request-summary" id="requestSummary"></div>
+                <div class="request-list" id="requestList"></div>
+            </aside>
+
+            <section class="calendar-board">
+                <div class="calendar-board-top">
+                    <div class="cal-month-label" id="calMonthTitle">May 2026</div>
+                    <div class="cal-nav">
+                        <button class="cal-today-btn" onclick="goToday()">Today</button>
+                        <button class="cal-nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="cal-nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <!-- Legend -->
+                <div class="calendar-legend">
+                    <div class="calendar-legend-item"><span style="background:#27AE60;"></span> Remote Work</div>
+                    <div class="calendar-legend-item"><span style="background:#2980B9;"></span> Cuti (Leave)</div>
+                    <div class="calendar-legend-item"><span style="background:#E74C3C;"></span> Sakit (Sick)</div>
+                    <div class="calendar-legend-item"><span style="background:#E67E22;"></span> Libur & Lainnya</div>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div style="margin-top:24px;font-size:12px;color:#bbb;">version : 2.0.93</div>
+            </section>
         </div>
-        <!-- Legend -->
-        <div style="display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap;">
-            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#27AE60;display:inline-block;"></span> Remote Work</div>
-            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#2980B9;display:inline-block;"></span> Cuti (Leave)</div>
-            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#E74C3C;display:inline-block;"></span> Sakit (Sick)</div>
-            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#555;"><span style="width:10px;height:10px;border-radius:50%;background:#E67E22;display:inline-block;"></span> Libur & Lainnya</div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-        <div style="margin-top:24px;font-size:12px;color:#bbb;">version : 2.0.93</div>
     </main>
 
     <!-- Overlay -->
@@ -217,11 +303,20 @@
         ];
         let currentYear=2026, currentMonth=4;
         let activeFilter = { type:'', status:'', dateFrom:'', dateTo:'' };
+        let requestView = 'today';
+        let requestStatus = 'all';
+        let requestSearchQuery = '';
 
         // === Project Search ===
         const searchInput = document.getElementById('projectSearch');
         const searchDropdown = document.getElementById('projectDropdown');
         const projectHidden = document.getElementById('projectFilter');
+        const requestSearch = document.getElementById('requestSearch');
+
+        requestSearch.addEventListener('input', () => {
+            requestSearchQuery = requestSearch.value.trim().toLowerCase();
+            renderRequestPanel();
+        });
 
         searchInput.addEventListener('focus', () => showProjectList(searchInput.value));
         searchInput.addEventListener('input', () => showProjectList(searchInput.value));
@@ -245,6 +340,7 @@
             searchInput.value = id === 'all' ? '' : label;
             searchDropdown.classList.remove('show');
             renderCalendar();
+            renderRequestPanel();
         }
 
         // === Filter ===
@@ -262,6 +358,7 @@
             filterDropdown.classList.remove('show');
             filterToggle.classList.toggle('active', !!(activeFilter.type||activeFilter.status||activeFilter.dateFrom||activeFilter.dateTo));
             renderCalendar();
+            renderRequestPanel();
         }
         function clearFilter() {
             document.getElementById('filterType').value = '';
@@ -319,8 +416,88 @@
             grid.innerHTML=html;
         }
 
-        function changeMonth(dir){currentMonth+=dir;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar();}
-        function goToday(){const t=new Date();currentYear=t.getFullYear();currentMonth=t.getMonth();renderCalendar();}
+        function changeMonth(dir){currentMonth+=dir;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar();renderRequestPanel();}
+        function goToday(){const t=new Date();currentYear=t.getFullYear();currentMonth=t.getMonth();renderCalendar();renderRequestPanel();}
+
+        function setRequestView(btn, view) {
+            requestView = view;
+            btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderRequestPanel();
+        }
+
+        function setRequestStatus(btn, status) {
+            requestStatus = status;
+            btn.parentElement.querySelectorAll('.request-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderRequestPanel();
+        }
+
+        function getRequestScopeEvents() {
+            const events = getFilteredEvents();
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const monthStart = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-01`;
+            const monthEnd = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(new Date(currentYear,currentMonth+1,0).getDate()).padStart(2,'0')}`;
+            let scoped = requestView === 'today'
+                ? events.filter(e => e.dateStart <= todayStr && e.dateEnd >= todayStr)
+                : events.filter(e => e.dateStart <= monthEnd && e.dateEnd >= monthStart);
+
+            if (requestStatus !== 'all') scoped = scoped.filter(e => e.status === requestStatus);
+            if (requestSearchQuery) {
+                scoped = scoped.filter(e => {
+                    const haystack = `${e.name} ${e.type} ${e.status} ${getProjectLabel(e.project)} ${e.pic}`.toLowerCase();
+                    return haystack.includes(requestSearchQuery);
+                });
+            }
+            return scoped.sort((a,b) => a.dateStart.localeCompare(b.dateStart) || a.name.localeCompare(b.name));
+        }
+
+        function renderRequestPanel() {
+            const list = document.getElementById('requestList');
+            const summary = document.getElementById('requestSummary');
+            const pill = document.getElementById('requestCountPill');
+            const scopedEvents = getRequestScopeEvents();
+            const counts = {
+                work: scopedEvents.filter(e => e.cat === 'work').length,
+                leave: scopedEvents.filter(e => e.cat === 'leave').length,
+                sick: scopedEvents.filter(e => e.cat === 'sick').length,
+                pending: scopedEvents.filter(e => e.status === 'Pending').length
+            };
+
+            pill.textContent = `${scopedEvents.length} Item${scopedEvents.length === 1 ? '' : 's'}`;
+            summary.innerHTML = `
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#27AE60;"></span>Remote</div><div class="summary-number">${counts.work}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#2980B9;"></span>Leave</div><div class="summary-number">${counts.leave}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#E74C3C;"></span>Sick</div><div class="summary-number">${counts.sick}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#E67E22;"></span>Pending</div><div class="summary-number">${counts.pending}</div></div>
+            `;
+
+            if (scopedEvents.length === 0) {
+                list.innerHTML = `<div class="request-empty"><i class="fa-regular fa-calendar-check"></i>No request for this view.</div>`;
+                return;
+            }
+
+            list.innerHTML = scopedEvents.map(e => {
+                const idx = EVENTS.indexOf(e);
+                const statusClass = e.status === 'Accepted' ? 'badge-accepted' : e.status === 'Pending' ? 'badge-pending' : 'badge-rejected';
+                return `
+                    <button class="request-card cat-${e.cat}" type="button" onclick="showEventDetailByIndex(${idx})">
+                        <div class="request-card-top">
+                            <div>
+                                <div class="request-card-name">${e.name}</div>
+                                <div class="request-card-type">${e.type}</div>
+                            </div>
+                            <span class="badge-sm ${statusClass}">${e.status}</span>
+                        </div>
+                        <div class="request-card-meta">
+                            <span><i class="fa-regular fa-calendar"></i> ${formatShortDate(e.dateStart)}</span>
+                            <span class="request-project"><i class="fa-solid fa-clipboard"></i> ${getProjectLabel(e.project)}</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
 
         function showList(cat, dateStr) {
             const events = getFilteredEvents().filter(e=>e.cat===cat&&e.dateStart<=dateStr&&e.dateEnd>=dateStr);
@@ -336,9 +513,42 @@
             document.getElementById('overlayBody').innerHTML=html;
             document.getElementById('calOverlay').classList.add('show');
         }
+        function showEventDetailByIndex(index) {
+            const e = EVENTS[index];
+            if (!e) return;
+            const statusClass = e.status === 'Accepted' ? 'badge-accepted' : e.status === 'Pending' ? 'badge-pending' : 'badge-rejected';
+            document.getElementById('overlayTitle').textContent = `${e.name} - ${e.type}`;
+            document.getElementById('overlayBody').innerHTML = `
+                <div class="cal-detail-row"><div class="cal-detail-label">Name</div><div class="cal-detail-value">: ${e.name}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Project</div><div class="cal-detail-value">: ${getProjectLabel(e.project)}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Type</div><div class="cal-detail-value">: ${e.type}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Date Start</div><div class="cal-detail-value">: ${formatDate(e.dateStart)}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Date End</div><div class="cal-detail-value">: ${formatDate(e.dateEnd)}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Status</div><div class="cal-detail-value">: <span class="badge-sm ${statusClass}">${e.status}</span></div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">PIC</div><div class="cal-detail-value">: ${e.pic || '-'}</div></div>
+            `;
+            document.getElementById('calOverlay').classList.add('show');
+        }
+
+        function getProjectLabel(id) {
+            const project = PROJECTS.find(p => p.id === id);
+            return project ? project.label : 'Unknown Project';
+        }
+
+        function formatDate(d) {
+            const dt = new Date(d+'T00:00:00');
+            return dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        }
+
+        function formatShortDate(d) {
+            const dt = new Date(d+'T00:00:00');
+            return dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'});
+        }
+
         function closeOverlay(){document.getElementById('calOverlay').classList.remove('show');}
 
         renderCalendar();
+        renderRequestPanel();
     </script>
 </body>
 </html>

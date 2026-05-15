@@ -112,53 +112,6 @@
                         <button style="flex:1;" onclick="toggleSidebarView(this,'month')">Month</button>
                     </div>
                 </div>
-                <div class="cal-sidebar-section">
-                    <h3>🎂 Birthday</h3>
-                    <div class="cal-sidebar-item"><div class="item-name">Ifan Faizal</div><div class="item-sub">Wed, 28 Apr 1995</div></div>
-                </div>
-                <div class="cal-sidebar-section">
-                    <h3>📋 Request</h3>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Yenni Tedjakoesoemo — <span style="font-weight:400;">Marriage Leave</span></div>
-                        <div class="badge-sm badge-accepted">Accepted</div>
-                        <div class="item-sub">Tue, 31 Mar – Thu, 02 Apr</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Steven Febrianto — <span style="font-weight:400;">Remote Work</span></div>
-                        <div class="badge-sm badge-accepted">Accepted</div>
-                        <div class="item-sub">Wed, 01 Apr</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Veronica Nathalia — <span style="font-weight:400;">Remote Work</span></div>
-                        <div class="badge-sm badge-accepted">Accepted</div>
-                        <div class="item-sub">Wed, 01 Apr</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Zicky Affan — <span style="font-weight:400;">Remote Work</span></div>
-                        <div class="badge-sm badge-accepted">Accepted</div>
-                        <div class="item-sub">Wed, 01 Apr</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Adam Ferial — <span style="font-weight:400;">Annual Leave</span></div>
-                        <div class="badge-sm badge-accepted">Accepted</div>
-                        <div class="item-sub">Wed, 01 Apr</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Raden Maulana — <span style="font-weight:400;">Sick Leave</span></div>
-                        <div class="badge-sm badge-accepted">Accepted</div>
-                        <div class="item-sub">Tue, 05 May</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Mauli Hidayat — <span style="font-weight:400;">Sick Leave</span></div>
-                        <div class="badge-sm badge-pending">Pending</div>
-                        <div class="item-sub">Wed, 13 May</div>
-                    </div>
-                    <div class="cal-sidebar-item">
-                        <div class="item-name">Ifan Faizal Adnan — <span style="font-weight:400;">Remote Work</span></div>
-                        <div class="badge-sm badge-pending">Pending</div>
-                        <div class="item-sub">Wed, 13 May</div>
-                    </div>
-                </div>
             </div>
 
             <!-- Calendar Main -->
@@ -305,9 +258,51 @@
 
         function closeDetail() { document.getElementById('calDetailOverlay').classList.remove('show'); }
         function formatDate(d) { const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
-        function toggleSidebarView(btn, view) { btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+        function toggleSidebarView(btn, view) {
+            btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            currentSidebarView = view;
+            renderSidebar();
+        }
+        let currentSidebarView = 'today';
+        function renderSidebar() {
+            const container = document.getElementById('calSidebar');
+            const toggle = container.querySelector('.cal-toggle').parentElement.outerHTML;
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const monthPrefix = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+            let filtered;
+            if (currentSidebarView === 'today') {
+                filtered = EVENTS.filter(e => e.dateStart <= todayStr && e.dateEnd >= todayStr);
+            } else {
+                filtered = EVENTS.filter(e => e.dateStart.startsWith(monthPrefix) || e.dateEnd.startsWith(monthPrefix));
+            }
+            // Summary counts
+            const cats = {work:0,leave:0,sick:0};
+            filtered.forEach(e => { if(cats[e.cat]!==undefined) cats[e.cat]++; });
+            let html = toggle;
+            html += `<div class="cal-sidebar-section"><h3>📊 Summary</h3>`;
+            html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#27AE60;font-weight:600;">🟢 Remote Work</span><span style="font-weight:700;">${cats.work}</span></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#2980B9;font-weight:600;">🔵 Cuti</span><span style="font-weight:700;">${cats.leave}</span></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#E74C3C;font-weight:600;">🔴 Sakit</span><span style="font-weight:700;">${cats.sick}</span></div>`;
+            html += `<div style="height:1px;background:#eee;margin:4px 0;"></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;font-weight:700;"><span>Total</span><span>${filtered.length}</span></div>`;
+            html += `</div></div>`;
+            html += `<div class="cal-sidebar-section"><h3>📋 Request</h3>`;
+            if (filtered.length === 0) {
+                html += `<div style="font-size:12px;color:#aaa;padding:8px 0;">No requests</div>`;
+            }
+            filtered.forEach(e => {
+                const sc = e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
+                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} — <span style="font-weight:400;">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
 
         renderCalendar();
+        renderSidebar();
     </script>
 </body>
 </html>

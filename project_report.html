@@ -587,7 +587,11 @@
                     <button class="btn-action primary" id="downloadToggleBtn" onclick="this.nextElementSibling.classList.toggle('show')">
                         <i class="fa-solid fa-download"></i> Download <i class="fa-solid fa-chevron-down" style="font-size:9px; margin-left:2px;"></i>
                     </button>
-                    <div id="downloadDropdown" style="display:none; position:absolute; top:calc(100% + 6px); right:0; background:#fff; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); min-width:200px; z-index:100; overflow:hidden; border:1px solid #eee;">
+                    <div id="downloadDropdown" style="position:absolute; top:calc(100% + 6px); right:0; background:#fff; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); min-width:220px; z-index:100; overflow:hidden; border:1px solid #eee;">
+                        <div onclick="alert('Downloading All...'); this.parentElement.classList.remove('show')" style="padding:12px 18px; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:13px; color:#333; font-weight:600; transition:background 0.15s;">
+                            <i class="fa-solid fa-download" style="color:#2975BB; width:16px;"></i> Download All
+                        </div>
+                        <div style="height:1px; background:#f0f0f0; margin:0 12px;"></div>
                         <div onclick="alert('Downloading Summary...'); this.parentElement.classList.remove('show')" style="padding:12px 18px; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:13px; color:#333; transition:background 0.15s;">
                             <i class="fa-solid fa-file-lines" style="color:#2975BB; width:16px;"></i> Download Summary
                         </div>

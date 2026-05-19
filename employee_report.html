@@ -29,6 +29,15 @@
         .emp-code-cell { font-size: 11px; color: #888; font-weight: 400; }
         .rate-cell { color: #166DBA; }
         .note-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #166DBA; color: #166DBA; cursor: pointer; font-size: 12px; }
+        /* Report is read-only: hide row-level edit/add/delete controls. */
+        .report-table .day-col .btn,
+        .report-table .fa-trash-can,
+        .report-table .note-icon {
+            display: none !important;
+        }
+        .report-table .day-col>div:first-child {
+            justify-content: flex-start !important;
+        }
             .filter-dropdown.show { display: block !important; }
         /* Clean layout overrides for report pages */
         .report-table-wrap {
@@ -183,12 +192,15 @@
                         <label style="font-size:12px; font-weight:600; color:#444; display:block; margin-bottom:4px;">Occupation</label>
                         <select class="input filter-occ" style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif; margin-bottom:20px;">
                             <option>All Occupations</option>
-                            <option>Tukang Marmer</option>
-                            <option>Tukang Batu</option>
-                            <option>Tukang Kayu</option>
-                            <option>Backend Engineer</option>
-                            <option>Frontend Engineer</option>
-                            <option>UI/UX Designer</option>
+                            <option>Graphic Design</option>
+                            <option>Sr.Programmer</option>
+                            <option>Teknisi</option>
+                            <option>Manager</option>
+                            <option>Marketing</option>
+                            <option>Frontend</option>
+                            <option>Backend</option>
+                            <option>HR Administrator</option>
+                            <option>3D Artist</option>
                         </select>
                         
                         <div style="display:flex; justify-content:flex-end; gap:8px;">

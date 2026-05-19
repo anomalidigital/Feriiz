@@ -266,6 +266,17 @@
             font-size: 12px;
         }
 
+        /* Report is read-only: hide row-level edit/add/delete controls. */
+        .report-table .day-col .btn,
+        .report-table .fa-trash-can,
+        .report-table .note-icon {
+            display: none !important;
+        }
+
+        .report-table .day-col>div:first-child {
+            justify-content: flex-start !important;
+        }
+
         .filter-dropdown.show {
             display: block !important;
         }
@@ -477,12 +488,15 @@
                         <select class="input filter-occ"
                             style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif; margin-bottom:20px;">
                             <option>All Occupations</option>
-                            <option>Tukang Marmer</option>
-                            <option>Tukang Batu</option>
-                            <option>Tukang Kayu</option>
-                            <option>Backend Engineer</option>
-                            <option>Frontend Engineer</option>
-                            <option>UI/UX Designer</option>
+                            <option>Graphic Design</option>
+                            <option>Sr.Programmer</option>
+                            <option>Teknisi</option>
+                            <option>Manager</option>
+                            <option>Marketing</option>
+                            <option>Frontend</option>
+                            <option>Backend</option>
+                            <option>HR Administrator</option>
+                            <option>3D Artist</option>
                         </select>
 
                         <div style="display:flex; justify-content:flex-end; gap:8px;">
@@ -1165,6 +1179,178 @@
                     </tr>
                     <tr>
                         <td class="col-name sticky-col">
+                            <div class="emp-code-cell">IFAT8WJ2DM</div>
+                            <div class="emp-name-cell">Ifan Faizal Adnan</div>
+                        </td>
+                        <td class="col-pin">-</td>
+                        <td class="col-occupation">Sr.Programmer</td>
+                        <td class="col-inouthour">08:00:00</td>
+                        <td class="col-inouthour">17:00:00</td>
+                        <td class="col-activehour">9h</td>
+                        <td class="col-totaldays">2.02d</td>
+                        <td class="col-totalhour">18.18h</td>
+                        <td class="col-totalovertime">4h</td>
+                        <!-- Employee Rates -->
+                        <td class="col-emp-dailyrate rate-cell">IDR0.00</td>
+                        <td class="col-emp-rateovertime rate-cell">IDR0.00</td>
+                        <td class="col-emp-totalrate rate-cell">IDR0.00</td>
+                        <td class="col-emp-totalovertime rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="col-cli-dailyrate rate-cell">IDR0.00</td>
+                        <td class="col-cli-rateovertime rate-cell">IDR0.00</td>
+                        <td class="col-cli-totalrate rate-cell">IDR0.00</td>
+                        <td class="col-cli-totalovertime rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td class="col-additional-amount" style="text-align:center;"><span class="note-icon"
+                                style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i
+                                    class="fa-solid fa-plus"></i></span></td>
+                        <td class="col-additional-note"></td>
+                        <!-- Days -->
+                        <td class="day-col" data-date="2026-03-09" style="min-width: 250px;">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <div style="display:flex; gap:6px;">
+                                    <span class="badge"
+                                        style="background:#eef2f6; color:#166DBA; font-weight:600; padding:4px 8px; border-radius:6px; font-size:10px;">9.58h</span>
+                                    <span class="badge"
+                                        style="background:#fff3cd; color:#856404; font-weight:600; padding:4px 8px; border-radius:6px; font-size:10px;">2h
+                                        OT</span>
+                                </div>
+                                <div style="display:flex; gap:4px;">
+                                    <button class="btn btn-primary"
+                                        style="padding:4px 8px; font-size:10px; border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-outline"
+                                        style="padding:4px 8px; font-size:10px; border-radius:6px; color:#166DBA; border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; background:#f4f6f8; padding:6px 10px; border-radius:6px; font-size:11px; color:#333; font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60; margin-right:6px;"></i>09:10:29</span>
+                                    <i class="fa-solid fa-trash-can" style="cursor:pointer; color:#999;"
+                                        onmouseover="this.style.color='#e74c3c'"
+                                        onmouseout="this.style.color='#999'"></i>
+                                </div>
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; background:#f4f6f8; padding:6px 10px; border-radius:6px; font-size:11px; color:#333; font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c; margin-right:6px;"></i>18:45:07</span>
+                                    <i class="fa-solid fa-trash-can" style="cursor:pointer; color:#999;"
+                                        onmouseover="this.style.color='#e74c3c'"
+                                        onmouseout="this.style.color='#999'"></i>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-10" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-11" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-12" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-13" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-name sticky-col">
                             <div class="emp-code-cell">IND693283053999</div>
                             <div class="emp-name-cell">Indra Naftali</div>
                         </td>
@@ -1509,6 +1695,178 @@
                     </tr>
                     <tr>
                         <td class="col-name sticky-col">
+                            <div class="emp-code-cell">RADVBYR5171FSC6</div>
+                            <div class="emp-name-cell">Raden Maulana</div>
+                        </td>
+                        <td class="col-pin">-</td>
+                        <td class="col-occupation">Frontend</td>
+                        <td class="col-inouthour">08:00:00</td>
+                        <td class="col-inouthour">17:00:00</td>
+                        <td class="col-activehour">9h</td>
+                        <td class="col-totaldays">2.02d</td>
+                        <td class="col-totalhour">18.18h</td>
+                        <td class="col-totalovertime">4h</td>
+                        <!-- Employee Rates -->
+                        <td class="col-emp-dailyrate rate-cell">IDR0.00</td>
+                        <td class="col-emp-rateovertime rate-cell">IDR0.00</td>
+                        <td class="col-emp-totalrate rate-cell">IDR0.00</td>
+                        <td class="col-emp-totalovertime rate-cell">IDR0.00</td>
+                        <!-- Client Rates -->
+                        <td class="col-cli-dailyrate rate-cell">IDR0.00</td>
+                        <td class="col-cli-rateovertime rate-cell">IDR0.00</td>
+                        <td class="col-cli-totalrate rate-cell">IDR0.00</td>
+                        <td class="col-cli-totalovertime rate-cell">IDR0.00</td>
+                        <!-- Additional -->
+                        <td class="col-additional-amount" style="text-align:center;"><span class="note-icon"
+                                style="color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px;"><i
+                                    class="fa-solid fa-plus"></i></span></td>
+                        <td class="col-additional-note"></td>
+                        <!-- Days -->
+                        <td class="day-col" data-date="2026-03-09" style="min-width: 250px;">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <div style="display:flex; gap:6px;">
+                                    <span class="badge"
+                                        style="background:#eef2f6; color:#166DBA; font-weight:600; padding:4px 8px; border-radius:6px; font-size:10px;">9.58h</span>
+                                    <span class="badge"
+                                        style="background:#fff3cd; color:#856404; font-weight:600; padding:4px 8px; border-radius:6px; font-size:10px;">2h
+                                        OT</span>
+                                </div>
+                                <div style="display:flex; gap:4px;">
+                                    <button class="btn btn-primary"
+                                        style="padding:4px 8px; font-size:10px; border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-outline"
+                                        style="padding:4px 8px; font-size:10px; border-radius:6px; color:#166DBA; border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; background:#f4f6f8; padding:6px 10px; border-radius:6px; font-size:11px; color:#333; font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60; margin-right:6px;"></i>09:10:29</span>
+                                    <i class="fa-solid fa-trash-can" style="cursor:pointer; color:#999;"
+                                        onmouseover="this.style.color='#e74c3c'"
+                                        onmouseout="this.style.color='#999'"></i>
+                                </div>
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; background:#f4f6f8; padding:6px 10px; border-radius:6px; font-size:11px; color:#333; font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c; margin-right:6px;"></i>18:45:07</span>
+                                    <i class="fa-solid fa-trash-can" style="cursor:pointer; color:#999;"
+                                        onmouseover="this.style.color='#e74c3c'"
+                                        onmouseout="this.style.color='#999'"></i>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-10" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-11" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-12" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                        <td class="day-col" data-date="2026-03-13" style="min-width:250px;">
+                            <div
+                                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="display:flex;gap:6px;"><span
+                                        style="background:#eef2f6;color:#166DBA;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">9.58h</span><span
+                                        style="background:#fff3cd;color:#856404;font-weight:600;padding:4px 8px;border-radius:6px;font-size:10px;">2h
+                                        OT</span></div>
+                                <div style="display:flex;gap:4px;"><button class="btn btn-primary"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;"><i
+                                            class="fa-solid fa-pen"></i></button><button class="btn btn-outline"
+                                        style="padding:4px 8px;font-size:10px;border-radius:6px;color:#166DBA;border-color:#166DBA;"><i
+                                            class="fa-solid fa-plus"></i></button></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-to-bracket"
+                                            style="color:#27ae60;margin-right:6px;"></i>09:10:29</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;background:#f4f6f8;padding:6px 10px;border-radius:6px;font-size:11px;color:#333;font-weight:500;">
+                                    <span><i class="fa-solid fa-arrow-right-from-bracket"
+                                            style="color:#e74c3c;margin-right:6px;"></i>18:45:07</span><i
+                                        class="fa-solid fa-trash-can" style="cursor:pointer;color:#999;"></i></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-name sticky-col">
                             <div class="emp-code-cell">STEPRQTY99</div>
                             <div class="emp-name-cell">Steven Febrianto</div>
                         </td>
@@ -1685,7 +2043,7 @@
                             <div class="emp-name-cell">Veronica Nathalia</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">graphic Design</td>
+                        <td class="col-occupation">Graphic Design</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>

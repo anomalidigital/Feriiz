@@ -368,7 +368,7 @@
                     </div>
                     <div class="modal-field">
                         <label>Remark</label>
-                        <input type="text" class="input" placeholder="e.g. Radang, demam"
+                        <input type="text" class="input" placeholder="Remark"
                             style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
                     </div>
                     <div class="modal-field">
@@ -378,7 +378,7 @@
                     </div>
                     <div class="modal-field">
                         <label>Note To Sender</label>
-                        <input type="text" id="modalNoteInput" class="input" placeholder="e.g. Get Well Soon!"
+                        <input type="text" id="modalNoteInput" class="input" placeholder="Note To Sender"
                             style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
                     </div>
                 </div>
@@ -429,12 +429,12 @@
                 <div class="modal-grid">
                     <div class="modal-field">
                         <label>Employee Name</label>
-                        <input type="text" id="addReqEmployee" class="input" placeholder="eg. John Doe"
+                        <input type="text" id="addReqEmployee" class="input" placeholder="Employee Name"
                             style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
                     </div>
                     <div class="modal-field">
                         <label>Project Name</label>
-                        <input type="text" class="input" placeholder="eg. Google Cloud"
+                        <input type="text" class="input" placeholder="Project Name"
                             style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9; outline:none;">
                     </div>
                     <div class="modal-field">
@@ -462,9 +462,18 @@
                             <select class="select"
                                 style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #D9D9D9;">
                                 <option>Annual Leave</option>
+                                <option>Public Holiday</option>
+                                <option>Time In Lieu</option>
+                                <option>Long Service Leave</option>
+                                <option>National Leave</option>
                                 <option>Sick Leave</option>
-                                <option>Permit</option>
+                                <option>Unpaid Leave</option>
+                                <option>Marriage Leave</option>
+                                <option>Remote Work</option>
+                                <option>Meal</option>
+                                <option>Medical Claim</option>
                                 <option>Others</option>
+                                <option>Transport</option>
                             </select>
                         </div>
                         <div class="modal-field">
@@ -557,6 +566,115 @@
             align-items: center;
             justify-content: center;
             transition: all 0.15s ease;
+        }
+
+        #approvalModal,
+        #addRequestModal {
+            padding-top: 2vh;
+            padding-bottom: 2vh;
+            align-items: flex-start;
+        }
+
+        #approvalModal .modal-card,
+        #addRequestModal .modal-card {
+            width: 560px;
+            max-width: 94vw;
+            border-radius: 8px;
+            max-height: 94vh;
+        }
+
+        #approvalModal .modal-header,
+        #addRequestModal .modal-header {
+            padding: 22px 28px 10px;
+        }
+
+        #approvalModal .modal-header h2,
+        #addRequestModal .modal-header h2 {
+            font-size: 22px;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        #approvalModal .modal-body,
+        #addRequestModal .modal-body {
+            padding: 12px 28px 18px;
+        }
+
+        #approvalModal .modal-grid,
+        #addRequestModal .modal-grid {
+            grid-template-columns: 1fr 1fr;
+            column-gap: 16px;
+            row-gap: 16px;
+        }
+
+        #approvalModal label,
+        #addRequestModal label {
+            color: #555;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #approvalModal input,
+        #approvalModal select,
+        #addRequestModal input,
+        #addRequestModal select {
+            min-height: 42px;
+            border-radius: 7px !important;
+            border-color: #D4D4D4 !important;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+        }
+
+        #approvalModal input:focus,
+        #approvalModal select:focus,
+        #addRequestModal input:focus,
+        #addRequestModal select:focus {
+            border-color: #2975BB !important;
+            box-shadow: 0 0 0 3px rgba(41,117,187,0.1);
+        }
+
+        #approvalModal .modal-divider {
+            display: none;
+        }
+
+        #approvalModal .modal-info-grid {
+            margin-top: 18px;
+            row-gap: 18px;
+        }
+
+        #approvalModal .modal-info-label {
+            font-size: 12px;
+            color: #999;
+            font-weight: 700;
+        }
+
+        #approvalModal .modal-info-value {
+            font-size: 14px;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+        #approvalModal .modal-footer,
+        #addRequestModal .modal-footer {
+            padding: 18px 28px 22px;
+            justify-content: flex-end;
+        }
+
+        #approvalModal .btn-danger {
+            margin-right: auto;
+            background: #E7354A;
+            border-color: #E7354A;
+            border-radius: 7px;
+            padding: 10px 18px;
+        }
+
+        @media (max-width: 620px) {
+            #approvalModal .modal-grid,
+            #approvalModal .modal-info-grid,
+            #addRequestModal .modal-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .modal-close:hover {

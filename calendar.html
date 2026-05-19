@@ -257,7 +257,7 @@
     <div class="cal-overlay" id="calOverlay" onclick="if(event.target===this)closeOverlay()">
         <div class="cal-detail">
             <div class="cal-detail-header">
-                <h3 id="overlayTitle">Sick Leave — Tue, 13 May 2026</h3>
+                <h3 id="overlayTitle">Sick Leave â€” Tue, 13 May 2026</h3>
                 <button class="cal-detail-close" onclick="closeOverlay()">&times;</button>
             </div>
             <div class="cal-detail-body" id="overlayBody"></div>
@@ -266,7 +266,7 @@
 
     <script>
         const EVENTS = [
-            { name:'Apriyanto Apriyanto', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio' },
+            { name:'Sandy Santuy', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio' },
             { name:'Steven Febrianto', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio' },
             { name:'Raden Maulana', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio' },
             { name:'Yenni Tedjakoesoemo', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio' },
@@ -503,11 +503,11 @@
             const events = getFilteredEvents().filter(e=>e.cat===cat&&e.dateStart<=dateStr&&e.dateEnd>=dateStr);
             const dt = new Date(dateStr+'T00:00:00');
             const dateLabel = dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-            document.getElementById('overlayTitle').textContent = `${CAT_LABELS[cat]} — ${dateLabel}`;
+            document.getElementById('overlayTitle').textContent = `${CAT_LABELS[cat]} â€” ${dateLabel}`;
             let html='';
             events.forEach((e,i)=>{
                 const sc=e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html+=`<div class="emp-list-item"><div class="emp-list-num">${i+1}</div><div class="emp-list-info"><div class="emp-list-name">${e.name}</div><div class="emp-list-sub"><span class="badge-sm ${sc}">${e.status}</span> · PIC: ${e.pic}</div></div></div>`;
+                html+=`<div class="emp-list-item"><div class="emp-list-num">${i+1}</div><div class="emp-list-info"><div class="emp-list-name">${e.name}</div><div class="emp-list-sub"><span class="badge-sm ${sc}">${e.status}</span> Â· PIC: ${e.pic}</div></div></div>`;
             });
             html+=`<div class="total-bar">Total: ${events.length} employee${events.length>1?'s':''}</div>`;
             document.getElementById('overlayBody').innerHTML=html;

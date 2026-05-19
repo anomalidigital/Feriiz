@@ -263,6 +263,7 @@
                                 <select class="select"
                                     style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins', sans-serif; background:#fff;">
                                     <option>Attendance</option>
+                                    <option>Vision</option>
                                 </select>
                             </div>
                             <div>
@@ -672,21 +673,16 @@
             const pAdvContent = document.getElementById('projectAdvancedContent');
             const pAdvLeft = document.getElementById('projectLeftAdvanced');
             const footer = document.getElementById('projectModalFooter');
-            const projectCodes = {
-                'Anomali': 'BSD001',
-                'Diamond Crystal Golf No. 15': 'DCG015',
-                'Diamond Golf H3 No. 105': 'DGH105',
-                'Mangunsarkoro No. 53': 'MGS053'
-            };
 
-            titleEl.textContent = title;
+            const isAddProject = title === 'Add Project';
+            titleEl.textContent = isAddProject ? 'Add Project' : 'Project Detail';
 
-            if (title === 'Add Project') {
+            if (isAddProject) {
                 pName.value = '';
                 if (pCode) pCode.value = '';
             } else {
-                pName.value = title || 'Anomali';
-                if (pCode) pCode.value = projectCodes[pName.value] || '';
+                pName.value = 'Anomali';
+                if (pCode) pCode.value = 'BSD001';
             }
             if (pAdvContent) pAdvContent.style.display = '';
             if (pAdvLeft) pAdvLeft.style.display = '';

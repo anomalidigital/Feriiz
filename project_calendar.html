@@ -143,7 +143,7 @@
     <script>
         // === Event Data ===
         const EVENTS = [
-            { name:'Apriyanto Apriyanto', type:'Sick Leave', cat:'sick', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio', note:'flu berat', attachment:'' },
+            { name:'Sandy Santuy', type:'Sick Leave', cat:'sick', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio', note:'flu berat', attachment:'' },
             { name:'Steven Febrianto', type:'Annual Leave', cat:'leave', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
             { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'sakit rahang', attachment:'Camera_1777145042263.jpg' },
             { name:'Yenni Tedjakoesoemo', type:'Remote Work', cat:'work', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
@@ -239,9 +239,9 @@
                 <div class="cal-detail-row"><div class="cal-detail-label">Date Start</div><div class="cal-detail-value">: ${formatDate(item.dateStart)}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Date End</div><div class="cal-detail-value">: ${formatDate(item.dateEnd)}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Status</div><div class="cal-detail-value">: <span class="badge-sm ${statusClass}">${item.status}</span></div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">PIC</div><div class="cal-detail-value">: ${item.pic || '—'}</div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">Note</div><div class="cal-detail-value">: ${item.note || '—'}</div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">Attachment</div><div class="cal-detail-value">: ${item.attachment ? '<a href="#">'+item.attachment+'</a>' : '—'}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">PIC</div><div class="cal-detail-value">: ${item.pic || 'â€”'}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Note</div><div class="cal-detail-value">: ${item.note || 'â€”'}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Attachment</div><div class="cal-detail-value">: ${item.attachment ? '<a href="#">'+item.attachment+'</a>' : 'â€”'}</div></div>
             `;
             document.getElementById('calDetailOverlay').classList.add('show');
         }
@@ -281,21 +281,21 @@
             const cats = {work:0,leave:0,sick:0};
             filtered.forEach(e => { if(cats[e.cat]!==undefined) cats[e.cat]++; });
             let html = toggle;
-            html += `<div class="cal-sidebar-section"><h3>📊 Summary</h3>`;
+            html += `<div class="cal-sidebar-section"><h3>ðŸ“Š Summary</h3>`;
             html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#27AE60;font-weight:600;">🟢 Remote Work</span><span style="font-weight:700;">${cats.work}</span></div>`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#2980B9;font-weight:600;">🔵 Cuti</span><span style="font-weight:700;">${cats.leave}</span></div>`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#E74C3C;font-weight:600;">🔴 Sakit</span><span style="font-weight:700;">${cats.sick}</span></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#27AE60;font-weight:600;">ðŸŸ¢ Remote Work</span><span style="font-weight:700;">${cats.work}</span></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#2980B9;font-weight:600;">ðŸ”µ Cuti</span><span style="font-weight:700;">${cats.leave}</span></div>`;
+            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#E74C3C;font-weight:600;">ðŸ”´ Sakit</span><span style="font-weight:700;">${cats.sick}</span></div>`;
             html += `<div style="height:1px;background:#eee;margin:4px 0;"></div>`;
             html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;font-weight:700;"><span>Total</span><span>${filtered.length}</span></div>`;
             html += `</div></div>`;
-            html += `<div class="cal-sidebar-section"><h3>📋 Request</h3>`;
+            html += `<div class="cal-sidebar-section"><h3>ðŸ“‹ Request</h3>`;
             if (filtered.length === 0) {
                 html += `<div style="font-size:12px;color:#aaa;padding:8px 0;">No requests</div>`;
             }
             filtered.forEach(e => {
                 const sc = e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} — <span style="font-weight:400;">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
+                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} â€” <span style="font-weight:400;">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
             });
             html += `</div>`;
             container.innerHTML = html;

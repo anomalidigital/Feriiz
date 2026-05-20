@@ -64,6 +64,10 @@
         .cat-other-bg { background:rgba(230,126,34,0.12); color:#d35400; }
         .cat-other-bg .badge-dot { background:#E67E22; }
         .cal-holiday-bar { padding:3px 8px; border-radius:4px; background:#E67E22; color:#fff; font-size:10px; font-weight:500; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .cal-holiday-bar.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
+        .holiday-edit-field { width:100%; border:1px solid #D9D9D9; border-radius:8px; padding:9px 12px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; }
+        .holiday-edit-field:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
+        .holiday-save-btn { margin-top:14px; width:100%; border:0; border-radius:8px; background:#2975BB; color:#fff; height:40px; font-family:'Poppins',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
 
         /* Overlay */
         .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:flex-start; padding-top:10vh; justify-content:center; }
@@ -257,7 +261,7 @@
     <div class="cal-overlay" id="calOverlay" onclick="if(event.target===this)closeOverlay()">
         <div class="cal-detail">
             <div class="cal-detail-header">
-                <h3 id="overlayTitle">Sick Leave â€” Tue, 13 May 2026</h3>
+                <h3 id="overlayTitle">Sick Leave - Tue, 13 May 2026</h3>
                 <button class="cal-detail-close" onclick="closeOverlay()">&times;</button>
             </div>
             <div class="cal-detail-body" id="overlayBody"></div>
@@ -292,6 +296,10 @@
             { name:'Idul Adha (Lebaran Haji)', date:'2026-05-28' },
             { name:'Hari Raya Waisak', date:'2026-05-31' },
         ];
+        const DEFAULT_HOLIDAY_OVERRIDES = [
+            { date:'2026-05-14', status:'working', note:'Tetap masuk kerja sesuai kebijakan perusahaan.' }
+        ];
+        let HOLIDAY_OVERRIDES = loadHolidayOverrides();
         const CAT_LABELS = { work:'Remote Work', leave:'Cuti (Leave)', sick:'Sakit (Sick)', other:'Libur' };
         const CAT_CSS = { work:'cat-work-bg', leave:'cat-leave-bg', sick:'cat-sick-bg', other:'cat-other-bg' };
 
@@ -403,7 +411,12 @@
                 const counts={};
                 dayEv.forEach(e=>{if(!counts[e.cat])counts[e.cat]=[];counts[e.cat].push(e);});
                 let inner=`<div class="cal-date">${d}</div>`;
-                dayH.forEach(h=>{inner+=`<div class="cal-holiday-bar">${h.name}</div>`;});
+                dayH.forEach(h=>{
+                    const override = getHolidayOverride(h.date);
+                    const isWorking = override && override.status === 'working';
+                    const label = isWorking ? `${h.name} - Company Working` : h.name;
+                    inner+=`<div class="cal-holiday-bar ${isWorking ? 'company-working' : ''}" onclick="event.stopPropagation();showHolidayDetail('${h.name}','${h.date}')">${label}</div>`;
+                });
                 for(const cat of ['work','leave','sick','other']){
                     if(counts[cat]&&counts[cat].length>0){
                         inner+=`<div class="cal-count-badge ${CAT_CSS[cat]}" onclick="event.stopPropagation();showList('${cat}','${ds}')"><span class="badge-dot"></span>${CAT_LABELS[cat]}: ${counts[cat].length}</div>`;
@@ -503,11 +516,11 @@
             const events = getFilteredEvents().filter(e=>e.cat===cat&&e.dateStart<=dateStr&&e.dateEnd>=dateStr);
             const dt = new Date(dateStr+'T00:00:00');
             const dateLabel = dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-            document.getElementById('overlayTitle').textContent = `${CAT_LABELS[cat]} â€” ${dateLabel}`;
+            document.getElementById('overlayTitle').textContent = `${CAT_LABELS[cat]} - ${dateLabel}`;
             let html='';
             events.forEach((e,i)=>{
                 const sc=e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html+=`<div class="emp-list-item"><div class="emp-list-num">${i+1}</div><div class="emp-list-info"><div class="emp-list-name">${e.name}</div><div class="emp-list-sub"><span class="badge-sm ${sc}">${e.status}</span> Â· PIC: ${e.pic}</div></div></div>`;
+                html+=`<div class="emp-list-item"><div class="emp-list-num">${i+1}</div><div class="emp-list-info"><div class="emp-list-name">${e.name}</div><div class="emp-list-sub"><span class="badge-sm ${sc}">${e.status}</span> - PIC: ${e.pic}</div></div></div>`;
             });
             html+=`<div class="total-bar">Total: ${events.length} employee${events.length>1?'s':''}</div>`;
             document.getElementById('overlayBody').innerHTML=html;
@@ -528,6 +541,66 @@
                 <div class="cal-detail-row"><div class="cal-detail-label">PIC</div><div class="cal-detail-value">: ${e.pic || '-'}</div></div>
             `;
             document.getElementById('calOverlay').classList.add('show');
+        }
+
+        function getHolidayOverride(date) {
+            return HOLIDAY_OVERRIDES.find(item => item.date === date);
+        }
+
+        function loadHolidayOverrides() {
+            try {
+                const saved = localStorage.getItem('feriizHolidayOverrides');
+                return saved ? JSON.parse(saved) : [...DEFAULT_HOLIDAY_OVERRIDES];
+            } catch (error) {
+                return [...DEFAULT_HOLIDAY_OVERRIDES];
+            }
+        }
+
+        function persistHolidayOverrides() {
+            try {
+                localStorage.setItem('feriizHolidayOverrides', JSON.stringify(HOLIDAY_OVERRIDES));
+            } catch (error) {
+                // Static prototype fallback: keep the in-memory override.
+            }
+        }
+
+        function showHolidayDetail(name, date) {
+            const override = getHolidayOverride(date) || { status:'holiday', note:'' };
+            const isWorking = override.status === 'working';
+            document.getElementById('overlayTitle').textContent = `${name} - ${formatDate(date)}`;
+            document.getElementById('overlayBody').innerHTML = `
+                <div class="cal-detail-row"><div class="cal-detail-label">Holiday</div><div class="cal-detail-value">: ${name}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Date</div><div class="cal-detail-value">: ${formatDate(date)}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Gov. Status</div><div class="cal-detail-value">: <span class="badge-sm" style="background:#E67E22;">Official Holiday</span></div></div>
+                <div style="margin-top:14px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Company Status</label>
+                    <select id="holidayStatusInput" class="holiday-edit-field">
+                        <option value="holiday" ${isWorking ? '' : 'selected'}>Company Holiday</option>
+                        <option value="working" ${isWorking ? 'selected' : ''}>Company Working Day</option>
+                    </select>
+                </div>
+                <div style="margin-top:12px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Note</label>
+                    <textarea id="holidayNoteInput" class="holiday-edit-field" rows="3" placeholder="Note">${override.note || ''}</textarea>
+                </div>
+                <button class="holiday-save-btn" onclick="saveHolidayOverride('${date}')">Save Override</button>
+            `;
+            document.getElementById('calOverlay').classList.add('show');
+        }
+
+        function saveHolidayOverride(date) {
+            const status = document.getElementById('holidayStatusInput').value;
+            const note = document.getElementById('holidayNoteInput').value.trim();
+            const existing = getHolidayOverride(date);
+            if (existing) {
+                existing.status = status;
+                existing.note = note;
+            } else {
+                HOLIDAY_OVERRIDES.push({ date, status, note });
+            }
+            persistHolidayOverrides();
+            renderCalendar();
+            closeOverlay();
         }
 
         function getProjectLabel(id) {

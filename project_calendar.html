@@ -47,6 +47,7 @@
         .cal-event.cat-leave { background:#2980B9; }
         .cal-event.cat-sick { background:#E74C3C; }
         .cal-event.cat-other { background:#E67E22; }
+        .cal-event.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
         .cal-more { font-size:10px; color:#2975BB; font-weight:600; cursor:pointer; padding:1px 6px; }
 
         /* Detail Overlay */
@@ -64,6 +65,9 @@
         .cal-detail-value { color:#1a1a1a; font-weight:500; }
         .cal-detail-value .badge-sm { font-size:11px; }
         .cal-detail-value a { color:#2975BB; text-decoration:underline; }
+        .holiday-edit-field { width:100%; border:1px solid #D9D9D9; border-radius:8px; padding:9px 12px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; }
+        .holiday-edit-field:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
+        .holiday-save-btn { margin-top:14px; width:100%; border:0; border-radius:8px; background:#2975BB; color:#fff; height:40px; font-family:'Poppins',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
         @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     </style>
@@ -170,6 +174,10 @@
             { name:'Idul Adha (Lebaran Haji)', date:'2026-05-28', cat:'other' },
             { name:'Hari Raya Waisak (belum pasti)', date:'2026-05-31', cat:'other' },
         ];
+        const DEFAULT_HOLIDAY_OVERRIDES = [
+            { date:'2026-05-14', status:'working', note:'Tetap masuk kerja sesuai kebijakan perusahaan.' }
+        ];
+        let HOLIDAY_OVERRIDES = loadHolidayOverrides();
 
         let currentYear = 2026, currentMonth = 4; // 0-indexed, 4 = May
 
@@ -207,7 +215,10 @@
                 const maxShow = 4;
                 allItems.slice(0, maxShow).forEach((item, idx) => {
                     if (item.isHoliday) {
-                        evHtml += `<div class="cal-event cat-other" onclick="event.stopPropagation(); showHolidayDetail('${item.name}','${item.date}')">${item.name}</div>`;
+                        const override = getHolidayOverride(item.date);
+                        const isWorking = override && override.status === 'working';
+                        const label = isWorking ? `${item.name} | Company Working` : item.name;
+                        evHtml += `<div class="cal-event ${isWorking ? 'company-working' : 'cat-other'}" onclick="event.stopPropagation(); showHolidayDetail('${item.name}','${item.date}')">${label}</div>`;
                     } else {
                         evHtml += `<div class="cal-event cat-${item.cat}" onclick="event.stopPropagation(); showDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})">${item.name} | ${item.type}</div>`;
                     }
@@ -239,21 +250,71 @@
                 <div class="cal-detail-row"><div class="cal-detail-label">Date Start</div><div class="cal-detail-value">: ${formatDate(item.dateStart)}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Date End</div><div class="cal-detail-value">: ${formatDate(item.dateEnd)}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Status</div><div class="cal-detail-value">: <span class="badge-sm ${statusClass}">${item.status}</span></div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">PIC</div><div class="cal-detail-value">: ${item.pic || 'â€”'}</div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">Note</div><div class="cal-detail-value">: ${item.note || 'â€”'}</div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">Attachment</div><div class="cal-detail-value">: ${item.attachment ? '<a href="#">'+item.attachment+'</a>' : 'â€”'}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">PIC</div><div class="cal-detail-value">: ${item.pic || '-'}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Note</div><div class="cal-detail-value">: ${item.note || '-'}</div></div>
+                <div class="cal-detail-row"><div class="cal-detail-label">Attachment</div><div class="cal-detail-value">: ${item.attachment ? '<a href="#">'+item.attachment+'</a>' : '-'}</div></div>
             `;
             document.getElementById('calDetailOverlay').classList.add('show');
         }
 
         function showHolidayDetail(name, date) {
             const body = document.getElementById('calDetailBody');
+            const override = getHolidayOverride(date) || { status:'holiday', note:'' };
+            const isWorking = override.status === 'working';
             body.innerHTML = `
                 <div class="cal-detail-row"><div class="cal-detail-label">Holiday</div><div class="cal-detail-value">: ${name}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Date</div><div class="cal-detail-value">: ${formatDate(date)}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Type</div><div class="cal-detail-value">: <span class="badge-sm" style="background:#E67E22;">Public Holiday</span></div></div>
+                <div style="margin-top:14px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Company Status</label>
+                    <select id="holidayStatusInput" class="holiday-edit-field">
+                        <option value="holiday" ${isWorking ? '' : 'selected'}>Company Holiday</option>
+                        <option value="working" ${isWorking ? 'selected' : ''}>Company Working Day</option>
+                    </select>
+                </div>
+                <div style="margin-top:12px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Note</label>
+                    <textarea id="holidayNoteInput" class="holiday-edit-field" rows="3" placeholder="Note">${override.note || ''}</textarea>
+                </div>
+                <button class="holiday-save-btn" onclick="saveHolidayOverride('${date}')">Save Override</button>
             `;
             document.getElementById('calDetailOverlay').classList.add('show');
+        }
+
+        function getHolidayOverride(date) {
+            return HOLIDAY_OVERRIDES.find(item => item.date === date);
+        }
+
+        function loadHolidayOverrides() {
+            try {
+                const saved = localStorage.getItem('feriizHolidayOverrides');
+                return saved ? JSON.parse(saved) : [...DEFAULT_HOLIDAY_OVERRIDES];
+            } catch (error) {
+                return [...DEFAULT_HOLIDAY_OVERRIDES];
+            }
+        }
+
+        function persistHolidayOverrides() {
+            try {
+                localStorage.setItem('feriizHolidayOverrides', JSON.stringify(HOLIDAY_OVERRIDES));
+            } catch (error) {
+                // Static prototype fallback: keep the in-memory override.
+            }
+        }
+
+        function saveHolidayOverride(date) {
+            const status = document.getElementById('holidayStatusInput').value;
+            const note = document.getElementById('holidayNoteInput').value.trim();
+            const existing = getHolidayOverride(date);
+            if (existing) {
+                existing.status = status;
+                existing.note = note;
+            } else {
+                HOLIDAY_OVERRIDES.push({ date, status, note });
+            }
+            persistHolidayOverrides();
+            renderCalendar();
+            closeDetail();
         }
 
         function closeDetail() { document.getElementById('calDetailOverlay').classList.remove('show'); }
@@ -295,7 +356,7 @@
             }
             filtered.forEach(e => {
                 const sc = e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} â€” <span style="font-weight:400;">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
+                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} - <span style="font-weight:400;">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
             });
             html += `</div>`;
             container.innerHTML = html;

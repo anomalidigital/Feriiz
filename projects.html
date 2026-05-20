@@ -263,6 +263,7 @@
                                 <select class="select"
                                     style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins', sans-serif; background:#fff;">
                                     <option>Attendance</option>
+                                    <option>Vision</option>
                                 </select>
                             </div>
                             <div>
@@ -322,20 +323,41 @@
                             <h3
                                 style="font-size:14px; font-weight:700; color:#1a1a1a; margin:0 0 16px 0; padding-bottom:8px; border-bottom:1px solid #eee;">
                                 Overtime</h3>
-                            <div style="display:flex; gap:16px;">
-                                <div style="flex:1;">
-                                    <label
-                                        style="display:block; font-size:12px; color:#555; margin-bottom:6px;">Start</label>
-                                    <input type="text" value="60"
-                                        style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:8px; color:#333; font-family:'Poppins',sans-serif;">
-                                </div>
-                                <div style="flex:1;">
-                                    <label
-                                        style="display:block; font-size:12px; color:#555; margin-bottom:6px;">End</label>
-                                    <input type="text" value="60"
-                                        style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:8px; color:#333; font-family:'Poppins',sans-serif;">
-                                </div>
+                            <div class="project-overtime-table" aria-label="Daily overtime rule">
+                                <div class="project-overtime-head">Day</div>
+                                <div class="project-overtime-head">Start OT</div>
+                                <div class="project-overtime-head">End OT</div>
+                                <div class="project-overtime-head">Total</div>
+                                <div class="project-overtime-day">Mon</div>
+                                <input type="text" value="60" aria-label="Monday start overtime minutes">
+                                <input type="text" value="60" aria-label="Monday end overtime minutes">
+                                <div class="project-overtime-total">2h</div>
+                                <div class="project-overtime-day">Tue</div>
+                                <input type="text" value="60" aria-label="Tuesday start overtime minutes">
+                                <input type="text" value="60" aria-label="Tuesday end overtime minutes">
+                                <div class="project-overtime-total">2h</div>
+                                <div class="project-overtime-day">Wed</div>
+                                <input type="text" value="60" aria-label="Wednesday start overtime minutes">
+                                <input type="text" value="60" aria-label="Wednesday end overtime minutes">
+                                <div class="project-overtime-total">2h</div>
+                                <div class="project-overtime-day">Thu</div>
+                                <input type="text" value="30" aria-label="Thursday start overtime minutes">
+                                <input type="text" value="30" aria-label="Thursday end overtime minutes">
+                                <div class="project-overtime-total">1h</div>
+                                <div class="project-overtime-day">Fri</div>
+                                <input type="text" value="30" aria-label="Friday start overtime minutes">
+                                <input type="text" value="30" aria-label="Friday end overtime minutes">
+                                <div class="project-overtime-total">1h</div>
+                                <div class="project-overtime-day">Sat</div>
+                                <input type="text" value="0" aria-label="Saturday start overtime minutes">
+                                <input type="text" value="60" aria-label="Saturday end overtime minutes">
+                                <div class="project-overtime-total">1h</div>
+                                <div class="project-overtime-day">Sun</div>
+                                <input type="text" value="0" aria-label="Sunday start overtime minutes">
+                                <input type="text" value="60" aria-label="Sunday end overtime minutes">
+                                <div class="project-overtime-total">1h</div>
                             </div>
+                            <div class="project-overtime-note">Minutes. Use 0 when a day only has start or end overtime.</div>
                         </div>
                     </div>
                 </div>
@@ -600,6 +622,52 @@
             margin-top: 14px !important;
         }
 
+        #projectModal .project-overtime-table {
+            display: grid;
+            grid-template-columns: 64px 1fr 1fr 56px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #projectModal .project-overtime-head {
+            color: #555;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        #projectModal .project-overtime-day {
+            color: #1a1a1a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #projectModal .project-overtime-table input {
+            min-height: 34px !important;
+            padding: 7px 8px !important;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+        }
+
+        #projectModal .project-overtime-total {
+            border-radius: 7px;
+            background: #EEF2F6;
+            color: #166DBA;
+            font-size: 11px;
+            font-weight: 700;
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #projectModal .project-overtime-note {
+            color: #777;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
         #projectModal .project-config-toggle {
             width: 100%;
             border: 0;
@@ -672,26 +740,22 @@
             const pAdvContent = document.getElementById('projectAdvancedContent');
             const pAdvLeft = document.getElementById('projectLeftAdvanced');
             const footer = document.getElementById('projectModalFooter');
-            const projectCodes = {
-                'Anomali': 'BSD001',
-                'Diamond Crystal Golf No. 15': 'DCG015',
-                'Diamond Golf H3 No. 105': 'DGH105',
-                'Mangunsarkoro No. 53': 'MGS053'
-            };
 
-            titleEl.textContent = title;
+            const isAddProject = title === 'Add Project';
+            titleEl.textContent = isAddProject ? 'Add Project' : 'Project Detail';
 
-            if (title === 'Add Project') {
+            if (isAddProject) {
                 pName.value = '';
                 if (pCode) pCode.value = '';
             } else {
-                pName.value = title || 'Anomali';
-                if (pCode) pCode.value = projectCodes[pName.value] || '';
+                pName.value = 'Anomali';
+                if (pCode) pCode.value = 'BSD001';
             }
             if (pAdvContent) pAdvContent.style.display = '';
             if (pAdvLeft) pAdvLeft.style.display = '';
             if (footer) footer.style.display = 'flex';
             resetProjectPenaltyConfig();
+            bindProjectOvertimeInputs();
 
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -726,6 +790,34 @@
             button.classList.toggle('is-open', isOpening);
             const text = button.querySelector('span');
             if (text) text.textContent = isOpening ? 'Hide Penalty & Config' : 'Show Penalty & Config';
+        }
+
+        function formatProjectOvertimeTotal(minutes) {
+            if (!Number.isFinite(minutes) || minutes <= 0) return '0h';
+            if (minutes % 60 === 0) return `${minutes / 60}h`;
+            return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+        }
+
+        function refreshProjectOvertimeTotals() {
+            document.querySelectorAll('#projectModal .project-overtime-day').forEach(dayEl => {
+                const startInput = dayEl.nextElementSibling;
+                const endInput = startInput ? startInput.nextElementSibling : null;
+                const totalEl = endInput ? endInput.nextElementSibling : null;
+                if (!startInput || !endInput || !totalEl) return;
+
+                const start = parseInt(startInput.value, 10) || 0;
+                const end = parseInt(endInput.value, 10) || 0;
+                totalEl.textContent = formatProjectOvertimeTotal(start + end);
+            });
+        }
+
+        function bindProjectOvertimeInputs() {
+            document.querySelectorAll('#projectModal .project-overtime-table input').forEach(input => {
+                if (input.dataset.overtimeBound) return;
+                input.dataset.overtimeBound = '1';
+                input.addEventListener('input', refreshProjectOvertimeTotals);
+            });
+            refreshProjectOvertimeTotals();
         }
 
         function closeProjectModal() {

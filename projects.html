@@ -606,41 +606,30 @@
 
         #projectModal .project-overtime-rule {
             display: grid;
-            grid-template-columns: minmax(190px, 1.1fr) minmax(220px, 1.25fr) 62px 34px;
-            gap: 10px;
+            grid-template-columns: 190px minmax(200px, 1fr) 62px 34px;
+            gap: 8px;
             align-items: center;
             border: 1px solid #E7E7E7;
             border-radius: 8px;
-            padding: 10px 12px;
+            min-height: 58px;
+            padding: 8px 12px;
             background: #fff;
         }
 
         #projectModal .project-overtime-range {
-            display: grid;
-            gap: 6px;
-        }
-
-        #projectModal .project-overtime-range label {
-            color: #555;
-            font-size: 11px;
-            font-weight: 700 !important;
-            margin: 0 !important;
-        }
-
-        #projectModal .project-range-selects {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr);
             gap: 8px;
             align-items: center;
         }
 
-        #projectModal .project-range-selects span {
+        #projectModal .project-overtime-range span {
             color: #555;
             font-weight: 700;
             text-align: center;
         }
 
-        #projectModal .project-range-selects select {
+        #projectModal .project-overtime-range select {
             min-height: 34px !important;
             padding: 7px 8px !important;
             font-size: 12px;
@@ -673,15 +662,15 @@
             color: #166DBA;
             font-size: 12px;
             font-weight: 700;
-            min-height: 38px;
+            min-height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         #projectModal .project-overtime-remove {
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             border: 0;
             border-radius: 7px;
             background: #F4F6F8;
@@ -726,6 +715,13 @@
 
         #projectModal .project-add-overtime:hover {
             background: #F1F7FD;
+        }
+
+        #projectModal .project-add-overtime:disabled {
+            border-color: #D4D4D4;
+            background: #F4F6F8;
+            color: #999;
+            cursor: not-allowed;
         }
 
         #projectModal .project-config-toggle {
@@ -869,13 +865,98 @@
 
         const PROJECT_OVERTIME_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-        function getProjectOvertimeDayOptions(selectedDay, placeholder) {
+        function getProjectOvertimeDayOptions(selectedDay, placeholder, allowedDays) {
+            const allowedSet = new Set(allowedDays);
             return `
-                <option value="" ${selectedDay ? '' : 'selected'}>${placeholder}</option>
+                <option value="">${placeholder}</option>
                 ${PROJECT_OVERTIME_DAYS.map(day => `
-                    <option value="${day}" ${selectedDay === day ? 'selected' : ''}>${day}</option>
+                    ${allowedSet.has(day) ? `<option value="${day}">${day}</option>` : ''}
                 `).join('')}
             `;
+        }
+
+        function getProjectOvertimeRangeDays(fromDay, toDay) {
+            const fromIndex = PROJECT_OVERTIME_DAYS.indexOf(fromDay);
+            const toIndex = PROJECT_OVERTIME_DAYS.indexOf(toDay);
+
+            if (fromIndex === -1 && toIndex === -1) return [];
+            if (fromIndex !== -1 && toIndex === -1) return [fromDay];
+            if (fromIndex === -1 && toIndex !== -1) return [toDay];
+            if (fromIndex > toIndex) return [];
+
+            return PROJECT_OVERTIME_DAYS.slice(fromIndex, toIndex + 1);
+        }
+
+        function getProjectOvertimeUsedDays(excludedRow = null) {
+            const usedDays = new Set();
+            document.querySelectorAll('#projectOvertimeRules .project-overtime-rule').forEach(row => {
+                if (row === excludedRow) return;
+
+                const selects = row.querySelectorAll('.project-overtime-range select');
+                getProjectOvertimeRangeDays(selects[0]?.value, selects[1]?.value).forEach(day => usedDays.add(day));
+            });
+            return usedDays;
+        }
+
+        function getProjectAllowedFromDays(usedDays, toDay) {
+            const toIndex = PROJECT_OVERTIME_DAYS.indexOf(toDay);
+
+            return PROJECT_OVERTIME_DAYS.filter((day, dayIndex) => {
+                if (usedDays.has(day)) return false;
+                if (toIndex === -1) return true;
+                if (dayIndex > toIndex) return false;
+
+                return PROJECT_OVERTIME_DAYS
+                    .slice(dayIndex, toIndex + 1)
+                    .every(rangeDay => !usedDays.has(rangeDay));
+            });
+        }
+
+        function getProjectAllowedToDays(usedDays, fromDay) {
+            const fromIndex = PROJECT_OVERTIME_DAYS.indexOf(fromDay);
+
+            return PROJECT_OVERTIME_DAYS.filter((day, dayIndex) => {
+                if (usedDays.has(day)) return false;
+                if (fromIndex === -1) return true;
+                if (dayIndex < fromIndex) return false;
+
+                return PROJECT_OVERTIME_DAYS
+                    .slice(fromIndex, dayIndex + 1)
+                    .every(rangeDay => !usedDays.has(rangeDay));
+            });
+        }
+
+        function setProjectOvertimeSelectOptions(select, placeholder, selectedValue, allowedDays) {
+            select.innerHTML = getProjectOvertimeDayOptions(selectedValue, placeholder, allowedDays);
+            select.value = allowedDays.includes(selectedValue) ? selectedValue : '';
+        }
+
+        function refreshProjectOvertimeDayOptions() {
+            document.querySelectorAll('#projectOvertimeRules .project-overtime-rule').forEach(row => {
+                const selects = row.querySelectorAll('.project-overtime-range select');
+                const fromSelect = selects[0];
+                const toSelect = selects[1];
+                if (!fromSelect || !toSelect) return;
+
+                const usedDays = getProjectOvertimeUsedDays(row);
+                const fromDay = fromSelect.value;
+                const toDay = toSelect.value;
+                const allowedFromDays = getProjectAllowedFromDays(usedDays, toDay);
+                const allowedToDays = getProjectAllowedToDays(usedDays, fromDay);
+
+                setProjectOvertimeSelectOptions(fromSelect, 'From', fromDay, allowedFromDays);
+                setProjectOvertimeSelectOptions(toSelect, 'To', toDay, allowedToDays);
+            });
+            refreshProjectOvertimeAddButton();
+        }
+
+        function refreshProjectOvertimeAddButton() {
+            const addButton = document.querySelector('#projectModal .project-add-overtime');
+            if (!addButton) return;
+
+            const usedDays = getProjectOvertimeUsedDays();
+            const hasAvailableDay = PROJECT_OVERTIME_DAYS.some(day => !usedDays.has(day));
+            addButton.disabled = !hasAvailableDay;
         }
 
         function resetProjectOvertimeRules() {
@@ -883,6 +964,7 @@
             if (!list) return;
             list.innerHTML = '';
             refreshProjectOvertimeEmptyState();
+            refreshProjectOvertimeDayOptions();
         }
 
         function addProjectOvertimeRule(rule = {}) {
@@ -895,17 +977,14 @@
             const row = document.createElement('div');
             row.className = 'project-overtime-rule';
             row.innerHTML = `
-                <div class="project-overtime-range">
-                    <label>Day Range</label>
-                    <div class="project-range-selects" aria-label="Overtime day range">
-                        <select aria-label="Overtime from day">
-                            ${getProjectOvertimeDayOptions(fromDay, 'From')}
-                        </select>
-                        <span>-</span>
-                        <select aria-label="Overtime to day">
-                            ${getProjectOvertimeDayOptions(toDay, 'To')}
-                        </select>
-                    </div>
+                <div class="project-overtime-range" aria-label="Overtime day range">
+                    <select aria-label="Overtime from day">
+                        ${getProjectOvertimeDayOptions(fromDay, 'From', PROJECT_OVERTIME_DAYS)}
+                    </select>
+                    <span>-</span>
+                    <select aria-label="Overtime to day">
+                        ${getProjectOvertimeDayOptions(toDay, 'To', PROJECT_OVERTIME_DAYS)}
+                    </select>
                 </div>
                 <div class="project-overtime-inputs">
                     <label>Start OT</label>
@@ -917,11 +996,17 @@
                 <button type="button" class="project-overtime-remove" onclick="removeProjectOvertimeRule(this)" aria-label="Remove overtime rule">&times;</button>
             `;
 
-            row.querySelectorAll('input, select').forEach(input => {
+            row.querySelectorAll('.project-overtime-inputs input').forEach(input => {
                 input.addEventListener('input', () => refreshProjectOvertimeRule(row));
-                input.addEventListener('change', () => refreshProjectOvertimeRule(row));
+            });
+            row.querySelectorAll('.project-overtime-range select').forEach(select => {
+                select.addEventListener('change', () => {
+                    refreshProjectOvertimeDayOptions();
+                    refreshProjectOvertimeRule(row);
+                });
             });
             list.appendChild(row);
+            refreshProjectOvertimeDayOptions();
             refreshProjectOvertimeRule(row);
             refreshProjectOvertimeEmptyState();
         }
@@ -930,6 +1015,7 @@
             const row = button.closest('.project-overtime-rule');
             if (row) row.remove();
             refreshProjectOvertimeEmptyState();
+            refreshProjectOvertimeDayOptions();
         }
 
         function refreshProjectOvertimeRule(row) {

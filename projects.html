@@ -574,6 +574,10 @@
 
         #projectModal .project-working-hour-grid input {
             width: 100%;
+            border: 1px solid #D4D4D4 !important;
+            border-radius: 7px !important;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
             padding: 10px 14px !important;
         }
 
@@ -602,7 +606,7 @@
 
         #projectModal .project-overtime-rule {
             display: grid;
-            grid-template-columns: minmax(150px, 1.1fr) minmax(220px, 1.4fr) 62px 34px;
+            grid-template-columns: minmax(190px, 1.1fr) minmax(220px, 1.25fr) 62px 34px;
             gap: 10px;
             align-items: center;
             border: 1px solid #E7E7E7;
@@ -611,46 +615,35 @@
             background: #fff;
         }
 
-        #projectModal .project-overtime-days {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
+        #projectModal .project-overtime-range {
+            display: grid;
+            gap: 6px;
         }
 
-        #projectModal .project-day-chip {
-            margin: 0;
-            position: relative;
-            cursor: pointer;
-        }
-
-        #projectModal .project-day-chip input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #projectModal .project-day-chip span {
-            border-radius: 999px;
-            background: #EBF3FA;
-            color: #166DBA;
+        #projectModal .project-overtime-range label {
+            color: #555;
             font-size: 11px;
-            font-weight: 700;
-            padding: 5px 8px;
-            display: inline-flex;
+            font-weight: 700 !important;
+            margin: 0 !important;
+        }
+
+        #projectModal .project-range-selects {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr);
+            gap: 8px;
             align-items: center;
-            justify-content: center;
-            min-width: 32px;
-            transition: background 0.15s ease, color 0.15s ease;
         }
 
-        #projectModal .project-day-chip input:checked+span {
-            background: #166DBA;
-            color: #fff;
+        #projectModal .project-range-selects span {
+            color: #555;
+            font-weight: 700;
+            text-align: center;
         }
 
-        #projectModal .project-day-chip input:focus+span {
-            box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.14);
+        #projectModal .project-range-selects select {
+            min-height: 34px !important;
+            padding: 7px 8px !important;
+            font-size: 12px;
         }
 
         #projectModal .project-overtime-inputs {
@@ -876,6 +869,15 @@
 
         const PROJECT_OVERTIME_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+        function getProjectOvertimeDayOptions(selectedDay, placeholder) {
+            return `
+                <option value="" ${selectedDay ? '' : 'selected'}>${placeholder}</option>
+                ${PROJECT_OVERTIME_DAYS.map(day => `
+                    <option value="${day}" ${selectedDay === day ? 'selected' : ''}>${day}</option>
+                `).join('')}
+            `;
+        }
+
         function resetProjectOvertimeRules() {
             const list = document.getElementById('projectOvertimeRules');
             if (!list) return;
@@ -888,16 +890,22 @@
             if (!list) return;
 
             const selectedDays = Array.isArray(rule.days) ? rule.days : [];
+            const fromDay = rule.fromDay || selectedDays[0] || '';
+            const toDay = rule.toDay || selectedDays[selectedDays.length - 1] || '';
             const row = document.createElement('div');
             row.className = 'project-overtime-rule';
             row.innerHTML = `
-                <div class="project-overtime-days" aria-label="Select days">
-                    ${PROJECT_OVERTIME_DAYS.map(day => `
-                        <label class="project-day-chip">
-                            <input type="checkbox" value="${day}" ${selectedDays.includes(day) ? 'checked' : ''}>
-                            <span>${day}</span>
-                        </label>
-                    `).join('')}
+                <div class="project-overtime-range">
+                    <label>Day Range</label>
+                    <div class="project-range-selects" aria-label="Overtime day range">
+                        <select aria-label="Overtime from day">
+                            ${getProjectOvertimeDayOptions(fromDay, 'From')}
+                        </select>
+                        <span>-</span>
+                        <select aria-label="Overtime to day">
+                            ${getProjectOvertimeDayOptions(toDay, 'To')}
+                        </select>
+                    </div>
                 </div>
                 <div class="project-overtime-inputs">
                     <label>Start OT</label>
@@ -909,7 +917,7 @@
                 <button type="button" class="project-overtime-remove" onclick="removeProjectOvertimeRule(this)" aria-label="Remove overtime rule">&times;</button>
             `;
 
-            row.querySelectorAll('input').forEach(input => {
+            row.querySelectorAll('input, select').forEach(input => {
                 input.addEventListener('input', () => refreshProjectOvertimeRule(row));
                 input.addEventListener('change', () => refreshProjectOvertimeRule(row));
             });

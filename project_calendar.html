@@ -43,6 +43,10 @@
         .cal-events { margin-top:2px; display:flex; flex-direction:column; gap:2px; }
         .cal-event { padding:2px 6px; border-radius:4px; font-size:10px; font-weight:500; color:#fff; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:transform 0.1s, box-shadow 0.1s; }
         .cal-event:hover { transform:scale(1.02); box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:2; position:relative; }
+        .cal-event.is-span { margin-left:-4px; margin-right:-4px; border-radius:0; }
+        .cal-event.span-start { margin-left:0; border-radius:4px 0 0 4px; }
+        .cal-event.span-end { margin-right:0; border-radius:0 4px 4px 0; }
+        .cal-event.span-single { margin-left:0; margin-right:0; border-radius:4px; }
         .cal-event.cat-work { background:#27AE60; }
         .cal-event.cat-leave { background:#2980B9; }
         .cal-event.cat-sick { background:#E74C3C; }
@@ -56,8 +60,8 @@
         .cal-detail { background:#fff; border-radius:14px; width:500px; max-width:92vw; box-shadow:0 20px 60px rgba(0,0,0,0.18); animation:slideUp 0.25s ease; overflow:hidden; }
         .cal-detail-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #eee; }
         .cal-detail-header h3 { font-size:16px; font-weight:700; color:#1a1a1a; margin:0; }
-        .cal-detail-close { width:32px; height:32px; border:none; background:#f2f2f2; border-radius:50%; font-size:18px; color:#777; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-        .cal-detail-close:hover { background:#e8e8e8; color:#333; }
+        .cal-detail-close { width:30px; height:30px; border:none; background:#E74C3C; border-radius:6px; font-size:17px; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; transition:background 0.15s, transform 0.15s; }
+        .cal-detail-close:hover { background:#d93f31; transform:translateY(-1px); }
         .cal-detail-body { padding:20px 24px; }
         .cal-detail-row { display:flex; padding:6px 0; font-size:13px; border-bottom:1px solid #f5f5f5; }
         .cal-detail-row:last-child { border-bottom:none; }
@@ -152,7 +156,7 @@
             { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'sakit rahang', attachment:'Camera_1777145042263.jpg' },
             { name:'Yenni Tedjakoesoemo', type:'Remote Work', cat:'work', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
             { name:'Adam Ferial', type:'Sick Leave', cat:'sick', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Adam Ferial', type:'Remote Work', cat:'work', dateStart:'2026-05-07', dateEnd:'2026-05-07', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
+            { name:'Adam Ferial', type:'Remote Work', cat:'work', dateStart:'2026-05-07', dateEnd:'2026-05-08', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
             { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'sakit rahang', attachment:'Camera_1777145042263.jpg' },
             { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', dateStart:'2026-05-11', dateEnd:'2026-05-11', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
             { name:'Ifan Faizal Adnan', type:'Annual Leave', cat:'leave', dateStart:'2026-05-12', dateEnd:'2026-05-12', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
@@ -220,7 +224,8 @@
                         const label = isWorking ? `${item.name} | Company Working` : item.name;
                         evHtml += `<div class="cal-event ${isWorking ? 'company-working' : 'cat-other'}" onclick="event.stopPropagation(); showHolidayDetail('${item.name}','${item.date}')">${label}</div>`;
                     } else {
-                        evHtml += `<div class="cal-event cat-${item.cat}" onclick="event.stopPropagation(); showDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})">${item.name} | ${item.type}</div>`;
+                        const spanClass = getEventSpanClass(item, dateStr);
+                        evHtml += `<div class="cal-event cat-${item.cat} ${spanClass}" onclick="event.stopPropagation(); showDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})">${item.name} | ${item.type}</div>`;
                     }
                 });
                 if (allItems.length > maxShow) {
@@ -240,6 +245,20 @@
 
         function changeMonth(dir) { currentMonth += dir; if(currentMonth>11){currentMonth=0;currentYear++;} if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(); }
         function goToday() { const t=new Date(); currentYear=t.getFullYear(); currentMonth=t.getMonth(); renderCalendar(); }
+
+        function getEventSpanClass(item, dateStr) {
+            if (!item.dateStart || !item.dateEnd || item.dateStart === item.dateEnd) return 'span-single';
+
+            const date = new Date(dateStr + 'T00:00:00');
+            const isWeekStart = date.getDay() === 0;
+            const isWeekEnd = date.getDay() === 6;
+            const startsHere = dateStr === item.dateStart || isWeekStart;
+            const endsHere = dateStr === item.dateEnd || isWeekEnd;
+            if (startsHere && endsHere) return 'is-span span-single';
+            if (startsHere) return 'is-span span-start';
+            if (endsHere) return 'is-span span-end';
+            return 'is-span span-middle';
+        }
 
         function showDetail(item) {
             const body = document.getElementById('calDetailBody');

@@ -293,14 +293,50 @@
                             <h3
                                 style="font-size:14px; font-weight:700; color:#1a1a1a; margin:0 0 16px 0; padding-bottom:8px; border-bottom:1px solid #eee;">
                                 Overtime</h3>
-                            <div class="project-overtime-empty" id="projectOvertimeEmpty">No overtime rules</div>
-                            <div class="project-overtime-rules" id="projectOvertimeRules" aria-label="Overtime rules">
-                            </div>
-                            <div class="project-overtime-actions">
-                                <button type="button" class="project-add-overtime" onclick="addProjectOvertimeRule()">
-                                    <span>+</span>
-                                    Add Overtime
-                                </button>
+                            <div class="project-overtime-panel">
+                                <div class="project-overtime-table" aria-label="Default overtime setting">
+                                    <div class="project-overtime-head">Overtime</div>
+                                    <div class="project-overtime-head">Start</div>
+                                    <div class="project-overtime-head">End</div>
+                                    <div class="project-overtime-day">All Day</div>
+                                    <input type="text" value="60" inputmode="numeric" aria-label="All day start overtime minutes">
+                                    <input type="text" value="60" inputmode="numeric" aria-label="All day end overtime minutes">
+                                </div>
+
+                                <label class="project-overtime-custom-toggle">
+                                    <input type="checkbox" id="projectCustomizeOvertime"
+                                        onchange="toggleProjectOvertimeCustomize(this.checked)">
+                                    <span>Customize Overtime</span>
+                                </label>
+
+                                <div class="project-overtime-daily" id="projectOvertimeDaily" hidden>
+                                    <div class="project-overtime-table" aria-label="Daily overtime setting">
+                                        <div class="project-overtime-head">Overtime</div>
+                                        <div class="project-overtime-head">Start</div>
+                                        <div class="project-overtime-head">End</div>
+                                        <div class="project-overtime-day">Mon</div>
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Monday start overtime minutes">
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Monday end overtime minutes">
+                                        <div class="project-overtime-day">Tue</div>
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Tuesday start overtime minutes">
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Tuesday end overtime minutes">
+                                        <div class="project-overtime-day">Wed</div>
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Wednesday start overtime minutes">
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Wednesday end overtime minutes">
+                                        <div class="project-overtime-day">Thu</div>
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Thursday start overtime minutes">
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Thursday end overtime minutes">
+                                        <div class="project-overtime-day">Fri</div>
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Friday start overtime minutes">
+                                        <input type="text" value="60" inputmode="numeric" aria-label="Friday end overtime minutes">
+                                        <div class="project-overtime-day">Sat</div>
+                                        <input type="text" value="30" inputmode="numeric" aria-label="Saturday start overtime minutes">
+                                        <input type="text" value="120" inputmode="numeric" aria-label="Saturday end overtime minutes">
+                                        <div class="project-overtime-day">Sun</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Sunday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Sunday end overtime minutes">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -582,149 +618,64 @@
             padding: 10px 14px !important;
         }
 
-        #projectModal .project-overtime-rules {
+        #projectModal .project-overtime-panel {
             display: grid;
-            gap: 10px;
+            gap: 12px;
         }
 
-        #projectModal .project-overtime-empty {
-            min-height: 54px;
-            border: 1px dashed #D4DDE7;
-            border-radius: 8px;
-            background: #F8FAFC;
-            color: #777;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
+        #projectModal .project-overtime-table {
+            display: grid;
+            grid-template-columns: minmax(92px, 1fr) 90px 90px;
+            gap: 8px 12px;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-
-        #projectModal .project-overtime-empty[hidden] {
-            display: none !important;
-        }
-
-        #projectModal .project-overtime-rule {
-            display: grid;
-            grid-template-columns: minmax(180px, 1.2fr) minmax(74px, 0.42fr) minmax(74px, 0.42fr) 62px 32px;
-            gap: 10px;
-            align-items: end;
             border: 1px solid #E7E7E7;
             border-radius: 8px;
-            min-height: 74px;
-            padding: 10px 12px;
+            padding: 12px;
             background: #fff;
         }
 
-        #projectModal .project-overtime-field {
-            display: grid;
-            gap: 6px;
-            min-width: 0;
-        }
-
-        #projectModal .project-overtime-field label {
-            color: #555;
-            font-size: 11px;
+        #projectModal .project-overtime-head {
+            color: #333;
+            font-size: 12px;
             font-weight: 700 !important;
             line-height: 1;
-            margin: 0 !important;
-            white-space: nowrap;
         }
 
-        #projectModal .project-overtime-range {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr);
-            gap: 8px;
-            align-items: center;
-        }
-
-        #projectModal .project-overtime-range span {
-            color: #555;
+        #projectModal .project-overtime-day {
+            color: #1a1a1a;
+            font-size: 12px;
             font-weight: 700;
-            text-align: center;
         }
 
-        #projectModal .project-overtime-range select {
+        #projectModal .project-overtime-table input {
             min-height: 36px !important;
             padding: 7px 8px !important;
             font-size: 12px;
-            width: 100%;
-        }
-
-        #projectModal .project-overtime-field input {
-            min-height: 36px !important;
-            padding: 7px 8px !important;
             text-align: center;
             width: 100%;
         }
 
-        #projectModal .project-overtime-total {
-            border-radius: 7px;
-            background: #EEF2F6;
-            color: #166DBA;
-            font-size: 12px;
-            font-weight: 700;
-            min-height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #projectModal .project-overtime-remove {
-            width: 32px;
-            height: 36px;
-            border: 0;
-            border-radius: 7px;
-            background: #F4F6F8;
-            color: #777;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        #projectModal .project-overtime-remove:hover {
-            background: #FFEAEA;
-            color: #E74C3C;
-        }
-
-        #projectModal .project-overtime-actions {
-            display: flex;
-            justify-content: flex-start;
-            margin-top: 12px;
-        }
-
-        #projectModal .project-add-overtime {
-            min-height: 40px;
-            border: 1px solid #166DBA;
-            border-radius: 7px;
-            background: #fff;
-            color: #166DBA;
+        #projectModal .project-overtime-custom-toggle {
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-family: 'Poppins', sans-serif;
             font-size: 13px;
             font-weight: 700;
-            padding: 8px 14px;
+            margin: 0 !important;
+            width: fit-content;
         }
 
-        #projectModal .project-add-overtime span {
-            font-size: 18px;
-            line-height: 1;
+        #projectModal .project-overtime-custom-toggle span {
+            color: #333;
         }
 
-        #projectModal .project-add-overtime:hover {
-            background: #F1F7FD;
+        #projectModal .project-overtime-daily {
+            display: block;
         }
 
-        #projectModal .project-add-overtime:disabled {
-            border-color: #D4D4D4;
-            background: #F4F6F8;
-            color: #999;
-            cursor: not-allowed;
+        #projectModal .project-overtime-daily[hidden] {
+            display: none !important;
         }
 
         #projectModal .project-config-toggle {
@@ -766,13 +717,12 @@
                 grid-template-columns: 1fr !important;
             }
 
-            #projectModal .project-working-hour-grid,
-            #projectModal .project-overtime-rule {
+            #projectModal .project-working-hour-grid {
                 grid-template-columns: 1fr;
             }
 
-            #projectModal .project-overtime-inputs {
-                grid-template-columns: auto minmax(0, 1fr);
+            #projectModal .project-overtime-table {
+                grid-template-columns: minmax(84px, 1fr) 76px 76px;
             }
         }
 
@@ -860,185 +810,16 @@
             if (text) text.textContent = isOpening ? 'Hide Penalty & Config' : 'Show Penalty & Config';
         }
 
-        function formatProjectOvertimeTotal(minutes) {
-            if (!Number.isFinite(minutes) || minutes <= 0) return '0h';
-            if (minutes % 60 === 0) return `${minutes / 60}h`;
-            return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-        }
-
-        const PROJECT_OVERTIME_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-        function getProjectOvertimeDayOptions(selectedDay, placeholder, allowedDays) {
-            const allowedSet = new Set(allowedDays);
-            return `
-                <option value="">${placeholder}</option>
-                ${PROJECT_OVERTIME_DAYS.map(day => `
-                    ${allowedSet.has(day) ? `<option value="${day}">${day}</option>` : ''}
-                `).join('')}
-            `;
-        }
-
-        function getProjectOvertimeRangeDays(fromDay, toDay) {
-            const fromIndex = PROJECT_OVERTIME_DAYS.indexOf(fromDay);
-            const toIndex = PROJECT_OVERTIME_DAYS.indexOf(toDay);
-
-            if (fromIndex === -1 && toIndex === -1) return [];
-            if (fromIndex !== -1 && toIndex === -1) return [fromDay];
-            if (fromIndex === -1 && toIndex !== -1) return [toDay];
-            if (fromIndex > toIndex) return [];
-
-            return PROJECT_OVERTIME_DAYS.slice(fromIndex, toIndex + 1);
-        }
-
-        function getProjectOvertimeUsedDays(excludedRow = null) {
-            const usedDays = new Set();
-            document.querySelectorAll('#projectOvertimeRules .project-overtime-rule').forEach(row => {
-                if (row === excludedRow) return;
-
-                const selects = row.querySelectorAll('.project-overtime-range select');
-                getProjectOvertimeRangeDays(selects[0]?.value, selects[1]?.value).forEach(day => usedDays.add(day));
-            });
-            return usedDays;
-        }
-
-        function getProjectAllowedFromDays(usedDays, toDay) {
-            const toIndex = PROJECT_OVERTIME_DAYS.indexOf(toDay);
-
-            return PROJECT_OVERTIME_DAYS.filter((day, dayIndex) => {
-                if (usedDays.has(day)) return false;
-                if (toIndex === -1) return true;
-                if (dayIndex > toIndex) return false;
-
-                return PROJECT_OVERTIME_DAYS
-                    .slice(dayIndex, toIndex + 1)
-                    .every(rangeDay => !usedDays.has(rangeDay));
-            });
-        }
-
-        function getProjectAllowedToDays(usedDays, fromDay) {
-            const fromIndex = PROJECT_OVERTIME_DAYS.indexOf(fromDay);
-
-            return PROJECT_OVERTIME_DAYS.filter((day, dayIndex) => {
-                if (usedDays.has(day)) return false;
-                if (fromIndex === -1) return true;
-                if (dayIndex < fromIndex) return false;
-
-                return PROJECT_OVERTIME_DAYS
-                    .slice(fromIndex, dayIndex + 1)
-                    .every(rangeDay => !usedDays.has(rangeDay));
-            });
-        }
-
-        function setProjectOvertimeSelectOptions(select, placeholder, selectedValue, allowedDays) {
-            select.innerHTML = getProjectOvertimeDayOptions(selectedValue, placeholder, allowedDays);
-            select.value = allowedDays.includes(selectedValue) ? selectedValue : '';
-        }
-
-        function refreshProjectOvertimeDayOptions() {
-            document.querySelectorAll('#projectOvertimeRules .project-overtime-rule').forEach(row => {
-                const selects = row.querySelectorAll('.project-overtime-range select');
-                const fromSelect = selects[0];
-                const toSelect = selects[1];
-                if (!fromSelect || !toSelect) return;
-
-                const usedDays = getProjectOvertimeUsedDays(row);
-                const fromDay = fromSelect.value;
-                const toDay = toSelect.value;
-                const allowedFromDays = getProjectAllowedFromDays(usedDays, toDay);
-                const allowedToDays = getProjectAllowedToDays(usedDays, fromDay);
-
-                setProjectOvertimeSelectOptions(fromSelect, 'From', fromDay, allowedFromDays);
-                setProjectOvertimeSelectOptions(toSelect, 'To', toDay, allowedToDays);
-            });
-            refreshProjectOvertimeAddButton();
-        }
-
-        function refreshProjectOvertimeAddButton() {
-            const addButton = document.querySelector('#projectModal .project-add-overtime');
-            if (!addButton) return;
-
-            const usedDays = getProjectOvertimeUsedDays();
-            const hasAvailableDay = PROJECT_OVERTIME_DAYS.some(day => !usedDays.has(day));
-            addButton.disabled = !hasAvailableDay;
-        }
-
         function resetProjectOvertimeRules() {
-            const list = document.getElementById('projectOvertimeRules');
-            if (!list) return;
-            list.innerHTML = '';
-            refreshProjectOvertimeEmptyState();
-            refreshProjectOvertimeDayOptions();
+            const checkbox = document.getElementById('projectCustomizeOvertime');
+            if (checkbox) checkbox.checked = false;
+            toggleProjectOvertimeCustomize(false);
         }
 
-        function addProjectOvertimeRule(rule = {}) {
-            const list = document.getElementById('projectOvertimeRules');
-            if (!list) return;
-
-            const selectedDays = Array.isArray(rule.days) ? rule.days : [];
-            const fromDay = rule.fromDay || selectedDays[0] || '';
-            const toDay = rule.toDay || selectedDays[selectedDays.length - 1] || '';
-            const row = document.createElement('div');
-            row.className = 'project-overtime-rule';
-            row.innerHTML = `
-                <div class="project-overtime-field">
-                    <label>Day Range</label>
-                    <div class="project-overtime-range" aria-label="Overtime day range">
-                        <select aria-label="Overtime from day">
-                            ${getProjectOvertimeDayOptions(fromDay, 'From', PROJECT_OVERTIME_DAYS)}
-                        </select>
-                        <span>-</span>
-                        <select aria-label="Overtime to day">
-                            ${getProjectOvertimeDayOptions(toDay, 'To', PROJECT_OVERTIME_DAYS)}
-                        </select>
-                    </div>
-                </div>
-                <div class="project-overtime-field">
-                    <label>Start OT</label>
-                    <input type="text" value="${rule.start ?? ''}" placeholder="0" aria-label="Start overtime minutes">
-                </div>
-                <div class="project-overtime-field">
-                    <label>End OT</label>
-                    <input type="text" value="${rule.end ?? ''}" placeholder="0" aria-label="End overtime minutes">
-                </div>
-                <div class="project-overtime-total">0h</div>
-                <button type="button" class="project-overtime-remove" onclick="removeProjectOvertimeRule(this)" aria-label="Remove overtime rule">&times;</button>
-            `;
-
-            row.querySelectorAll('.project-overtime-field input').forEach(input => {
-                input.addEventListener('input', () => refreshProjectOvertimeRule(row));
-            });
-            row.querySelectorAll('.project-overtime-range select').forEach(select => {
-                select.addEventListener('change', () => {
-                    refreshProjectOvertimeDayOptions();
-                    refreshProjectOvertimeRule(row);
-                });
-            });
-            list.appendChild(row);
-            refreshProjectOvertimeDayOptions();
-            refreshProjectOvertimeRule(row);
-            refreshProjectOvertimeEmptyState();
-        }
-
-        function removeProjectOvertimeRule(button) {
-            const row = button.closest('.project-overtime-rule');
-            if (row) row.remove();
-            refreshProjectOvertimeEmptyState();
-            refreshProjectOvertimeDayOptions();
-        }
-
-        function refreshProjectOvertimeRule(row) {
-            const inputs = row.querySelectorAll('.project-overtime-field input');
-            const start = parseInt(inputs[0]?.value, 10) || 0;
-            const end = parseInt(inputs[1]?.value, 10) || 0;
-            const totalEl = row.querySelector('.project-overtime-total');
-            if (totalEl) totalEl.textContent = formatProjectOvertimeTotal(start + end);
-        }
-
-        function refreshProjectOvertimeEmptyState() {
-            const list = document.getElementById('projectOvertimeRules');
-            const emptyState = document.getElementById('projectOvertimeEmpty');
-            if (!list || !emptyState) return;
-            emptyState.hidden = list.children.length > 0;
+        function toggleProjectOvertimeCustomize(isEnabled) {
+            const dailyTable = document.getElementById('projectOvertimeDaily');
+            if (!dailyTable) return;
+            dailyTable.hidden = !isEnabled;
         }
 
         function closeProjectModal() {

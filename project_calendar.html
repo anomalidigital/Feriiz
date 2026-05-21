@@ -5,76 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Project Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css">
-    <style>
-        .cal-wrapper { display:flex; gap:0; height:calc(100vh - 120px); }
-        .cal-sidebar { width:260px; min-width:220px; background:#fff; border-right:1px solid #e8ecf0; overflow-y:auto; padding:20px 16px; flex-shrink:0; }
-        .cal-sidebar h3 { font-size:14px; font-weight:700; color:#1a1a1a; margin:0 0 12px; }
-        .cal-sidebar-section { margin-bottom:24px; }
-        .cal-sidebar-item { font-size:12px; color:#444; margin-bottom:10px; padding-left:12px; border-left:3px solid #2975BB; }
-        .cal-sidebar-item .item-name { font-weight:600; color:#1a1a1a; }
-        .cal-sidebar-item .item-sub { color:#888; font-size:11px; margin-top:2px; }
-        .cal-sidebar-item .badge-sm { display:inline-block; padding:1px 8px; border-radius:4px; font-size:10px; font-weight:600; color:#fff; margin-top:3px; }
-        .badge-accepted { background:#27AE60; }
-        .badge-pending { background:#E67E22; }
-        .badge-cancelled, .badge-rejected { background:#E74C3C; }
-
-        .cal-main { flex:1; overflow:auto; padding:0; display:flex; flex-direction:column; }
-        .cal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; flex-shrink:0; }
-        .cal-title { font-size:22px; font-weight:700; color:#1a1a1a; }
-        .cal-nav { display:flex; align-items:center; gap:8px; }
-        .cal-nav-btn { width:36px; height:36px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#555; transition:all 0.15s; }
-        .cal-nav-btn:hover { background:#f0f4f8; border-color:#2975BB; color:#2975BB; }
-        .cal-today-btn { padding:6px 16px; border:1px solid #2975BB; border-radius:8px; background:#2975BB; color:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
-        .cal-toggle { display:flex; border:2px solid #2975BB; border-radius:8px; overflow:hidden; }
-        .cal-toggle button { padding:6px 18px; border:none; background:#fff; color:#2975BB; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; transition:all 0.15s; }
-        .cal-toggle button.active { background:#2975BB; color:#fff; }
-        .cal-fullscreen-btn { padding:6px 14px; border:1px solid #333; border-radius:8px; background:#333; color:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
-
-        .cal-grid { flex:1; display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
-        .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
-        .cal-cell { min-height:110px; padding:4px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; position:relative; cursor:default; transition:background 0.15s; vertical-align:top; }
-        .cal-cell:hover { background:#fafcff; }
-        .cal-cell.today { background:#eef5ff; }
-        .cal-cell.other-month { background:#fafafa; }
-        .cal-cell.other-month .cal-date { color:#ccc; }
-        .cal-cell.weekend { background:#fdf8f4; }
-        .cal-date { font-size:12px; font-weight:600; color:#555; padding:2px 6px; }
-        .cal-events { margin-top:2px; display:flex; flex-direction:column; gap:2px; }
-        .cal-event { padding:2px 6px; border-radius:4px; font-size:10px; font-weight:500; color:#fff; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:transform 0.1s, box-shadow 0.1s; }
-        .cal-event:hover { transform:scale(1.02); box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:2; position:relative; }
-        .cal-event.is-span { margin-left:-4px; margin-right:-4px; border-radius:0; }
-        .cal-event.span-start { margin-left:0; border-radius:4px 0 0 4px; }
-        .cal-event.span-end { margin-right:0; border-radius:0 4px 4px 0; }
-        .cal-event.span-single { margin-left:0; margin-right:0; border-radius:4px; }
-        .cal-event.cat-work { background:#27AE60; }
-        .cal-event.cat-leave { background:#2980B9; }
-        .cal-event.cat-sick { background:#E74C3C; }
-        .cal-event.cat-other { background:#E67E22; }
-        .cal-event.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
-        .cal-more { font-size:10px; color:#2975BB; font-weight:600; cursor:pointer; padding:1px 6px; }
-
-        /* Detail Overlay */
-        .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:flex-start; padding-top:10vh; justify-content:center; animation:fadeIn 0.2s ease; }
-        .cal-overlay.show { display:flex; }
-        .cal-detail { background:#fff; border-radius:14px; width:500px; max-width:92vw; box-shadow:0 20px 60px rgba(0,0,0,0.18); animation:slideUp 0.25s ease; overflow:hidden; }
-        .cal-detail-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #eee; }
-        .cal-detail-header h3 { font-size:16px; font-weight:700; color:#1a1a1a; margin:0; }
-        .cal-detail-close { width:30px; height:30px; border:none; background:#E74C3C; border-radius:6px; font-size:17px; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; transition:background 0.15s, transform 0.15s; }
-        .cal-detail-close:hover { background:#d93f31; transform:translateY(-1px); }
-        .cal-detail-body { padding:20px 24px; }
-        .cal-detail-row { display:flex; padding:6px 0; font-size:13px; border-bottom:1px solid #f5f5f5; }
-        .cal-detail-row:last-child { border-bottom:none; }
-        .cal-detail-label { width:120px; font-weight:600; color:#666; flex-shrink:0; }
-        .cal-detail-value { color:#1a1a1a; font-weight:500; }
-        .cal-detail-value .badge-sm { font-size:11px; }
-        .cal-detail-value a { color:#2975BB; text-decoration:underline; }
-        .holiday-edit-field { width:100%; border:1px solid #D9D9D9; border-radius:8px; padding:9px 12px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; }
-        .holiday-edit-field:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
-        .holiday-save-btn { margin-top:14px; width:100%; border:0; border-radius:8px; background:#2975BB; color:#fff; height:40px; font-family:'Poppins',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    </style>
+    <link rel="stylesheet" href="Style.css?v=2.1.0">
+    <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -99,14 +31,14 @@
         </nav>
     </aside>
 
-    <main class="main-content" style="padding:0; overflow:hidden;">
-        <div style="padding:16px 24px 0;">
-            <div style="font-size:13px; color:#888; margin-bottom:4px; font-weight:500;">
-                <a href="projects.html" style="color:inherit; text-decoration:none;">Projects</a> &gt;
-                <span style="color:#2975BB;">Calendar</span>
+    <main class="main-content feriiz-u-227">
+        <div class="feriiz-u-228">
+            <div class="feriiz-u-229">
+                <a href="projects.html" class="feriiz-u-151">Projects</a> &gt;
+                <span class="feriiz-u-152">Calendar</span>
             </div>
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                <h1 class="page-title" style="margin:0; font-size:24px; font-weight:800; color:#2975BB;">Calendar</h1>
+            <div class="feriiz-u-230">
+                <h1 class="page-title feriiz-u-231">Calendar</h1>
                 <button class="cal-fullscreen-btn" onclick="document.documentElement.requestFullscreen()"><i class="fa-solid fa-expand"></i> Full Screen</button>
             </div>
         </div>
@@ -114,10 +46,10 @@
         <div class="cal-wrapper">
             <!-- Sidebar -->
             <div class="cal-sidebar" id="calSidebar">
-                <div style="margin-bottom:16px;">
-                    <div class="cal-toggle" style="width:100%;">
-                        <button class="active" style="flex:1;" onclick="toggleSidebarView(this,'today')">Today</button>
-                        <button style="flex:1;" onclick="toggleSidebarView(this,'month')">Month</button>
+                <div class="feriiz-u-224">
+                    <div class="cal-toggle feriiz-u-232">
+                        <button class="active feriiz-u-004" onclick="toggleSidebarView(this,'today')">Today</button>
+                        <button onclick="toggleSidebarView(this,'month')" class="feriiz-u-004">Month</button>
                     </div>
                 </div>
             </div>
@@ -283,16 +215,16 @@
             body.innerHTML = `
                 <div class="cal-detail-row"><div class="cal-detail-label">Holiday</div><div class="cal-detail-value">: ${name}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Date</div><div class="cal-detail-value">: ${formatDate(date)}</div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">Type</div><div class="cal-detail-value">: <span class="badge-sm" style="background:#E67E22;">Public Holiday</span></div></div>
-                <div style="margin-top:14px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Company Status</label>
+                <div class="cal-detail-row"><div class="cal-detail-label">Type</div><div class="cal-detail-value">: <span class="badge-sm feriiz-u-009">Public Holiday</span></div></div>
+                <div class="feriiz-u-011">
+                    <label class="feriiz-u-012">Company Status</label>
                     <select id="holidayStatusInput" class="holiday-edit-field">
                         <option value="holiday" ${isWorking ? '' : 'selected'}>Company Holiday</option>
                         <option value="working" ${isWorking ? 'selected' : ''}>Company Working Day</option>
                     </select>
                 </div>
-                <div style="margin-top:12px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Note</label>
+                <div class="feriiz-u-013">
+                    <label class="feriiz-u-012">Note</label>
                     <textarea id="holidayNoteInput" class="holiday-edit-field" rows="3" placeholder="Note">${override.note || ''}</textarea>
                 </div>
                 <button class="holiday-save-btn" onclick="saveHolidayOverride('${date}')">Save Override</button>
@@ -362,20 +294,20 @@
             filtered.forEach(e => { if(cats[e.cat]!==undefined) cats[e.cat]++; });
             let html = toggle;
             html += `<div class="cal-sidebar-section"><h3>ðŸ“Š Summary</h3>`;
-            html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#27AE60;font-weight:600;">ðŸŸ¢ Remote Work</span><span style="font-weight:700;">${cats.work}</span></div>`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#2980B9;font-weight:600;">ðŸ”µ Cuti</span><span style="font-weight:700;">${cats.leave}</span></div>`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#E74C3C;font-weight:600;">ðŸ”´ Sakit</span><span style="font-weight:700;">${cats.sick}</span></div>`;
-            html += `<div style="height:1px;background:#eee;margin:4px 0;"></div>`;
-            html += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;font-weight:700;"><span>Total</span><span>${filtered.length}</span></div>`;
+            html += `<div class="feriiz-u-140">`;
+            html += `<div class="feriiz-u-233"><span class="feriiz-u-234">ðŸŸ¢ Remote Work</span><span class="feriiz-u-235">${cats.work}</span></div>`;
+            html += `<div class="feriiz-u-233"><span class="feriiz-u-236">ðŸ”µ Cuti</span><span class="feriiz-u-235">${cats.leave}</span></div>`;
+            html += `<div class="feriiz-u-233"><span class="feriiz-u-237">ðŸ”´ Sakit</span><span class="feriiz-u-235">${cats.sick}</span></div>`;
+            html += `<div class="feriiz-u-238"></div>`;
+            html += `<div class="feriiz-u-239"><span>Total</span><span>${filtered.length}</span></div>`;
             html += `</div></div>`;
             html += `<div class="cal-sidebar-section"><h3>ðŸ“‹ Request</h3>`;
             if (filtered.length === 0) {
-                html += `<div style="font-size:12px;color:#aaa;padding:8px 0;">No requests</div>`;
+                html += `<div class="feriiz-u-240">No requests</div>`;
             }
             filtered.forEach(e => {
                 const sc = e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} - <span style="font-weight:400;">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
+                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} - <span class="feriiz-u-241">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
             });
             html += `</div>`;
             container.innerHTML = html;

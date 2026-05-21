@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css">
+    <link rel="stylesheet" href="Style.css?v=2.1.0">
+    <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 
 <body>
@@ -39,20 +40,20 @@
 
     <main class="main-content">
         <!-- Header -->
-        <div class="page-header" style="flex-wrap: wrap;">
+        <div class="page-header feriiz-u-163">
             <h1 class="page-title">Dashboard</h1>
-            <div class="page-actions" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-                <div style="position:relative;">
+            <div class="page-actions feriiz-u-164">
+                <div class="feriiz-u-014">
                     <button class="btn btn-outline filter-toggle-btn" title="Filter"
                         onclick="this.nextElementSibling.style.display = 'block';">
                         <i class="fa-solid fa-filter"></i>
                     </button>
-                    <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
-                        <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter Activity
+                    <div class="filter-dropdown feriiz-u-015">
+                        <div class="feriiz-u-016">Filter Activity
                         </div>
                         <label>Occupation</label>
-                        <select class="input filter-occ"
-                            style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif;">
+                        <select class="input filter-occ feriiz-u-017"
+                           >
                             <option>All Occupations</option>
                             <option>Graphic Design</option>
                             <option>Sr.Programmer</option>
@@ -63,22 +64,17 @@
                             <option>Backend</option>
                             <option>HR Administrator</option>
                             <option>3D Artist</option>
-                            <option>Tukang Kayu</option>
-                            <option>Tukang Keramik</option>
-                            <option>Tukang Las</option>
-                            <option>Mandor Lapangan</option>
-                            <option>Surveyor</option>
                         </select>
                         <label>Date Range (Last Activity)</label>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <input type="date" class="input filter-date" style="flex:1;">
-                            <span style="color:#666; font-weight:600;">-</span>
-                            <input type="date" class="input filter-date" style="flex:1;">
+                        <div class="feriiz-u-003">
+                            <input type="date" class="input filter-date feriiz-u-004">
+                            <span class="feriiz-u-005">-</span>
+                            <input type="date" class="input filter-date feriiz-u-004">
                         </div>
-                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
-                            <button class="btn btn-outline filter-clear-btn" style="padding:6px 12px; font-size:12px;"
+                        <div class="feriiz-u-018">
+                            <button class="btn btn-outline filter-clear-btn feriiz-u-019"
                                 onclick="this.closest('.filter-dropdown').style.display='none';">Clear</button>
-                            <button class="btn btn-primary filter-apply-btn" style="padding:6px 12px; font-size:12px;"
+                            <button class="btn btn-primary filter-apply-btn feriiz-u-019"
                                 onclick="this.closest('.filter-dropdown').style.display='none';">Apply</button>
                         </div>
                     </div>
@@ -87,50 +83,49 @@
                     <i class="fa-solid fa-file-export"></i>
                     Export
                 </button>
-                <div style="display:flex; align-items:center; position:relative;">
-                    <i class="fa-solid fa-magnifying-glass"
-                        style="position:absolute; left:12px; color:#999; font-size:14px;"></i>
-                    <input type="text" placeholder="Search"
-                        style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none;">
+                <div class="feriiz-u-020">
+                    <i class="fa-solid fa-magnifying-glass feriiz-u-067"
+                       ></i>
+                    <input type="text" placeholder="Search" class="feriiz-u-068">
                 </div>
             </div>
         </div>
 
         <!-- Stat Cards -->
-        <div class="stat-cards" style="gap:24px;">
-            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
-                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+        <div class="stat-cards feriiz-u-023">
+            <div class="stat-card feriiz-u-024">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number"
-                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">27
+                    <div class="stat-number feriiz-u-026"
+                       >12
                     </div>
-                    <div class="stat-label"
-                        style="color:#fff; font-size:14px; font-weight:500; font-family:'Poppins', sans-serif;">
+                    <div class="stat-label feriiz-u-165"
+                       >
                         Employees</div>
                 </div>
             </div>
-            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
-                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+            <div class="stat-card feriiz-u-024">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-solid fa-chart-pie"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number"
-                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">27
+                    <div class="stat-number feriiz-u-026"
+                       >12
                     </div>
-                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Attendance</div>
+                    <div class="stat-label feriiz-u-027">Attendance</div>
                 </div>
             </div>
-            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
-                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+            <div class="stat-card feriiz-u-024">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number"
-                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">14
+                    <div class="stat-number feriiz-u-026"
+                       >9
                     </div>
-                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Occupations</div>
+                    <div class="stat-label feriiz-u-027">Occupations</div>
                 </div>
             </div>
         </div>
@@ -142,124 +137,56 @@
                     <tr>
                         <th>Occupation</th>
                         <th>Anomali</th>
-                        <th>BSD (BS-Residence)</th>
-                        <th>Diamond Crystal Golf No. 15</th>
-                        <th>Diamond Golf H3 No. 105</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>Graphic Design</td>
                         <td>4 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>Sr.Programmer</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>Teknisi</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>Manager</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>Marketing</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>Frontend</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>Backend</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>HR Administrator</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
                     </tr>
                     <tr>
                         <td>3D Artist</td>
                         <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Tukang Kayu</td>
-                        <td>0 Person</td>
-                        <td>2 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Tukang Keramik</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                        <td>2 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Tukang Las</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Mandor Lapangan</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Surveyor</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
                     </tr>
                 </tbody>
                 <tfoot>
-                    <tr style="border-top:2px solid #2975BB;">
-                        <td style="font-weight:700;color:#1a1a1a;"></td>
-                        <td style="font-weight:700;color:#1a1a1a;">12 Person</td>
-                        <td style="font-weight:700;color:#1a1a1a;">5 Person</td>
-                        <td style="font-weight:700;color:#1a1a1a;">5 Person</td>
-                        <td style="font-weight:700;color:#1a1a1a;">5 Person</td>
+                    <tr class="feriiz-u-166">
+                        <td class="feriiz-u-167"></td>
+                        <td class="feriiz-u-167">12 Person</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
-        <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.86</div>
+        <div class="feriiz-u-032">version : 2.0.86</div>
     </main>
 
 

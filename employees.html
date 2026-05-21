@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css">
+    <link rel="stylesheet" href="Style.css?v=2.1.0">
+    <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 
 <body>
@@ -41,22 +42,22 @@
         <div class="page-header">
             <h1 class="page-title">Employees</h1>
             <div class="page-actions">
-                <div style="position:relative;">
+                <div class="feriiz-u-014">
                     <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
-                    <div class="filter-dropdown" style="text-align:left; font-weight:normal;">
-                        <div style="font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px;">Filter
+                    <div class="filter-dropdown feriiz-u-015">
+                        <div class="feriiz-u-016">Filter
                             Employees</div>
                         <label>Date Range (Last Activity)</label>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <input type="date" class="input filter-date" style="flex:1;">
-                            <span style="color:#666; font-weight:600;">-</span>
-                            <input type="date" class="input filter-date" style="flex:1;">
+                        <div class="feriiz-u-003">
+                            <input type="date" class="input filter-date feriiz-u-004">
+                            <span class="feriiz-u-005">-</span>
+                            <input type="date" class="input filter-date feriiz-u-004">
                         </div>
                         <label>Occupation</label>
-                        <select class="input filter-occ"
-                            style="width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; font-family:'Poppins', sans-serif;">
+                        <select class="input filter-occ feriiz-u-017"
+                           >
                             <option>All Occupations</option>
                             <option>Graphic Design</option>
                             <option>Sr.Programmer</option>
@@ -68,11 +69,11 @@
                             <option>HR Administrator</option>
                             <option>3D Artist</option>
                         </select>
-                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
-                            <button class="btn btn-outline filter-clear-btn"
-                                style="padding:6px 12px; font-size:12px;">Clear</button>
-                            <button class="btn btn-primary filter-apply-btn"
-                                style="padding:6px 12px; font-size:12px;">Apply</button>
+                        <div class="feriiz-u-018">
+                            <button class="btn btn-outline filter-clear-btn feriiz-u-019"
+                               >Clear</button>
+                            <button class="btn btn-primary filter-apply-btn feriiz-u-019"
+                               >Apply</button>
                         </div>
                     </div>
                 </div>
@@ -84,39 +85,38 @@
                     <i class="fa-solid fa-plus"></i>
                     Add Employee
                 </button>
-                <div class="search-autocomplete-wrap" style="position:relative;">
-                    <div style="display:flex; align-items:center; position:relative;">
-                        <i class="fa-solid fa-magnifying-glass"
-                            style="position:absolute; left:12px; color:#999; font-size:14px; z-index:1;"></i>
-                        <input type="text" id="employeeSearchInput" placeholder="Search" autocomplete="off"
-                            style="padding: 10px 12px 10px 38px; border-radius: 8px; border: 1px solid #D9D9D9; height: 42px; width: 220px; font-family: 'Poppins', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s;">
+                <div class="search-autocomplete-wrap feriiz-u-014">
+                    <div class="feriiz-u-020">
+                        <i class="fa-solid fa-magnifying-glass feriiz-u-021"
+                           ></i>
+                        <input type="text" id="employeeSearchInput" placeholder="Search" autocomplete="off" class="feriiz-u-022">
                     </div>
                     <div class="search-dropdown" id="searchDropdown"></div>
                 </div>
             </div>
         </div>
 
-        <div class="stat-cards" style="gap:24px;">
-            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
-                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+        <div class="stat-cards feriiz-u-023">
+            <div class="stat-card feriiz-u-024">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number"
-                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">12
+                    <div class="stat-number feriiz-u-026"
+                       >12
                     </div>
-                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Employees</div>
+                    <div class="stat-label feriiz-u-027">Employees</div>
                 </div>
             </div>
-            <div class="stat-card" style="background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px;">
-                <div class="stat-card-icon" style="margin-right:20px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; flex-shrink:0;">
+            <div class="stat-card feriiz-u-024">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number"
-                        style="color:#fff; font-size:28px; font-weight:700; line-height:1; letter-spacing:-0.5px;">9
+                    <div class="stat-number feriiz-u-026"
+                       >9
                     </div>
-                    <div class="stat-label" style="color:#fff; font-size:14px; font-weight:500;">Occupations</div>
+                    <div class="stat-label feriiz-u-027">Occupations</div>
                 </div>
             </div>
         </div>
@@ -125,7 +125,7 @@
             <table class="data-table">
                                 <thead>
                     <tr>
-                        <th style="width:60px;"></th>
+                        <th class="feriiz-u-028"></th>
                         <th>Name</th>
                         
                         <th>Occupation</th>
@@ -143,12 +143,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Adam Ferial</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">ADA27B1B2E650H0X</div>
+                                    <div class="employee-code feriiz-u-031">ADA27B1B2E650H0X</div>
                                 </div>
                             </div>
                         </td>
@@ -166,12 +166,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Apriyanto Apriyanto</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">APR8940K8VB44L8</div>
+                                    <div class="employee-code feriiz-u-031">APR8940K8VB44L8</div>
                                 </div>
                             </div>
                         </td>
@@ -189,12 +189,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Baldyas Satrio</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">BILFBY9N8YJ1YDN</div>
+                                    <div class="employee-code feriiz-u-031">BILFBY9N8YJ1YDN</div>
                                 </div>
                             </div>
                         </td>
@@ -212,12 +212,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Ifan Faizal Adnan</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">IFAT8WJ2DM</div>
+                                    <div class="employee-code feriiz-u-031">IFAT8WJ2DM</div>
                                 </div>
                             </div>
                         </td>
@@ -235,12 +235,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Indra Naftali</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">IND693283053999</div>
+                                    <div class="employee-code feriiz-u-031">IND693283053999</div>
                                 </div>
                             </div>
                         </td>
@@ -258,12 +258,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Mauli Hidayat</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">MAUNZ1TL5H0Q7GG</div>
+                                    <div class="employee-code feriiz-u-031">MAUNZ1TL5H0Q7GG</div>
                                 </div>
                             </div>
                         </td>
@@ -281,12 +281,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Raden Maulana</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">RADVBYR5171FSC6</div>
+                                    <div class="employee-code feriiz-u-031">RADVBYR5171FSC6</div>
                                 </div>
                             </div>
                         </td>
@@ -304,12 +304,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Steven Febrianto</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">STEPRQTY99</div>
+                                    <div class="employee-code feriiz-u-031">STEPRQTY99</div>
                                 </div>
                             </div>
                         </td>
@@ -327,12 +327,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Veronica Nathalia</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">VER2FWV8L80S5SX</div>
+                                    <div class="employee-code feriiz-u-031">VER2FWV8L80S5SX</div>
                                 </div>
                             </div>
                         </td>
@@ -350,12 +350,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Yenni Tedjakoesoemo</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">YENX6LH3X9</div>
+                                    <div class="employee-code feriiz-u-031">YENX6LH3X9</div>
                                 </div>
                             </div>
                         </td>
@@ -373,12 +373,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Zicky Affan</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">ZICOJMQN8SQ5RDT</div>
+                                    <div class="employee-code feriiz-u-031">ZICOJMQN8SQ5RDT</div>
                                 </div>
                             </div>
                         </td>
@@ -395,12 +395,12 @@
                             </div>
                         </td>
                         <td>
-                            <div class="employee-cell" style="display: flex; align-items: center; gap: 12px;">
-                                <img src="Employee_pictures/Sandy Santuy.jfif" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                            <div class="employee-cell feriiz-u-029">
+                                <img src="Employee_pictures/Sandy Santuy.jfif" alt="" class="feriiz-u-030">
 
                                 <div>
                                     <div class="employee-name">Sandy Santuy</div>
-                                    <div class="employee-code" style="font-size:11px; color:#888;">SAN79P3WFFK4MQM</div>
+                                    <div class="employee-code feriiz-u-031">SAN79P3WFFK4MQM</div>
                                 </div>
                             </div>
                         </td>
@@ -423,7 +423,7 @@
                 </div>
             </div>
         </div>
-        <div style="margin-top:32px;font-size:12px;color:#bbb;">version : 2.0.86</div>
+        <div class="feriiz-u-032">version : 2.0.86</div>
     </main>
 
         <script>
@@ -496,220 +496,81 @@
 
     <!-- Employee Detail Modal Overlay -->
     <div class="modal-overlay" id="employeeDetailModal">
-        <div class="modal-card" style="width:900px; max-width:96vw; max-height:88vh; overflow-y:auto; border-radius:14px; background:#fff; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.18);">
-            <div class="modal-header" style="position:sticky; top:0; background:#fff; padding:24px 36px 18px; border-bottom:1px solid #eee; z-index:10; display:flex; justify-content:space-between; align-items:center; border-radius:14px 14px 0 0;">
-                <h2 id="employeeDetailTitle" style="font-size:20px; font-weight:700; color:#1a1a1a; margin:0;">Employee Detail</h2>
-                <button class="modal-close" onclick="closeEmployeeDetailModal()"
-                    style="width:30px; height:30px; background:#E74C3C; border:none; border-radius:6px; cursor:pointer; color:#fff; font-size:17px; display:flex; align-items:center; justify-content:center; font-weight:700;">&times;</button>
+        <div class="modal-card feriiz-u-033">
+            <div class="modal-header feriiz-u-034">
+                <h2 id="employeeDetailTitle" class="feriiz-u-035">Employee Detail</h2>
+                <button class="modal-close feriiz-u-036" onclick="closeEmployeeDetailModal()"
+                   >&times;</button>
             </div>
-            <div class="modal-body" style="padding:28px 36px;">
-                <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:36px;">
+            <div class="modal-body feriiz-u-037">
+                <div class="feriiz-u-038">
                     <!-- LEFT COLUMN -->
                     <div>
-                        <div style="background:#D5D5D5; padding:7px 14px; border-radius:6px; margin-bottom:14px;">
-                            <span style="font-size:13px; font-weight:700; color:#1a1a1a;">Personal Information</span>
+                        <div class="feriiz-u-039">
+                            <span class="feriiz-u-040">Personal Information</span>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px;">
-                            <input type="text" id="empModalFirstName" placeholder="First Name" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
-                            <input type="text" id="empModalLastName" placeholder="Last Name" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
-                            <input type="text" placeholder="Occupation" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
+                        <div class="feriiz-u-041">
+                            <input type="text" id="empModalFirstName" placeholder="First Name" class="feriiz-u-042">
+                            <input type="text" id="empModalLastName" placeholder="Last Name" class="feriiz-u-042">
+                            <input type="text" placeholder="Occupation" class="feriiz-u-042">
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px;">
-                            <input type="text" placeholder="Pin" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
-                            <input type="text" placeholder="Date of Birth" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
-                            <select style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; background:#fff; cursor:pointer; box-sizing:border-box; color:#999;">
+                        <div class="feriiz-u-041">
+                            <input type="text" placeholder="Pin" class="feriiz-u-042">
+                            <input type="text" placeholder="Date of Birth" class="feriiz-u-042">
+                            <select class="feriiz-u-043">
                                 <option value="" disabled selected>Gender</option>
-                                <option style="color:#333;">Male</option>
-                                <option style="color:#333;">Female</option>
+                                <option class="feriiz-u-044">Male</option>
+                                <option class="feriiz-u-044">Female</option>
                             </select>
                         </div>
-                        <div style="margin-bottom:20px;"><textarea placeholder="Note" style="width:100%; height:100px; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; resize:vertical; box-sizing:border-box; color:#333;"></textarea>
+                        <div class="feriiz-u-045"><textarea placeholder="Note" class="feriiz-u-046"></textarea>
                         </div>
-                        <div style="background:#D5D5D5; padding:7px 14px; border-radius:6px; margin-bottom:14px;">
-                            <span style="font-size:13px; font-weight:700; color:#1a1a1a;">Working Time</span>
+                        <div class="feriiz-u-039">
+                            <span class="feriiz-u-040">Working Time</span>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:16px;">
-                            <input type="text" placeholder="Start Hour" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
-                            <input type="text" placeholder="End Hour" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
-                            <input type="text" placeholder="Cut Off Hour" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; color:#333;">
+                        <div class="feriiz-u-047">
+                            <input type="text" placeholder="Start Hour" class="feriiz-u-042">
+                            <input type="text" placeholder="End Hour" class="feriiz-u-042">
+                            <input type="text" placeholder="Cut Off Hour" class="feriiz-u-042">
                         </div>
-                        <div style="display:flex; flex-wrap:wrap; gap:14px;">
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#333; cursor:pointer; font-weight:500;"><input type="checkbox" checked style="accent-color:#2975BB; width:16px; height:16px;"> Mon</label>
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#333; cursor:pointer; font-weight:500;"><input type="checkbox" checked style="accent-color:#2975BB; width:16px; height:16px;"> Tue</label>
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#333; cursor:pointer; font-weight:500;"><input type="checkbox" checked style="accent-color:#2975BB; width:16px; height:16px;"> Wed</label>
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#333; cursor:pointer; font-weight:500;"><input type="checkbox" checked style="accent-color:#2975BB; width:16px; height:16px;"> Thu</label>
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#333; cursor:pointer; font-weight:500;"><input type="checkbox" checked style="accent-color:#2975BB; width:16px; height:16px;"> Fri</label>
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#888; cursor:pointer; font-weight:500;"><input type="checkbox" style="accent-color:#2975BB; width:16px; height:16px;"> Sat</label>
-                            <label style="display:flex; align-items:center; gap:5px; font-size:12px; color:#888; cursor:pointer; font-weight:500;"><input type="checkbox" style="accent-color:#2975BB; width:16px; height:16px;"> Sun</label>
+                        <div class="feriiz-u-048">
+                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Mon</label>
+                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Tue</label>
+                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Wed</label>
+                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Thu</label>
+                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Fri</label>
+                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sat</label>
+                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sun</label>
                         </div>
                     </div>
                     <!-- RIGHT COLUMN -->
                     <div>
-                        <div style="background:#D5D5D5; padding:7px 14px; border-radius:6px; margin-bottom:14px;">
-                            <span style="font-size:13px; font-weight:700; color:#1a1a1a;">Account Configuration</span>
+                        <div class="feriiz-u-039">
+                            <span class="feriiz-u-040">Account Configuration</span>
                         </div>
-                        <select style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; background:#fff; cursor:pointer; margin-bottom:10px; box-sizing:border-box; color:#333;">
+                        <select class="feriiz-u-052">
                             <option>Employee</option><option>Admin</option>
                         </select>
-                        <input type="email" placeholder="Email" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; margin-bottom:10px; box-sizing:border-box; color:#333;">
+                        <input type="email" placeholder="Email" class="feriiz-u-053">
                         <div id="empPasswordField">
-                            <input type="text" placeholder="Reset Password" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; margin-bottom:20px; box-sizing:border-box; color:#333;">
+                            <input type="text" placeholder="Reset Password" class="feriiz-u-054">
                         </div>
-                        <div style="background:#D5D5D5; padding:7px 14px; border-radius:6px; margin-bottom:14px;">
-                            <span style="font-size:13px; font-weight:700; color:#1a1a1a;">Payment Rate</span>
+                        <div class="feriiz-u-039">
+                            <span class="feriiz-u-040">Payment Rate</span>
                         </div>
-                        <input type="text" placeholder="$ Hourly Rate" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; margin-bottom:10px; box-sizing:border-box; color:#333;">
-                        <input type="text" placeholder="$ Hourly Overtime Rate" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; margin-bottom:10px; box-sizing:border-box; color:#333;">
-                        <input type="text" placeholder="$ Client Rate" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; margin-bottom:10px; box-sizing:border-box; color:#333;">
-                        <input type="text" placeholder="$ Client Overtime Rate" style="width:100%; padding:10px 14px; border:1px solid #D9D9D9; border-radius:7px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; margin-bottom:10px; box-sizing:border-box; color:#333;">
+                        <input type="text" placeholder="$ Hourly Rate" class="feriiz-u-053">
+                        <input type="text" placeholder="$ Hourly Overtime Rate" class="feriiz-u-053">
+                        <input type="text" placeholder="$ Client Rate" class="feriiz-u-053">
+                        <input type="text" placeholder="$ Client Overtime Rate" class="feriiz-u-053">
                     </div>
                 </div>
             </div>
-            <div id="empModalFooter" style="padding:0 36px 28px; display:flex; justify-content:flex-end;">
-                <button class="btn btn-primary" onclick="closeEmployeeDetailModal()"
-                    style="background:#166DBA; color:#fff; border:none; padding:10px 32px; border-radius:7px; font-family:'Poppins',sans-serif; font-weight:600; font-size:13px; cursor:pointer;">Save Changes</button>
+            <div id="empModalFooter" class="feriiz-u-055">
+                <button class="btn btn-primary feriiz-u-056" onclick="closeEmployeeDetailModal()"
+                   >Save Changes</button>
             </div>
         </div>
     </div>
-
-    <style>
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000;
-            align-items: flex-start; justify-content: center; padding-top: 4vh;
-            animation: fadeIn 0.2s ease;
-        }
-        .modal-overlay.show { display: flex; }
-        @media (max-width: 800px) {
-            #employeeDetailModal .modal-card { max-width: calc(100vw - 16px) !important; }
-            #employeeDetailModal .modal-body > div { display:block !important; }
-            #employeeDetailModal .modal-body [style*="grid-template-columns"] { grid-template-columns:1fr !important; }
-        }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
-        /* === Search Autocomplete Dropdown === */
-        .search-dropdown {
-            display: none;
-            position: absolute;
-            top: 46px;
-            left: 0;
-            width: 100%;
-            min-width: 220px;
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.12);
-            z-index: 300;
-            max-height: 260px;
-            overflow-y: auto;
-            animation: searchDropIn 0.18s ease;
-        }
-        .search-dropdown.show { display: block; }
-        @keyframes searchDropIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .search-dropdown::-webkit-scrollbar { width: 5px; }
-        .search-dropdown::-webkit-scrollbar-track { background: transparent; }
-        .search-dropdown::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 3px; }
-
-        .search-dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            cursor: pointer;
-            transition: background 0.15s ease;
-            border-bottom: 1px solid #f5f5f5;
-        }
-        .search-dropdown-item:last-child { border-bottom: none; }
-        .search-dropdown-item:hover {
-            background: #EBF3FA;
-        }
-        .search-dropdown-item .sdi-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            background: #e8e8e8;
-        }
-        .search-dropdown-item .sdi-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-        .search-dropdown-item .sdi-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1a1a1a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .search-dropdown-item .sdi-name .highlight {
-            color: #2975BB;
-            font-weight: 700;
-        }
-        .search-dropdown-item .sdi-occupation {
-            font-size: 11px;
-            color: #888;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .search-dropdown-add {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 11px 14px;
-            cursor: pointer;
-            transition: background 0.15s ease;
-            border-top: 1px solid #eee;
-            color: #2975BB;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .search-dropdown-add:hover {
-            background: #EBF3FA;
-        }
-        .search-dropdown-add i {
-            font-size: 13px;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(41, 117, 187, 0.1);
-            border-radius: 50%;
-            color: #2975BB;
-            flex-shrink: 0;
-        }
-
-        .search-no-results {
-            padding: 14px;
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-        }
-
-        /* Row highlight flash animation */
-        @keyframes rowHighlight {
-            0% { background: #EBF3FA; }
-            100% { background: transparent; }
-        }
-        .row-highlight {
-            animation: rowHighlight 1.5s ease;
-        }
-
-        /* Focus state for search input */
-        #employeeSearchInput:focus {
-            border-color: #2975BB;
-            box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.1);
-        }
-    </style>
 
     <script>
         function openEmployeeDetailModal(isNew, name) {

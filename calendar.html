@@ -5,151 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css">
-    <style>
-        .cal-header-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
-        .cal-title { font-size:24px; font-weight:800; color:#2975BB; margin:0; }
-        .cal-nav { display:flex; align-items:center; gap:8px; }
-        .cal-nav-btn { width:36px; height:36px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#555; transition:all 0.15s; }
-        .cal-nav-btn:hover { background:#f0f4f8; border-color:#2975BB; color:#2975BB; }
-        .cal-today-btn { padding:6px 16px; border:1px solid #2975BB; border-radius:8px; background:#2975BB; color:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
-        .cal-month-label { font-size:22px; font-weight:700; color:#1a1a1a; min-width:180px; }
-        /* Search Project */
-        .cal-search-wrap { position:relative; }
-        .cal-search-input { padding:10px 12px 10px 38px; border-radius:8px; border:1px solid #D9D9D9; height:42px; width:260px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s; }
-        .cal-search-input:focus { border-color:#2975BB; }
-        .cal-search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#999; font-size:14px; }
-        .cal-search-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); z-index:200; max-height:240px; overflow-y:auto; border:1px solid #eee; }
-        .cal-search-dropdown.show { display:block; }
-        .cal-search-item { padding:10px 16px; font-size:13px; color:#333; cursor:pointer; transition:background 0.12s; display:flex; align-items:center; gap:8px; }
-        .cal-search-item:hover, .cal-search-item.active { background:#f0f6ff; color:#2975BB; }
-        .cal-search-item i { color:#2975BB; width:16px; font-size:12px; }
-        /* Filter Dropdown */
-        .cal-filter-wrap { position:relative; }
-        .cal-filter-btn { width:42px; height:42px; border:1px solid #2975BB; border-radius:8px; background:#EBF3FA; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#2975BB; font-size:15px; transition:all 0.15s; }
-        .cal-filter-btn:hover, .cal-filter-btn.active { border-color:#2975BB; color:#fff; background:#2975BB; }
-        .cal-filter-dropdown { display:none; position:absolute; top:calc(100% + 6px); right:0; background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.15); width:320px; z-index:200; padding:20px; border:1px solid #eee; }
-        .cal-filter-dropdown.show { display:block; }
-        .cal-filter-dropdown label { display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; margin-top:12px; }
-        .cal-filter-dropdown label:first-child { margin-top:0; }
-        .cal-filter-dropdown .f-title { font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:16px; }
-        .cal-filter-dropdown select, .cal-filter-dropdown input[type=date] { width:100%; padding:8px 12px; border-radius:8px; border:1px solid #D9D9D9; font-family:'Poppins',sans-serif; font-size:13px; outline:none; height:38px; }
-        .cal-filter-dropdown select:focus, .cal-filter-dropdown input[type=date]:focus { border-color:#2975BB; }
-        .cal-filter-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
-        .cal-filter-actions button { padding:6px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
-        .f-btn-clear { background:#fff; border:1px solid #D9D9D9; color:#666; }
-        .f-btn-clear:hover { border-color:#999; }
-        .f-btn-apply { background:#2975BB; border:1px solid #2975BB; color:#fff; }
-        .f-btn-apply:hover { background:#1e5f9e; }
-
-        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
-        .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
-        .cal-cell { min-height:120px; padding:6px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; transition:background 0.15s; }
-        .cal-cell:hover { background:#fafcff; }
-        .cal-cell.today { background:#eef5ff; }
-        .cal-cell.other-month { background:#fafafa; }
-        .cal-cell.other-month .cal-date { color:#ccc; }
-        .cal-cell.weekend { background:#fdf8f4; }
-        .cal-date { font-size:12px; font-weight:600; color:#555; margin-bottom:4px; }
-
-        .cal-count-badge { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; color:#fff; margin-bottom:3px; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
-        .cal-count-badge:hover { transform:scale(1.03); box-shadow:0 2px 8px rgba(0,0,0,0.12); }
-        .cal-count-badge .badge-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-        .cat-work-bg { background:rgba(39,174,96,0.12); color:#1e8449; }
-        .cat-work-bg .badge-dot { background:#27AE60; }
-        .cat-leave-bg { background:rgba(41,128,185,0.12); color:#1a6da5; }
-        .cat-leave-bg .badge-dot { background:#2980B9; }
-        .cat-sick-bg { background:rgba(231,76,60,0.12); color:#c0392b; }
-        .cat-sick-bg .badge-dot { background:#E74C3C; }
-        .cat-other-bg { background:rgba(230,126,34,0.12); color:#d35400; }
-        .cat-other-bg .badge-dot { background:#E67E22; }
-        .cal-holiday-bar { padding:3px 8px; border-radius:4px; background:#E67E22; color:#fff; font-size:10px; font-weight:500; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
-        .cal-holiday-bar:hover { transform:translateY(-1px); box-shadow:0 2px 8px rgba(230,126,34,0.22); }
-        .cal-holiday-bar.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
-        .holiday-edit-field { width:100%; border:1px solid #D9D9D9; border-radius:8px; padding:9px 12px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; box-sizing:border-box; }
-        .holiday-edit-field:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
-        .holiday-save-btn { margin-top:14px; width:100%; border:0; border-radius:8px; background:#2975BB; color:#fff; height:40px; font-family:'Poppins',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
-
-        /* Overlay */
-        .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:flex-start; padding-top:10vh; justify-content:center; }
-        .cal-overlay.show { display:flex; }
-        .cal-detail { background:#fff; border-radius:14px; width:480px; max-width:92vw; max-height:75vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.18); animation:slideUp 0.25s ease; }
-        .cal-detail-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #eee; position:sticky; top:0; background:#fff; z-index:1; border-radius:14px 14px 0 0; }
-        .cal-detail-header h3 { font-size:15px; font-weight:700; color:#1a1a1a; margin:0; }
-        .cal-detail-close { width:30px; height:30px; border:none; background:#E74C3C; border-radius:6px; font-size:17px; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; transition:background 0.15s, transform 0.15s; }
-        .cal-detail-close:hover { background:#d93f31; transform:translateY(-1px); }
-        .cal-detail-body { padding:16px 24px 24px; }
-        .cal-detail-row { display:flex; gap:12px; padding:8px 0; font-size:13px; border-bottom:1px solid #f5f5f5; }
-        .cal-detail-row:last-child { border-bottom:none; }
-        .cal-detail-label { width:110px; font-weight:600; color:#666; flex-shrink:0; }
-        .cal-detail-value { color:#1a1a1a; font-weight:500; flex:1; }
-        .cal-detail-value .badge-sm { display:inline-block; padding:3px 8px; border-radius:999px; color:#fff; font-size:11px; font-weight:700; line-height:1; }
-        .emp-list-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; }
-        .emp-list-item:last-child { border-bottom:none; }
-        .emp-list-num { width:24px; height:24px; border-radius:50%; background:#f0f4f8; color:#2975BB; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-        .emp-list-info { flex:1; }
-        .emp-list-name { font-size:13px; font-weight:600; color:#1a1a1a; }
-        .emp-list-sub { font-size:11px; color:#888; margin-top:2px; }
-        .emp-list-sub .badge-sm { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:600; color:#fff; }
-        .badge-accepted { background:#27AE60; }
-        .badge-pending { background:#E67E22; }
-        .badge-rejected { background:#E74C3C; }
-        .total-bar { padding:10px 0 0; margin-top:8px; border-top:1px solid #eee; font-size:12px; font-weight:600; color:#888; }
-        .calendar-layout { display:flex; gap:20px; align-items:flex-start; }
-        .request-panel { width:320px; flex:0 0 320px; background:#fff; border:1px solid #E5E8EC; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.04); overflow:hidden; position:sticky; top:24px; max-height:calc(100vh - 96px); display:flex; flex-direction:column; }
-        .request-panel-head { padding:18px 18px 14px; border-bottom:1px solid #EEF1F4; }
-        .request-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
-        .request-title { display:flex; align-items:center; gap:8px; color:#1a1a1a; font-size:16px; font-weight:700; }
-        .request-title i { color:#2975BB; font-size:17px; }
-        .request-count-pill { background:#EBF3FA; color:#2975BB; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; white-space:nowrap; }
-        .request-toggle { display:flex; border:1px solid #2975BB; border-radius:8px; overflow:hidden; background:#fff; margin-bottom:14px; }
-        .request-toggle button { flex:1; border:none; background:#fff; color:#2975BB; height:34px; font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.16s ease; }
-        .request-toggle button.active { background:#2975BB; color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18); }
-        .request-search-wrap { position:relative; margin-bottom:12px; }
-        .request-search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#999; font-size:12px; }
-        .request-search-wrap input { width:100%; height:36px; border:1px solid #D9D9D9; border-radius:8px; padding:8px 10px 8px 32px; font-family:'Poppins',sans-serif; font-size:12px; outline:none; }
-        .request-search-wrap input:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
-        .request-chip-row { display:flex; gap:6px; flex-wrap:wrap; }
-        .request-chip { border:1px solid #D9D9D9; background:#fff; color:#666; border-radius:999px; padding:5px 9px; font-family:'Poppins',sans-serif; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s; }
-        .request-chip:hover, .request-chip.active { border-color:#2975BB; color:#2975BB; background:#F2F7FC; }
-        .request-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:14px 18px; border-bottom:1px solid #EEF1F4; background:#FBFCFE; }
-        .request-summary-card { border:1px solid #EEF1F4; background:#fff; border-radius:8px; padding:9px 10px; }
-        .summary-label { display:flex; align-items:center; gap:6px; font-size:10px; color:#777; font-weight:600; white-space:nowrap; }
-        .summary-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-        .summary-number { margin-top:4px; color:#1a1a1a; font-size:18px; font-weight:800; line-height:1; }
-        .request-list { padding:10px 12px 14px; overflow-y:auto; flex:1; }
-        .request-card { display:block; width:100%; text-align:left; border:1px solid #EEF1F4; border-left:4px solid #2975BB; background:#fff; border-radius:10px; padding:11px 12px; margin-bottom:9px; cursor:pointer; font-family:'Poppins',sans-serif; transition:all 0.15s ease; }
-        .request-card:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(41,117,187,0.1); border-color:#D9E8F5; }
-        .request-card.cat-work { border-left-color:#27AE60; }
-        .request-card.cat-leave { border-left-color:#2980B9; }
-        .request-card.cat-sick { border-left-color:#E74C3C; }
-        .request-card.cat-other { border-left-color:#E67E22; }
-        .request-card-top { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
-        .request-card-name { color:#1a1a1a; font-size:12px; font-weight:700; line-height:1.25; }
-        .request-card-type { color:#555; font-size:11px; font-weight:500; margin-top:3px; }
-        .request-card .badge-sm { display:inline-flex; align-items:center; height:20px; padding:2px 7px; border-radius:999px; color:#fff; font-size:10px; font-weight:700; line-height:1; flex-shrink:0; }
-        .request-card-meta { display:flex; align-items:center; gap:7px; flex-wrap:wrap; color:#888; font-size:10.5px; font-weight:500; margin-top:9px; }
-        .request-card-meta i { color:#2975BB; font-size:10px; }
-        .request-project { max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .request-empty { text-align:center; color:#888; padding:34px 18px; font-size:12px; }
-        .request-empty i { display:block; color:#C7D2DE; font-size:30px; margin-bottom:10px; }
-        .calendar-board { flex:1; min-width:0; }
-        .calendar-board-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:16px; }
-        .calendar-legend { display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap; }
-        .calendar-legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#555; }
-        .calendar-legend-item span { width:10px; height:10px; border-radius:50%; display:inline-block; }
-        @media (max-width: 1180px) {
-            .calendar-layout { flex-direction:column; }
-            .request-panel { width:100%; flex-basis:auto; position:static; max-height:none; }
-            .request-list { max-height:360px; }
-        }
-        @media (max-width: 768px) {
-            .calendar-board-top { align-items:flex-start; flex-direction:column; }
-            .cal-grid { min-width:760px; }
-            .calendar-board { width:100%; overflow-x:auto; }
-        }
-        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    </style>
+    <link rel="stylesheet" href="Style.css?v=2.1.0">
+    <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -168,8 +25,8 @@
 
     <main class="main-content">
         <div class="cal-header-bar">
-            <h1 class="cal-title"><i class="fa-regular fa-calendar" style="margin-right:8px;"></i>Calendar</h1>
-            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <h1 class="cal-title"><i class="fa-regular fa-calendar feriiz-u-001"></i>Calendar</h1>
+            <div class="feriiz-u-002">
                 <!-- Filter -->
                 <div class="cal-filter-wrap">
                     <button class="cal-filter-btn" id="filterToggle" title="Filter"><i class="fa-solid fa-filter"></i></button>
@@ -191,10 +48,10 @@
                             <option value="Rejected">Rejected</option>
                         </select>
                         <label>Date Range</label>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <input type="date" id="filterDateFrom" style="flex:1;">
-                            <span style="color:#666; font-weight:600;">-</span>
-                            <input type="date" id="filterDateTo" style="flex:1;">
+                        <div class="feriiz-u-003">
+                            <input type="date" id="filterDateFrom" class="feriiz-u-004">
+                            <span class="feriiz-u-005">-</span>
+                            <input type="date" id="filterDateTo" class="feriiz-u-004">
                         </div>
                         <div class="cal-filter-actions">
                             <button class="f-btn-clear" onclick="clearFilter()">Clear</button>
@@ -202,12 +59,10 @@
                         </div>
                     </div>
                 </div>
-                <!-- Search Project -->
-                <div class="cal-search-wrap">
-                    <i class="fa-solid fa-magnifying-glass cal-search-icon"></i>
-                    <input type="text" class="cal-search-input" id="projectSearch" placeholder="Search Project" autocomplete="off">
-                    <div class="cal-search-dropdown" id="projectDropdown"></div>
-                    <input type="hidden" id="projectFilter" value="all">
+                <div class="cal-project-chip">
+                    <i class="fa-solid fa-clipboard"></i>
+                    <span>Anomali</span>
+                    <input type="hidden" id="projectFilter" value="anomali">
                 </div>
             </div>
         </div>
@@ -247,13 +102,13 @@
                 </div>
                 <!-- Legend -->
                 <div class="calendar-legend">
-                    <div class="calendar-legend-item"><span style="background:#27AE60;"></span> Remote Work</div>
-                    <div class="calendar-legend-item"><span style="background:#2980B9;"></span> Cuti (Leave)</div>
-                    <div class="calendar-legend-item"><span style="background:#E74C3C;"></span> Sakit (Sick)</div>
-                    <div class="calendar-legend-item"><span style="background:#E67E22;"></span> Libur & Lainnya</div>
+                    <div class="calendar-legend-item"><span class="feriiz-u-006"></span> Remote Work</div>
+                    <div class="calendar-legend-item"><span class="feriiz-u-007"></span> Cuti (Leave)</div>
+                    <div class="calendar-legend-item"><span class="feriiz-u-008"></span> Sakit (Sick)</div>
+                    <div class="calendar-legend-item"><span class="feriiz-u-009"></span> Libur & Lainnya</div>
                 </div>
                 <div class="cal-grid" id="calGrid"></div>
-                <div style="margin-top:24px;font-size:12px;color:#bbb;">version : 2.0.93</div>
+                <div class="feriiz-u-010">version : 2.0.93</div>
             </section>
         </div>
     </main>
@@ -305,10 +160,7 @@
         const CAT_CSS = { work:'cat-work-bg', leave:'cat-leave-bg', sick:'cat-sick-bg', other:'cat-other-bg' };
 
         const PROJECTS = [
-            { id:'all', label:'All Projects' },
-            { id:'anomali', label:'Anomali (BSD Residence)' },
-            { id:'diamond15', label:'Diamond Crystal Golf No. 15' },
-            { id:'diamond105', label:'Diamond Golf H3 No. 105' },
+            { id:'anomali', label:'Anomali' },
         ];
         let currentYear=2026, currentMonth=4;
         let activeFilter = { type:'', status:'', dateFrom:'', dateTo:'' };
@@ -317,8 +169,6 @@
         let requestSearchQuery = '';
 
         // === Project Search ===
-        const searchInput = document.getElementById('projectSearch');
-        const searchDropdown = document.getElementById('projectDropdown');
         const projectHidden = document.getElementById('projectFilter');
         const requestSearch = document.getElementById('requestSearch');
 
@@ -326,31 +176,6 @@
             requestSearchQuery = requestSearch.value.trim().toLowerCase();
             renderRequestPanel();
         });
-
-        searchInput.addEventListener('focus', () => showProjectList(searchInput.value));
-        searchInput.addEventListener('input', () => showProjectList(searchInput.value));
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) searchDropdown.classList.remove('show');
-        });
-
-        function showProjectList(query) {
-            const q = query.toLowerCase().trim();
-            const filtered = PROJECTS.filter(p => p.label.toLowerCase().includes(q));
-            if (filtered.length === 0) { searchDropdown.classList.remove('show'); return; }
-            searchDropdown.innerHTML = filtered.map(p =>
-                `<div class="cal-search-item" onclick="selectProject('${p.id}','${p.label}')">`+
-                `<i class="fa-solid fa-clipboard"></i> ${p.label}</div>`
-            ).join('');
-            searchDropdown.classList.add('show');
-        }
-
-        function selectProject(id, label) {
-            projectHidden.value = id;
-            searchInput.value = id === 'all' ? '' : label;
-            searchDropdown.classList.remove('show');
-            renderCalendar();
-            renderRequestPanel();
-        }
 
         // === Filter ===
         const filterToggle = document.getElementById('filterToggle');
@@ -379,7 +204,7 @@
 
         function getFilteredEvents() {
             const proj = projectHidden.value;
-            let ev = proj === 'all' ? EVENTS : EVENTS.filter(e => e.project === proj);
+            let ev = EVENTS.filter(e => e.project === proj);
             if (activeFilter.type) ev = ev.filter(e => e.cat === activeFilter.type);
             if (activeFilter.status) ev = ev.filter(e => e.status === activeFilter.status);
             if (activeFilter.dateFrom) ev = ev.filter(e => e.dateEnd >= activeFilter.dateFrom);
@@ -409,8 +234,6 @@
                 if(dow===0||dow===6)cls+=' weekend';
                 const dayEv=events.filter(e=>e.dateStart<=ds&&e.dateEnd>=ds);
                 const dayH=HOLIDAYS.filter(h=>h.date===ds);
-                const counts={};
-                dayEv.forEach(e=>{if(!counts[e.cat])counts[e.cat]=[];counts[e.cat].push(e);});
                 let inner=`<div class="cal-date">${d}</div>`;
                 dayH.forEach(h=>{
                     const override = getHolidayOverride(h.date);
@@ -418,11 +241,10 @@
                     const label = isWorking ? `${h.name} - Company Working` : h.name;
                     inner+=`<div class="cal-holiday-bar ${isWorking ? 'company-working' : ''}" onclick="event.stopPropagation();showHolidayDetail('${h.name}','${h.date}')">${label}</div>`;
                 });
-                for(const cat of ['work','leave','sick','other']){
-                    if(counts[cat]&&counts[cat].length>0){
-                        inner+=`<div class="cal-count-badge ${CAT_CSS[cat]}" onclick="event.stopPropagation();showList('${cat}','${ds}')"><span class="badge-dot"></span>${CAT_LABELS[cat]}: ${counts[cat].length}</div>`;
-                    }
-                }
+                dayEv.forEach(e => {
+                    const eventIndex = EVENTS.indexOf(e);
+                    inner += `<div class="cal-count-badge cal-person-event ${CAT_CSS[e.cat]}" onclick="event.stopPropagation();showEventDetailByIndex(${eventIndex})"><span class="badge-dot"></span>${e.name} | ${e.type}</div>`;
+                });
                 html+=`<div class="${cls}">${inner}</div>`;
             }
             const tot=firstDay+dim; const rem=(7-(tot%7))%7;
@@ -481,10 +303,10 @@
 
             pill.textContent = `${scopedEvents.length} Item${scopedEvents.length === 1 ? '' : 's'}`;
             summary.innerHTML = `
-                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#27AE60;"></span>Remote</div><div class="summary-number">${counts.work}</div></div>
-                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#2980B9;"></span>Leave</div><div class="summary-number">${counts.leave}</div></div>
-                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#E74C3C;"></span>Sick</div><div class="summary-number">${counts.sick}</div></div>
-                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot" style="background:#E67E22;"></span>Pending</div><div class="summary-number">${counts.pending}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot feriiz-u-006"></span>Remote</div><div class="summary-number">${counts.work}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot feriiz-u-007"></span>Leave</div><div class="summary-number">${counts.leave}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot feriiz-u-008"></span>Sick</div><div class="summary-number">${counts.sick}</div></div>
+                <div class="request-summary-card"><div class="summary-label"><span class="summary-dot feriiz-u-009"></span>Pending</div><div class="summary-number">${counts.pending}</div></div>
             `;
 
             if (scopedEvents.length === 0) {
@@ -572,16 +394,16 @@
             document.getElementById('overlayBody').innerHTML = `
                 <div class="cal-detail-row"><div class="cal-detail-label">Holiday</div><div class="cal-detail-value">: ${name}</div></div>
                 <div class="cal-detail-row"><div class="cal-detail-label">Date</div><div class="cal-detail-value">: ${formatDate(date)}</div></div>
-                <div class="cal-detail-row"><div class="cal-detail-label">Gov. Status</div><div class="cal-detail-value">: <span class="badge-sm" style="background:#E67E22;">Official Holiday</span></div></div>
-                <div style="margin-top:14px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Company Status</label>
+                <div class="cal-detail-row"><div class="cal-detail-label">Gov. Status</div><div class="cal-detail-value">: <span class="badge-sm feriiz-u-009">Official Holiday</span></div></div>
+                <div class="feriiz-u-011">
+                    <label class="feriiz-u-012">Company Status</label>
                     <select id="holidayStatusInput" class="holiday-edit-field">
                         <option value="holiday" ${isWorking ? '' : 'selected'}>Company Holiday</option>
                         <option value="working" ${isWorking ? 'selected' : ''}>Company Working Day</option>
                     </select>
                 </div>
-                <div style="margin-top:12px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Note</label>
+                <div class="feriiz-u-013">
+                    <label class="feriiz-u-012">Note</label>
                     <textarea id="holidayNoteInput" class="holiday-edit-field" rows="3" placeholder="Note">${override.note || ''}</textarea>
                 </div>
                 <button class="holiday-save-btn" onclick="saveHolidayOverride('${date}')">Save Override</button>

@@ -139,6 +139,42 @@
             0% { background: #E8F2FC; }
             100% { background: #fff; }
         }
+
+        .data-table .col-pictures {
+            display: none;
+        }
+
+        .attendance-preview {
+            display: none;
+            gap: 8px;
+            margin-top: 12px;
+            padding-left: 48px;
+        }
+
+        body.show-attendance-preview .attendance-preview {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .attendance-preview-image {
+            width: 56px;
+            height: 56px;
+            border: 1px solid #166DBA;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #F4F7FA;
+        }
+
+        @media (max-width: 720px) {
+            .attendance-preview {
+                padding-left: 0;
+            }
+
+            .attendance-preview-image {
+                width: 48px;
+                height: 48px;
+            }
+        }
     </style>
 </head>
 
@@ -816,22 +852,46 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Show Absence Toggle
-            const absenceToggle = document.getElementById('showAbsenceToggle');
+            const activityToggle = document.getElementById('absenceToggle');
 
-            if (absenceToggle) {
-                absenceToggle.addEventListener('change', function () {
-                    const isChecked = this.checked;
-                    // Toggle th display
-                    const colHeaders = document.querySelectorAll('.col-pictures');
-                    colHeaders.forEach(el => {
-                        el.style.display = isChecked ? 'table-cell' : 'none';
+            const buildActivityPreviews = () => {
+                document.querySelectorAll('.data-table tbody tr').forEach(row => {
+                    const employeeCell = row.querySelector('td:nth-child(2)');
+                    const pictureCell = row.querySelector('td.col-pictures');
+
+                    if (!employeeCell || !pictureCell || employeeCell.querySelector('.attendance-preview')) {
+                        return;
+                    }
+
+                    const preview = document.createElement('div');
+                    preview.className = 'attendance-preview';
+
+                    pictureCell.querySelectorAll('img').forEach((img, index) => {
+                        if (index >= 4) return;
+
+                        const clone = img.cloneNode(false);
+                        clone.className = 'attendance-preview-image';
+                        clone.alt = `Activity photo ${index + 1}`;
+                        clone.removeAttribute('style');
+                        preview.appendChild(clone);
                     });
-                });
-                // Initial state check
-                absenceToggle.dispatchEvent(new Event('change'));
-            }
 
+                    if (preview.children.length) {
+                        employeeCell.appendChild(preview);
+                    }
+                });
+            };
+
+            const syncActivityPreview = () => {
+                document.body.classList.toggle('show-attendance-preview', !!activityToggle?.checked);
+            };
+
+            buildActivityPreviews();
+
+            if (activityToggle) {
+                activityToggle.addEventListener('change', syncActivityPreview);
+                syncActivityPreview();
+            }
 
         });
     </script>
@@ -845,6 +905,7 @@
             const applyBtn = document.querySelector('.filter-apply-btn');
             const clearBtn = document.querySelector('.filter-clear-btn');
             const occSelect = document.querySelector('.filter-occ');
+            const activityToggle = document.getElementById('absenceToggle');
             const tableRows = document.querySelectorAll('.data-table tbody tr');
 
             if (toggleBtn && dropdown) {
@@ -895,6 +956,11 @@
 
                     const dateInputs = document.querySelectorAll('.filter-date');
                     dateInputs.forEach(input => input.value = '');
+
+                    if (activityToggle) {
+                        activityToggle.checked = false;
+                        activityToggle.dispatchEvent(new Event('change'));
+                    }
 
                     applyFilter();
                 });
@@ -1588,30 +1654,6 @@
     </script>
 
 
-    <script>
-        // Picture Column Toggle Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const absenceToggle = document.getElementById('absenceToggle');
-            if (absenceToggle) {
-                absenceToggle.addEventListener('change', (e) => {
-                    const isChecked = e.target.checked;
-                    // Show or hide the column header
-                    const header = document.querySelector('th.col-pictures');
-                    if (header) {
-                        header.style.display = isChecked ? 'table-cell' : 'none';
-                    }
-                    // Show or hide the cells
-                    const cells = document.querySelectorAll('td.col-pictures');
-                    cells.forEach(cell => {
-                        cell.style.display = isChecked ? 'table-cell' : 'none';
-                    });
-                });
-                // Initialize default state (unchecked = hidden)
-                absenceToggle.checked = false;
-                absenceToggle.dispatchEvent(new Event('change'));
-            }
-        });
-    </script>
     <script>
         // Manage Employee JS Logic
 

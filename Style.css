@@ -208,6 +208,7 @@ body {
     flex: 1;
     padding: 32px 40px;
     min-height: 100vh;
+    min-width: 0;
     transition: margin-left 0.25s cubic-bezier(.4, 0, .2, 1);
 }
 
@@ -1897,9 +1898,9 @@ body {
         .f-btn-apply { background:#2975BB; border:1px solid #2975BB; color:#fff; }
         .f-btn-apply:hover { background:#1e5f9e; }
 
-        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
+        .cal-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
         .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
-        .cal-cell { min-height:120px; padding:6px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; transition:background 0.15s; }
+        .cal-cell { min-height:120px; min-width:0; padding:6px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; transition:background 0.15s; }
         .cal-cell:hover { background:#fafcff; }
         .cal-cell.today { background:#eef5ff; }
         .cal-cell.other-month { background:#fafafa; }
@@ -2356,8 +2357,8 @@ body {
         }
 
         /* Flexbox Viewport Sticky Overrides */
-        body { margin: 0; overflow: hidden; height: 100vh; }
-        .main-content {
+        body.report-layout { margin: 0; overflow: hidden; height: 100vh; }
+        body.report-layout .main-content {
             height: 100vh !important;
             display: flex !important;
             flex-direction: column !important;
@@ -2712,9 +2713,9 @@ body {
         .cal-toggle button.active { background:#2975BB; color:#fff; }
         .cal-fullscreen-btn { padding:6px 14px; border:1px solid #333; border-radius:8px; background:#333; color:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; }
 
-        .cal-grid { flex:1; display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
+        .cal-grid { flex:1; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
         .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
-        .cal-cell { min-height:110px; padding:4px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; position:relative; cursor:default; transition:background 0.15s; vertical-align:top; }
+        .cal-cell { min-height:110px; min-width:0; padding:4px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; position:relative; cursor:default; transition:background 0.15s; vertical-align:top; }
         .cal-cell:hover { background:#fafcff; }
         .cal-cell.today { background:#eef5ff; }
         .cal-cell.other-month { background:#fafafa; }
@@ -3039,13 +3040,13 @@ body {
         }
 
         /* Flexbox Viewport Sticky Overrides */
-        body {
+        body.report-layout {
             margin: 0;
             overflow: hidden;
             height: 100vh;
         }
 
-        .main-content {
+        body.report-layout .main-content {
             height: 100vh !important;
             display: flex !important;
             flex-direction: column !important;

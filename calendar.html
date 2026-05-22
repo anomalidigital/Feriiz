@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css?v=2.1.2">
+    <link rel="stylesheet" href="Style.css?v=2.1.9">
     <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 <body>
@@ -25,9 +25,10 @@
 
     <main class="main-content">
         <div class="cal-header-bar">
-            <h1 class="cal-title"><i class="fa-regular fa-calendar feriiz-u-001"></i>Calendar</h1>
-            <div class="feriiz-u-002">
-                <!-- Filter -->
+            <div class="cal-header-left">
+                <h1 class="cal-title"><i class="fa-regular fa-calendar feriiz-u-001"></i>Calendar</h1>
+            </div>
+            <div class="cal-header-right">
                 <div class="cal-filter-wrap">
                     <button class="cal-filter-btn" id="filterToggle" title="Filter"><i class="fa-solid fa-filter"></i></button>
                     <div class="cal-filter-dropdown" id="filterDropdown">
@@ -59,10 +60,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="cal-project-chip">
-                    <i class="fa-solid fa-clipboard"></i>
-                    <span>Anomali</span>
-                    <input type="hidden" id="projectFilter" value="anomali">
+                <div class="cal-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass cal-search-icon"></i>
+                    <input type="text" id="calendarEmployeeSearch" class="cal-search-input" placeholder="Search employee" autocomplete="off">
                 </div>
             </div>
         </div>
@@ -167,10 +167,17 @@
         let requestView = 'today';
         let requestStatus = 'all';
         let requestSearchQuery = '';
+        let calendarSearchQuery = '';
 
-        // === Project Search ===
-        const projectHidden = document.getElementById('projectFilter');
+        const calendarEmployeeSearch = document.getElementById('calendarEmployeeSearch');
+
         const requestSearch = document.getElementById('requestSearch');
+
+        calendarEmployeeSearch.addEventListener('input', () => {
+            calendarSearchQuery = calendarEmployeeSearch.value.trim().toLowerCase();
+            renderCalendar();
+            renderRequestPanel();
+        });
 
         requestSearch.addEventListener('input', () => {
             requestSearchQuery = requestSearch.value.trim().toLowerCase();
@@ -203,8 +210,10 @@
         }
 
         function getFilteredEvents() {
-            const proj = projectHidden.value;
-            let ev = EVENTS.filter(e => e.project === proj);
+            let ev = [...EVENTS];
+            if (calendarSearchQuery) {
+                ev = ev.filter(e => e.name.toLowerCase().includes(calendarSearchQuery));
+            }
             if (activeFilter.type) ev = ev.filter(e => e.cat === activeFilter.type);
             if (activeFilter.status) ev = ev.filter(e => e.status === activeFilter.status);
             if (activeFilter.dateFrom) ev = ev.filter(e => e.dateEnd >= activeFilter.dateFrom);
@@ -442,31 +451,6 @@
         }
 
         function closeOverlay(){document.getElementById('calOverlay').classList.remove('show');}
-
-        // === Filter Toggle ===
-        const fBtn = document.getElementById('filterToggle');
-        const fDrop = document.getElementById('filterDropdown');
-        fBtn.addEventListener('click', (e) => { e.stopPropagation(); fDrop.classList.toggle('show'); fBtn.classList.toggle('active'); });
-        fDrop.addEventListener('click', (e) => e.stopPropagation());
-        document.addEventListener('click', () => { fDrop.classList.remove('show'); fBtn.classList.remove('active'); });
-
-        function applyFilter() {
-            activeFilter.type = document.getElementById('filterType').value;
-            activeFilter.status = document.getElementById('filterStatus').value;
-            activeFilter.dateFrom = document.getElementById('filterDateFrom').value;
-            activeFilter.dateTo = document.getElementById('filterDateTo').value;
-            fDrop.classList.remove('show');
-            fBtn.classList.toggle('active', !!(activeFilter.type||activeFilter.status||activeFilter.dateFrom||activeFilter.dateTo));
-            renderCalendar();
-            renderRequestPanel();
-        }
-        function clearFilter() {
-            document.getElementById('filterType').value = '';
-            document.getElementById('filterStatus').value = '';
-            document.getElementById('filterDateFrom').value = '';
-            document.getElementById('filterDateTo').value = '';
-            applyFilter();
-        }
 
         renderCalendar();
         renderRequestPanel();

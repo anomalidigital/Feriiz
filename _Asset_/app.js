@@ -1,4 +1,159 @@
 (function () {
+    function normalizeOccupation(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function isAllOccupation(value) {
+        const normalized = normalizeOccupation(value);
+        return !normalized || normalized === 'all occupations';
+    }
+
+    function updateOccupationTrigger(select) {
+        const wrapper = select.nextElementSibling;
+        if (!wrapper || !wrapper.classList.contains('multi-occ-filter')) return;
+
+        const triggerLabel = wrapper.querySelector('.multi-occ-filter-text');
+        const selected = [...select.options].filter(option => option.selected && !isAllOccupation(option.value || option.textContent));
+
+        if (!triggerLabel) return;
+        if (selected.length === 0) {
+            triggerLabel.textContent = 'All Occupations';
+        } else if (selected.length === 1) {
+            triggerLabel.textContent = selected[0].textContent.trim();
+        } else {
+            triggerLabel.textContent = `${selected.length} Occupations`;
+        }
+    }
+
+    function syncOccupationSelect(select) {
+        const wrapper = select.nextElementSibling;
+        if (!wrapper || !wrapper.classList.contains('multi-occ-filter')) return;
+
+        const selectedValues = [...wrapper.querySelectorAll('.multi-occ-option:not(.is-all):checked')].map(input => input.value);
+        [...select.options].forEach(option => {
+            const value = normalizeOccupation(option.value || option.textContent);
+            option.selected = selectedValues.length === 0 ? isAllOccupation(value) : selectedValues.includes(value);
+        });
+
+        const allInput = wrapper.querySelector('.multi-occ-option.is-all');
+        if (allInput) allInput.checked = selectedValues.length === 0;
+        updateOccupationTrigger(select);
+    }
+
+    function resetOccupationFilter(root) {
+        const select = (root || document).querySelector('.filter-occ');
+        if (!select) return;
+
+        const wrapper = select.nextElementSibling;
+        if (wrapper && wrapper.classList.contains('multi-occ-filter')) {
+            wrapper.querySelectorAll('.multi-occ-option').forEach(input => {
+                input.checked = input.classList.contains('is-all');
+            });
+        }
+
+        [...select.options].forEach((option, index) => {
+            option.selected = index === 0 || isAllOccupation(option.value || option.textContent);
+        });
+        updateOccupationTrigger(select);
+    }
+
+    function getOccupationValues(root) {
+        const select = (root || document).querySelector('.filter-occ');
+        if (!select) return [];
+
+        return [...select.options]
+            .filter(option => option.selected)
+            .map(option => normalizeOccupation(option.value || option.textContent))
+            .filter(value => !isAllOccupation(value));
+    }
+
+    function initOccupationFilter(select) {
+        if (!select || select.dataset.multiOccupationReady === 'true') return;
+
+        select.dataset.multiOccupationReady = 'true';
+        select.multiple = true;
+        select.classList.add('multi-occ-native');
+
+        const options = [...select.options].map(option => ({
+            label: option.textContent.trim(),
+            value: normalizeOccupation(option.value || option.textContent),
+            isAll: isAllOccupation(option.value || option.textContent)
+        }));
+        const occupationOptions = options.filter(option => !option.isAll);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'multi-occ-filter';
+        wrapper.innerHTML = `
+            <button type="button" class="multi-occ-trigger">
+                <span class="multi-occ-filter-text">All Occupations</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="multi-occ-menu">
+                <label class="multi-occ-row">
+                    <input type="checkbox" class="multi-occ-option is-all" checked value="">
+                    <span>All Occupations</span>
+                </label>
+                ${occupationOptions.map(option => `
+                    <label class="multi-occ-row">
+                        <input type="checkbox" class="multi-occ-option" value="${option.value}">
+                        <span>${option.label}</span>
+                    </label>
+                `).join('')}
+            </div>
+        `;
+        select.insertAdjacentElement('afterend', wrapper);
+        resetOccupationFilter(select.parentElement || document);
+
+        const trigger = wrapper.querySelector('.multi-occ-trigger');
+        const menu = wrapper.querySelector('.multi-occ-menu');
+
+        trigger.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            document.querySelectorAll('.multi-occ-menu.show').forEach(openMenu => {
+                if (openMenu !== menu) openMenu.classList.remove('show');
+            });
+            menu.classList.toggle('show');
+        });
+
+        wrapper.addEventListener('click', event => event.stopPropagation());
+
+        wrapper.querySelectorAll('.multi-occ-option').forEach(input => {
+            input.addEventListener('change', () => {
+                if (input.classList.contains('is-all') && input.checked) {
+                    wrapper.querySelectorAll('.multi-occ-option:not(.is-all)').forEach(child => {
+                        child.checked = false;
+                    });
+                } else if (!input.classList.contains('is-all')) {
+                    const allInput = wrapper.querySelector('.multi-occ-option.is-all');
+                    if (allInput) allInput.checked = false;
+                }
+                syncOccupationSelect(select);
+            });
+        });
+    }
+
+    function initOccupationFilters() {
+        document.querySelectorAll('select.filter-occ').forEach(initOccupationFilter);
+    }
+
+    window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {
+        getOccupationValues,
+        resetOccupationFilter
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initOccupationFilters);
+    } else {
+        initOccupationFilters();
+    }
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.multi-occ-menu.show').forEach(menu => menu.classList.remove('show'));
+    });
+})();
+
+(function () {
     function getDropdown(toggle) {
         const container = toggle.closest('.cal-filter-wrap, .feriiz-u-014, .page-actions, .report-actions, .toolbar-actions') || toggle.parentElement;
         return container ? container.querySelector('.filter-dropdown, .cal-filter-dropdown') : null;
@@ -14,13 +169,13 @@
     function closeAllDropdowns(exceptDropdown) {
         document.querySelectorAll('.filter-dropdown.show, .cal-filter-dropdown.show').forEach(dropdown => {
             if (dropdown === exceptDropdown) return;
-            const owner = dropdown.parentElement?.querySelector('.filter-toggle-btn, .cal-filter-btn');
+            const owner = dropdown.parentElement?.querySelector('.filter-toggle-btn, .cal-filter-btn, .col-toggle-btn');
             closeDropdown(dropdown, owner);
         });
     }
 
     document.addEventListener('click', event => {
-        const toggle = event.target.closest('.filter-toggle-btn, .cal-filter-btn');
+        const toggle = event.target.closest('.filter-toggle-btn, .cal-filter-btn, .col-toggle-btn');
         if (toggle) {
             const dropdown = getDropdown(toggle);
             if (!dropdown) return;
@@ -33,6 +188,14 @@
             dropdown.style.display = '';
             dropdown.classList.toggle('show', !isOpen);
             toggle.classList.toggle('active', !isOpen);
+            return;
+        }
+
+        const actionButton = event.target.closest('.filter-apply-btn, .filter-clear-btn, .f-btn-apply, .f-btn-clear');
+        if (actionButton) {
+            const dropdown = actionButton.closest('.filter-dropdown, .cal-filter-dropdown');
+            const owner = dropdown?.parentElement?.querySelector('.filter-toggle-btn, .cal-filter-btn, .col-toggle-btn');
+            closeDropdown(dropdown, owner);
             return;
         }
 

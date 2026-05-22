@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Employee Attendance</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css?v=2.1.2">
-    <script src="_Asset_/app.js?v=2.1.1" defer></script>
+    <link rel="stylesheet" href="Style.css?v=2.1.7">
+    <script src="_Asset_/app.js?v=2.1.2" defer></script>
 </head>
 
 <body>
@@ -84,8 +84,7 @@
             </div>
             <div class="page-actions feriiz-u-065">
                 <div class="feriiz-u-014">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter"
-                        onclick="this.nextElementSibling.style.display = 'block';">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <!-- Filter Dropdown Menu -->
@@ -113,9 +112,9 @@
                         </select>
                         <div class="feriiz-u-018">
                             <button class="btn btn-outline filter-clear-btn feriiz-u-019"
-                                onclick="this.closest('.filter-dropdown').style.display='none';">Clear</button>
+                                onclick="this.closest('.filter-dropdown').classList.remove('show');">Clear</button>
                             <button class="btn btn-primary filter-apply-btn feriiz-u-019"
-                                onclick="this.closest('.filter-dropdown').style.display='none';">Apply</button>
+                                onclick="this.closest('.filter-dropdown').classList.remove('show');">Apply</button>
                         </div>
                     </div>
                 </div>
@@ -170,12 +169,24 @@
         <!-- Attendance Table -->
         <div class="table-container attendance-table-container">
             <table class="data-table attendance-table feriiz-u-073">
+                <colgroup>
+                    <col width="190">
+                    <col width="96">
+                    <col width="96">
+                    <col width="96">
+                    <col width="96">
+                    <col width="96">
+                    <col width="96">
+                    <col width="96">
+                    <col width="220">
+                    <col>
+                </colgroup>
                 <thead>
                     <tr>
                         <th rowspan="2" class="feriiz-u-074">Date</th>
                         <th colspan="3" class="feriiz-u-075">Time Period</th>
                         <th colspan="3" class="feriiz-u-075">Attendance</th>
-                        <th class="feriiz-u-075">Absent</th>
+                        <th rowspan="2" class="feriiz-u-076">Period</th>
                         <th rowspan="2" class="feriiz-u-076">Request</th>
                         <th rowspan="2" class="feriiz-u-076">Note</th>
                     </tr>
@@ -185,7 +196,6 @@
                         <th class="feriiz-u-077">Period</th>
                         <th class="feriiz-u-077">Start</th>
                         <th class="feriiz-u-077">End</th>
-                        <th class="feriiz-u-077">Period</th>
                         <th class="feriiz-u-077">Period</th>
                     </tr>
                 </thead>

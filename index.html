@@ -44,8 +44,7 @@
             <h1 class="page-title">Dashboard</h1>
             <div class="page-actions feriiz-u-164">
                 <div class="feriiz-u-014">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter"
-                        onclick="this.nextElementSibling.style.display = 'block';">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <div class="filter-dropdown feriiz-u-015">
@@ -77,10 +76,8 @@
                             <input type="date" class="input filter-date feriiz-u-004">
                         </div>
                         <div class="feriiz-u-018">
-                            <button class="btn btn-outline filter-clear-btn feriiz-u-019"
-                                onclick="this.closest('.filter-dropdown').style.display='none';">Clear</button>
-                            <button class="btn btn-primary filter-apply-btn feriiz-u-019"
-                                onclick="this.closest('.filter-dropdown').style.display='none';">Apply</button>
+                            <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn feriiz-u-019">Apply</button>
                         </div>
                     </div>
                 </div>
@@ -262,6 +259,42 @@
         <div class="feriiz-u-032">version : 2.0.86</div>
     </main>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const applyBtn = document.querySelector('.filter-apply-btn');
+            const clearBtn = document.querySelector('.filter-clear-btn');
+            const dropdown = document.querySelector('.filter-dropdown');
+            const toggleBtn = document.querySelector('.filter-toggle-btn');
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+            const applyOccupationFilter = () => {
+                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
+                tableRows.forEach(row => {
+                    const occupationCell = row.querySelector('td:first-child');
+                    if (!occupationCell) return;
+
+                    const occupationText = occupationCell.textContent.toLowerCase();
+                    row.style.display = selectedOccupations.length === 0 || selectedOccupations.some(occupation => occupationText.includes(occupation))
+                        ? ''
+                        : 'none';
+                });
+
+                if (dropdown) dropdown.classList.remove('show');
+                if (toggleBtn) toggleBtn.classList.remove('active');
+            };
+
+            if (applyBtn) applyBtn.addEventListener('click', applyOccupationFilter);
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    window.FeriizFilters?.resetOccupationFilter(document);
+                    document.querySelectorAll('.filter-date').forEach(input => {
+                        input.value = '';
+                    });
+                    applyOccupationFilter();
+                });
+            }
+        });
+    </script>
 
 </body>
 

@@ -2090,26 +2090,6 @@
             const colBtn = document.querySelector('.col-toggle-btn');
             const colDD = colBtn ? colBtn.nextElementSibling : null;
 
-            // Close other dropdown when one opens
-            const allDropdowns = [filterDD, colDD].filter(Boolean);
-
-            [filterBtn, colBtn].forEach((btn, i) => {
-                const dd = i === 0 ? filterDD : colDD;
-                const otherDD = i === 0 ? colDD : filterDD;
-                if (!btn || !dd) return;
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    // Close the OTHER dropdown first
-                    if (otherDD) otherDD.classList.remove('show');
-                    dd.classList.toggle('show');
-                });
-                dd.addEventListener('click', (e) => e.stopPropagation());
-            });
-            document.addEventListener('click', () => {
-                if (filterDD) filterDD.classList.remove('show');
-                if (colDD) colDD.classList.remove('show');
-            });
-
             // ===== 2. Period Preset Auto-Fill Dates =====
             const periodSelect = document.querySelector('.filter-period');
             const dateInputs = document.querySelectorAll('.filter-date');
@@ -2186,6 +2166,19 @@
 
             showDays(defaultDates);
 
+            function applyOccupationFilter() {
+                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
+                document.querySelectorAll('.report-table tbody tr').forEach(row => {
+                    const occupationCell = row.querySelector('.col-occupation');
+                    if (!occupationCell) return;
+
+                    const occupationText = occupationCell.textContent.toLowerCase();
+                    row.style.display = selectedOccupations.length === 0 || selectedOccupations.some(occupation => occupationText.includes(occupation))
+                        ? ''
+                        : 'none';
+                });
+            }
+
             // ===== 4. Apply Filter Button =====
             const applyBtn = document.querySelector('.filter-apply-btn');
             const clearBtn = document.querySelector('.filter-clear-btn');
@@ -2206,6 +2199,7 @@
                     } else {
                         showDays(defaultDates);
                     }
+                    applyOccupationFilter();
                     if (filterDD) filterDD.classList.remove('show');
                 });
             }
@@ -2214,9 +2208,9 @@
                 clearBtn.addEventListener('click', () => {
                     dateInputs.forEach(i => i.value = '');
                     if (periodSelect) periodSelect.selectedIndex = 0;
-                    const occSelect = document.querySelector('.filter-occ');
-                    if (occSelect) occSelect.selectedIndex = 0;
+                    window.FeriizFilters?.resetOccupationFilter(document);
                     showDays(defaultDates);
+                    applyOccupationFilter();
                     if (filterDD) filterDD.classList.remove('show');
                 });
             }
@@ -2258,13 +2252,14 @@
                 const slaveIds = masterGroups[masterId];
 
                 masterCb.addEventListener('change', () => {
+                    const targetChecked = masterCb.checked;
                     slaveIds.forEach(id => {
                         const cb = document.getElementById(id);
-                        if (cb && cb.checked !== masterCb.checked) {
-                            cb.checked = masterCb.checked;
-                            cb.dispatchEvent(new Event('change'));
-                        }
+                        if (cb) cb.checked = targetChecked;
                     });
+                    masterCb.checked = targetChecked;
+                    masterCb.indeterminate = false;
+                    updateVisibility();
                 });
 
                 slaveIds.forEach(id => {

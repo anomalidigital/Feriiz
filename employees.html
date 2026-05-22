@@ -432,7 +432,6 @@
             const dropdown = document.querySelector('.filter-dropdown');
             const applyBtn = document.querySelector('.filter-apply-btn');
             const clearBtn = document.querySelector('.filter-clear-btn');
-            const occSelect = document.querySelector('.filter-occ');
             const tableRows = document.querySelectorAll('.data-table tbody tr');
 
             if (toggleBtn && dropdown) {
@@ -455,7 +454,7 @@
             }
 
             const applyFilter = () => {
-                const occVal = occSelect ? occSelect.value.toLowerCase() : 'all occupations';
+                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
 
                 tableRows.forEach(row => {
                     // Occupation is in column 3
@@ -465,8 +464,7 @@
 
                     const occText = occCell.textContent.toLowerCase();
 
-                    // If 'all occupations' or matches occupation
-                    if (occVal === 'all occupations' || occVal === '' || occText.includes(occVal)) {
+                    if (selectedOccupations.length === 0 || selectedOccupations.some(occupation => occText.includes(occupation))) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -480,7 +478,7 @@
 
             if (clearBtn) {
                 clearBtn.addEventListener('click', () => {
-                    if (occSelect) occSelect.selectedIndex = 0;
+                    window.FeriizFilters?.resetOccupationFilter(document);
                     
                     const dateInputs = document.querySelectorAll('.filter-date');
                     dateInputs.forEach(input => input.value = '');

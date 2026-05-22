@@ -734,7 +734,6 @@
             const dropdown = document.querySelector('.filter-dropdown');
             const applyBtn = document.querySelector('.filter-apply-btn');
             const clearBtn = document.querySelector('.filter-clear-btn');
-            const occSelect = document.querySelector('.filter-occ');
             const activityToggle = document.getElementById('absenceToggle');
             const tableRows = document.querySelectorAll('.data-table tbody tr');
 
@@ -758,7 +757,7 @@
             }
 
             const applyFilter = () => {
-                const occVal = occSelect ? occSelect.value.toLowerCase() : 'all occupations';
+                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
 
                 tableRows.forEach(row => {
                     // Occupation is column 4 in project_employees.html
@@ -767,8 +766,7 @@
 
                     const occText = occCell.textContent.toLowerCase();
 
-                    // Currently filtering only by occupation since date validation requires more logic
-                    if (occVal === 'all occupations' || occVal === '' || occText.includes(occVal)) {
+                    if (selectedOccupations.length === 0 || selectedOccupations.some(occupation => occText.includes(occupation))) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -782,7 +780,7 @@
 
             if (clearBtn) {
                 clearBtn.addEventListener('click', () => {
-                    if (occSelect) occSelect.selectedIndex = 0;
+                    window.FeriizFilters?.resetOccupationFilter(document);
 
                     const dateInputs = document.querySelectorAll('.filter-date');
                     dateInputs.forEach(input => input.value = '');

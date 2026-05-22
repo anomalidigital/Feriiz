@@ -289,9 +289,9 @@
                                     <div class="project-overtime-head">Start</div>
                                     <div class="project-overtime-head">End</div>
                                     <div class="project-overtime-head">Total</div>
-                                    <div class="project-overtime-day">All Day</div>
-                                    <input type="text" value="0" inputmode="numeric" aria-label="All day start overtime minutes">
-                                    <input type="text" value="0" inputmode="numeric" aria-label="All day end overtime minutes">
+                                    <div class="project-overtime-day">Daily Default</div>
+                                    <input type="text" value="0" inputmode="numeric" aria-label="Daily default start overtime minutes">
+                                    <input type="text" value="0" inputmode="numeric" aria-label="Daily default end overtime minutes">
                                     <div class="project-overtime-total">0h</div>
                                 </div>
 
@@ -461,6 +461,14 @@
             if (footer) footer.style.display = 'flex';
             resetProjectPenaltyConfig();
             resetProjectOvertimeRules();
+
+            if (!isAddProject) {
+                const checkbox = document.getElementById('projectCustomizeOvertime');
+                if (checkbox) {
+                    checkbox.checked = true;
+                    toggleProjectOvertimeCustomize(true);
+                }
+            }
 
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';

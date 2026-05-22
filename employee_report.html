@@ -76,20 +76,6 @@
                             <option value="custom" selected>Custom</option>
                         </select>
 
-                        <label class="feriiz-u-110">Occupation</label>
-                        <select class="input filter-occ feriiz-u-113">
-                            <option>All Occupations</option>
-                            <option>Graphic Design</option>
-                            <option>Sr.Programmer</option>
-                            <option>Teknisi</option>
-                            <option>Manager</option>
-                            <option>Marketing</option>
-                            <option>Frontend</option>
-                            <option>Backend</option>
-                            <option>HR Administrator</option>
-                            <option>3D Artist</option>
-                        </select>
-                        
                         <div class="feriiz-u-114">
                             <button class="btn btn-outline filter-clear-btn feriiz-u-115" onclick="this.closest('.filter-dropdown').classList.remove('show');">Clear</button>
                             <button class="btn btn-primary filter-apply-btn feriiz-u-116" onclick="this.closest('.filter-dropdown').classList.remove('show');">Apply</button>
@@ -99,7 +85,7 @@
 
                 <!-- 2. Columns Filter Button -->
                 <div class="feriiz-u-014">
-                    <button class="btn btn-outline filter-toggle-btn feriiz-u-117" title="Columns">
+                    <button class="btn btn-outline col-toggle-btn feriiz-u-117" title="Columns">
                         <i class="fa-solid fa-table-columns"></i> Columns
                     </button>
                     <!-- Columns Dropdown Menu -->
@@ -291,16 +277,6 @@
         const colBtn = document.querySelector('.col-toggle-btn');
         const colDD = colBtn ? colBtn.nextElementSibling : null;
 
-        [filterBtn, colBtn].forEach((btn, i) => {
-            const dd = i === 0 ? filterDD : colDD;
-            if (!btn || !dd) return;
-            btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('show'); });
-            dd.addEventListener('click', (e) => e.stopPropagation());
-        });
-        document.addEventListener('click', () => {
-            if (filterDD) filterDD.classList.remove('show');
-            if (colDD) colDD.classList.remove('show');
-        });
 
         const periodSelect = document.querySelector('.filter-period');
         const dateInputs = document.querySelectorAll('.filter-date');
@@ -396,8 +372,6 @@
             clearBtn.addEventListener('click', () => {
                 dateInputs.forEach(i => i.value = '');
                 if (periodSelect) periodSelect.selectedIndex = 0;
-                const occSelect = document.querySelector('.filter-occ');
-                if (occSelect) occSelect.selectedIndex = 0;
                 showDays(defaultDates);
                 if (filterDD) filterDD.classList.remove('show');
             });
@@ -439,13 +413,14 @@
             const slaveIds = masterGroups[masterId];
             
             masterCb.addEventListener('change', () => {
+                const targetChecked = masterCb.checked;
                 slaveIds.forEach(id => {
                     const cb = document.getElementById(id);
-                    if (cb && cb.checked !== masterCb.checked) {
-                        cb.checked = masterCb.checked;
-                        cb.dispatchEvent(new Event('change'));
-                    }
+                    if (cb) cb.checked = targetChecked;
                 });
+                masterCb.checked = targetChecked;
+                masterCb.indeterminate = false;
+                updateVisibility();
             });
 
             slaveIds.forEach(id => {

@@ -1355,6 +1355,7 @@
         // Attach checkbox listeners on page load
         document.addEventListener('DOMContentLoaded', () => {
             const checkboxes = document.querySelectorAll('.manage-emp-cb');
+            const codeArea = document.getElementById('empCodeArea');
             checkboxes.forEach(cb => {
                 cb.addEventListener('change', () => {
                     updateSelectedCount();
@@ -1362,7 +1363,31 @@
                     applyAllEmpFilters();
                 });
             });
+
+            if (codeArea) {
+                codeArea.addEventListener('input', () => {
+                    resetImportVerificationState(true);
+                });
+            }
         });
+
+        function resetImportVerificationState(clearMessage = false) {
+            const errorBox = document.getElementById('codeErrorBox');
+            const verifyBtn = document.getElementById('verifyDataBtn');
+
+            if (clearMessage && errorBox) {
+                errorBox.style.display = 'none';
+                errorBox.innerHTML = '';
+            }
+
+            if (verifyBtn) {
+                verifyBtn.textContent = 'Verify Data';
+                verifyBtn.style.background = '#fff';
+                verifyBtn.style.color = '#555';
+                verifyBtn.style.border = '1px solid #aaa';
+                verifyBtn.style.pointerEvents = 'auto';
+            }
+        }
 
         function toggleImportArea() {
             const layout = document.getElementById('manageEmpLayout');
@@ -1395,11 +1420,7 @@
             errorBox.style.color = '#de3a46';
 
             // Reset verify button
-            verifyBtn.textContent = 'Verify Data';
-            verifyBtn.style.background = '#fff';
-            verifyBtn.style.color = '#555';
-            verifyBtn.style.borderColor = '#aaa';
-            verifyBtn.style.pointerEvents = 'auto';
+            resetImportVerificationState();
 
             if (lines.length === 0) {
                 errorBox.innerHTML = 'Please enter at least one employee code.';
@@ -1468,13 +1489,7 @@
                 errorBox.style.background = '#fff2f4';
                 errorBox.style.borderColor = '#ffccd3';
                 errorBox.style.color = '#de3a46';
-                if (verifyBtn) {
-                    verifyBtn.textContent = 'Verify Data';
-                    verifyBtn.style.background = '#fff';
-                    verifyBtn.style.color = '#555';
-                    verifyBtn.style.border = '1px solid #aaa';
-                    verifyBtn.style.pointerEvents = 'auto';
-                }
+                resetImportVerificationState();
                 if (saveBtn) {
                     saveBtn.style.opacity = '1';
                     saveBtn.style.pointerEvents = 'auto';

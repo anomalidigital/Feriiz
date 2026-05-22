@@ -910,6 +910,11 @@ body {
     border-top: 1px solid #F2F2F2;
 }
 
+.filter-dropdown .feriiz-u-018,
+.filter-dropdown .feriiz-u-114 {
+    margin-top: 20px;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
     .three-col-grid {

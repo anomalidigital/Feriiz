@@ -3808,15 +3808,20 @@ body {
 }
 
 #approvalModal,
-#addRequestModal,
-#projectModal {
+#addRequestModal {
     align-items: flex-start;
     padding-top: clamp(64px, 9vh, 112px);
     padding-bottom: clamp(32px, 6vh, 72px);
 }
 
+#projectModal {
+    align-items: flex-start;
+    padding-top: clamp(24px, 3.5vh, 48px);
+    padding-bottom: clamp(24px, 3.5vh, 48px);
+}
+
 #projectModal .modal-card {
-    max-height: calc(100vh - 128px) !important;
+    max-height: calc(100vh - 96px) !important;
 }
 
 .cal-overlay {

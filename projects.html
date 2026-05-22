@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css?v=2.1.0">
+    <link rel="stylesheet" href="Style.css?v=2.1.2">
     <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 
@@ -290,9 +290,9 @@
                                     <div class="project-overtime-head">End</div>
                                     <div class="project-overtime-head">Total</div>
                                     <div class="project-overtime-day">All Day</div>
-                                    <input type="text" value="60" inputmode="numeric" aria-label="All day start overtime minutes">
-                                    <input type="text" value="60" inputmode="numeric" aria-label="All day end overtime minutes">
-                                    <div class="project-overtime-total">2h</div>
+                                    <input type="text" value="0" inputmode="numeric" aria-label="All day start overtime minutes">
+                                    <input type="text" value="0" inputmode="numeric" aria-label="All day end overtime minutes">
+                                    <div class="project-overtime-total">0h</div>
                                 </div>
 
                                 <label class="project-overtime-custom-toggle">
@@ -308,29 +308,29 @@
                                         <div class="project-overtime-head">End</div>
                                         <div class="project-overtime-head">Total</div>
                                         <div class="project-overtime-day">Mon</div>
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Monday start overtime minutes">
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Monday end overtime minutes">
-                                        <div class="project-overtime-total">2h</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Monday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Monday end overtime minutes">
+                                        <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Tue</div>
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Tuesday start overtime minutes">
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Tuesday end overtime minutes">
-                                        <div class="project-overtime-total">2h</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Tuesday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Tuesday end overtime minutes">
+                                        <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Wed</div>
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Wednesday start overtime minutes">
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Wednesday end overtime minutes">
-                                        <div class="project-overtime-total">2h</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Wednesday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Wednesday end overtime minutes">
+                                        <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Thu</div>
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Thursday start overtime minutes">
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Thursday end overtime minutes">
-                                        <div class="project-overtime-total">2h</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Thursday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Thursday end overtime minutes">
+                                        <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Fri</div>
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Friday start overtime minutes">
-                                        <input type="text" value="60" inputmode="numeric" aria-label="Friday end overtime minutes">
-                                        <div class="project-overtime-total">2h</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Friday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Friday end overtime minutes">
+                                        <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Sat</div>
-                                        <input type="text" value="30" inputmode="numeric" aria-label="Saturday start overtime minutes">
-                                        <input type="text" value="120" inputmode="numeric" aria-label="Saturday end overtime minutes">
-                                        <div class="project-overtime-total">2h 30m</div>
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Saturday start overtime minutes">
+                                        <input type="text" value="0" inputmode="numeric" aria-label="Saturday end overtime minutes">
+                                        <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Sun</div>
                                         <input type="text" value="0" inputmode="numeric" aria-label="Sunday start overtime minutes">
                                         <input type="text" value="0" inputmode="numeric" aria-label="Sunday end overtime minutes">
@@ -500,6 +500,9 @@
         function resetProjectOvertimeRules() {
             const checkbox = document.getElementById('projectCustomizeOvertime');
             if (checkbox) checkbox.checked = false;
+            document.querySelectorAll('#projectModal .project-overtime-table input').forEach(input => {
+                input.value = '0';
+            });
             toggleProjectOvertimeCustomize(false);
             bindProjectOvertimeTotalInputs();
             refreshProjectOvertimeTotals();

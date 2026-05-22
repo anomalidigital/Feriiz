@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Employee Attendance</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css?v=2.1.0">
-    <script src="_Asset_/app.js?v=2.1.0" defer></script>
+    <link rel="stylesheet" href="Style.css?v=2.1.2">
+    <script src="_Asset_/app.js?v=2.1.1" defer></script>
 </head>
 
 <body>
@@ -100,11 +100,16 @@
                         </div>
 
                         <label class="feriiz-u-013">Period</label>
-                        <select class="input feriiz-u-017">
-                            <option>Custom</option>
-                            <option>Weekly</option>
-                            <option>Monthly</option>
-                        <option>Per Days</option>
+                        <select class="input filter-period feriiz-u-017">
+                            <option value="today">Today</option>
+                            <option value="this_week">This Week</option>
+                            <option value="this_month">This Month</option>
+                            <option value="this_year">This Year</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="last_week">Last Week</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="all_time">All Time</option>
+                            <option value="custom" selected>Custom</option>
                         </select>
                         <div class="feriiz-u-018">
                             <button class="btn btn-outline filter-clear-btn feriiz-u-019"
@@ -131,7 +136,7 @@
                     <i class="fa-solid fa-clock"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">78:32
+                    <div class="stat-number feriiz-u-069">108:27
                     </div>
                     <div class="stat-label feriiz-u-070">Attendance Hours</div>
                 </div>
@@ -143,7 +148,7 @@
                     <i class="fa-solid fa-circle-exclamation"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">1:28
+                    <div class="stat-number feriiz-u-069">38:45
                     </div>
                     <div class="stat-label feriiz-u-070">Hours Deficit</div>
                 </div>
@@ -163,14 +168,14 @@
         </div>
 
         <!-- Attendance Table -->
-        <div class="table-container">
-            <table class="data-table feriiz-u-073">
+        <div class="table-container attendance-table-container">
+            <table class="data-table attendance-table feriiz-u-073">
                 <thead>
                     <tr>
                         <th rowspan="2" class="feriiz-u-074">Date</th>
                         <th colspan="3" class="feriiz-u-075">Time Period</th>
                         <th colspan="3" class="feriiz-u-075">Attendance</th>
-                        <th colspan="1" class="feriiz-u-075">Absent</th>
+                        <th class="feriiz-u-075">Absent</th>
                         <th rowspan="2" class="feriiz-u-076">Request</th>
                         <th rowspan="2" class="feriiz-u-076">Note</th>
                     </tr>
@@ -178,10 +183,10 @@
                         <th class="feriiz-u-077">Start</th>
                         <th class="feriiz-u-077">End</th>
                         <th class="feriiz-u-077">Period</th>
-                                                <th class="feriiz-u-077">Start</th>
+                        <th class="feriiz-u-077">Start</th>
                         <th class="feriiz-u-077">End</th>
                         <th class="feriiz-u-077">Period</th>
-                                                <th class="feriiz-u-077">Period</th>
+                        <th class="feriiz-u-077">Period</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -570,17 +575,6 @@
                     </tr>
                 </tbody>
             </table>
-
-            <div class="pagination">
-                <div class="pagination-info">Showing 1 - 8 of 20 results</div>
-                <div class="pagination-buttons">
-                    <button disabled>&lt; Previous</button>
-                    <a href="#" class="active">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#">Next &gt;</a>
-                </div>
-            </div>
         </div>
 
         <div class="feriiz-u-032">version : 2.0.86</div>

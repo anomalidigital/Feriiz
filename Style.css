@@ -3530,9 +3530,12 @@ body {
     text-align: left;
 }
 
-.dashboard-table th:not(:first-child),
+.dashboard-table th:not(:first-child) {
+    text-align: left;
+}
+
 .dashboard-table td:not(:first-child) {
-    text-align: center;
+    text-align: left;
 }
 
 .dashboard-table tbody td {
@@ -3566,7 +3569,7 @@ body {
     font-size: 14px;
     font-weight: 800;
     padding: 12px 20px;
-    text-align: center;
+    text-align: left;
 }
 
 .dashboard-table tfoot td:first-child {

@@ -3502,6 +3502,77 @@ body {
 .feriiz-u-165 { color:#fff; font-size:14px; font-weight:500; font-family:'Poppins', sans-serif; }
 .feriiz-u-166 { border-top:2px solid #2975BB; }
 .feriiz-u-167 { font-weight:700; color:#1a1a1a; }
+
+.dashboard-table-container {
+    overflow-x: auto;
+    border: 1px solid #E1E7EF;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+}
+
+.dashboard-table {
+    table-layout: fixed;
+    min-width: 1080px;
+}
+
+.dashboard-table thead th {
+    background: #F8FAFC;
+    border-bottom: 1px solid #D9E1EA;
+    color: #243447;
+    font-size: 12px;
+    letter-spacing: 0;
+    padding: 14px 20px;
+    vertical-align: middle;
+}
+
+.dashboard-table th:first-child,
+.dashboard-table td:first-child {
+    width: 220px;
+    text-align: left;
+}
+
+.dashboard-table th:not(:first-child),
+.dashboard-table td:not(:first-child) {
+    text-align: center;
+}
+
+.dashboard-table tbody td {
+    height: 46px;
+    padding: 12px 20px;
+    vertical-align: middle;
+}
+
+.dashboard-table tbody td:first-child {
+    color: #1F2937;
+    font-weight: 600;
+}
+
+.dashboard-table tbody td:not(:first-child) {
+    color: #166DBA;
+    font-weight: 700;
+}
+
+.dashboard-table tbody tr:nth-child(odd) td {
+    background: #FBFCFE;
+}
+
+.dashboard-table tbody tr:hover td {
+    background: #F2F7FC;
+}
+
+.dashboard-table tfoot td {
+    background: #F7FBFF;
+    border-top: 2px solid #166DBA;
+    color: #166DBA;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 12px 20px;
+    text-align: center;
+}
+
+.dashboard-table tfoot td:first-child {
+    color: #1F2937;
+}
+
 .feriiz-u-168 { display:flex; align-items:center; gap:16px; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #F2F2F2; }
 .feriiz-u-169 { width:56px; height:56px; border-radius:50%; background:#E8E8E8; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
 .feriiz-u-170 { color:#bbb; font-size:20px; }

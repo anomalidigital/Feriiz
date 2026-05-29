@@ -236,6 +236,21 @@ body {
     gap: 12px;
 }
 
+.attendance-report-actions {
+    justify-content: flex-end;
+}
+
+.attendance-search-control .feriiz-u-068 {
+    width: 240px;
+}
+
+.attendance-print-btn {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
 /* === TABLE ACTION ICONS === */
 .btn-icon {
     display: flex;
@@ -3975,7 +3990,7 @@ body.report-layout .report-table tbody td.day-col.is-manual-entry {
 }
 
 .attendance-table {
-    width: 1600px;
+    width: 100%;
     min-width: 1600px;
     table-layout: fixed;
     border-collapse: separate;
@@ -3992,7 +4007,7 @@ body.report-layout .report-table tbody td.day-col.is-manual-entry {
 .attendance-table col:nth-child(7),
 .attendance-table col:nth-child(8) { width: 96px; }
 .attendance-table col:nth-child(9) { width: 220px; }
-.attendance-table col:nth-child(10) { width: 518px; }
+.attendance-table col:nth-child(10) { width: auto; }
 
 /* Ensure border-box sizing everywhere in the table for pixel-perfect mathematical matching */
 .attendance-table,

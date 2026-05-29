@@ -78,7 +78,16 @@
                     </div>
                 </div>
             </div>
-            <div class="page-actions feriiz-u-065">
+            <div class="page-actions feriiz-u-065 attendance-report-actions">
+                <div class="feriiz-u-020 attendance-search-control">
+                    <i class="fa-solid fa-magnifying-glass feriiz-u-067"
+                       ></i>
+                    <input type="text" placeholder="Search attendance..." class="feriiz-u-068">
+                </div>
+                <button class="btn btn-primary attendance-print-btn" type="button" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print</span>
+                </button>
                 <div class="feriiz-u-014">
                     <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
@@ -113,11 +122,6 @@
                                 onclick="this.closest('.filter-dropdown').classList.remove('show');">Apply</button>
                         </div>
                     </div>
-                </div>
-                <div class="feriiz-u-020">
-                    <i class="fa-solid fa-magnifying-glass feriiz-u-067"
-                       ></i>
-                    <input type="text" placeholder="Search attendance..." class="feriiz-u-068">
                 </div>
             </div>
         </div>

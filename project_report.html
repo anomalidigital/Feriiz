@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="Style.css?v=2.1.2">
+    <link rel="stylesheet" href="Style.css?v=2.2.0">
     <script src="_Asset_/app.js?v=2.1.0" defer></script>
 </head>
 
@@ -131,13 +131,19 @@
                     </div>
                 </div>
 
-                <!-- 2. Columns Filter Button -->
+                <!-- Search -->
+                <div class="report-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass report-search-icon"></i>
+                    <input type="text" id="reportSearch" class="report-search-input" placeholder="Search employee" autocomplete="off">
+                </div>
+
+                <!-- 2. Fields Filter Button -->
                 <div class="feriiz-u-014">
-                    <button class="btn btn-outline col-toggle-btn feriiz-u-117" title="Columns"
+                    <button class="btn btn-outline col-toggle-btn feriiz-u-117" title="Fields"
                        >
-                        <i class="fa-solid fa-table-columns"></i> Columns
+                        <i class="fa-solid fa-table-columns"></i> Fields
                     </button>
-                    <!-- Columns Dropdown Menu -->
+                    <!-- Fields Dropdown Menu -->
                     <div class="filter-dropdown feriiz-u-118"
                        >
                         <div class="feriiz-u-119">
@@ -203,25 +209,25 @@
                             <label for="colClientTotalOvertime" class="feriiz-u-121">Total Overtime</label>
                         </div>
                     </div>
-                </div><!-- End Columns Filter -->
+                </div><!-- End Fields Filter -->
 
                 <button class="btn-action"><i class="fa-solid fa-file-excel"></i> Import XLSX</button>
                 <button class="btn-action"><i class="fa-solid fa-print"></i> Print</button>
                 <div class="feriiz-u-123">
                     <button class="btn-action primary" id="downloadToggleBtn" onclick="this.nextElementSibling.classList.toggle('show')">
-                        <i class="fa-solid fa-download"></i> Download <i class="fa-solid fa-chevron-down feriiz-u-124"></i>
+                        <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down feriiz-u-124"></i>
                     </button>
                     <div id="downloadDropdown" class="feriiz-u-125">
-                        <div onclick="alert('Downloading All...'); this.parentElement.classList.remove('show')" class="feriiz-u-126">
-                            <i class="fa-solid fa-download feriiz-u-127"></i> Download All
+                        <div onclick="alert('Preparing detailed export...'); this.parentElement.classList.remove('show')" class="feriiz-u-126">
+                            <i class="fa-solid fa-file-export feriiz-u-127"></i> Detailed
                         </div>
                         <div class="feriiz-u-128"></div>
-                        <div onclick="alert('Downloading Summary...'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
-                            <i class="fa-solid fa-file-lines feriiz-u-127"></i> Download Summary
+                        <div onclick="alert('Preparing summary export...'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
+                            <i class="fa-solid fa-file-lines feriiz-u-127"></i> Summary
                         </div>
                         <div class="feriiz-u-128"></div>
-                        <div onclick="alert('Downloading Timesheet...'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
-                            <i class="fa-solid fa-clock feriiz-u-127"></i> Download Timesheet
+                        <div onclick="alert('Preparing timesheet export...'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
+                            <i class="fa-solid fa-clock feriiz-u-127"></i> Timesheet
                         </div>
                     </div>
                 </div>
@@ -234,7 +240,6 @@
                     <tr>
                         <th rowspan="2" class="col-name sticky-col">Name</th>
                         <th rowspan="2" class="col-pin">Pin</th>
-                        <th rowspan="2" class="col-occupation">Occupation</th>
                         <th colspan="3" class="group-header" id="grpTimePeriod">Time Period</th>
                         <th rowspan="2" class="col-totaldays">Total Days</th>
                         <th rowspan="2" class="col-totalhour">Total Hour</th>
@@ -242,7 +247,7 @@
                         <th colspan="4" class="group-header" id="grpEmployee">Employee</th>
                         <th colspan="4" class="group-header" id="grpClient">Client</th>
                         <th colspan="2" class="group-header" id="grpAdditional">Additional</th>
-                        <th colspan="5" class="group-header" id="monthHeader">March 2026</th>
+                        <th colspan="5" class="group-header" id="monthHeader">May 2026</th>
                     </tr>
                     <tr>
                         <!-- Time Period -->
@@ -262,12 +267,12 @@
                         <!-- Additional -->
                         <th class="col-additional-amount">Amount</th>
                         <th class="col-additional-note">Note</th>
-                        <!-- March 2026 Details (Photo 3 shows complex detailed blocks, we'll put Mon 09 etc here) -->
-                        <th class="day-col feriiz-u-130" data-date="2026-03-09">Mon 09</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-03-10">Tue 10</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-03-11">Wed 11</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-03-12">Thu 12</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-03-13">Fri 13</th>
+                        <!-- May 2026 Details (Photo 3 shows complex detailed blocks, we'll put Mon 25 etc here) -->
+                        <th class="day-col feriiz-u-130" data-date="2026-05-25">Mon 25</th>
+                        <th class="day-col feriiz-u-130" data-date="2026-05-26">Tue 26</th>
+                        <th class="day-col feriiz-u-130" data-date="2026-05-27">Wed 27</th>
+                        <th class="day-col feriiz-u-130" data-date="2026-05-28">Thu 28</th>
+                        <th class="day-col feriiz-u-130" data-date="2026-05-29">Fri 29</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -275,9 +280,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">ADA27B1B2E650H0X</div>
                             <div class="emp-name-cell">Adam Ferial</div>
+                            <div class="emp-occupation-cell">Graphic Design</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Graphic Design</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -300,7 +305,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -335,7 +340,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -356,7 +361,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -377,7 +382,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -398,7 +403,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -424,9 +429,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">APR8940K8VB44L8</div>
                             <div class="emp-name-cell">Apriyanto Apriyanto</div>
+                            <div class="emp-occupation-cell">Teknisi</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Teknisi</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -449,7 +454,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -484,7 +489,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -505,7 +510,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -526,7 +531,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -547,7 +552,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -573,9 +578,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">BILFBY9N8YJ1YDN</div>
                             <div class="emp-name-cell">Baldyas Satrio</div>
+                            <div class="emp-occupation-cell">Graphic Design</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Graphic Design</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -598,7 +603,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -633,7 +638,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -654,7 +659,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -675,7 +680,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -696,7 +701,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -722,9 +727,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">IFAT8WJ2DM</div>
                             <div class="emp-name-cell">Ifan Faizal Adnan</div>
+                            <div class="emp-occupation-cell">Sr.Programmer</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Sr.Programmer</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -747,7 +752,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -782,7 +787,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -803,7 +808,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -824,7 +829,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -845,7 +850,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -871,9 +876,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">IND693283053999</div>
                             <div class="emp-name-cell">Indra Naftali</div>
+                            <div class="emp-occupation-cell">Manager</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Manager</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -896,7 +901,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -931,7 +936,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -952,7 +957,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -973,7 +978,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -994,7 +999,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1020,9 +1025,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">MAUNZ1TL5H0Q7GG</div>
                             <div class="emp-name-cell">Mauli Hidayat</div>
+                            <div class="emp-occupation-cell">Marketing</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Marketing</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1045,7 +1050,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1080,7 +1085,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1101,7 +1106,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1122,7 +1127,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1143,7 +1148,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1169,9 +1174,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">RADVBYR5171FSC6</div>
                             <div class="emp-name-cell">Raden Maulana</div>
+                            <div class="emp-occupation-cell">Frontend</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Frontend</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1194,7 +1199,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1229,7 +1234,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1250,7 +1255,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1271,7 +1276,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1292,7 +1297,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1318,9 +1323,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">STEPRQTY99</div>
                             <div class="emp-name-cell">Steven Febrianto</div>
+                            <div class="emp-occupation-cell">Backend</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Backend</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1343,7 +1348,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1378,7 +1383,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1399,7 +1404,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1420,7 +1425,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1441,7 +1446,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1467,9 +1472,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">VER2FWV8L80S5SX</div>
                             <div class="emp-name-cell">Veronica Nathalia</div>
+                            <div class="emp-occupation-cell">Graphic Design</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Graphic Design</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1492,7 +1497,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1527,7 +1532,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1548,7 +1553,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1569,7 +1574,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1590,7 +1595,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1616,9 +1621,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">YENX6LH3X9</div>
                             <div class="emp-name-cell">Yenni Tedjakoesoemo</div>
+                            <div class="emp-occupation-cell">HR Administrator</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">HR Administrator</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1641,7 +1646,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1676,7 +1681,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1697,7 +1702,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1718,7 +1723,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1739,7 +1744,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1765,9 +1770,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">ZICOJMQN8SQ5RDT</div>
                             <div class="emp-name-cell">Zicky Affan</div>
+                            <div class="emp-occupation-cell">3D Artist</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">3D Artist</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1790,7 +1795,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1825,7 +1830,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1846,7 +1851,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1867,7 +1872,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1888,7 +1893,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1914,9 +1919,9 @@
                         <td class="col-name sticky-col">
                             <div class="emp-code-cell">SAN79P3WFFK4MQM</div>
                             <div class="emp-name-cell">Sandy Santuy</div>
+                            <div class="emp-occupation-cell">Graphic Design</div>
                         </td>
                         <td class="col-pin">-</td>
-                        <td class="col-occupation">Graphic Design</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -1939,7 +1944,7 @@
                                     class="fa-solid fa-plus"></i></span></td>
                         <td class="col-additional-note"></td>
                         <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-03-09">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-25">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134">
                                     <span class="badge feriiz-u-135"
@@ -1974,7 +1979,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-10">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-26">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -1995,7 +2000,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-11">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-27">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -2016,7 +2021,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-12">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-28">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -2037,7 +2042,7 @@
                                         class="fa-solid fa-trash-can feriiz-u-143"></i></div>
                             </div>
                         </td>
-                        <td class="day-col feriiz-u-132" data-date="2026-03-13">
+                        <td class="day-col feriiz-u-132" data-date="2026-05-29">
                             <div class="feriiz-u-133">
                                 <div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h
                                         OT</span></div>
@@ -2084,7 +2089,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // ===== 1. Filter & Columns Dropdown Toggle =====
+            // ===== 1. Filter & Fields Dropdown Toggle =====
             const filterBtn = document.querySelector('.filter-toggle-btn');
             const filterDD = filterBtn ? filterBtn.nextElementSibling : null;
             const colBtn = document.querySelector('.col-toggle-btn');
@@ -2115,10 +2120,12 @@
                 });
             }
 
-            // ===== 3. Day Column Show/Hide (Default: last 1 day) =====
+            // ===== 3. Day Column Show/Hide (Default: Mon 25 May) =====
             const allDayCols = document.querySelectorAll('.day-col');
             const allDates = [...new Set([...document.querySelectorAll('th.day-col')].map(th => th.dataset.date))].sort();
-            const defaultDates = allDates.slice(-1);
+            const reportDefaultDate = '2026-05-25';
+            const reportHolidayDates = new Set(['2026-05-27']);
+            const defaultDates = allDates.includes(reportDefaultDate) ? [reportDefaultDate] : allDates.slice(0, 1);
 
             function showDays(datesToShow) {
                 allDayCols.forEach(el => {
@@ -2145,7 +2152,7 @@
 
             function updateVisibleReportTotals(datesToShow) {
                 document.querySelectorAll('.report-table tbody tr').forEach(row => {
-                    const visibleDays = [...row.querySelectorAll('td.day-col')].filter(cell => datesToShow.includes(cell.dataset.date));
+                    const visibleDays = [...row.querySelectorAll('td.day-col')].filter(cell => datesToShow.includes(cell.dataset.date) && !reportHolidayDates.has(cell.dataset.date));
                     const totalWork = visibleDays.reduce((sum, cell) => {
                         const workBadge = [...cell.querySelectorAll('span')].find(span => /h$/.test(span.textContent.trim()) && !span.textContent.includes('OT'));
                         return sum + parseHourBadge(workBadge ? workBadge.textContent : '');
@@ -2169,7 +2176,7 @@
             function applyOccupationFilter() {
                 const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
                 document.querySelectorAll('.report-table tbody tr').forEach(row => {
-                    const occupationCell = row.querySelector('.col-occupation');
+                    const occupationCell = row.querySelector('.emp-occupation-cell');
                     if (!occupationCell) return;
 
                     const occupationText = occupationCell.textContent.toLowerCase();
@@ -2215,7 +2222,7 @@
                 });
             }
 
-            // ===== 5. Columns Checkbox Toggle =====
+            // ===== 5. Fields Checkbox Toggle =====
             // Column mapping: Checkbox ID -> CSS classes to hide/show
             const colMap = {
                 colActiveHour: ['.col-activehour'],
@@ -2338,6 +2345,23 @@
             }
         });
     </script>
+    <script>
+        // Report Search â€” filter table rows by employee name
+        (function() {
+            const searchInput = document.getElementById('reportSearch');
+            if (!searchInput) return;
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                document.querySelectorAll('.report-table tbody tr').forEach(row => {
+                    const nameCell = row.querySelector('.col-name');
+                    if (!nameCell) return;
+                    const name = nameCell.textContent.toLowerCase();
+                    row.style.display = (!query || name.includes(query)) ? '' : 'none';
+                });
+            });
+        })();
+    </script>
 </body>
 
 </html>
+

@@ -319,3 +319,26 @@
 
     document.addEventListener('DOMContentLoaded', renderAttendanceReport);
 })();
+
+(function () {
+    function handleReportTableScroll() {
+        const wraps = document.querySelectorAll('.report-table-wrap');
+        wraps.forEach(wrap => {
+            const updateShadow = () => {
+                if (wrap.scrollLeft > 0) {
+                    wrap.classList.add('table-scrolled');
+                } else {
+                    wrap.classList.remove('table-scrolled');
+                }
+            };
+            wrap.addEventListener('scroll', updateShadow, { passive: true });
+            updateShadow(); // Run once initially
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', handleReportTableScroll);
+    } else {
+        handleReportTableScroll();
+    }
+})();

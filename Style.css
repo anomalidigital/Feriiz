@@ -2469,12 +2469,13 @@ body {
 
         .daily-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
         .daily-toggle input[type="checkbox"] { accent-color: #166DBA; width: 16px; height: 16px; }.report-table { width: 100%; min-width: 1400px; border-collapse: collapse; font-family: 'Poppins', sans-serif; font-size: 12px; }
-        .report-table thead th { border-right: 1px solid #e5e5e5; background: #fff; color: #1a1a1a; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 2px solid #e5e5e5; white-space: nowrap; font-size: 12px; }
-        .report-table thead th.group-header { text-align: center; border-bottom: 1px solid #ddd; font-size: 13px; font-weight: 700; }
-        .report-table tbody td { border-right: 1px solid #f0f0f0; padding: 12px 12px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; white-space: nowrap; }
+        .report-table thead th { border-right: 1.5px solid #E5E8EC; background: #fff; color: #1a1a1a; font-weight: 700; padding: 14px 16px; text-align: left; border-bottom: 2px solid #D9D9D9; white-space: nowrap; font-size: 12px; }
+        .report-table thead th.group-header { text-align: center; border-bottom: 1.5px solid #D9D9D9; font-size: 13px; font-weight: 700; }
+        .report-table tbody td { border-right: 1.5px solid #E5E8EC; padding: 18px 16px; border-bottom: 1.5px solid #E5E8EC; color: #333; vertical-align: top; white-space: nowrap; }
         .report-table tbody tr:hover { background: #fafcff; }
         .emp-name-cell { font-weight: 600; color: #1a1a1a; }
         .emp-code-cell { font-size: 11px; color: #888; font-weight: 400; }
+        .emp-occupation-cell { font-size: 11px; color: #666; font-weight: 500; margin-top: 3px; }
         .rate-cell { color: #166DBA; }
         .note-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #166DBA; color: #166DBA; cursor: pointer; font-size: 12px; }
         /* Report is read-only: hide row-level edit/add/delete controls. */
@@ -2490,7 +2491,7 @@ body {
         /* Clean layout overrides for report pages */
         .report-table-wrap {
             overflow-x: auto;
-            width: 100%;
+            width: auto !important;
             margin-top: 0;
         }
 
@@ -2512,8 +2513,8 @@ body {
         .report-table-wrap {
             flex: 1;
             overflow: auto !important; /* Both X and Y scrolling allowed solely in this area */
-            margin: 0 !important;
-            padding: 0 40px; /* Horizontal padding for table */
+            margin: 0 40px !important;
+            padding: 0 !important; /* Horizontal padding for table */
         }
         .fixed-bottom-bar {
             flex-shrink: 0;
@@ -2538,42 +2539,55 @@ body {
         }
 
 
-        /* Fix for Webkit Sticky overlap bug */
-        .report-table {
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
-        }
-        .report-table thead th {
-             border-top: 1px solid #e5e5e5;
-             position: sticky;
-             top: 0;
-             background: #fff;
-             z-index: 1;
-        }
-        .sticky-col {
-            background-clip: padding-box !important;
-        }
+        /* Webkit Sticky: base settings only (Master Override handles the rest) */
         .day-col-hidden {
             display: none !important;
         }
 
-        /* Sticky Column Layout Additions */
+        /* Sticky Column: horizontal positioning only (Master Override handles bg/shadow) */
         .sticky-col {
             position: sticky !important;
             left: 0 !important;
-            background-color: #fff !important;
-            z-index: 2 !important;
-            box-shadow: 5px 0 15px -3px rgba(0,0,0,0.15) !important;
-            border-right: 1px solid #f0f0f0 !important;
-        }
-        th.sticky-col {
-            z-index: 3 !important;
+            background-clip: padding-box !important;
         }
 
 #downloadDropdown { display:none; }
         #downloadDropdown.show { display:block; }
         #downloadDropdown > div:not([style*="height:1px"]):hover { background:#f5f8fc; }
 
+/* === Report Search === */
+.report-search-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+.report-search-input {
+    padding: 8px 12px 8px 36px;
+    border-radius: 8px;
+    border: 1px solid #D9D9D9;
+    height: 38px;
+    width: 220px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+}
+.report-search-input:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.1);
+}
+.report-search-input::placeholder {
+    color: #aaa;
+}
+.report-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 13px;
+    pointer-events: none;
+}
 
 /* === Extracted from employee_request.html === */
 .modal-overlay {
@@ -3018,29 +3032,29 @@ body {
         }
 
         .report-table thead th {
-            border-right: 1px solid #e5e5e5;
+            border-right: 1.5px solid #E5E8EC;
             background: #fff;
             color: #1a1a1a;
             font-weight: 700;
-            padding: 10px 12px;
+            padding: 14px 16px;
             text-align: left;
-            border-bottom: 2px solid #e5e5e5;
+            border-bottom: 2px solid #D9D9D9;
             white-space: nowrap;
             font-size: 12px;
         }
 
         .report-table thead th.group-header {
             text-align: center;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1.5px solid #D9D9D9;
             font-size: 13px;
             font-weight: 700;
             color: #1a1a1a;
         }
 
         .report-table tbody td {
-            border-right: 1px solid #f0f0f0;
-            padding: 12px 12px;
-            border-bottom: 1px solid #f0f0f0;
+            border-right: 1.5px solid #E5E8EC;
+            padding: 18px 16px;
+            border-bottom: 1.5px solid #E5E8EC;
             color: #333;
             vertical-align: top;
             white-space: nowrap;
@@ -3173,7 +3187,7 @@ body {
         /* Clean layout overrides for report pages */
         .report-table-wrap {
             overflow-x: auto;
-            width: 100%;
+            width: auto !important;
             margin-top: 0;
         }
 
@@ -3206,8 +3220,8 @@ body {
             flex: 1;
             overflow: auto !important;
             /* Both X and Y scrolling allowed solely in this area */
-            margin: 0 !important;
-            padding: 0 40px;
+            margin: 0 40px !important;
+            padding: 0 !important;
             /* Horizontal padding for table */
         }
 
@@ -3237,82 +3251,291 @@ body {
         }
 
 
-        /* Fix for Webkit Sticky overlap bug */
-        .report-table {
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
-        }
-
-        .report-table thead th {
-            border-top: 1px solid #e5e5e5;
-            position: sticky;
-            top: 0;
-            background: #fff;
-            z-index: 1;
-        }
-
-        .sticky-col {
-            background-clip: padding-box !important;
-        }
-
+        /* Webkit Sticky: base settings only (Master Override handles the rest) */
         .day-col-hidden {
             display: none !important;
         }
 
-        /* Sticky Column Layout Additions */
+        /* Sticky Column: horizontal positioning only (Master Override handles bg/shadow) */
         .sticky-col {
             position: sticky !important;
             left: 0 !important;
-            background-color: #fff !important;
-            z-index: 2 !important;
-            box-shadow: 5px 0 15px -3px rgba(0, 0, 0, 0.15) !important;
-            border-right: 1px solid #f0f0f0 !important;
-        }
-
-        th.sticky-col {
-            z-index: 3 !important;
+            background-clip: padding-box !important;
         }
 
 #downloadDropdown { display:none; }
         #downloadDropdown.show { display:block; }
         #downloadDropdown > div:not([style*="height:1px"]):hover { background:#f5f8fc; }
 
-/* Final report sticky table header */
+/* ============================================
+   FINAL REPORT TABLE — Master Override
+   All earlier .report-table rules are overridden here.
+   ============================================ */
 .report-table {
-    --report-header-row-height: 44px;
+    --report-header-row-height: 42px;
+    --header-group-bg: #F0F4F8;
+    --header-sub-bg: #F7F9FB;
+    --header-spanned-bg: #F4F7FA;
+    --row-even-bg: #F9FAFB;
+    --row-odd-bg: #FFFFFF;
+    --border-color: #E2E6EA;
+    --border-header: #D5DAE0;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+    min-width: 1400px !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 12px !important;
 }
 
-.report-table thead tr:first-child th {
-    position: sticky;
-    top: 0;
-    z-index: 60;
-    height: var(--report-header-row-height);
-    background: #fff;
+/* --- All header cells: shared reset --- */
+.report-table thead th {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    font-weight: 600 !important;
+    padding: 0 14px !important;
+    line-height: var(--report-header-row-height) !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    box-sizing: border-box !important;
+    border: none !important;
+    border-right: 1px solid var(--border-color) !important;
 }
 
+/* --- Group header row (first row): distinct background --- */
+.report-table thead tr:first-child th:not([rowspan="2"]) {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 60 !important;
+    height: var(--report-header-row-height) !important;
+    background: var(--header-group-bg) !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    box-shadow: inset 0 -1px 0 var(--border-header) !important;
+}
+
+/* --- Group header text centering --- */
+.report-table thead th.group-header {
+    text-align: center !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    color: #2C3E50 !important;
+}
+
+/* --- Sub-header row (second row): lighter background --- */
 .report-table thead tr:nth-child(2) th {
-    position: sticky;
-    top: var(--report-header-row-height);
-    z-index: 59;
-    background: #fff;
-    box-shadow: 0 1px 0 #e5e5e5;
+    position: sticky !important;
+    top: var(--report-header-row-height) !important;
+    z-index: 59 !important;
+    height: var(--report-header-row-height) !important;
+    background: var(--header-sub-bg) !important;
+    font-weight: 600 !important;
+    color: #4A5568 !important;
+    font-size: 11.5px !important;
+    box-shadow: 0 1.5px 0 var(--border-header) !important;
 }
 
+/* --- Spanned cells (rowspan=2: Name, Pin, Total Days, etc.) --- */
 .report-table thead tr:first-child th[rowspan="2"] {
-    top: 0;
-    z-index: 62;
-    vertical-align: middle;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 62 !important;
+    height: calc(var(--report-header-row-height) * 2) !important;
+    line-height: 1.4 !important;
+    padding: 0 14px !important;
+    vertical-align: middle !important;
+    background: var(--header-spanned-bg) !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    box-shadow: 0 1.5px 0 var(--border-header) !important;
 }
 
+/* --- Sticky column: header cells --- */
 .report-table thead th.sticky-col {
     z-index: 70 !important;
+    border-right: 1.5px solid var(--border-color) !important;
+    background-color: var(--header-spanned-bg) !important;
 }
 
+/* --- Body cells --- */
+.report-table tbody td {
+    padding: 11px 14px !important;
+    line-height: 1.4 !important;
+    border-right: 1px solid var(--border-color) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-top: none !important;
+    border-left: none !important;
+    color: #333 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    box-sizing: border-box !important;
+}
+
+/* --- Zebra striping --- */
+.report-table tbody tr:nth-child(odd) td {
+    background: var(--row-odd-bg) !important;
+}
+.report-table tbody tr:nth-child(even) td {
+    background: var(--row-even-bg) !important;
+}
+
+/* --- Row hover --- */
+.report-table tbody tr:hover td {
+    background: #EDF2F7 !important;
+}
+
+/* --- Sticky column: body cells --- */
 .report-table tbody td.sticky-col {
     z-index: 20 !important;
+    border-right: 1.5px solid var(--border-color) !important;
+}
+.report-table tbody tr:nth-child(odd) td.sticky-col {
+    background: var(--row-odd-bg) !important;
+}
+.report-table tbody tr:nth-child(even) td.sticky-col {
+    background: var(--row-even-bg) !important;
+}
+.report-table tbody tr:hover td.sticky-col {
+    background: #EDF2F7 !important;
 }
 
+/* --- Scroll shadow for sticky column --- */
+.report-table-wrap.table-scrolled .report-table .sticky-col {
+    box-shadow: 5px 0 14px -4px rgba(0, 0, 0, 0.08) !important;
+}
 
+/* Keep report-table-wrap left margin for layout */
+body.report-layout .report-table-wrap {
+    margin: 0 0 0 40px !important;
+}
+
+/* Report tables: keep the identity columns aligned while horizontal scrolling. */
+body.report-layout .report-table {
+    --report-sticky-name-width: 184px;
+    --report-sticky-pin-width: 64px;
+    isolation: isolate;
+}
+
+body.report-layout .report-table-wrap {
+    isolation: isolate;
+}
+
+body.report-layout .report-table .col-name {
+    width: var(--report-sticky-name-width) !important;
+    min-width: var(--report-sticky-name-width) !important;
+    max-width: var(--report-sticky-name-width) !important;
+}
+
+body.report-layout .report-table .col-pin {
+    width: var(--report-sticky-pin-width) !important;
+    min-width: var(--report-sticky-pin-width) !important;
+    max-width: var(--report-sticky-pin-width) !important;
+    position: sticky !important;
+    left: var(--report-sticky-name-width) !important;
+    border-right: 1.5px solid var(--border-color) !important;
+    background-clip: border-box !important;
+    box-shadow: inset -1px 0 0 var(--border-color) !important;
+    transform: translateZ(0);
+}
+
+body.report-layout .report-table .col-totaldays,
+body.report-layout .report-table .col-totalhour,
+body.report-layout .report-table .col-totalovertime {
+    z-index: 1 !important;
+}
+
+body.report-layout .report-table tbody .col-totaldays,
+body.report-layout .report-table tbody .col-totalhour,
+body.report-layout .report-table tbody .col-totalovertime {
+    position: relative !important;
+}
+
+body.report-layout .report-table thead .col-totaldays,
+body.report-layout .report-table thead .col-totalhour,
+body.report-layout .report-table thead .col-totalovertime {
+    z-index: 40 !important;
+}
+
+body.report-layout .report-table thead .col-name.sticky-col {
+    left: 0 !important;
+    z-index: 160 !important;
+    background-clip: border-box !important;
+}
+
+body.report-layout .report-table thead .col-pin {
+    z-index: 300 !important;
+    background: var(--header-spanned-bg) !important;
+}
+
+body.report-layout .report-table thead tr:first-child th.col-pin[rowspan="2"] {
+    left: var(--report-sticky-name-width) !important;
+    z-index: 300 !important;
+    background: var(--header-spanned-bg) !important;
+    background-clip: border-box !important;
+}
+
+body.report-layout .report-table tbody .col-name.sticky-col {
+    left: 0 !important;
+    z-index: 55 !important;
+    background-clip: border-box !important;
+}
+
+body.report-layout .report-table tbody .col-pin {
+    left: var(--report-sticky-name-width) !important;
+    z-index: 280 !important;
+    background-clip: border-box !important;
+}
+
+body.report-layout .report-table tbody tr:nth-child(odd) .col-pin {
+    background: var(--row-odd-bg) !important;
+}
+
+body.report-layout .report-table tbody tr:nth-child(even) .col-pin {
+    background: var(--row-even-bg) !important;
+}
+
+body.report-layout .report-table tbody tr:hover .col-pin {
+    background: #EDF2F7 !important;
+}
+
+body.report-layout .report-table-wrap.table-scrolled .report-table .col-name.sticky-col {
+    box-shadow: none !important;
+}
+
+body.report-layout .report-table-wrap.table-scrolled .report-table .col-pin {
+    box-shadow:
+        inset -1px 0 0 var(--border-color),
+        5px 0 14px -4px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.report-layout .report-table tbody td.day-col[data-date="2026-05-27"] {
+    color: #8A94A6 !important;
+    text-align: left !important;
+}
+
+body.report-layout .report-table tbody tr:nth-child(odd) td.day-col[data-date="2026-05-27"] {
+    background: #F8FAFC !important;
+}
+
+body.report-layout .report-table tbody tr:nth-child(even) td.day-col[data-date="2026-05-27"] {
+    background: #F3F6F9 !important;
+}
+
+body.report-layout .report-table tbody td.day-col[data-date="2026-05-27"] > * {
+    display: none !important;
+}
+
+body.report-layout .report-table tbody td.day-col[data-date="2026-05-27"]::before {
+    content: "";
+}
+
+body.report-layout .report-table tbody td.day-col[data-entry-source="manual"],
+body.report-layout .report-table tbody td.day-col.is-manual-entry {
+    background: #FFF5D6 !important;
+    box-shadow: inset 3px 0 0 #F2B705 !important;
+}
 
 /* === Migrated legacy inline styles === */
 .feriiz-u-001 { margin-right:8px; }

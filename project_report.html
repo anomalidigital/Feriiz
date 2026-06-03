@@ -79,17 +79,17 @@
                     <div class="fix-clock-action">
                         <button class="btn-action primary" type="button" id="fixClockToggle">
                             <i class="fa-solid fa-screwdriver-wrench"></i>
-                            Fix Missing Clock
+                            Fix Clock
                             <i class="fa-solid fa-chevron-down"></i>
                         </button>
                         <div class="fix-clock-dropdown" id="fixClockDropdown">
                             <button type="button" data-fix-type="in">
                                 <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                                Fix Missing In
+                                Fix Clock In
                             </button>
                             <button type="button" data-fix-type="out">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                                Fix Missing Out
+                                Fix Clock Out
                             </button>
                         </div>
                     </div>
@@ -2106,7 +2106,7 @@
     <div class="modal-overlay report-fix-modal" id="fixMissingClockModal">
         <div class="report-fix-card">
             <div class="report-fix-header">
-                <h2 id="fixMissingClockTitle">Fix Missing Clock</h2>
+                <h2 id="fixMissingClockTitle">Fix Clock</h2>
                 <button class="modal-close-btn" type="button" id="fixMissingClockClose">&times;</button>
             </div>
             <div class="report-fix-body">
@@ -2453,19 +2453,27 @@
                 return getVisibleRows().filter(row => row.querySelector('.report-row-select')?.checked);
             }
 
-            function selectedRowsHaveMissing(type = '') {
-                return getSelectedRows().some(row => (
-                    [...row.querySelectorAll('td.day-col[data-missing]')].some(cell => (
-                        currentVisibleDates.includes(cell.dataset.date) &&
-                        (!type || cell.dataset.missing === type)
-                    ))
+            function getVisibleFixableCells(row) {
+                return [...row.querySelectorAll('td.day-col')].filter(cell => (
+                    currentVisibleDates.includes(cell.dataset.date) &&
+                    !reportHolidayDates.has(cell.dataset.date)
                 ));
+            }
+
+            function getClockTargetCells(row, type = '') {
+                const visibleCells = getVisibleFixableCells(row);
+                const matchingMissingCells = visibleCells.filter(cell => cell.dataset.missing === type);
+                return matchingMissingCells.length > 0 ? matchingMissingCells : visibleCells;
+            }
+
+            function selectedRowsHaveFixableClock(type = '') {
+                return getSelectedRows().some(row => getClockTargetCells(row, type).length > 0);
             }
 
             function updateBulkSelectionState() {
                 const visibleRows = getVisibleRows();
                 const selectedRows = getSelectedRows();
-                const canFixAny = selectedRowsHaveMissing();
+                const canFixAny = selectedRowsHaveFixableClock();
                 if (bulkBar) bulkBar.hidden = selectedRows.length === 0;
                 if (selectedCountText) selectedCountText.textContent = `${selectedRows.length} selected`;
                 document.querySelectorAll('.report-table tbody tr').forEach(row => {
@@ -2474,11 +2482,11 @@
                 });
                 if (fixClockToggle) {
                     fixClockToggle.disabled = !canFixAny;
-                    fixClockToggle.title = canFixAny ? 'Fix selected missing clock data' : 'Selected employees have no missing clock data';
+                    fixClockToggle.title = canFixAny ? 'Fix selected clock data' : 'Selected employees have no visible workday clock data';
                     if (!canFixAny) fixClockDropdown?.classList.remove('show');
                 }
                 fixClockDropdown?.querySelectorAll('[data-fix-type]').forEach(button => {
-                    button.disabled = !selectedRowsHaveMissing(button.dataset.fixType);
+                    button.disabled = !selectedRowsHaveFixableClock(button.dataset.fixType);
                 });
                 if (selectAll) {
                     selectAll.checked = visibleRows.length > 0 && selectedRows.length === visibleRows.length;
@@ -2494,10 +2502,10 @@
 
             function showFixModal(type) {
                 const selectedRows = getSelectedRows();
-                if (selectedRows.length === 0 || !selectedRowsHaveMissing(type)) return;
+                if (selectedRows.length === 0 || !selectedRowsHaveFixableClock(type)) return;
                 activeFixType = type;
                 const isMissingIn = type === 'in';
-                if (fixTitle) fixTitle.textContent = isMissingIn ? 'Fix Missing In' : 'Fix Missing Out';
+                if (fixTitle) fixTitle.textContent = isMissingIn ? 'Fix Clock In' : 'Fix Clock Out';
                 if (fixLabel) fixLabel.textContent = isMissingIn ? 'Set Clock In' : 'Set Clock Out';
                 if (fixInput) fixInput.value = isMissingIn ? '07:00:00' : '17:00:00';
                 if (fixNote) fixNote.value = '';
@@ -2514,8 +2522,10 @@
             function renderFixedClockCell(cell, fixType, clockValue) {
                 const existingInTime = cell.dataset.inTime || '';
                 const existingOutTime = cell.dataset.outTime || '';
+                const existingMissingType = cell.dataset.missing || '';
                 const inTime = fixType === 'in' ? clockValue : existingInTime;
                 const outTime = fixType === 'out' ? clockValue : existingOutTime;
+                const remainingMissingType = existingMissingType && existingMissingType !== fixType ? existingMissingType : '';
                 const clockLines = fixType === 'in'
                     ? [
                         ...(existingOutTime ? [{ type: 'out', value: existingOutTime }] : []),
@@ -2528,17 +2538,21 @@
                 cell.dataset.inTime = inTime;
                 cell.dataset.outTime = outTime;
                 cell.dataset.fixedClock = fixType;
-                cell.removeAttribute('data-missing');
-                cell.classList.remove('missing-clock-cell');
-                cell.innerHTML = buildDayCellContent({ inTime, outTime, clockLines });
+                if (remainingMissingType) {
+                    cell.dataset.missing = remainingMissingType;
+                    cell.classList.add('missing-clock-cell');
+                } else {
+                    cell.removeAttribute('data-missing');
+                    cell.classList.remove('missing-clock-cell');
+                }
+                cell.innerHTML = buildDayCellContent({ inTime, outTime, issue: remainingMissingType, clockLines });
             }
 
             function applyFixMissingClock() {
                 const clockValue = fixInput?.value || (activeFixType === 'in' ? '07:00:00' : '17:00:00');
                 let updatedCount = 0;
                 getSelectedRows().forEach(row => {
-                    const cells = [...row.querySelectorAll(`td.day-col[data-missing="${activeFixType}"]`)]
-                        .filter(cell => currentVisibleDates.includes(cell.dataset.date));
+                    const cells = getClockTargetCells(row, activeFixType);
                     cells.forEach(cell => {
                         renderFixedClockCell(cell, activeFixType, clockValue);
                         updatedCount++;
@@ -2547,7 +2561,7 @@
                 document.querySelectorAll('.report-row-select').forEach(input => { input.checked = false; });
                 applyReportFilters();
                 closeFixModal();
-                alert(updatedCount > 0 ? `${updatedCount} missing clock entries updated.` : 'No matching missing clock entries found for the selected employees.');
+                alert(updatedCount > 0 ? `${updatedCount} clock entries updated.` : 'No visible workday clock entries found for the selected employees.');
             }
 
             document.querySelectorAll('.report-row-select').forEach(input => {

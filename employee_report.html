@@ -101,13 +101,6 @@
                             <label for="colActiveHour" class="feriiz-u-121">Active Hour</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colPin" checked class="feriiz-u-120">
-                            <label for="colPin" class="feriiz-u-121">Pin</label>
-                        </div>
-
-                        <div class="feriiz-u-122"></div>
-
-                        <div class="feriiz-u-119">
                             <input type="checkbox" id="colInOutHour" checked class="feriiz-u-120">
                             <label for="colInOutHour" class="feriiz-u-121">In Out Hour</label>
                         </div>
@@ -184,7 +177,6 @@
                 <thead>
                     <tr>
                         <th rowspan="2" class="col-name sticky-col">Name</th>
-                        <th rowspan="2" class="col-pin">Pin</th>
                         <th colspan="3" class="group-header" id="grpTimePeriod">Time Period</th>
                         <th rowspan="2" class="col-totaldays">Total Days</th>
                         <th rowspan="2" class="col-totalhour">Total Hour</th>
@@ -226,8 +218,8 @@
                             <div class="emp-code-cell">IND693283053999</div>
                             <div class="emp-name-cell">Indra Naftali</div>
                             <div class="emp-occupation-cell">Manager</div>
+                            <div class="emp-pin-cell">Pin: -</div>
                         </td>
-                        <td class="col-pin">-</td>
                         <td class="col-inouthour">08:00:00</td>
                         <td class="col-inouthour">17:00:00</td>
                         <td class="col-activehour">9h</td>
@@ -383,7 +375,6 @@
         // Column mapping: Checkbox ID -> CSS classes to hide/show
         const colMap = {
             colActiveHour: ['.col-activehour'],
-            colPin: ['.col-pin'],
             colInOutHour: ['.col-inouthour'],
             colEmpDailyRate: ['.col-emp-dailyrate'],
             colEmpRateOvertime: ['.col-emp-rateovertime'],
@@ -520,4 +511,3 @@
     </script>
 </body>
 </html>
-

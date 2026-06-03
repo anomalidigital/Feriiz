@@ -88,7 +88,7 @@
         <div class="table-container">
             <table class="data-table">
                 <thead>
-                    <tr>
+                    <tr class="project-clickable-row" data-href="project_employees.html">
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
                         <th>Status</th>
@@ -99,7 +99,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr class="project-clickable-row" data-href="project_employees.html">
                         <td>
                             <div class="action-cell">
                                 <a href="#" class="btn-icon" title="Edit"
@@ -123,7 +123,7 @@
                         <td>25 January 2025, 12:35pm</td>
                         <td class="feriiz-u-190">129</td>
                     </tr>
-                    <tr>
+                    <tr class="project-clickable-row" data-href="project_employees.html">
                         <td>
                             <div class="action-cell">
                                 <a href="#" class="btn-icon" title="Edit"
@@ -147,7 +147,7 @@
                         <td>25 January 2025, 12:35pm</td>
                         <td class="feriiz-u-190">81</td>
                     </tr>
-                    <tr>
+                    <tr class="project-clickable-row" data-href="project_employees.html">
                         <td>
                             <div class="action-cell">
                                 <a href="#" class="btn-icon" title="Edit"
@@ -803,6 +803,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.project-clickable-row').forEach(row => {
+                row.addEventListener('click', event => {
+                    if (event.target.closest('a, button, input, select, textarea')) return;
+                    const href = row.dataset.href;
+                    if (href) window.location.href = href;
+                });
+            });
+
             const eName = document.getElementById('empFirstNameInput');
             const advLeft = document.getElementById('empLeftAdvanced');
             const advRight = document.getElementById('empRightAdvanced');

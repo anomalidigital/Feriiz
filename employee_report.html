@@ -61,7 +61,6 @@
                             <span class="feriiz-u-005">-</span>
                             <input type="date" class="input filter-date feriiz-u-004">
                         </div>
-                        <div class="feriiz-u-111">Default shows 1 day. Fill Start only to show from that date, or End only to show up to that date.</div>
 
                         <label class="feriiz-u-110">Period</label>
                         <select class="input filter-period feriiz-u-112">
@@ -290,6 +289,18 @@
                 else if (v === 'all_time') { s = ''; e = ''; }
                 dateInputs[0].value = s;
                 dateInputs[1].value = e;
+
+                // Auto-apply
+                if (s || e) {
+                    const sT = s ? new Date(s).getTime() : -Infinity;
+                    const eT = e ? new Date(e).getTime() : Infinity;
+                    const vis = allDates.filter(d => { const t = new Date(d).getTime(); return t >= sT && t <= eT; });
+                    showDays(vis.length > 0 ? vis : defaultDates);
+                } else if (v === 'all_time') {
+                    showDays(allDates);
+                } else {
+                    showDays(defaultDates);
+                }
             });
         }
 
@@ -494,7 +505,7 @@
         });
     </script>
     <script>
-        // Report Search â€” filter table rows by employee name
+        // Report Search -- filter table rows by employee name
         (function() {
             const searchInput = document.getElementById('reportSearch');
             if (!searchInput) return;

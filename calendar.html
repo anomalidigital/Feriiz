@@ -71,7 +71,7 @@
                 <div class="request-panel-head">
                     <div class="request-title-row">
                         <div class="request-title"><i class="fa-solid fa-clipboard-list"></i>Request</div>
-                        <div class="request-count-pill" id="requestCountPill">0 Items</div>
+                        <div class="request-count-pill" id="requestCountPill">0 Request</div>
                     </div>
                     <div class="request-toggle">
                         <button class="active" type="button" onclick="setRequestView(this,'today')">Today</button>
@@ -310,7 +310,7 @@
                 pending: scopedEvents.filter(e => e.status === 'Pending').length
             };
 
-            pill.textContent = `${scopedEvents.length} Item${scopedEvents.length === 1 ? '' : 's'}`;
+            pill.textContent = `${scopedEvents.length} Request`;
             summary.innerHTML = `
                 <div class="request-summary-card"><div class="summary-label"><span class="summary-dot feriiz-u-006"></span>Remote</div><div class="summary-number">${counts.work}</div></div>
                 <div class="request-summary-card"><div class="summary-label"><span class="summary-dot feriiz-u-007"></span>Leave</div><div class="summary-number">${counts.leave}</div></div>

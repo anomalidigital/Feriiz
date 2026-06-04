@@ -74,9 +74,14 @@
                     <div class="filter-dropdown feriiz-u-015 activity-filter-dropdown">
                         <div class="feriiz-u-016">Filter Activity
                         </div>
+                        <label>Date Range</label>
+                        <div class="feriiz-u-003 activity-date-range">
+                            <input type="date" class="input filter-date feriiz-u-004">
+                            <span class="feriiz-u-005">-</span>
+                            <input type="date" class="input filter-date feriiz-u-004">
+                        </div>
                         <label>Occupation</label>
-                        <select class="input filter-occ feriiz-u-017"
-                           >
+                        <select class="input filter-occ feriiz-u-017">
                             <option value="all occupations">All Occupations</option>
                             <option value="backend">Backend</option>
                             <option value="frontend">Frontend</option>
@@ -88,12 +93,6 @@
                             <option value="hr administrator">HR Administrator</option>
                             <option value="3d artist">3D Artist</option>
                         </select>
-                        <label>Last Activity</label>
-                        <div class="feriiz-u-003 activity-date-range">
-                            <input type="date" class="input filter-date feriiz-u-004">
-                            <span class="feriiz-u-005">-</span>
-                            <input type="date" class="input filter-date feriiz-u-004">
-                        </div>
                         <label class="feriiz-u-242 activity-toggle-row">
                             <input type="checkbox" id="absenceToggle" class="feriiz-u-243">
                             <span class="feriiz-u-244">Show Activity</span>
@@ -171,6 +170,7 @@
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
                         <th class="col-pictures">Pictures</th>
+                        <th class="col-activity-photos">Activity</th>
                         <th>Occupation</th>
                         <th>Pin</th>
                         <th>Last Activity</th>
@@ -214,6 +214,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Graphic Design</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -254,6 +255,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Teknisi</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -294,6 +296,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Graphic Design</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -334,6 +337,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Sr.Programmer</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -374,6 +378,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Manager</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -414,6 +419,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Marketing</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -454,6 +460,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Frontend</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -494,6 +501,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Backend</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -534,6 +542,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Graphic Design</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -574,6 +583,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>HR Administrator</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -614,6 +624,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>3D Artist</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -653,6 +664,7 @@
                                     alt="" class="feriiz-u-250">
                             </div>
                         </td>
+                        <td class="col-activity-photos"></td>
                         <td>Graphic Design</td>
                         <td>-</td>
                         <td>25 January 2025, 12:35pm</td>
@@ -684,45 +696,45 @@
         document.addEventListener('DOMContentLoaded', () => {
             const activityToggle = document.getElementById('absenceToggle');
 
-            const buildActivityPreviews = () => {
+            const buildActivityColumn = () => {
                 document.querySelectorAll('.data-table tbody tr').forEach(row => {
-                    const employeeCell = row.querySelector('td:nth-child(2)');
                     const pictureCell = row.querySelector('td.col-pictures');
+                    const activityCell = row.querySelector('td.col-activity-photos');
+                    if (!activityCell || !pictureCell || activityCell.dataset.built) return;
 
-                    if (!employeeCell || !pictureCell || employeeCell.querySelector('.attendance-preview')) {
-                        return;
-                    }
+                    const photos = pictureCell.querySelectorAll('img');
+                    if (photos.length === 0) return;
 
-                    const preview = document.createElement('div');
-                    preview.className = 'attendance-preview';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'activity-photo-grid';
 
-                    pictureCell.querySelectorAll('img').forEach((img, index) => {
-                        if (index >= 4) return;
-
+                    photos.forEach((img, i) => {
+                        if (i >= 4) return;
                         const clone = img.cloneNode(false);
-                        clone.className = 'attendance-preview-image';
-                        clone.alt = `Activity photo ${index + 1}`;
+                        clone.className = 'activity-photo-thumb';
+                        clone.alt = 'Activity photo ' + (i + 1);
                         clone.removeAttribute('style');
-                        preview.appendChild(clone);
+                        wrap.appendChild(clone);
                     });
 
-                    if (preview.children.length) {
-                        employeeCell.appendChild(preview);
-                    }
+                    activityCell.appendChild(wrap);
+                    activityCell.dataset.built = 'true';
                 });
             };
 
-            const syncActivityPreview = () => {
-                document.body.classList.toggle('show-attendance-preview', !!activityToggle?.checked);
+            const syncActivityColumn = () => {
+                const show = !!activityToggle?.checked;
+                document.querySelectorAll('.col-activity-photos').forEach(el => {
+                    el.classList.toggle('col-activity-visible', show);
+                });
             };
 
-            buildActivityPreviews();
+            buildActivityColumn();
 
             if (activityToggle) {
-                activityToggle.addEventListener('change', syncActivityPreview);
-                syncActivityPreview();
+                activityToggle.addEventListener('change', syncActivityColumn);
+                syncActivityColumn();
             }
-
         });
     </script>
 

@@ -1453,37 +1453,31 @@ body {
             display: none;
         }
 
-        .attendance-preview {
+        /* Activity photos column — hidden by default, shown via JS toggle */
+        .col-activity-photos {
             display: none;
-            gap: 8px;
-            margin-top: 12px;
-            padding-left: 48px;
         }
 
-        body.show-attendance-preview .attendance-preview {
+        .col-activity-photos.col-activity-visible {
+            display: table-cell;
+        }
+
+        .activity-photo-grid {
             display: flex;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
-        .attendance-preview-image {
-            width: 56px;
-            height: 56px;
-            border: 1px solid #166DBA;
-            border-radius: 8px;
+        .activity-photo-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 7px;
             object-fit: cover;
+            border: 1px solid #E5E8EC;
             background: #F4F7FA;
         }
 
-        @media (max-width: 720px) {
-            .attendance-preview {
-                padding-left: 0;
-            }
-
-            .attendance-preview-image {
-                width: 48px;
-                height: 48px;
-            }
-        }
+        /* Old attendance-preview in Name cell — replaced by Activity column */
 
 #empDetailOverlay .modal-card,
         #addEmployeeModal .modal-card {
@@ -2983,7 +2977,7 @@ body.report-layout .report-actions {
 
 .report-actions .btn-action:disabled,
 .report-actions .btn-action.primary:disabled,
-.fix-clock-dropdown button:disabled {
+.batch-update-dropdown button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
     background: #F2F4F7;
@@ -3656,17 +3650,17 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
     box-shadow: inset 4px 0 0 #2975BB !important;
 }
 
-.fix-clock-action {
+.batch-update-action {
     position: relative;
 }
 
-.fix-clock-dropdown {
+.batch-update-dropdown {
     display: none;
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    width: 190px;
-    padding: 6px;
+    width: 200px;
+    padding: 8px;
     border: 1px solid #E5E8EC;
     border-radius: 10px;
     background: #fff;
@@ -3674,16 +3668,17 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
     z-index: 220;
 }
 
-.fix-clock-dropdown.show {
+.batch-update-dropdown.show {
     display: block;
 }
 
-.fix-clock-dropdown button {
+.batch-update-dropdown button {
     width: 100%;
     min-height: 38px;
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
+    padding: 0 14px;
     border: 0;
     border-radius: 8px;
     background: #fff;
@@ -3695,14 +3690,95 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
     cursor: pointer;
 }
 
-.fix-clock-dropdown button:hover {
+.batch-update-dropdown button i {
+    width: 16px;
+    flex: 0 0 16px;
+    text-align: center;
+}
+
+.batch-update-dropdown button:hover {
     background: #F2F7FC;
     color: #166DBA;
 }
 
-.fix-clock-dropdown button:disabled:hover {
+.batch-update-dropdown button:disabled:hover {
     background: #F2F4F7;
     color: #98A2B3;
+}
+
+.batch-dropdown-divider {
+    height: 1px;
+    background: #EEF1F4;
+    margin: 4px 8px;
+}
+
+.batch-delete-group {
+    position: relative;
+}
+
+.batch-delete-trigger {
+    display: flex;
+    justify-content: space-between;
+}
+
+.batch-delete-trigger i {
+    font-size: 10px;
+    color: #98A2B3;
+    transition: color 0.15s;
+}
+
+.batch-delete-group:hover .batch-delete-trigger i {
+    color: #166DBA;
+}
+
+.batch-delete-submenu {
+    display: none;
+    position: absolute;
+    left: calc(100% + 4px);
+    top: -4px;
+    width: 160px;
+    padding: 6px;
+    border: 1px solid #E5E8EC;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    z-index: 230;
+}
+
+.batch-delete-group:hover .batch-delete-submenu {
+    display: block;
+}
+
+.batch-delete-submenu button {
+    width: 100%;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 8px;
+    background: #fff;
+    color: #344054;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.batch-delete-submenu button:hover {
+    background: #F2F7FC;
+    color: #166DBA;
+}
+
+.batch-delete-submenu .batch-delete-all {
+    color: #B42318;
+}
+
+.batch-delete-submenu .batch-delete-all:hover {
+    background: #FEF3F2;
+    color: #912018;
 }
 
 body.report-layout .report-table tbody td.missing-clock-cell {
@@ -3833,6 +3909,38 @@ body.report-layout .report-table tbody td.missing-clock-cell {
     color: #1A1A1A;
     outline: none;
     box-sizing: border-box;
+}
+
+/* Log Type Toggle in Add Log modal */
+.batch-log-type-toggle {
+    display: flex;
+    border: 1.5px solid #D0D5DD;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.batch-log-type-btn {
+    flex: 1;
+    border: none;
+    background: #fff;
+    color: #344054;
+    height: 40px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.batch-log-type-btn.active {
+    background: #2975BB;
+    color: #fff;
+}
+
+.batch-log-type-btn:not(.active):hover {
+    background: #F0F7FF;
+    color: #2975BB;
 }
 
 .report-fix-input {
@@ -4044,7 +4152,7 @@ body.report-layout .report-table tbody td.missing-clock-cell {
 .feriiz-u-129 { padding:12px 18px; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:13px; color:#333; transition:background 0.15s; }
 .feriiz-u-130 { min-width:280px; }
 .feriiz-u-131 { color:#166DBA; border:1px solid #166DBA; padding:2px 6px; border-radius:4px; }
-.feriiz-u-132 { min-width:250px; }
+.feriiz-u-132 { min-width:250px; position:relative; }
 .feriiz-u-133 { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .feriiz-u-134 { display:flex; gap:6px; }
 .feriiz-u-135 { background:#eef2f6; color:#166DBA; font-weight:600; padding:4px 8px; border-radius:6px; font-size:10px; }
@@ -4535,3 +4643,156 @@ body.report-layout .report-table tbody td.missing-clock-cell {
     background: #FDECEC;
     color: #B42318;
 }
+
+/* === No Log Cell (replaces missing-clock-cell) === */
+body.report-layout .report-table tbody td.no-log-cell {
+    background: #FFF8E7 !important;
+    box-shadow: inset 3px 0 0 #F59E0B !important;
+}
+
+body.report-layout .report-table tbody td.no-log-cell:hover {
+    background: #FFF3CD !important;
+}
+
+/* Weekend off cells */
+body.report-layout .report-table tbody td.weekend-off-cell {
+    background: #F8FAFC !important;
+    color: #C0C8D4 !important;
+}
+
+/* === Day Cell Checkbox (absolute top-right) === */
+.day-cell-checkbox {
+    position: absolute !important;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+.day-cell-checkbox .day-cell-select {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: #2975BB;
+    cursor: pointer;
+}
+
+body.report-layout .report-table tbody td.no-log-cell .day-cell-select {
+    accent-color: #D97706;
+}
+
+/* Day column header: label left, select-all checkbox right */
+.report-table thead th.day-col {
+    position: relative;
+}
+
+.report-table thead th.day-col span {
+    margin-right: auto;
+}
+
+.day-header-select {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: #166DBA;
+    cursor: pointer;
+}
+
+/* Selected cell highlight */
+body.report-layout .report-table tbody td.day-col:has(.day-cell-select:checked) {
+    outline: 2px solid #2975BB !important;
+    outline-offset: -2px;
+    background: #EEF7FF !important;
+}
+
+body.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checked) {
+    outline-color: #D97706 !important;
+    background: #FEF3C7 !important;
+}
+
+/* Hide checkbox in filtered-out and weekend cells */
+body.report-layout .report-table tbody td.filtered-out-cell .day-cell-checkbox,
+body.report-layout .report-table tbody td.weekend-off-cell .day-cell-checkbox {
+    display: none;
+}
+
+/* === Report Select Bar (below toolbar, above table) === */
+.report-select-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 8px 40px;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E5E8EC;
+}
+
+.report-select-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border: 1px solid #D0D5DD;
+    border-radius: 6px;
+    background: #fff;
+    color: #344054;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.report-select-btn:hover {
+    border-color: #2975BB;
+    color: #2975BB;
+    background: #F0F7FF;
+}
+
+.report-select-btn i {
+    font-size: 11px;
+}
+
+.report-select-deselect {
+    color: #667085;
+    border-color: #E4E7EC;
+}
+
+.report-select-deselect:hover {
+    color: #B42318;
+    border-color: #FDA29B;
+    background: #FEF3F2;
+}
+
+
+/* Filtered-out cells: hide content when filter doesn't match */
+body.report-layout .report-table tbody td.filtered-out-cell {
+    background: #F9FAFB !important;
+    box-shadow: none !important;
+}
+
+body.report-layout .report-table tbody td.filtered-out-cell > * {
+    display: none !important;
+}
+
+/* Empty log placeholder row */
+.log-empty-row {
+    opacity: 0.3;
+}
+
+.log-placeholder {
+    color: #98A2B3;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+/* Hide old badge/status classes */
+.missing-clock-badge { display: none !important; }
+.missing-clock-status { display: none !important; }

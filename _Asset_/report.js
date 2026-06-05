@@ -345,6 +345,7 @@
             });
         });
         updateCellSelectionUI();
+        updateFilterIndicator();
     }
 
     /* =============================================
@@ -383,6 +384,37 @@
         if (countText) countText.textContent = selected.length + ' selected';
         if (toggle) toggle.disabled = selected.length === 0;
         if (deselectBtn) deselectBtn.style.display = selected.length > 0 ? '' : 'none';
+    }
+
+    function updateFilterIndicator() {
+        var bar = document.getElementById('reportFilterIndicator');
+        var chips = document.getElementById('filterIndicatorChips');
+        var types = getSelectedMissingTypes();
+
+        if (!bar || !chips) return;
+
+        if (types.length === 0) {
+            bar.style.display = 'none';
+            return;
+        }
+
+        bar.style.display = '';
+        var labels = { 'in': 'Log In', 'out': 'Log Out' };
+        chips.innerHTML = types.map(function (t) {
+            return '<span class="filter-indicator-chip">' + (labels[t] || t) +
+                '<button class="filter-chip-close" data-filter-type="' + t + '">&times;</button></span>';
+        }).join('');
+
+        // Bind close buttons
+        chips.querySelectorAll('.filter-chip-close').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var type = btn.dataset.filterType;
+                document.querySelectorAll('.filter-missing').forEach(function (cb) {
+                    if (cb.value === type) cb.checked = false;
+                });
+                applyReportFilters();
+            });
+        });
     }
 
     function selectCellsByMissing(type) {

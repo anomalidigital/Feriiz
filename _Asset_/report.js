@@ -9,7 +9,24 @@
         '2026-06-18', '2026-06-19', '2026-06-20', '2026-06-21'
     ];
     var WEEKEND_DATES = new Set(['2026-06-20', '2026-06-21']);
-    var DEFAULT_DATE = '2026-06-15';
+    // Smart default: Monday of current week through today
+    // For demo purposes, simulate "today" as within the data range
+    var DEMO_TODAY = '2026-06-18'; // Thursday — shows Mon 15 to Thu 18
+    function getDefaultDates() {
+        var today = new Date(DEMO_TODAY);
+        var day = today.getDay(); // 0=Sun, 1=Mon...
+        var monday = new Date(today);
+        monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+        var dates = [];
+        var d = new Date(monday);
+        while (d <= today) {
+            var str = d.toISOString().slice(0, 10);
+            if (ALL_DATES.indexOf(str) >= 0) dates.push(str);
+            d.setDate(d.getDate() + 1);
+        }
+        return dates.length > 0 ? dates : [ALL_DATES[0]];
+    }
+    var DEFAULT_DATES = getDefaultDates();
 
     var officialEmployees = [
         { code: 'ADA27B1B2E650H0X', name: 'Adam Ferial', occupation: 'Graphic Design', pin: '3131' },
@@ -242,7 +259,7 @@
     /* =============================================
        DAY COLUMN VISIBILITY
        ============================================= */
-    var currentVisibleDates = [DEFAULT_DATE];
+    var currentVisibleDates = DEFAULT_DATES.slice();
 
     function showDays(datesToShow) {
         currentVisibleDates = datesToShow.slice();
@@ -694,7 +711,7 @@
        ============================================= */
     function init() {
         renderTable();
-        showDays([DEFAULT_DATE]);
+        showDays(DEFAULT_DATES);
         initPeriodPresets();
 
         var dateInputs = document.querySelectorAll('.filter-date');
@@ -709,9 +726,9 @@
                     var sT = s ? new Date(s).getTime() : -Infinity;
                     var eT = e ? new Date(e).getTime() : Infinity;
                     var vis = ALL_DATES.filter(function (d) { var t = new Date(d).getTime(); return t >= sT && t <= eT; });
-                    showDays(vis.length > 0 ? vis : [DEFAULT_DATE]);
+                    showDays(vis.length > 0 ? vis : DEFAULT_DATES);
                 } else if (action === 'delete') {
-                    showDays([DEFAULT_DATE]);
+                    showDays(DEFAULT_DATES);
                 }
                 applyReportFilters();
             });
@@ -727,7 +744,7 @@
                 document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                 deselectAllCells();
-                showDays([DEFAULT_DATE]);
+                showDays(DEFAULT_DATES);
                 applyReportFilters();
             });
         }

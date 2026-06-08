@@ -289,18 +289,6 @@
                 else if (v === 'all_time') { s = ''; e = ''; }
                 dateInputs[0].value = s;
                 dateInputs[1].value = e;
-
-                // Auto-apply
-                if (s || e) {
-                    const sT = s ? new Date(s).getTime() : -Infinity;
-                    const eT = e ? new Date(e).getTime() : Infinity;
-                    const vis = allDates.filter(d => { const t = new Date(d).getTime(); return t >= sT && t <= eT; });
-                    showDays(vis.length > 0 ? vis : defaultDates);
-                } else if (v === 'all_time') {
-                    showDays(allDates);
-                } else {
-                    showDays(defaultDates);
-                }
             });
         }
 

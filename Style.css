@@ -4842,6 +4842,24 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     opacity: 1;
 }
 
+/* === Hand Tool (Space + drag to pan) === */
+.report-table-wrap.hand-tool-active {
+    cursor: grab;
+    user-select: none;
+}
+
+.report-table-wrap.hand-tool-grabbing {
+    cursor: grabbing !important;
+}
+
+.report-table-wrap.hand-tool-active * {
+    cursor: grab !important;
+}
+
+.report-table-wrap.hand-tool-grabbing * {
+    cursor: grabbing !important;
+}
+
 /* Empty log placeholder row */
 .log-empty-row {
     opacity: 0.3;

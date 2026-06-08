@@ -686,19 +686,6 @@
             else if (v === 'this_year') { s = fmt(new Date(now.getFullYear(), 0, 1)); e = fmt(now); }
             else if (v === 'all_time') { s = ''; e = ''; }
             di[0].value = s; di[1].value = e;
-
-            // Auto-apply: show matching days and filter
-            if (s || e) {
-                var sT = s ? new Date(s).getTime() : -Infinity;
-                var eT = e ? new Date(e).getTime() : Infinity;
-                var vis = ALL_DATES.filter(function (d) { var t = new Date(d).getTime(); return t >= sT && t <= eT; });
-                showDays(vis.length > 0 ? vis : [DEFAULT_DATE]);
-            } else if (v === 'all_time') {
-                showDays(ALL_DATES);
-            } else {
-                showDays([DEFAULT_DATE]);
-            }
-            applyReportFilters();
         });
     }
 

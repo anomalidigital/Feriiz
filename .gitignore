@@ -1,4 +1,18 @@
 trash/
+cleanup.bat
 *.log
 .DS_Store
 Thumbs.db
+
+# Server & backend (demo only)
+server.js
+package.json
+package-lock.json
+node_modules/
+Forgot password/
+
+# Old folders (to be deleted)
+_Asset_/
+Employee_pictures/
+Style.css
+my account.html

@@ -434,24 +434,6 @@
         });
     }
 
-    function selectCellsByMissing(type) {
-        // First deselect all
-        document.querySelectorAll('td.day-col.cell-selected').forEach(function (c) { c.classList.remove('cell-selected'); });
-
-        // Select cells matching the missing type
-        document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-            if (row.hidden) return;
-            row.querySelectorAll('td.day-col').forEach(function (cell) {
-                if (currentVisibleDates.indexOf(cell.dataset.date) < 0) return;
-                if (cell.dataset.missing === type) {
-                    var isSelected = cell.classList.contains('cell-selected');
-                    if (cb) cb.checked = true;
-                }
-            });
-        });
-        updateCellSelectionUI();
-    }
-
     function deselectAllCells() {
         document.querySelectorAll('.day-cell-select').forEach(function (cb) { cb.checked = false; });
         updateCellSelectionUI();

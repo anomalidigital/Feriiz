@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.2.0">
+</head>
+
+<body class="login-body">
+
+    <!-- Login Card -->
+    <div class="login-card">
+        <div class="login-card-header">
+            <img src="assets/images/icon_feriiz.png" alt="Feriiz" class="login-card-logo">
+            <h1 class="login-title">Login</h1>
+            <p class="login-subtitle">Sign in to your account</p>
+        </div>
+
+        <form class="login-form" onsubmit="handleLogin(event)">
+            <div class="login-field">
+                <label for="loginEmail">Email address</label>
+                <div class="login-input-wrap">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" id="loginEmail" class="input" placeholder="Enter your email" required>
+                </div>
+            </div>
+
+            <div class="login-field">
+                <label for="loginPassword">Password</label>
+                <div class="login-input-wrap">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" class="input" placeholder="Enter your password" required>
+                    <button type="button" class="login-eye-btn" onclick="togglePassword()">
+                        <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="login-options">
+                <label class="login-remember">
+                    <input type="checkbox" checked> Remember me
+                </label>
+                <a href="forgot_password.html" class="login-forgot">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary login-btn">
+                Login
+            </button>
+
+            <!-- Error Message -->
+            <div class="login-error" id="loginError" style="display:none;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <div class="login-error-title" id="errorTitle">Invalid Password</div>
+                    <div class="login-error-msg" id="errorMsg">Please try again or reset your password</div>
+                </div>
+            </div>
+        </form>
+
+        <div class="login-footer">
+            <span>version : 3.2.0</span>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            var pw = document.getElementById('loginPassword');
+            var icon = document.getElementById('eyeIcon');
+            if (pw.type === 'password') {
+                pw.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                pw.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            var email = document.getElementById('loginEmail').value;
+            var password = document.getElementById('loginPassword').value;
+
+            // Demo: simulate error for wrong password
+            if (password !== 'demo123') {
+                showError('Invalid Password', 'Please try again or reset your password');
+                return;
+            }
+
+            // Demo: redirect on success
+            window.location.href = 'index.html';
+        }
+
+        function showError(title, message) {
+            var errorBox = document.getElementById('loginError');
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorMsg').textContent = message;
+            errorBox.style.display = 'flex';
+
+            // Shake animation
+            errorBox.classList.remove('shake');
+            void errorBox.offsetWidth;
+            errorBox.classList.add('shake');
+        }
+    </script>
+
+</body>
+
+</html>

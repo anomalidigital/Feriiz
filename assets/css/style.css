@@ -4624,9 +4624,17 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #F2F2F2;
+    background: #1a1a2e url('../images/login-bg.jpg') center/cover no-repeat fixed;
     padding: 20px;
     font-family: 'Poppins', sans-serif;
+}
+
+.login-body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 0;
 }
 
 .login-card {

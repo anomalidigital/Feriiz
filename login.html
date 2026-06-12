@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.2.0">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.0">
 </head>
 
 <body class="login-body">
@@ -43,7 +43,7 @@
                 <label class="login-remember">
                     <input type="checkbox" checked> Remember me
                 </label>
-                <a href="forgot_password.html" class="login-forgot">Forgot password?</a>
+                <a href="#" class="login-forgot" onclick="goForgot(); return false;">Forgot password?</a>
             </div>
 
             <button type="submit" class="btn btn-primary login-btn">
@@ -61,7 +61,7 @@
         </form>
 
         <div class="login-footer">
-            <span>version : 3.2.0</span>
+            <span>version : 3.3.0</span>
         </div>
     </div>
 
@@ -97,6 +97,13 @@
             // Save session & redirect
             sessionStorage.setItem('feriiz_user', JSON.stringify({ email: email, name: 'Admin', loginAt: Date.now() }));
             window.location.href = 'index.html';
+        }
+
+        function goForgot() {
+            var email = document.getElementById('loginEmail').value;
+            var url = 'forgot_password.html';
+            if (email) url += '?email=' + encodeURIComponent(email);
+            window.location.href = url;
         }
 
         function showError(title, message) {

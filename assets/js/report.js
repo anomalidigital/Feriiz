@@ -28,20 +28,7 @@
     }
     var DEFAULT_DATES = getDefaultDates();
 
-    var officialEmployees = [
-        { code: 'ADA27B1B2E650H0X', name: 'Adam Ferial', occupation: 'Graphic Design', pin: '3131' },
-        { code: 'APR8940K8VB44L8', name: 'Apriyanto Apriyanto', occupation: 'Teknisi', pin: '2714' },
-        { code: 'BILFBY9N8YJ1YDN', name: 'Baldyas Satrio', occupation: 'Graphic Design', pin: '2218' },
-        { code: 'IFAT8WJ2DM', name: 'Ifan Faizal Adnan', occupation: 'Sr.Programmer', pin: '1840' },
-        { code: 'IND693283053999', name: 'Indra Naftali', occupation: 'Manager', pin: '5190' },
-        { code: 'MAUNZITL5HOQ7GG', name: 'Mauli Hidayat', occupation: 'Backend', pin: '7402' },
-        { code: 'RADYBYR517IFSC6', name: 'Raden Maulana', occupation: 'Frontend', pin: '6629' },
-        { code: 'STEPRQTY99', name: 'Steven Febrianto', occupation: 'Marketing', pin: '8027' },
-        { code: 'VER2FWV8L80S5SX', name: 'Veronica Nathalia', occupation: 'HR Administrator', pin: '4075' },
-        { code: 'YENX6LH3X9', name: 'Yenni Tedjakoesoemo', occupation: '3D Artist', pin: '9064' },
-        { code: 'ZICOJMQN8SQSFRDT', name: 'Zicky Affan', occupation: 'Teknisi', pin: '5861' },
-        { code: 'SAN79P3WFFK4MQM', name: 'Sandy Santuy', occupation: 'Frontend', pin: '7903' }
-    ];
+    var officialEmployees = (window.FERIIZ_DATA && window.FERIIZ_DATA.employees) || [];
 
     var dummyEmployees = [
         {
@@ -595,14 +582,13 @@
                     cell.classList.remove('no-log-cell');
                 }
 
-                var isSelected = cell.classList.contains('cell-selected');
-                if (cb) cb.checked = false;
+                cell.classList.remove('cell-selected');
 
                 var lines = [];
                 if (existIn) lines.push({ type: 'in', value: existIn });
                 if (existOut) lines.push({ type: 'out', value: existOut });
 
-                cell.innerHTML =
+                cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
                     buildDayCellContent({ inTime: existIn, outTime: existOut, issue: issue, clockLines: lines.length > 0 ? lines : null });
                 updated++;
             });

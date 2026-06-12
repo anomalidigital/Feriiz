@@ -10,6 +10,85 @@ function feriizLogout() {
     window.location.href = 'login.html';
 }
 
+/* === Sidebar Renderer ===
+   Single source for sidebar markup. Pages opt in by adding
+   <body data-page="KEY"> and an empty <aside class="sidebar"></aside>. */
+(function () {
+    var PAGE_MAP = {
+        'dashboard':                 { main: 'dashboard' },
+        'projects':                  { main: 'projects-flat' },
+        'employees':                 { main: 'employees' },
+        'calendar':                  { main: 'calendar' },
+        'my-account':                { main: 'my-account', logout: true },
+        'project-activity':          { main: 'projects-group', sub: 'activity' },
+        'project-attendance':        { main: 'projects-group', sub: 'activity' },
+        'project-report':            { main: 'projects-group', sub: 'report' },
+        'project-calendar':          { main: 'calendar' },
+        'project-requests':          { main: 'projects-group', sub: 'requests' },
+        'employee-detail':           { main: 'employees' },
+        'employee-attendance':       { main: 'employees' },
+        'employee-projects':         { main: 'employees' },
+        'employee-report':           { main: 'projects-group', sub: 'report' },
+        'employee-personal-request': { main: 'projects-group', sub: 'requests' }
+    };
+
+    function cls(active) { return active ? ' class="active"' : ''; }
+
+    function render() {
+        var page = document.body && document.body.getAttribute('data-page');
+        var aside = document.querySelector('aside.sidebar');
+        if (!page || !aside) return;
+        var cfg = PAGE_MAP[page] || {};
+        var inGroup = cfg.main === 'projects-group';
+
+        aside.innerHTML =
+            '<div class="sidebar-logo">' +
+                '<img src="assets/images/logo.png" alt="Feriiz" class="sidebar-logo-img">' +
+            '</div>' +
+            '<nav class="sidebar-nav">' +
+                '<a href="index.html"' + cls(cfg.main === 'dashboard') + '>' +
+                    '<i class="fa-solid fa-table-cells-large"></i><span class="nav-label">Dashboard</span>' +
+                '</a>' +
+                '<div class="nav-group' + (inGroup ? ' open' : '') + '">' +
+                    '<a href="projects.html"' + cls(inGroup || cfg.main === 'projects-flat') + '>' +
+                        '<i class="fa-solid fa-clipboard"></i><span class="nav-label">Projects</span>' +
+                    '</a>' +
+                    '<div class="nav-submenu">' +
+                        '<a href="project_employees.html"' + cls(cfg.sub === 'activity') + '>' +
+                            '<i class="fa-solid fa-clock"></i><span class="nav-label">Activity</span>' +
+                        '</a>' +
+                        '<a href="project_report.html"' + cls(cfg.sub === 'report') + '>' +
+                            '<i class="fa-regular fa-file-lines"></i><span class="nav-label">Report</span>' +
+                        '</a>' +
+                        '<a href="employee_request.html"' + cls(cfg.sub === 'requests') + '>' +
+                            '<i class="fa-solid fa-clipboard-list"></i><span class="nav-label">Requests</span>' +
+                        '</a>' +
+                    '</div>' +
+                '</div>' +
+                '<a href="employees.html"' + cls(cfg.main === 'employees') + '>' +
+                    '<i class="fa-solid fa-users"></i><span class="nav-label">Employees</span>' +
+                '</a>' +
+                '<a href="calendar.html"' + cls(cfg.main === 'calendar') + '>' +
+                    '<i class="fa-regular fa-calendar"></i><span class="nav-label">Calendar</span>' +
+                '</a>' +
+                '<a href="my-account.html"' + cls(cfg.main === 'my-account') + '>' +
+                    '<i class="fa-regular fa-user"></i><span class="nav-label">My Account</span>' +
+                '</a>' +
+                (cfg.logout
+                    ? '<a href="#" onclick="feriizLogout(); return false;" class="nav-logout">' +
+                          '<i class="fa-solid fa-right-from-bracket"></i><span class="nav-label">Logout</span>' +
+                      '</a>'
+                    : '') +
+            '</nav>';
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', render);
+    } else {
+        render();
+    }
+})();
+
 /* === Mobile Navigation === */
 (function() {
     if (window.innerWidth > 768) return;
@@ -392,3 +471,88 @@ function feriizLogout() {
         handleReportTableScroll();
     }
 })();
+
+/* ============================================================
+   FERIIZ HELPERS — generic UI utilities reused across pages.
+   Use these instead of writing new modal/search/filter logic
+   inline. Old inline code stays for now; migrate as you touch.
+   ============================================================ */
+window.FeriizModal = {
+    open: function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        if (!el.dataset.feriizBound) {
+            el.dataset.feriizBound = '1';
+            el.addEventListener('click', function (e) {
+                if (e.target === el) window.FeriizModal.close(id);
+            });
+        }
+    },
+    close: function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+};
+
+window.FeriizSearch = {
+    /* Wires an <input> to filter rows by text content.
+       opts: { input, rows, getText? } — getText(row) returns the string to match. */
+    bind: function (opts) {
+        var input = opts.input;
+        var rows = opts.rows;
+        var getText = opts.getText || function (r) { return r.textContent || ''; };
+        if (!input || !rows) return;
+        input.addEventListener('input', function () {
+            var q = (input.value || '').trim().toLowerCase();
+            rows.forEach(function (row) {
+                var text = getText(row).toLowerCase();
+                row.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+            });
+        });
+    }
+};
+
+/* Auto-fill alt text on employee avatars so screen readers
+   announce the name instead of an empty image. */
+(function () {
+    function fillAlts() {
+        var cells = document.querySelectorAll('.employee-cell');
+        for (var i = 0; i < cells.length; i++) {
+            var avatar = cells[i].querySelector('.employee-avatar, img');
+            var name = cells[i].querySelector('.employee-name');
+            if (avatar && name && !avatar.alt) {
+                avatar.alt = (name.textContent || '').trim();
+            }
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fillAlts);
+    } else {
+        fillAlts();
+    }
+})();
+
+window.FeriizFilterBar = {
+    /* Wires a filter toggle button + dropdown panel with outside-click close.
+       opts: { toggle, dropdown, apply?, clear?, onApply?, onClear? } */
+    init: function (opts) {
+        var toggle = opts.toggle;
+        var dropdown = opts.dropdown;
+        if (!toggle || !dropdown) return;
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        if (opts.apply && opts.onApply) opts.apply.addEventListener('click', opts.onApply);
+        if (opts.clear && opts.onClear) opts.clear.addEventListener('click', opts.onClear);
+    }
+};

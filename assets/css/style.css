@@ -7,6 +7,46 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
+/* === DESIGN TOKENS ===
+   Use these variables for new code. Existing rules still hardcode
+   hex values; migrate them only when you're already editing the rule. */
+:root {
+    /* Brand */
+    --feriiz-primary: #2975BB;
+    --feriiz-primary-soft: #EBF3FA;
+    --feriiz-primary-dark: #166DBA;
+
+    /* Status */
+    --feriiz-success: #27AE60;
+    --feriiz-warning: #E67E22;
+    --feriiz-danger: #E74C3C;
+    --feriiz-info: #2980B9;
+
+    /* Surfaces */
+    --feriiz-bg: #F2F2F2;
+    --feriiz-card: #FFFFFF;
+    --feriiz-border: #D9D9D9;
+    --feriiz-border-soft: #E5E8EC;
+
+    /* Text */
+    --feriiz-text: #1a1a1a;
+    --feriiz-text-muted: #777;
+    --feriiz-text-soft: #999;
+
+    /* Shape */
+    --feriiz-radius: 7px;
+    --feriiz-radius-lg: 12px;
+    --feriiz-radius-pill: 999px;
+
+    /* Layout */
+    --feriiz-sidebar-w: 56px;
+    --feriiz-sidebar-hover-w: 200px;
+    --feriiz-sidebar-mobile-w: 240px;
+
+    /* Type */
+    --feriiz-font: 'Poppins', sans-serif;
+}
+
 /* === RESET & BASE === */
 *,
 *::before,
@@ -75,8 +115,7 @@ body {
     padding: 0 8px;
 }
 
-.sidebar-nav a,
-.sidebar-bottom a {
+.sidebar-nav a {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -90,28 +129,24 @@ body {
     flex-shrink: 0;
 }
 
-.sidebar-nav a:hover,
-.sidebar-bottom a:hover {
+.sidebar-nav a:hover {
     background: #F2F2F2;
     color: #2975BB;
 }
 
-.sidebar-nav a.active,
-.sidebar-bottom a.active {
+.sidebar-nav a.active {
     background: #EBF3FA;
     color: #2975BB;
 }
 
-.sidebar-nav a i,
-.sidebar-bottom a i {
+.sidebar-nav a i {
     font-size: 20px;
     width: 22px;
     text-align: center;
     flex-shrink: 0;
 }
 
-.sidebar-nav a .nav-label,
-.sidebar-bottom a .nav-label {
+.sidebar-nav a .nav-label {
     font-size: 13px;
     font-weight: 600;
     opacity: 0;
@@ -122,12 +157,6 @@ body {
 .sidebar:hover .nav-label {
     opacity: 1;
     visibility: visible;
-}
-
-/* Hide old tooltips */
-.sidebar-nav a .tooltip,
-.sidebar-bottom a .tooltip {
-    display: none !important;
 }
 
 /* Projects submenu */
@@ -519,13 +548,6 @@ body {
     font-size: 11px;
     color: #2975BB;
     font-weight: 500;
-}
-
-/* Action Buttons Cell */
-.action-cell {
-    display: flex;
-    gap: 6px;
-    align-items: center;
 }
 
 /* === STATUS BADGES === */
@@ -970,177 +992,7 @@ body {
     }
 }
 
-@media (max-width: 768px) {
-    body {
-        font-size: 14px;
-    }
-
-    .sidebar {
-        display: none;
-    }
-
-    .main-content {
-        margin-left: 0;
-        padding: 16px;
-    }
-
-    .three-col-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-    }
-
-    .page-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px !important;
-    }
-
-    .page-actions .btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    /* Inline search boxes → full width on mobile */
-    .page-actions>div[style*="position:relative"] {
-        width: 100%;
-    }
-
-    .page-actions>div[style*="position:relative"] input {
-        width: 100% !important;
-    }
-
-    .page-title {
-        font-size: 24px;
-    }
-
-    .stat-cards {
-        flex-direction: column;
-        gap: 12px !important;
-    }
-
-    .stat-card {
-        padding: 16px 20px !important;
-    }
-
-    .stat-card-icon {
-        width: 44px !important;
-        height: 44px !important;
-        margin-right: 14px !important;
-    }
-
-    .stat-card-icon svg {
-        width: 24px !important;
-        height: 24px !important;
-    }
-
-    .stat-card-info .stat-number {
-        font-size: 22px !important;
-    }
-
-    .stat-card-info .stat-label {
-        font-size: 12px !important;
-    }
-
-    .filter-bar,
-    .info-bar {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 12px !important;
-    }
-
-    .info-bar>div:last-child {
-        margin-left: 0 !important;
-        width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px !important;
-    }
-
-    .info-bar>div:last-child>div[style*="position:relative"] {
-        flex-shrink: 0;
-    }
-
-    .info-bar>div:last-child select {
-        flex: 1;
-        min-width: 0 !important;
-    }
-
-    /* Filter dropdown → full width on mobile */
-    .filter-dropdown {
-        width: calc(100vw - 64px) !important;
-        right: -8px;
-    }
-
-    .filter-toggle-btn {
-        width: 42px;
-        height: 42px;
-    }
-
-    /* Search box full width */
-    .search-box {
-        width: 100%;
-        margin-left: 0 !important;
-    }
-
-    .search-box input {
-        width: 100% !important;
-        max-width: none !important;
-    }
-
-    .tab-nav {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .tab-btn {
-        flex: 1;
-        text-align: center;
-        justify-content: center;
-    }
-
-    .table-container {
-        overflow-x: auto;
-        border-radius: 8px;
-    }
-
-    .data-table {
-        min-width: 800px;
-        /* Force scroll on small screens */
-    }
-
-    /* Action buttons in table → keep left, ensure touch friendly sizing */
-    .action-cell {
-        gap: 4px !important;
-    }
-
-    .btn-icon {
-        width: 34px;
-        height: 34px;
-    }
-
-    .btn-icon svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    /* Pagination responsive */
-    .pagination {
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .pagination-buttons {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-}
+/* (Legacy @media 768px merged into the v3.3.0 block at the bottom of this file.) */
 
 /* === BREADCRUMB === */
 .breadcrumb {
@@ -4028,7 +3880,6 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
 .feriiz-u-094 { width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; margin-bottom:12px; }
 .feriiz-u-095 { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
 .feriiz-u-096 { width:100%; border-radius:8px; border:1px solid #D9D9D9; padding:8px 12px; height:42px; }
-.feriiz-u-097 { padding:10px 12px 10px 38px; border-radius:8px; border:1px solid #D9D9D9; height:42px; width:220px; font-family:'Poppins',sans-serif; font-size:13px; outline:none; }
 .feriiz-u-098 { background:#E67E22; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px; }
 .feriiz-u-099 { color:#fff; font-size:28px; font-weight:700; line-height:1; }
 .feriiz-u-100 { width:32px; height:32px; border-radius:50%; object-fit:cover; margin-right:10px; }
@@ -4773,17 +4624,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #1a1a2e url('../images/login-bg.jpg') center/cover no-repeat fixed;
+    background: #F2F2F2;
     padding: 20px;
     font-family: 'Poppins', sans-serif;
-}
-
-.login-body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.35);
-    z-index: 0;
 }
 
 .login-card {
@@ -5064,6 +4907,30 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
 @media (max-width: 768px) {
 
+    /* --- Base typography & touch sizing --- */
+    body {
+        font-size: 14px !important;
+    }
+
+    .btn-icon {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    .btn-icon svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .filter-toggle-btn {
+        width: 42px !important;
+        height: 42px !important;
+    }
+
+    .action-cell {
+        gap: 4px !important;
+    }
+
     /* --- Hamburger Button --- */
     .mobile-menu-btn {
         display: flex !important;
@@ -5179,8 +5046,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     /* Search input - full width on mobile */
     .feriiz-u-068,
-    .feriiz-u-022,
-    .feriiz-u-097 {
+    .feriiz-u-022 {
         width: 100% !important;
         max-width: none !important;
     }

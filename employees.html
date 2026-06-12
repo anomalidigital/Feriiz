@@ -6,36 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.2.0">
-    <script src="assets/js/app.js?v=3.2.0" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.0">
+    <script src="assets/js/data.js?v=3.3.0" defer></script>
+    <script src="assets/js/app.js?v=3.3.0" defer></script>
 </head>
 
-<body>
+<body data-page="employees">
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="assets/images/logo.png" alt="Feriiz" class="sidebar-logo-img">
-        </div>
-        <nav class="sidebar-nav">
-            <a href="index.html">
-                <i class="fa-solid fa-table-cells-large"></i>
-                <span class="nav-label">Dashboard</span>
-            </a>
-            <a href="projects.html">
-                <i class="fa-solid fa-clipboard"></i>
-                <span class="nav-label">Projects</span>
-            </a>
-            <a href="employees.html" class="active">
-                <i class="fa-solid fa-users"></i>
-                <span class="nav-label">Employees</span>
-            </a>
-            <a href="calendar.html"><i class="fa-regular fa-calendar"></i><span class="nav-label">Calendar</span></a>
-            <a href="my-account.html">
-                <i class="fa-regular fa-user"></i>
-                <span class="nav-label">My Account</span>
-            </a>
-                </nav>
-    </aside>
+    <aside class="sidebar"></aside>
 
     <main class="main-content">
         <div class="page-header">
@@ -414,7 +392,7 @@
                 <div class="pagination-info">Showing 1 - 12 of 12 results</div>
                 <div class="pagination-buttons">
                     <button disabled>&lt; Previous</button>
-                    <a href="#" class="active">1</a>
+                    <a href="#" class="active" aria-current="page">1</a>
                     <a href="#">2</a>
                     <a href="#">3</a>
                     <span class="page-dots">...</span>
@@ -422,7 +400,7 @@
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.2.0</div>
+        <div class="feriiz-u-032">version : 3.3.0</div>
     </main>
 
         <script>

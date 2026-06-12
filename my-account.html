@@ -6,41 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feriiz - My Account</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/style.css?v=3.2.0">
-    <script src="assets/js/app.js?v=3.2.0" defer></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=3.3.0">
+    <script src="assets/js/data.js?v=3.3.0" defer></script>
+    <script src="assets/js/app.js?v=3.3.0" defer></script>
 </head>
 
-<body>
+<body data-page="my-account">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="assets/images/logo.png" alt="Feriiz" class="sidebar-logo-img">
-        </div>
-        <nav class="sidebar-nav">
-            <a href="index.html">
-                <i class="fa-solid fa-table-cells-large"></i>
-                <span class="nav-label">Dashboard</span>
-            </a>
-            <a href="projects.html">
-                <i class="fa-solid fa-clipboard"></i>
-                <span class="nav-label">Projects</span>
-            </a>
-            <a href="employees.html">
-                <i class="fa-solid fa-users"></i>
-                <span class="nav-label">Employees</span>
-            </a>
-            <a href="calendar.html"><i class="fa-regular fa-calendar"></i><span class="nav-label">Calendar</span></a>
-            <a href="my-account.html" class="active">
-                <i class="fa-regular fa-user"></i>
-                <span class="nav-label">My Account</span>
-            </a>
-                    <a href="#" onclick="feriizLogout(); return false;" class="nav-logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span class="nav-label">Logout</span>
-            </a>
-        </nav>
-    </aside>
+    <aside class="sidebar"></aside>
 
   <!-- Main Content -->
   <main class="main-content">
@@ -135,7 +109,7 @@
         </div>
 
         <div class="project-list feriiz-u-184">
-          <a href="project_employees.html" class="project-item feriiz-u-185">
+          <a href="project_employees.html?project=ANM001" class="project-item feriiz-u-185">
             <div>
               <div class="project-item-name">Anomali (BSD Residence)</div>
               <div class="project-item-type">Attendance</div>
@@ -145,7 +119,7 @@
               <i class="fa-solid fa-chevron-right feriiz-u-186"></i>
             </div>
           </a>
-          <a href="project_employees.html" class="project-item feriiz-u-185">
+          <a href="project_employees.html?project=DCG015" class="project-item feriiz-u-185">
             <div>
               <div class="project-item-name">Diamond Crystal Golf No. 15</div>
               <div class="project-item-type">Attendance</div>
@@ -155,7 +129,7 @@
               <i class="fa-solid fa-chevron-right feriiz-u-186"></i>
             </div>
           </a>
-          <a href="project_employees.html" class="project-item feriiz-u-185">
+          <a href="project_employees.html?project=DGH105" class="project-item feriiz-u-185">
             <div>
               <div class="project-item-name">Diamond Golf H3 No. 105</div>
               <div class="project-item-type">Attendance</div>
@@ -171,7 +145,7 @@
     </div>
 
     <!-- Version -->
-    <div class="feriiz-u-032">version : 3.2.0</div>
+    <div class="feriiz-u-032">version : 3.3.0</div>
 
   </main>
 

@@ -10,6 +10,44 @@ function feriizLogout() {
     window.location.href = 'login.html';
 }
 
+/* === Mobile Navigation === */
+(function() {
+    if (window.innerWidth > 768) return;
+    var sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    // Create hamburger button
+    var btn = document.createElement('button');
+    btn.className = 'mobile-menu-btn';
+    btn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+    btn.setAttribute('aria-label', 'Menu');
+    document.body.appendChild(btn);
+
+    // Create overlay
+    var overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+
+    function openMenu() {
+        sidebar.classList.add('mobile-open');
+        overlay.classList.add('show');
+        btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    }
+
+    function closeMenu() {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('show');
+        btn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+    }
+
+    btn.addEventListener('click', function() {
+        if (sidebar.classList.contains('mobile-open')) closeMenu();
+        else openMenu();
+    });
+
+    overlay.addEventListener('click', closeMenu);
+})();
+
 (function () {
     function normalizeOccupation(value) {
         return String(value || '').trim().toLowerCase();

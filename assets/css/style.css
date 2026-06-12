@@ -5040,3 +5040,370 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     opacity: 1;
     background: rgba(255,255,255,0.1);
 }
+
+/* Mobile elements hidden on desktop */
+.mobile-menu-btn,
+.sidebar-overlay {
+    display: none;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE OVERHAUL
+   ============================================ */
+
+/* --- Mobile Navigation (hamburger + slide-out) --- */
+@media (max-width: 768px) {
+    /* Mobile hamburger button */
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: #fff;
+        border-radius: 8px;
+        font-size: 20px;
+        color: #333;
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 200;
+    }
+
+    .mobile-menu-btn:active {
+        background: #f0f0f0;
+    }
+
+    /* Sidebar becomes slide-out overlay */
+    .sidebar {
+        display: flex !important;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 240px !important;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    /* Overlay behind sidebar */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 99;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+    /* Show nav labels when sidebar is open on mobile */
+    .sidebar.mobile-open .nav-label {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .sidebar.mobile-open .sidebar-logo-img {
+        width: 140px;
+    }
+
+    /* Main content adjustments */
+    .main-content {
+        margin-left: 0 !important;
+        padding: 60px 14px 20px !important;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        font-size: 12px;
+        gap: 5px;
+        margin-bottom: 8px;
+    }
+
+    .breadcrumb a,
+    .breadcrumb span {
+        font-size: 12px;
+    }
+
+    /* Page header */
+    .page-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    .page-title {
+        font-size: 20px !important;
+    }
+
+    /* Stat cards - horizontal scroll */
+    .stat-cards {
+        flex-direction: row !important;
+        overflow-x: auto;
+        gap: 10px !important;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .stat-card {
+        min-width: 140px;
+        flex-shrink: 0;
+        padding: 14px !important;
+    }
+
+    /* Tables - scrollable container */
+    .table-container,
+    .data-table-wrap,
+    .report-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -14px;
+        padding: 0 14px;
+    }
+
+    .data-table,
+    .report-table {
+        min-width: 700px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    /* Employee cell compact */
+    .employee-cell {
+        gap: 8px !important;
+    }
+
+    .employee-avatar {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .employee-name {
+        font-size: 13px;
+    }
+
+    .employee-code {
+        font-size: 11px;
+    }
+
+    /* Occupation table (dashboard) */
+    .occupation-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+        width: 100% !important;
+    }
+
+    /* Multi occupation filter */
+    .multi-occ-filter {
+        width: 100% !important;
+    }
+
+    /* Search box */
+    .search-box,
+    .page-actions > div[style*="position:relative"] {
+        width: 100% !important;
+    }
+
+    .search-box input {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    /* Buttons */
+    .page-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px !important;
+    }
+
+    .page-actions .btn {
+        font-size: 13px;
+        padding: 8px 14px;
+    }
+
+    /* Export button */
+    .btn-export,
+    .export-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Pagination */
+    .pagination {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .pagination-info {
+        font-size: 12px;
+    }
+
+    .pagination-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .pagination-buttons .btn {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 8px;
+        font-size: 12px;
+    }
+
+    /* Modals */
+    .modal-card {
+        max-width: calc(100vw - 20px) !important;
+        margin: 10px;
+    }
+
+    .modal-header {
+        padding: 16px !important;
+    }
+
+    .modal-body {
+        padding: 16px !important;
+    }
+
+    .modal-footer {
+        padding: 12px 16px !important;
+    }
+
+    .modal-grid,
+    .modal-info-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Calendar */
+    .calendar-layout {
+        flex-direction: column !important;
+    }
+
+    .request-panel {
+        width: 100% !important;
+        flex-basis: auto !important;
+        position: static !important;
+    }
+
+    .calendar-board {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cal-grid {
+        min-width: 700px;
+    }
+
+    /* Report page */
+    .report-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .report-actions .btn-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Info bar */
+    .info-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .info-bar > div:last-child {
+        margin-left: 0 !important;
+        flex-wrap: wrap;
+    }
+
+    /* Tab navigation */
+    .tab-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+
+    .tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 12px;
+        padding: 8px 14px;
+    }
+
+    /* Form grids */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-row {
+        flex-direction: column !important;
+    }
+
+    /* Employee detail sections */
+    .detail-grid,
+    .detail-info-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Version footer */
+    .feriiz-u-032,
+    .version-text {
+        font-size: 10px;
+        text-align: center;
+        padding: 12px 0;
+    }
+}
+
+/* --- Small phones (< 400px) --- */
+@media (max-width: 400px) {
+    .main-content {
+        padding: 56px 10px 16px !important;
+    }
+
+    .stat-card {
+        min-width: 120px;
+        padding: 12px !important;
+    }
+
+    .page-title {
+        font-size: 18px !important;
+    }
+
+    .login-card {
+        padding: 28px 20px 24px !important;
+    }
+
+      .data-table th,
+    .data-table td {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+}

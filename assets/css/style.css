@@ -5026,3 +5026,17 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 .forgot-back-link:hover {
     text-decoration: underline;
 }
+
+/* === Logout Link === */
+.nav-logout {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: #fff !important;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.nav-logout:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+}

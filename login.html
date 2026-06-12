@@ -66,6 +66,9 @@
     </div>
 
     <script>
+        // Already logged in? go to dashboard
+        if (sessionStorage.getItem('feriiz_user')) { window.location.href = 'index.html'; }
+
         function togglePassword() {
             var pw = document.getElementById('loginPassword');
             var icon = document.getElementById('eyeIcon');
@@ -91,23 +94,12 @@
                 return;
             }
 
-            // Demo: redirect on success
+            // Save session & redirect
+            sessionStorage.setItem('feriiz_user', JSON.stringify({ email: email, name: 'Admin', loginAt: Date.now() }));
             window.location.href = 'index.html';
         }
 
         function showError(title, message) {
             var errorBox = document.getElementById('loginError');
             document.getElementById('errorTitle').textContent = title;
-            document.getElementById('errorMsg').textContent = message;
-            errorBox.style.display = 'flex';
-
-            // Shake animation
-            errorBox.classList.remove('shake');
-            void errorBox.offsetWidth;
-            errorBox.classList.add('shake');
-        }
-    </script>
-
-</body>
-
-</html>
+            document.getElementById('errorMsg').textContent = me

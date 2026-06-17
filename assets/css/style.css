@@ -4620,13 +4620,38 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
    LOGIN PAGE
    ============================================ */
 .login-body {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #F2F2F2;
+    background: #1a1a2e;
     padding: 20px;
     font-family: 'Poppins', sans-serif;
+    overflow: hidden;
+}
+
+/* Sharp background image */
+.login-body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('../images/login-bg.jpg') center/cover no-repeat;
+    z-index: 0;
+}
+
+/* Radial vignette — guides the eye toward the card in the center */
+.login-body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0, 0, 0, 0.15) 0%,
+        rgba(0, 0, 0, 0.55) 100%
+    );
+    z-index: 0;
+    pointer-events: none;
 }
 
 .login-card {
@@ -4634,7 +4659,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     z-index: 1;
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     padding: 40px 36px 32px;
     width: 100%;
     max-width: 400px;

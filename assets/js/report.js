@@ -721,6 +721,11 @@
         var searchInput = document.getElementById('reportSearch');
         if (searchInput) searchInput.addEventListener('input', applyReportFilters);
 
+        // Auto-apply when Log In / Log Out checkbox is toggled
+        document.querySelectorAll('.filter-missing').forEach(function (cb) {
+            cb.addEventListener('change', applyReportFilters);
+        });
+
         // Day header select-all checkboxes
         document.querySelectorAll('.day-header-select').forEach(function (headerCb) {
             headerCb.addEventListener('change', function () {

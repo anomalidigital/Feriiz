@@ -779,7 +779,7 @@
                 document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
                     if (row.hidden) return;
                     var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
-                    if (!cell || cell.classList.contains('filtered-out-cell') || cell.classList.contains('weekend-off-cell')) return;
+                    if (!cell || cell.classList.contains('filtered-out-cell')) return;
                     var cb = cell.querySelector('.day-cell-select');
                     if (cb) cb.checked = headerCb.checked;
                 });

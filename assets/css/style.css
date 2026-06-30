@@ -4528,9 +4528,8 @@ body.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:check
     background: #FEF3C7 !important;
 }
 
-/* Hide checkbox in filtered-out and weekend cells */
-body.report-layout .report-table tbody td.filtered-out-cell .day-cell-checkbox,
-body.report-layout .report-table tbody td.weekend-off-cell .day-cell-checkbox {
+/* Hide checkbox in filtered-out cells */
+body.report-layout .report-table tbody td.filtered-out-cell .day-cell-checkbox {
     display: none;
 }
 

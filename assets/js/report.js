@@ -158,6 +158,7 @@
        TABLE GENERATION
        ============================================= */
     function getMissingType(inTime, outTime) {
+        if (!inTime && !outTime) return 'both';
         if (!inTime && outTime) return 'in';
         if (inTime && !outTime) return 'out';
         return '';
@@ -170,7 +171,9 @@
 
             // Official: off weekends
             if (!isDummy && isWeekend) {
-                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '"></td>';
+                var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="">' +
+                    checkbox + '</td>';
             }
 
             var dayData;
@@ -307,7 +310,11 @@
         if (types.length === 0) return true;
         var cells = row.querySelectorAll('td.day-col');
         for (var i = 0; i < cells.length; i++) {
-            if (currentVisibleDates.indexOf(cells[i].dataset.date) >= 0 && types.indexOf(cells[i].dataset.missing) >= 0) return true;
+            if (currentVisibleDates.indexOf(cells[i].dataset.date) >= 0) {
+                var m = cells[i].dataset.missing || '';
+                if (m === 'both' && (types.indexOf('in') >= 0 || types.indexOf('out') >= 0)) return true;
+                if (types.indexOf(m) >= 0) return true;
+            }
         }
         return false;
     }
@@ -344,7 +351,12 @@
                     return;
                 }
                 var cellMissing = cell.dataset.missing || '';
-                var isMatch = cellMissing && types.indexOf(cellMissing) >= 0;
+                var isMatch = false;
+                if (cellMissing === 'both') {
+                    isMatch = types.indexOf('in') >= 0 || types.indexOf('out') >= 0;
+                } else {
+                    isMatch = cellMissing && types.indexOf(cellMissing) >= 0;
+                }
                 cell.classList.toggle('filtered-out-cell', !isMatch);
             });
         });
@@ -388,6 +400,16 @@
         if (countText) countText.textContent = selected.length + ' selected';
         if (toggle) toggle.disabled = selected.length === 0;
         if (deselectBtn) deselectBtn.style.display = selected.length > 0 ? '' : 'none';
+
+        var hasLogs = selected.some(function (cell) {
+            return (cell.dataset.inTime && cell.dataset.inTime.trim() !== '') ||
+                   (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
+        });
+
+        var deleteBtn = document.querySelector('#batchUpdateDropdown button[data-action="delete"]');
+        if (deleteBtn) {
+            deleteBtn.disabled = !hasLogs;
+        }
     }
 
     function updateFilterIndicator() {
@@ -457,6 +479,11 @@
 
         // Delete actions go to confirmation modal
         if (action === 'delete') {
+            var hasLogs = selected.some(function (cell) {
+                return (cell.dataset.inTime && cell.dataset.inTime.trim() !== '') ||
+                       (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
+            });
+            if (!hasLogs) return; // Prevent action if no logs to delete
             showDeleteConfirm(action, selected);
             return;
         }
@@ -532,31 +559,43 @@
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
 
-                var fillType = missing || (addingIn ? 'in' : 'out');
+                var fillType = addingIn ? 'in' : 'out';
 
                 var newIn = fillType === 'in' ? clockValue : existIn;
                 var newOut = fillType === 'out' ? clockValue : existOut;
 
                 // Always: in on top, out on bottom
                 var lines = [];
-                lines.push({ type: 'in', value: newIn, fixed: fillType === 'in' && !!newIn });
-                lines.push({ type: 'out', value: newOut, fixed: fillType === 'out' && !!newOut });
+                if (newIn) lines.push({ type: 'in', value: newIn, fixed: true });
+                if (newOut) lines.push({ type: 'out', value: newOut, fixed: true });
 
                 cell.dataset.inTime = newIn;
                 cell.dataset.outTime = newOut;
-                cell.removeAttribute('data-missing');
-                cell.classList.remove('no-log-cell');
+
+                var issue = getMissingType(newIn, newOut);
+                if (issue) {
+                    cell.dataset.missing = issue;
+                    cell.classList.add('no-log-cell');
+                } else {
+                    cell.removeAttribute('data-missing');
+                    cell.classList.remove('no-log-cell');
+                }
+
+                if (newIn || newOut) {
+                    cell.classList.remove('weekend-off-cell');
+                }
 
                 cell.classList.remove('cell-selected');
 
                 cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                    buildDayCellContent({ inTime: newIn, outTime: newOut, issue: '', clockLines: lines });
+                    buildDayCellContent({ inTime: newIn, outTime: newOut, issue: issue, clockLines: lines.length > 0 ? lines : null });
                 updated++;
             });
         } else if (activeAction.indexOf('delete') === 0) {
             getSelectedCells().forEach(function (cell) {
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
+                var date = cell.dataset.date;
 
                 if (activeAction === 'delete-in') {
                     existIn = '';
@@ -570,13 +609,16 @@
                 cell.dataset.inTime = existIn;
                 cell.dataset.outTime = existOut;
 
-                var issue = (!existIn && existOut) ? 'in' : (existIn && !existOut) ? 'out' : '';
+                var issue = getMissingType(existIn, existOut);
                 if (issue) {
                     cell.dataset.missing = issue;
                     cell.classList.add('no-log-cell');
                 } else if (!existIn && !existOut) {
                     cell.removeAttribute('data-missing');
                     cell.classList.remove('no-log-cell');
+                    if (WEEKEND_DATES.has(date)) {
+                        cell.classList.add('weekend-off-cell');
+                    }
                 } else {
                     cell.removeAttribute('data-missing');
                     cell.classList.remove('no-log-cell');
@@ -588,8 +630,12 @@
                 if (existIn) lines.push({ type: 'in', value: existIn });
                 if (existOut) lines.push({ type: 'out', value: existOut });
 
-                cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                    buildDayCellContent({ inTime: existIn, outTime: existOut, issue: issue, clockLines: lines.length > 0 ? lines : null });
+                if (!existIn && !existOut && WEEKEND_DATES.has(date)) {
+                    cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+                } else {
+                    cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
+                        buildDayCellContent({ inTime: existIn, outTime: existOut, issue: issue, clockLines: lines.length > 0 ? lines : null });
+                }
                 updated++;
             });
         }

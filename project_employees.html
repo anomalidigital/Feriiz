@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -21,7 +21,7 @@
         <div class="breadcrumb">
             <a href="projects.html">Projects</a>
             <span>&gt;</span>
-            <span class="feriiz-u-057">Anomali</span>
+            <span class="feriiz-u-057" data-project-name>Project</span>
         </div>
 
         <div class="page-header feriiz-u-163">
@@ -80,41 +80,30 @@
 
         <!-- Stat Cards -->
         <div class="stat-cards feriiz-u-246">
-            <div class="stat-card feriiz-u-247"
-               >
-                <div class="stat-card-icon feriiz-u-248"
-                   >
+            <div class="stat-card feriiz-u-247">
+                <div class="stat-card-icon feriiz-u-248">
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">12
-                    </div>
-                    <div class="stat-label feriiz-u-249"
-                       >
-                        Employees</div>
+                    <div class="stat-number feriiz-u-069" data-stat="employees">0</div>
+                    <div class="stat-label feriiz-u-249">Employees</div>
                 </div>
             </div>
-            <div class="stat-card feriiz-u-247"
-               >
-                <div class="stat-card-icon feriiz-u-248"
-                   >
+            <div class="stat-card feriiz-u-247">
+                <div class="stat-card-icon feriiz-u-248">
                     <i class="fa-solid fa-chart-pie"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">12
-                    </div>
+                    <div class="stat-number feriiz-u-069" data-stat="attendance">0</div>
                     <div class="stat-label feriiz-u-070">Attendance</div>
                 </div>
             </div>
-            <div class="stat-card feriiz-u-247"
-               >
-                <div class="stat-card-icon feriiz-u-248"
-                   >
+            <div class="stat-card feriiz-u-247">
+                <div class="stat-card-icon feriiz-u-248">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">9
-                    </div>
+                    <div class="stat-number feriiz-u-069" data-stat="occupations">0</div>
                     <div class="stat-label feriiz-u-070">Occupations</div>
                 </div>
             </div>
@@ -137,518 +126,165 @@
                         <th>Last Activity</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Adam Ferial')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Adam Ferial</div>
-                                    <div class="employee-code feriiz-u-031">ADA27B1B2E650H0X
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Apriyanto Apriyanto')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Apriyanto Apriyanto</div>
-                                    <div class="employee-code feriiz-u-031">APR8940K8VB44L8</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Teknisi</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Baldyas Satrio')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Baldyas Satrio</div>
-                                    <div class="employee-code feriiz-u-031">BILFBY9N8YJ1YDN</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Ifan Faizal Adnan')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Ifan Faizal Adnan</div>
-                                    <div class="employee-code feriiz-u-031">IFAT8WJ2DM</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Sr.Programmer</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Indra Naftali')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Indra Naftali</div>
-                                    <div class="employee-code feriiz-u-031">IND693283053999</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Manager</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Mauli Hidayat')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Mauli Hidayat</div>
-                                    <div class="employee-code feriiz-u-031">MAUNZ1TL5H0Q7GG</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Marketing</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Raden Maulana')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Raden Maulana</div>
-                                    <div class="employee-code feriiz-u-031">RADVBYR5171FSC6</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Frontend</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Steven Febrianto')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Steven Febrianto</div>
-                                    <div class="employee-code feriiz-u-031">STEPRQTY99</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Backend</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Veronica Nathalia')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Veronica Nathalia</div>
-                                    <div class="employee-code feriiz-u-031">VER2FWV8L80S5SX</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Yenni Tedjakoesoemo')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Yenni Tedjakoesoemo</div>
-                                    <div class="employee-code feriiz-u-031">YENX6LH3X9</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>HR Administrator</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Zicky Affan')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Zicky Affan</div>
-                                    <div class="employee-code feriiz-u-031">ZICOJMQN8SQ5RDT</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>3D Artist</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-icon" title="Edit"
-                                    onclick="openEmployeeDetailOverlay('Sandy Santuy')"><i
-                                        class="fa-solid fa-pen-to-square"></i></button>
-                                <a href="project_employee_attendance.html" class="btn-icon" title="Attendance"><i
-                                        class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_report.html" class="btn-icon" title="Report"><i
-                                        class="fa-regular fa-file-lines"></i></a>
-                                <a href="employee_personal_request.html" class="btn-icon" title="Request"><i
-                                        class="fa-solid fa-clipboard-list"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/Sandy Santuy.jfif"
-                                    alt="" class="feriiz-u-030">
-                                <div>
-                                    <div class="employee-name">Sandy Santuy</div>
-                                    <div class="employee-code feriiz-u-031">SAN79P3WFFK4MQM</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="col-pictures">
-                            <div class="feriiz-u-134">
-                                <img src="assets/images/employees/Sandy Santuy.jfif"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/Sandy Santuy.jfif"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/Sandy Santuy.jfif"
-                                    alt="" class="feriiz-u-250">
-                                <img src="assets/images/employees/Sandy Santuy.jfif"
-                                    alt="" class="feriiz-u-250">
-                            </div>
-                        </td>
-                        <td class="col-activity-photos"></td>
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
+                <tbody id="projectEmployeesTableBody">
                 </tbody>
             </table>
         </div>
         <!-- Pagination -->
         <div class="feriiz-u-251">
             <div class="pagination">
-                <div class="pagination-info">Showing 1 - 12 of 12 results</div>
-                <div class="pagination-buttons">
-                    <button disabled>&lt; Previous</button>
-                    <a href="#" class="active" aria-current="page">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <span class="page-dots">...</span>
-                    <a href="#">Next &gt;</a>
-                </div>
+                <div class="pagination-info" id="pePaginationInfo">Showing 0 results</div>
+                <div class="pagination-buttons" id="pePaginationButtons"></div>
             </div>
         </div>
 
-        <div class="feriiz-u-032">version : 3.3.4</div>
+        <script>
+        (function () {
+            var state = { project: null, all: [], filtered: [], page: 1, perPage: 25 };
+
+            function fmtJoinedShort(iso) {
+                if (!iso) return '-';
+                var d = new Date(iso);
+                if (isNaN(d)) return '-';
+                var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return d.getDate().toString().padStart(2,'0') + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
+            }
+
+            function renderRow(emp) {
+                var avatar = window.FERIIZ_DATA.avatarSrc(emp);
+                var fallback = window.FERIIZ_DATA.initialsAvatar(emp.name);
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' +
+                        '<div class="action-cell">' +
+                            '<a href="#" class="btn-icon" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>' +
+                            '<a href="project_employee_attendance.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>' +
+                            '<a href="employee_report.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Report"><i class="fa-regular fa-file-lines"></i></a>' +
+                            '<a href="employee_personal_request.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Request"><i class="fa-solid fa-clipboard-list"></i></a>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="employee-cell feriiz-u-029">' +
+                            '<img src="' + avatar + '" alt="" class="feriiz-u-030" data-fallback="' + fallback + '">' +
+                            '<div>' +
+                                '<div class="employee-name">' + emp.name + '</div>' +
+                                '<div class="employee-code feriiz-u-031">' + emp.code + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="col-pictures"></td>' +
+                    '<td class="col-activity-photos"></td>' +
+                    '<td>' + emp.occupation + '</td>' +
+                    '<td>' + emp.pin + '</td>' +
+                    '<td>' + fmtJoinedShort(emp.joinedAt) + '</td>';
+                tr.querySelector('img').addEventListener('error', function () {
+                    if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
+                });
+                return tr;
+            }
+
+            function renderPage() {
+                var tbody = document.getElementById('projectEmployeesTableBody');
+                tbody.innerHTML = '';
+                var start = (state.page - 1) * state.perPage;
+                var end = Math.min(start + state.perPage, state.filtered.length);
+                for (var i = start; i < end; i++) tbody.appendChild(renderRow(state.filtered[i]));
+                var info = document.getElementById('pePaginationInfo');
+                info.textContent = state.filtered.length === 0
+                    ? 'No employees match your filter'
+                    : 'Showing ' + (start + 1) + ' - ' + end + ' of ' + state.filtered.length + ' results';
+                renderPagination();
+            }
+
+            function renderPagination() {
+                var total = Math.ceil(state.filtered.length / state.perPage) || 1;
+                var cur = state.page;
+                var box = document.getElementById('pePaginationButtons');
+                box.innerHTML = '';
+                var prev = document.createElement('button');
+                prev.textContent = '< Previous'; prev.disabled = cur === 1;
+                prev.addEventListener('click', function () { if (cur > 1) { state.page--; renderPage(); } });
+                box.appendChild(prev);
+                var pages = new Set([1, total]);
+                for (var i = cur - 2; i <= cur + 2; i++) if (i > 1 && i < total) pages.add(i);
+                var sorted = Array.from(pages).sort(function(a,b){return a-b;});
+                var last = 0;
+                sorted.forEach(function (n) {
+                    if (last && n - last > 1) {
+                        var d = document.createElement('span'); d.className = 'page-dots'; d.textContent = '...'; box.appendChild(d);
+                    }
+                    var a = document.createElement('a');
+                    a.href = '#'; a.textContent = n;
+                    if (n === cur) { a.className = 'active'; a.setAttribute('aria-current','page'); }
+                    a.addEventListener('click', function (e) { e.preventDefault(); state.page = n; renderPage(); });
+                    box.appendChild(a);
+                    last = n;
+                });
+                var next = document.createElement('a');
+                next.href = '#'; next.textContent = 'Next >';
+                if (cur === total) next.style.display = 'none';
+                next.addEventListener('click', function (e) { e.preventDefault(); if (cur < total) { state.page++; renderPage(); } });
+                box.appendChild(next);
+            }
+
+            function applyFilter() {
+                var occs = window.FeriizFilters?.getOccupationValues(document) || [];
+                var q = (document.querySelector('.feriiz-u-020 input')?.value || '').trim().toLowerCase();
+                state.filtered = state.all.filter(function (emp) {
+                    if (occs.length && !occs.some(function (o) { return (emp.occupation || '').toLowerCase().indexOf(o) >= 0; })) return false;
+                    if (q && (emp.name.toLowerCase().indexOf(q) < 0 && emp.code.toLowerCase().indexOf(q) < 0)) return false;
+                    return true;
+                });
+                state.page = 1;
+                renderPage();
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                if (!window.FERIIZ_DATA) return;
+                var url = new URL(location.href);
+                var projectCode = url.searchParams.get('project');
+                window.FERIIZ_DATA.ready.then(function (data) {
+                    state.project = projectCode
+                        ? data.findProjectByCode(projectCode)
+                        : data.projects[0];
+                    if (!state.project) state.project = data.projects[0];
+                    document.querySelector('[data-project-name]').textContent = state.project.name;
+                    document.title = 'Feriiz - ' + state.project.name + ' - Activity';
+                    state.all = data.employees.filter(function (e) {
+                        return (e.projects || []).indexOf(state.project.code) >= 0;
+                    });
+                    state.filtered = state.all.slice();
+                    var occSet = new Set(state.all.map(function (e) { return e.occupation; }));
+                    var setStat = function (k, v) {
+                        var el = document.querySelector('[data-stat="' + k + '"]');
+                        if (el) el.textContent = v.toLocaleString('id-ID');
+                    };
+                    setStat('employees', state.all.length);
+                    setStat('attendance', state.all.length);
+                    setStat('occupations', occSet.size);
+                    renderPage();
+
+                    var apply = document.querySelector('.filter-apply-btn');
+                    var clear = document.querySelector('.filter-clear-btn');
+                    var searchInp = document.querySelector('.feriiz-u-020 input');
+                    if (apply) apply.addEventListener('click', applyFilter);
+                    if (clear) clear.addEventListener('click', function () {
+                        window.FeriizFilters?.resetOccupationFilter(document);
+                        if (searchInp) searchInp.value = '';
+                        applyFilter();
+                    });
+                    if (searchInp) {
+                        var timer;
+                        searchInp.addEventListener('input', function () {
+                            clearTimeout(timer); timer = setTimeout(applyFilter, 200);
+                        });
+                    }
+                });
+            });
+        })();
+        </script>
+
+        <div class="feriiz-u-032">version : 3.3.5</div>
     </main>
 
     <script>

@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feriiz - My Account</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 
 <body data-page="my-account">
@@ -108,46 +108,42 @@
           </span>
         </div>
 
-        <div class="project-list feriiz-u-184">
-          <a href="project_employees.html?project=ANM001" class="project-item feriiz-u-185">
-            <div>
-              <div class="project-item-name">Anomali (BSD Residence)</div>
-              <div class="project-item-type">Attendance</div>
-            </div>
-            <div class="feriiz-u-029">
-              <div class="project-item-employee">12</div>
-              <i class="fa-solid fa-chevron-right feriiz-u-186"></i>
-            </div>
-          </a>
-          <a href="project_employees.html?project=DCG015" class="project-item feriiz-u-185">
-            <div>
-              <div class="project-item-name">Diamond Crystal Golf No. 15</div>
-              <div class="project-item-type">Attendance</div>
-            </div>
-            <div class="feriiz-u-029">
-              <div class="project-item-employee">5</div>
-              <i class="fa-solid fa-chevron-right feriiz-u-186"></i>
-            </div>
-          </a>
-          <a href="project_employees.html?project=DGH105" class="project-item feriiz-u-185">
-            <div>
-              <div class="project-item-name">Diamond Golf H3 No. 105</div>
-              <div class="project-item-type">Attendance</div>
-            </div>
-            <div class="feriiz-u-029">
-              <div class="project-item-employee">5</div>
-              <i class="fa-solid fa-chevron-right feriiz-u-186"></i>
-            </div>
-          </a>
-        </div>
+        <div class="project-list feriiz-u-184" id="assignedProjectsList"></div>
       </div>
 
     </div>
 
     <!-- Version -->
-    <div class="feriiz-u-032">version : 3.3.4</div>
+    <div class="feriiz-u-032">version : 3.3.5</div>
 
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!window.FERIIZ_DATA || !window.FERIIZ_DATA.ready) return;
+      window.FERIIZ_DATA.ready.then(function (data) {
+        var list = document.getElementById('assignedProjectsList');
+        if (!list) return;
+        // For the demo, "assigned projects" = every project in the dataset.
+        // A real backend would filter by the signed-in employee.
+        data.projects.forEach(function (p) {
+          var a = document.createElement('a');
+          a.href = 'project_employees.html?project=' + encodeURIComponent(p.code);
+          a.className = 'project-item feriiz-u-185';
+          a.innerHTML =
+            '<div>' +
+              '<div class="project-item-name">' + p.name + '</div>' +
+              '<div class="project-item-type">' + (p.type || 'Attendance') + '</div>' +
+            '</div>' +
+            '<div class="feriiz-u-029">' +
+              '<div class="project-item-employee">' + (p.employeeCount || 0) + '</div>' +
+              '<i class="fa-solid fa-chevron-right feriiz-u-186"></i>' +
+            '</div>';
+          list.appendChild(a);
+        });
+      });
+    });
+  </script>
 
 </body>
 

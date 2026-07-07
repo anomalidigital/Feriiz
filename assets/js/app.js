@@ -262,8 +262,34 @@ function feriizLogout() {
         });
     }
 
+    function populateOccupationOptions(select) {
+        // If FERIIZ_DATA provides an occupation list, rebuild the <option>s
+        // so pages don't need to hard-code them.
+        var data = window.FERIIZ_DATA;
+        if (!data || !data.occupations || !data.occupations.length) return;
+        var current = select.value;
+        select.innerHTML = '';
+        var allOpt = document.createElement('option');
+        allOpt.value = '';
+        allOpt.textContent = 'All Occupations';
+        select.appendChild(allOpt);
+        data.occupations.forEach(function (occ) {
+            var opt = document.createElement('option');
+            opt.textContent = occ;
+            select.appendChild(opt);
+        });
+        select.value = current;
+    }
+
     function initOccupationFilters() {
-        document.querySelectorAll('select.filter-occ').forEach(initOccupationFilter);
+        var selects = document.querySelectorAll('select.filter-occ');
+        if (!selects.length) return;
+        var ready = window.FERIIZ_DATA && window.FERIIZ_DATA.ready;
+        var run = function () {
+            selects.forEach(function (s) { populateOccupationOptions(s); });
+            selects.forEach(initOccupationFilter);
+        };
+        if (ready) ready.then(run); else run();
     }
 
     window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {

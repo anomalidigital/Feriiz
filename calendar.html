@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 <body data-page="calendar">
     <aside class="sidebar"></aside>
@@ -97,7 +97,7 @@
                     <div class="calendar-legend-item"><span class="feriiz-u-009"></span> Libur & Lainnya</div>
                 </div>
                 <div class="cal-grid" id="calGrid"></div>
-                <div class="feriiz-u-010">version : 3.3.4</div>
+                <div class="feriiz-u-010">version : 3.3.5</div>
             </section>
         </div>
     </main>
@@ -114,33 +114,36 @@
     </div>
 
     <script>
-        const EVENTS = [
-            { name:'Sandy Santuy', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Steven Febrianto', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Yenni Tedjakoesoemo', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Adam Ferial', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Adam Ferial', type:'Remote Work', cat:'work', project:'diamond15', dateStart:'2026-05-07', dateEnd:'2026-05-07', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', project:'diamond15', dateStart:'2026-05-11', dateEnd:'2026-05-11', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Ifan Faizal Adnan', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-12', dateEnd:'2026-05-12', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', project:'anomali', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Ifan Faizal Adnan', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Pending', pic:'Judith Anastalio' },
-            { name:'Mauli Hidayat', type:'Sick Leave', cat:'sick', project:'diamond15', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Pending', pic:'Judith Anastalio' },
-            { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-08', dateEnd:'2026-05-08', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Veronica Nathalia', type:'Annual Leave', cat:'leave', project:'anomali', dateStart:'2026-05-15', dateEnd:'2026-05-15', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Steven Febrianto', type:'Remote Work', cat:'work', project:'diamond105', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Zicky Affan', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-07', dateEnd:'2026-05-07', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Baldyas Satrio', type:'Remote Work', cat:'work', project:'diamond15', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Indra Naftali', type:'Remote Work', cat:'work', project:'anomali', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Accepted', pic:'Judith Anastalio' },
-            { name:'Apriyanto Apriyanto', type:'Sick Leave', cat:'sick', project:'diamond105', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Accepted', pic:'Judith Anastalio' },
-        ];
-        const HOLIDAYS = [
-            { name:'Hari Buruh Internasional', date:'2026-05-01' },
-            { name:'Kenaikan Isa Al Masih', date:'2026-05-14' },
-            { name:'Idul Adha (Lebaran Haji)', date:'2026-05-27' },
-            { name:'Idul Adha (Lebaran Haji)', date:'2026-05-28' },
-            { name:'Hari Raya Waisak', date:'2026-05-31' },
-        ];
+        // Populated from FERIIZ_DATA once the dataset resolves.
+        let EVENTS = [];
+        let HOLIDAYS = [];
+
+        function catFromType(type) {
+            var t = (type || '').toLowerCase();
+            if (t.indexOf('sick') >= 0) return 'sick';
+            if (t.indexOf('remote') >= 0) return 'work';
+            if (t.indexOf('leave') >= 0 || t.indexOf('permission') >= 0) return 'leave';
+            return 'other';
+        }
+        function buildEventsFromData(data) {
+            var out = [];
+            for (var i = 0; i < data.requests.length; i++) {
+                var r = data.requests[i];
+                var emp = data.findEmployeeByCode(r.employeeCode);
+                if (!emp) continue;
+                out.push({
+                    name: emp.name,
+                    type: r.type,
+                    cat: catFromType(r.type),
+                    project: r.projectCode,
+                    dateStart: r.dateStart,
+                    dateEnd: r.dateEnd || r.dateStart,
+                    status: r.status,
+                    pic: r.pic || ''
+                });
+            }
+            return out;
+        }
         const DEFAULT_HOLIDAY_OVERRIDES = [
             { date:'2026-05-14', status:'working', note:'Tetap masuk kerja sesuai kebijakan perusahaan.' }
         ];
@@ -443,6 +446,19 @@
 
         renderCalendar();
         renderRequestPanel();
+
+        // Wait for deferred data.js to expose FERIIZ_DATA before hooking .ready.
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.FERIIZ_DATA || !window.FERIIZ_DATA.ready) return;
+            window.FERIIZ_DATA.ready.then(function (data) {
+                EVENTS = buildEventsFromData(data);
+                HOLIDAYS = data.holidays.map(function (h) { return { name: h.name, date: h.date }; });
+                currentYear = 2026;
+                currentMonth = 4; // Anchor demo view at May 2026 where sample data lives
+                renderCalendar();
+                renderRequestPanel();
+            });
+        });
     </script>
 </body>
 </html>

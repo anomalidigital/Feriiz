@@ -28,57 +28,20 @@
     }
     var DEFAULT_DATES = getDefaultDates();
 
-    var officialEmployees = (window.FERIIZ_DATA && window.FERIIZ_DATA.employees) || [];
+    // Project + employees are resolved from URL ?project=CODE and FERIIZ_DATA.
+    var projectContext = null;
+    var reportEmployees = [];
+    // Fast lookup for attendance records keyed by employeeCode + '|' + date
+    var attendanceIndex = {};
 
-    var dummyEmployees = [
-        {
-            code: 'DMS001ANM', name: 'Dimas Pratama', occupation: 'Frontend', pin: '4501',
-            isDummy: true,
-            schedule: {
-                '2026-06-15': { inTime: '08:52:14', outTime: '17:31:42' },
-                '2026-06-16': { inTime: '09:01:33', outTime: '17:45:18' },
-                '2026-06-17': { inTime: '', outTime: '17:28:55' },
-                '2026-06-18': { inTime: '', outTime: '18:02:41' },
-                '2026-06-19': { inTime: '08:47:29', outTime: '17:35:10' },
-                '2026-06-20': { inTime: '08:55:03', outTime: '' },
-                '2026-06-21': { inTime: '09:10:22', outTime: '17:20:15' }
-            }
-        },
-        {
-            code: 'NAD002ANM', name: 'Nadia Permata', occupation: 'Backend', pin: '4502',
-            isDummy: true,
-            schedule: {
-                '2026-06-15': { inTime: '08:45:18', outTime: '17:38:42' },
-                '2026-06-16': { inTime: '', outTime: '17:55:30' },
-                '2026-06-17': { inTime: '09:05:11', outTime: '17:42:08' },
-                '2026-06-18': { inTime: '', outTime: '18:10:25' },
-                '2026-06-19': { inTime: '08:58:44', outTime: '17:30:55' },
-                '2026-06-20': { inTime: '', outTime: '17:48:33' },
-                '2026-06-21': { inTime: '09:12:07', outTime: '17:25:40' }
-            }
-        },
-        {
-            code: 'RZK003ANM', name: 'Rizky Mahendra', occupation: 'Graphic Design', pin: '4503',
-            isDummy: true,
-            schedule: {
-                '2026-06-15': { inTime: '08:50:32', outTime: '17:40:18' },
-                '2026-06-16': { inTime: '08:42:55', outTime: '' },
-                '2026-06-17': { inTime: '09:08:14', outTime: '17:35:22' },
-                '2026-06-18': { inTime: '08:55:40', outTime: '17:50:33' },
-                '2026-06-19': { inTime: '08:48:17', outTime: '' },
-                '2026-06-20': { inTime: '09:02:38', outTime: '' },
-                '2026-06-21': { inTime: '08:58:45', outTime: '17:28:10' }
-            }
-        }
-    ];
+    function formatIDR(n) {
+        if (!n && n !== 0) return 'IDR0';
+        return 'IDR' + Number(n).toLocaleString('id-ID');
+    }
 
-    var officialDayTimes = [
-        { inTime: '09:10:29', outTime: '18:45:07' },
-        { inTime: '08:55:41', outTime: '17:52:33' },
-        { inTime: '09:22:15', outTime: '18:10:48' },
-        { inTime: '08:48:37', outTime: '17:38:22' },
-        { inTime: '09:05:50', outTime: '18:25:14' }
-    ];
+    function attendanceFor(employeeCode, date) {
+        return attendanceIndex[employeeCode + '|' + date] || null;
+    }
 
     /* =============================================
        CELL RENDERING
@@ -166,39 +129,26 @@
 
     function createDayCells(employee, dates) {
         return dates.map(function (date) {
+            var rec = attendanceFor(employee.code, date);
             var isWeekend = WEEKEND_DATES.has(date);
-            var isDummy = employee.isDummy;
+            var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
 
-            // Official: off weekends
-            if (!isDummy && isWeekend) {
-                var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+            if (rec && (rec.status === 'weekend' || rec.status === 'holiday')) {
+                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="">' +
+                    checkbox + '</td>';
+            }
+            if (!rec && isWeekend) {
                 return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="">' +
                     checkbox + '</td>';
             }
 
-            var dayData;
-            if (isDummy && employee.schedule && employee.schedule[date]) {
-                dayData = employee.schedule[date];
-            } else if (!isDummy) {
-                var weekdays = dates.filter(function (d) { return !WEEKEND_DATES.has(d); });
-                var dayIndex = weekdays.indexOf(date);
-                if (dayIndex < 0) dayIndex = 0;
-                dayData = officialDayTimes[dayIndex % officialDayTimes.length];
-            } else {
-                dayData = { inTime: '09:00:00', outTime: '17:00:00' };
-            }
-
-            var inTime = dayData.inTime || '';
-            var outTime = dayData.outTime || '';
+            var inTime = rec ? (rec.inTime || '') : '';
+            var outTime = rec ? (rec.outTime || '') : '';
             var issue = getMissingType(inTime, outTime);
 
             var missingAttr = issue ? ' data-missing="' + issue + '"' : '';
             var dataAttrs = ' data-in-time="' + inTime + '" data-out-time="' + outTime + '"';
             var cellClass = 'day-col feriiz-u-132' + (issue ? ' no-log-cell' : '');
-
-            // Checkbox inside each cell with content
-            var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
-
             var content = buildDayCellContent({ inTime: inTime, outTime: outTime, issue: issue });
 
             return '<td class="' + cellClass + '" data-date="' + date + '"' + missingAttr + dataAttrs + '>' +
@@ -207,8 +157,9 @@
     }
 
     function createEmployeeRow(employee, dates) {
-        return '<tr data-employee-code="' + employee.code + '" data-employee-name="' + employee.name + '"' +
-            (employee.isDummy ? ' data-demo-missing="true"' : '') + '>' +
+        var empRateOT = projectContext ? projectContext.overtimeRate || 0 : 0;
+        var cliRateOT = projectContext ? projectContext.clientOvertimeRate || 0 : 0;
+        return '<tr data-employee-code="' + employee.code + '" data-employee-name="' + employee.name + '">' +
             '<td class="col-name sticky-col">' +
                 '<div class="report-identity-content">' +
                     '<div class="emp-code-cell">' + employee.code + '</div>' +
@@ -217,20 +168,20 @@
                     '<div class="emp-pin-cell">Pin: ' + employee.pin + '</div>' +
                 '</div>' +
             '</td>' +
-            '<td class="col-inouthour">08:00:00</td>' +
-            '<td class="col-inouthour">17:00:00</td>' +
+            '<td class="col-inouthour">' + (projectContext ? projectContext.workStart + ':00' : '08:00:00') + '</td>' +
+            '<td class="col-inouthour">' + (projectContext ? projectContext.workEnd + ':00' : '17:00:00') + '</td>' +
             '<td class="col-activehour">9h</td>' +
             '<td class="col-totaldays">0d</td>' +
             '<td class="col-totalhour">0h</td>' +
             '<td class="col-totalovertime">0h</td>' +
-            '<td class="col-emp-dailyrate rate-cell">IDR0.00</td>' +
-            '<td class="col-emp-rateovertime rate-cell">IDR0.00</td>' +
-            '<td class="col-emp-totalrate rate-cell">IDR0.00</td>' +
-            '<td class="col-emp-totalovertime rate-cell">IDR0.00</td>' +
-            '<td class="col-cli-dailyrate rate-cell">IDR0.00</td>' +
-            '<td class="col-cli-rateovertime rate-cell">IDR0.00</td>' +
-            '<td class="col-cli-totalrate rate-cell">IDR0.00</td>' +
-            '<td class="col-cli-totalovertime rate-cell">IDR0.00</td>' +
+            '<td class="col-emp-dailyrate rate-cell">' + formatIDR(employee.dailyRate) + '</td>' +
+            '<td class="col-emp-rateovertime rate-cell">' + formatIDR(empRateOT) + '</td>' +
+            '<td class="col-emp-totalrate rate-cell">' + formatIDR(0) + '</td>' +
+            '<td class="col-emp-totalovertime rate-cell">' + formatIDR(0) + '</td>' +
+            '<td class="col-cli-dailyrate rate-cell">' + formatIDR(employee.clientDailyRate) + '</td>' +
+            '<td class="col-cli-rateovertime rate-cell">' + formatIDR(cliRateOT) + '</td>' +
+            '<td class="col-cli-totalrate rate-cell">' + formatIDR(0) + '</td>' +
+            '<td class="col-cli-totalovertime rate-cell">' + formatIDR(0) + '</td>' +
             '<td class="col-additional-amount"></td>' +
             '<td class="col-additional-note"></td>' +
             createDayCells(employee, dates) +
@@ -240,8 +191,7 @@
     function renderTable() {
         var tbody = document.getElementById('reportTableBody');
         if (!tbody) return;
-        var all = officialEmployees.concat(dummyEmployees);
-        tbody.innerHTML = all.map(function (emp) {
+        tbody.innerHTML = reportEmployees.map(function (emp) {
             return createEmployeeRow(emp, ALL_DATES);
         }).join('');
     }
@@ -892,6 +842,40 @@
         });
     }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
+    function loadProjectContext(data) {
+        var url = new URL(location.href);
+        var code = url.searchParams.get('project');
+        projectContext = code ? data.findProjectByCode(code) : data.projects[0];
+        if (!projectContext) projectContext = data.projects[0];
+        reportEmployees = data.employees.filter(function (e) {
+            return (e.projects || []).indexOf(projectContext.code) >= 0;
+        });
+        // Build attendance index for just this project's dates
+        attendanceIndex = {};
+        var relevant = new Set(reportEmployees.map(function (e) { return e.code; }));
+        for (var i = 0; i < data.attendance.length; i++) {
+            var a = data.attendance[i];
+            if (relevant.has(a.employeeCode) && a.projectCode === projectContext.code) {
+                attendanceIndex[a.employeeCode + '|' + a.date] = a;
+            }
+        }
+        var bc = document.querySelector('[data-project-name]');
+        if (bc) bc.textContent = projectContext.name;
+        if (projectContext.name) {
+            document.title = 'Feriiz - ' + projectContext.name + ' - Report';
+        }
+    }
+
+    function startWhenReady() {
+        if (window.FERIIZ_DATA && window.FERIIZ_DATA.ready) {
+            window.FERIIZ_DATA.ready.then(function (data) {
+                loadProjectContext(data);
+                init();
+            });
+        } else {
+            init();
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startWhenReady);
+    else startWhenReady();
 })();

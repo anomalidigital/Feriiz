@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 
 <body data-page="dashboard">
@@ -103,177 +103,102 @@
 
         <!-- Table: Group by Occupation -->
         <div class="table-container dashboard-table-container">
-            <table class="data-table dashboard-table">
-                <thead>
-                    <tr>
-                        <th>Occupation</th>
-                        <th>Anomali</th>
-                        <th>BSD (BS-Residence)</th>
-                        <th>Diamond Crystal Golf No. 15</th>
-                        <th>Diamond Golf H3 No. 105</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Graphic Design</td>
-                        <td>4 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Sr.Programmer</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Teknisi</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Manager</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Marketing</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Frontend</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Backend</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>HR Administrator</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>3D Artist</td>
-                        <td>1 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Tukang Kayu</td>
-                        <td>0 Person</td>
-                        <td>2 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Tukang Keramik</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                        <td>2 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Tukang Las</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Mandor Lapangan</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                    <tr>
-                        <td>Surveyor</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>0 Person</td>
-                        <td>1 Person</td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr class="feriiz-u-166">
-                        <td class="feriiz-u-167"></td>
-                        <td class="feriiz-u-167">12 Person</td>
-                        <td class="feriiz-u-167">5 Person</td>
-                        <td class="feriiz-u-167">5 Person</td>
-                        <td class="feriiz-u-167">5 Person</td>
-                    </tr>
-                </tfoot>
+            <table class="data-table dashboard-table" id="dashboardTable">
+                <thead><tr id="dashboardTableHead"><th>Occupation</th></tr></thead>
+                <tbody id="dashboardTableBody"></tbody>
+                <tfoot><tr class="feriiz-u-166" id="dashboardTableFoot"></tr></tfoot>
             </table>
         </div>
 
-        <div class="feriiz-u-032">version : 3.3.4</div>
+        <div class="feriiz-u-032">version : 3.3.5</div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const applyBtn = document.querySelector('.filter-apply-btn');
-            const clearBtn = document.querySelector('.filter-clear-btn');
-            const dropdown = document.querySelector('.filter-dropdown');
-            const toggleBtn = document.querySelector('.filter-toggle-btn');
-            const tableRows = document.querySelectorAll('.data-table tbody tr');
+            if (!window.FERIIZ_DATA) return;
 
-            const applyOccupationFilter = () => {
-                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
-                tableRows.forEach(row => {
-                    const occupationCell = row.querySelector('td:first-child');
-                    if (!occupationCell) return;
-
-                    const occupationText = occupationCell.textContent.toLowerCase();
-                    row.style.display = selectedOccupations.length === 0 || selectedOccupations.some(occupation => occupationText.includes(occupation))
-                        ? ''
-                        : 'none';
-                });
-
-                if (dropdown) dropdown.classList.remove('show');
-                if (toggleBtn) toggleBtn.classList.remove('active');
-            };
-
-            if (applyBtn) applyBtn.addEventListener('click', applyOccupationFilter);
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    window.FeriizFilters?.resetOccupationFilter(document);
-                    document.querySelectorAll('.filter-date').forEach(input => {
-                        input.value = '';
-                    });
-                    applyOccupationFilter();
-                });
-            }
-
-            // Populate stat cards from FERIIZ_DATA
-            const data = window.FERIIZ_DATA;
-            if (data) {
-                const setStat = (key, value) => {
-                    const el = document.querySelector('[data-stat="' + key + '"]');
-                    if (el) el.textContent = value;
+            window.FERIIZ_DATA.ready.then(data => {
+                // Stat cards
+                const setStat = (k, v) => {
+                    const el = document.querySelector('[data-stat="' + k + '"]');
+                    if (el) el.textContent = v.toLocaleString('id-ID');
                 };
                 setStat('employees', data.employees.length);
-                setStat('attendance', data.employees.length); // demo: assume everyone attended today
+                // Attendance today: sum of unique employee codes marked 'present' or with times
+                const todayAttended = new Set(
+                    data.attendance
+                        .filter(a => a.status === 'present' && a.inTime)
+                        .map(a => a.employeeCode)
+                ).size;
+                setStat('attendance', todayAttended || data.employees.length);
                 setStat('occupations', data.occupations.length);
-            }
+
+                // Build occupation × project matrix
+                const projects = data.projects;
+                const occupations = data.occupations;
+                const head = document.getElementById('dashboardTableHead');
+                projects.forEach(p => {
+                    const th = document.createElement('th');
+                    th.textContent = p.name;
+                    th.title = p.code;
+                    head.appendChild(th);
+                });
+
+                // Count employees per (occupation, project)
+                const counts = {};
+                occupations.forEach(o => { counts[o] = {}; projects.forEach(p => counts[o][p.code] = 0); });
+                data.employees.forEach(emp => {
+                    if (!counts[emp.occupation]) return;
+                    (emp.projects || []).forEach(pc => {
+                        if (counts[emp.occupation][pc] !== undefined) counts[emp.occupation][pc]++;
+                    });
+                });
+
+                const body = document.getElementById('dashboardTableBody');
+                const totals = {};
+                projects.forEach(p => { totals[p.code] = 0; });
+                occupations.forEach(o => {
+                    const rowTotal = projects.reduce((s, p) => s + counts[o][p.code], 0);
+                    if (rowTotal === 0) return; // skip empty occupations
+                    const tr = document.createElement('tr');
+                    tr.appendChild(cell(o));
+                    projects.forEach(p => {
+                        const v = counts[o][p.code];
+                        totals[p.code] += v;
+                        tr.appendChild(cell(v + ' Person'));
+                    });
+                    body.appendChild(tr);
+                });
+
+                const foot = document.getElementById('dashboardTableFoot');
+                foot.appendChild(cell(''));
+                projects.forEach(p => foot.appendChild(cell(totals[p.code] + ' Person', 'feriiz-u-167')));
+
+                function cell(text, cls) {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    if (cls) td.className = cls;
+                    return td;
+                }
+
+                // Occupation filter — hide rows not matching selection
+                const applyOccupationFilter = () => {
+                    const selected = window.FeriizFilters?.getOccupationValues(document) || [];
+                    body.querySelectorAll('tr').forEach(row => {
+                        const occText = row.firstElementChild?.textContent.toLowerCase() || '';
+                        row.style.display = selected.length === 0 || selected.some(o => occText.includes(o))
+                            ? '' : 'none';
+                    });
+                };
+                const applyBtn = document.querySelector('.filter-apply-btn');
+                const clearBtn = document.querySelector('.filter-clear-btn');
+                if (applyBtn) applyBtn.addEventListener('click', applyOccupationFilter);
+                if (clearBtn) clearBtn.addEventListener('click', () => {
+                    window.FeriizFilters?.resetOccupationFilter(document);
+                    document.querySelectorAll('.filter-date').forEach(i => i.value = '');
+                    applyOccupationFilter();
+                });
+            });
         });
     </script>
 

@@ -1,65 +1,86 @@
 /* ============================================================
-   FERIIZ — Single source of truth for demo data.
-   Loaded BEFORE app.js / report.js on every page that needs it.
+   FERIIZ — Data loader.
+   Fetches feriiz-data.json (generated dataset) and exposes
+   window.FERIIZ_DATA to every page.
+
+   Usage from pages:
+       FERIIZ_DATA.ready.then(function (data) {
+           // render using data.employees, data.projects, etc.
+       });
+
+   Fields available after .ready resolves:
+       meta, occupations, projects, employees, attendance,
+       requests, holidays,
+       findEmployeeByCode(code), findProjectByCode(code),
+       initialsAvatar(name) — data URI for placeholder avatar.
    ============================================================ */
 (function (global) {
     'use strict';
 
-    var FERIIZ_OCCUPATIONS = [
-        'Graphic Design',
-        'Sr.Programmer',
-        'Teknisi',
-        'Manager',
-        'Marketing',
-        'Frontend',
-        'Backend',
-        'HR Administrator',
-        '3D Artist',
-        'Tukang Kayu',
-        'Tukang Keramik',
-        'Tukang Las',
-        'Mandor Lapangan',
-        'Surveyor'
-    ];
+    var DATA_URL = 'feriiz-data.json';
 
-    var FERIIZ_EMPLOYEES = [
-        { code: 'ADA27B1B2E650H0X', name: 'Adam Ferial',         occupation: 'Graphic Design',   pin: '3131', photo: 'adam-ferial' },
-        { code: 'APR8940K8VB44L8',  name: 'Apriyanto Apriyanto', occupation: 'Teknisi',          pin: '2714', photo: 'apriyanto-apriyanto' },
-        { code: 'BILFBY9N8YJ1YDN',  name: 'Baldyas Satrio',      occupation: 'Graphic Design',   pin: '2218', photo: 'baldyas-satrio' },
-        { code: 'IFAT8WJ2DM',       name: 'Ifan Faizal Adnan',   occupation: 'Sr.Programmer',    pin: '1840', photo: 'ifan-faizal-adnan' },
-        { code: 'IND693283053999',  name: 'Indra Naftali',       occupation: 'Manager',          pin: '5190', photo: 'indra-naftali' },
-        { code: 'MAUNZ1TL5H0Q7GG',  name: 'Mauli Hidayat',       occupation: 'Marketing',        pin: '7402', photo: 'mauli-hidayat' },
-        { code: 'RADVBYR5171FSC6',  name: 'Raden Maulana',       occupation: 'Frontend',         pin: '6629', photo: 'raden-maulana' },
-        { code: 'STEPRQTY99',       name: 'Steven Febrianto',    occupation: 'Backend',          pin: '8027', photo: 'steven-febrianto' },
-        { code: 'VER2FWV8L80S5SX',  name: 'Veronica Nathalia',   occupation: 'Graphic Design',   pin: '4075', photo: 'veronica-nathalia' },
-        { code: 'YENX6LH3X9',       name: 'Yenni Tedjakoesoemo', occupation: 'HR Administrator', pin: '9064', photo: 'yenni-tedjakoesoemo' },
-        { code: 'ZICOJMQN8SQ5RDT',  name: 'Zicky Affan',         occupation: '3D Artist',        pin: '5861', photo: 'zicky-affan' },
-        { code: 'SAN79P3WFFK4MQM',  name: 'Sandy Santuy',        occupation: 'Graphic Design',   pin: '7903', photo: 'sandy-santuy' }
-    ];
-
-    var FERIIZ_PROJECTS = [
-        { code: 'ANM001', name: 'Anomali',                      id: 'anomali',  type: 'Attendance', location: 'BSD Residence' },
-        { code: 'DCG015', name: 'Diamond Crystal Golf No. 15',  id: 'dcg015',   type: 'Attendance' },
-        { code: 'DGH105', name: 'Diamond Golf H3 No. 105',      id: 'dgh105',   type: 'Attendance' },
-        { code: 'MGS053', name: 'Mangunsarkoro No. 53',         id: 'mgs053',   type: 'Attendance' }
-    ];
-
-    global.FERIIZ_DATA = {
-        employees: FERIIZ_EMPLOYEES,
-        projects: FERIIZ_PROJECTS,
-        occupations: FERIIZ_OCCUPATIONS,
-        findEmployeeByCode: function (code) {
-            for (var i = 0; i < FERIIZ_EMPLOYEES.length; i++) {
-                if (FERIIZ_EMPLOYEES[i].code === code) return FERIIZ_EMPLOYEES[i];
+    var API = {
+        meta: null,
+        occupations: [],
+        projects: [],
+        employees: [],
+        attendance: [],
+        requests: [],
+        holidays: [],
+        _empByCode: {},
+        _projByCode: {},
+        findEmployeeByCode: function (code) { return this._empByCode[code] || null; },
+        findProjectByCode: function (code) { return this._projByCode[code] || null; },
+        initialsAvatar: function (name) { return buildInitialsAvatar(name); },
+        avatarSrc: function (employee) {
+            // Try real photo path first; render will fall back to initials on error.
+            if (employee && employee.photo) {
+                return 'assets/images/employees/' + employee.photo + '.jpg';
             }
-            return null;
-        },
-        findProjectByCode: function (code) {
-            for (var i = 0; i < FERIIZ_PROJECTS.length; i++) {
-                if (FERIIZ_PROJECTS[i].code === code) return FERIIZ_PROJECTS[i];
-            }
-            return null;
+            return buildInitialsAvatar(employee ? employee.name : '');
         }
     };
+
+    function buildInitialsAvatar(name) {
+        var parts = (name || '?').trim().split(/\s+/);
+        var initials = ((parts[0] || '')[0] || '?') + ((parts[1] || '')[0] || '');
+        initials = initials.toUpperCase();
+        // Colour derived from name — stable per person
+        var hash = 0;
+        for (var i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+        var hue = Math.abs(hash) % 360;
+        var bg = 'hsl(' + hue + ', 55%, 50%)';
+        var svg =
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">' +
+                '<rect width="48" height="48" fill="' + bg + '"/>' +
+                '<text x="24" y="30" font-family="Poppins,sans-serif" font-size="18" font-weight="700" ' +
+                    'fill="#fff" text-anchor="middle">' + initials + '</text>' +
+            '</svg>';
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    API.ready = fetch(DATA_URL, { cache: 'force-cache' })
+        .then(function (r) {
+            if (!r.ok) throw new Error('feriiz-data.json ' + r.status);
+            return r.json();
+        })
+        .then(function (data) {
+            API.meta = data.meta || null;
+            API.occupations = data.occupations || [];
+            API.projects = data.projects || [];
+            API.employees = data.employees || [];
+            API.attendance = data.attendance || [];
+            API.requests = data.requests || [];
+            API.holidays = data.holidays || [];
+            API.employees.forEach(function (e) { API._empByCode[e.code] = e; });
+            API.projects.forEach(function (p) { API._projByCode[p.code] = p; });
+            return API;
+        })
+        .catch(function (err) {
+            console.error('[FERIIZ_DATA] failed to load dataset:', err);
+            return API; // still resolve so pages don't hang
+        });
+
+    global.FERIIZ_DATA = API;
 
 })(typeof window !== 'undefined' ? window : this);

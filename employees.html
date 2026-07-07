@@ -6,13 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 
 <body data-page="employees">
-    <!-- Sidebar -->
     <aside class="sidebar"></aside>
 
     <main class="main-content">
@@ -24,33 +23,16 @@
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <div class="filter-dropdown feriiz-u-015">
-                        <div class="feriiz-u-016">Filter
-                            Employees</div>
-                        <label>Date Range</label>
-                        <div class="feriiz-u-003">
-                            <input type="date" class="input filter-date feriiz-u-004">
-                            <span class="feriiz-u-005">-</span>
-                            <input type="date" class="input filter-date feriiz-u-004">
-                        </div>
+                        <div class="feriiz-u-016">Filter Employees</div>
                         <label>Occupation</label>
-                        <select class="input filter-occ feriiz-u-017"
-                           >
-                            <option>All Occupations</option>
-                            <option>Graphic Design</option>
-                            <option>Sr.Programmer</option>
-                            <option>Teknisi</option>
-                            <option>Manager</option>
-                            <option>Marketing</option>
-                            <option>Frontend</option>
-                            <option>Backend</option>
-                            <option>HR Administrator</option>
-                            <option>3D Artist</option>
+                        <select class="input filter-occ feriiz-u-017"></select>
+                        <label>Project</label>
+                        <select class="input filter-project feriiz-u-017" id="filterProject">
+                            <option value="">All Projects</option>
                         </select>
                         <div class="feriiz-u-018">
-                            <button class="btn btn-outline filter-clear-btn feriiz-u-019"
-                               >Clear</button>
-                            <button class="btn btn-primary filter-apply-btn feriiz-u-019"
-                               >Apply</button>
+                            <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn feriiz-u-019">Apply</button>
                         </div>
                     </div>
                 </div>
@@ -64,8 +46,7 @@
                 </button>
                 <div class="search-autocomplete-wrap feriiz-u-014">
                     <div class="feriiz-u-020">
-                        <i class="fa-solid fa-magnifying-glass feriiz-u-021"
-                           ></i>
+                        <i class="fa-solid fa-magnifying-glass feriiz-u-021"></i>
                         <input type="text" id="employeeSearchInput" placeholder="Search" autocomplete="off" class="feriiz-u-022">
                     </div>
                     <div class="search-dropdown" id="searchDropdown"></div>
@@ -79,9 +60,7 @@
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >12
-                    </div>
+                    <div class="stat-number feriiz-u-026" data-stat="employees">0</div>
                     <div class="stat-label feriiz-u-027">Employees</div>
                 </div>
             </div>
@@ -90,9 +69,7 @@
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >9
-                    </div>
+                    <div class="stat-number feriiz-u-026" data-stat="occupations">0</div>
                     <div class="stat-label feriiz-u-027">Occupations</div>
                 </div>
             </div>
@@ -100,473 +77,95 @@
 
         <div class="table-container">
             <table class="data-table">
-                                <thead>
+                <thead>
                     <tr>
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
-                        
                         <th>Occupation</th>
                         <th>Pin</th>
-                        <th>Last Activity</th>
+                        <th>Joined</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Adam Ferial')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Adam Ferial</div>
-                                    <div class="employee-code feriiz-u-031">ADA27B1B2E650H0X</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Apriyanto Apriyanto')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/apriyanto-apriyanto_1621850525850PHJHHMX_1770362419047ZJYLSJN.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Apriyanto Apriyanto</div>
-                                    <div class="employee-code feriiz-u-031">APR8940K8VB44L8</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Teknisi</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Baldyas Satrio')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/baldyas-satrio_1719889375870VXHPKRR_1770005188161PFGYCTG.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Baldyas Satrio</div>
-                                    <div class="employee-code feriiz-u-031">BILFBY9N8YJ1YDN</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Ifan Faizal Adnan')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/ifan-faizal-adnan_1620206785015MBCPYVL_1773047618343SVWDDHF.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Ifan Faizal Adnan</div>
-                                    <div class="employee-code feriiz-u-031">IFAT8WJ2DM</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Sr.Programmer</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Indra Naftali')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/indra-naftali_1620292947975SJGDKRW_1770362519575KZRDYJQ.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Indra Naftali</div>
-                                    <div class="employee-code feriiz-u-031">IND693283053999</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Manager</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Mauli Hidayat')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/mauli-hidayat_1702870246840CSGXRBZ_1770362636360NSDZCPZ.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Mauli Hidayat</div>
-                                    <div class="employee-code feriiz-u-031">MAUNZ1TL5H0Q7GG</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Marketing</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Raden Maulana')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/raden-maulana_1620291488566YRBPCKR_1770359737806BBDBVNN.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Raden Maulana</div>
-                                    <div class="employee-code feriiz-u-031">RADVBYR5171FSC6</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Frontend</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Steven Febrianto')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/steven-febrianto_1620206785015NDMGHJW_1770362804080TMPZQVJ.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Steven Febrianto</div>
-                                    <div class="employee-code feriiz-u-031">STEPRQTY99</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Backend</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Veronica Nathalia')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/veronica-nathalia_1672729358803HTZMQXL_1770362780009DWBDQYQ.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Veronica Nathalia</div>
-                                    <div class="employee-code feriiz-u-031">VER2FWV8L80S5SX</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Yenni Tedjakoesoemo')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/yenni-tedjokoesoemo_1621590860902KTBPYXR_1770362740255MYSGRLH.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Yenni Tedjakoesoemo</div>
-                                    <div class="employee-code feriiz-u-031">YENX6LH3X9</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>HR Administrator</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Zicky Affan')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/zicky-affan_1684726717948GTJWVGM_1770362757807BGLXFRL.jpg" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Zicky Affan</div>
-                                    <div class="employee-code feriiz-u-031">ZICOJMQN8SQ5RDT</div>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td>3D Artist</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit" onclick="event.preventDefault(); openEmployeeDetailModal(false, 'Sandy Santuy')"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="employee_attendance.html" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>
-                                <a href="employee_projects.html" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="employee-cell feriiz-u-029">
-                                <img src="assets/images/employees/Sandy Santuy.jfif" alt="" class="feriiz-u-030">
-
-                                <div>
-                                    <div class="employee-name">Sandy Santuy</div>
-                                    <div class="employee-code feriiz-u-031">SAN79P3WFFK4MQM</div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td>Graphic Design</td>
-                        <td>-</td>
-                        <td>25 January 2025, 12:35pm</td>
-                    </tr>
-                </tbody>
+                <tbody id="employeesTableBody"></tbody>
             </table>
             <div class="pagination">
-                <div class="pagination-info">Showing 1 - 12 of 12 results</div>
-                <div class="pagination-buttons">
-                    <button disabled>&lt; Previous</button>
-                    <a href="#" class="active" aria-current="page">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <span class="page-dots">...</span>
-                    <a href="#">Next &gt;</a>
-                </div>
+                <div class="pagination-info" id="paginationInfo">Showing 0 results</div>
+                <div class="pagination-buttons" id="paginationButtons"></div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.3.4</div>
+        <div class="feriiz-u-032">version : 3.3.5</div>
     </main>
 
-        <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleBtn = document.querySelector('.filter-toggle-btn');
-            const dropdown = document.querySelector('.filter-dropdown');
-            const applyBtn = document.querySelector('.filter-apply-btn');
-            const clearBtn = document.querySelector('.filter-clear-btn');
-            const tableRows = document.querySelectorAll('.data-table tbody tr');
-
-            if (toggleBtn && dropdown) {
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('show');
-                    toggleBtn.classList.toggle('active');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
-                        dropdown.classList.remove('show');
-                        toggleBtn.classList.remove('active');
-                    }
-                });
-
-                dropdown.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-            }
-
-            const applyFilter = () => {
-                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
-
-                tableRows.forEach(row => {
-                    // Occupation is in column 3
-                    const occCell = row.querySelector('td:nth-child(3)');
-
-                    if (!occCell) return;
-
-                    const occText = occCell.textContent.toLowerCase();
-
-                    if (selectedOccupations.length === 0 || selectedOccupations.some(occupation => occText.includes(occupation))) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-                dropdown.classList.remove('show');
-                toggleBtn.classList.remove('active');
-            };
-
-            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
-
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    window.FeriizFilters?.resetOccupationFilter(document);
-                    
-                    const dateInputs = document.querySelectorAll('.filter-date');
-                    dateInputs.forEach(input => input.value = '');
-
-                    applyFilter();
-                });
-            }
-        });
-    </script>
-
-    
-
-
-    <!-- Employee Detail Modal Overlay -->
+    <!-- Employee Detail Modal -->
     <div class="modal-overlay" id="employeeDetailModal">
         <div class="modal-card feriiz-u-033">
             <div class="modal-header feriiz-u-034">
                 <h2 id="employeeDetailTitle" class="feriiz-u-035">Employee Detail</h2>
-                <button class="modal-close feriiz-u-036" onclick="closeEmployeeDetailModal()"
-                   >&times;</button>
+                <button class="modal-close feriiz-u-036" onclick="closeEmployeeDetailModal()">&times;</button>
             </div>
             <div class="modal-body feriiz-u-037">
                 <div class="feriiz-u-038">
-                    <!-- LEFT COLUMN -->
                     <div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Personal Information</span>
-                        </div>
+                        <div class="feriiz-u-039"><span class="feriiz-u-040">Personal Information</span></div>
                         <div class="feriiz-u-041">
                             <input type="text" id="empModalFirstName" placeholder="First Name" class="feriiz-u-042">
                             <input type="text" id="empModalLastName" placeholder="Last Name" class="feriiz-u-042">
-                            <input type="text" placeholder="Occupation" class="feriiz-u-042">
+                            <input type="text" id="empModalOccupation" placeholder="Occupation" class="feriiz-u-042">
                         </div>
                         <div class="feriiz-u-041">
-                            <input type="text" placeholder="Pin" class="feriiz-u-042">
-                            <input type="text" placeholder="Date of Birth" class="feriiz-u-042">
+                            <input type="text" id="empModalPin" placeholder="Pin" class="feriiz-u-042">
+                            <input type="date" class="feriiz-u-042">
                             <select class="feriiz-u-043">
                                 <option value="" disabled selected>Gender</option>
-                                <option class="feriiz-u-044">Male</option>
-                                <option class="feriiz-u-044">Female</option>
+                                <option>Male</option>
+                                <option>Female</option>
                             </select>
                         </div>
-                        <div class="feriiz-u-045"><textarea placeholder="Note" class="feriiz-u-046"></textarea>
-                        </div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Working Time</span>
-                        </div>
-                        <div class="feriiz-u-047">
-                            <input type="text" placeholder="Start Hour" class="feriiz-u-042">
-                            <input type="text" placeholder="End Hour" class="feriiz-u-042">
-                            <input type="text" placeholder="Cut Off Hour" class="feriiz-u-042">
-                        </div>
-                        <div class="feriiz-u-048">
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Mon</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Tue</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Wed</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Thu</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Fri</label>
-                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sat</label>
-                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sun</label>
-                        </div>
                     </div>
-                    <!-- RIGHT COLUMN -->
                     <div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Account Configuration</span>
-                        </div>
+                        <div class="feriiz-u-039"><span class="feriiz-u-040">Account Configuration</span></div>
                         <select class="feriiz-u-052">
                             <option>Employee</option><option>Admin</option>
                         </select>
-                        <input type="email" placeholder="Email" class="feriiz-u-053">
-                        <div id="empPasswordField">
-                            <input type="text" placeholder="Reset Password" class="feriiz-u-054">
-                        </div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Payment Rate</span>
-                        </div>
-                        <input type="text" placeholder="$ Hourly Rate" class="feriiz-u-053">
-                        <input type="text" placeholder="$ Hourly Overtime Rate" class="feriiz-u-053">
-                        <input type="text" placeholder="$ Client Rate" class="feriiz-u-053">
-                        <input type="text" placeholder="$ Client Overtime Rate" class="feriiz-u-053">
+                        <input type="email" id="empModalEmail" placeholder="Email" class="feriiz-u-053">
+                        <div class="feriiz-u-039"><span class="feriiz-u-040">Payment Rate</span></div>
+                        <input type="text" id="empModalDailyRate" placeholder="Daily Rate" class="feriiz-u-053">
+                        <input type="text" id="empModalClientRate" placeholder="Client Daily Rate" class="feriiz-u-053">
                     </div>
                 </div>
             </div>
-            <div id="empModalFooter" class="feriiz-u-055">
-                <button class="btn btn-primary feriiz-u-056" onclick="closeEmployeeDetailModal()"
-                   >Save Changes</button>
+            <div class="feriiz-u-055">
+                <button class="btn btn-primary feriiz-u-056" onclick="closeEmployeeDetailModal()">Save Changes</button>
             </div>
         </div>
     </div>
 
     <script>
-        function openEmployeeDetailModal(isNew, name) {
-            const title = document.getElementById('employeeDetailTitle');
-            const passwordField = document.getElementById('empPasswordField');
-            if(isNew) {
-                title.textContent = 'Add Employee';
-                if(passwordField) passwordField.style.display = 'block';
-            } else {
-                title.textContent = 'Employee Detail';
-                if(passwordField) passwordField.style.display = 'block';
-            }
-            const firstName = document.getElementById('empModalFirstName');
-            const lastName = document.getElementById('empModalLastName');
-            if(firstName && lastName && !isNew && name) {
-                const parts = name.trim().split(/\s+/);
-                firstName.value = parts.shift() || '';
-                lastName.value = parts.join(' ');
-            } else if(firstName && lastName && isNew) {
-                firstName.value = '';
-                lastName.value = '';
+        var employeesState = { all: [], filtered: [], page: 1, perPage: 25 };
+
+        function openEmployeeDetailModal(isNew, code) {
+            var title = document.getElementById('employeeDetailTitle');
+            title.textContent = isNew ? 'Add Employee' : 'Employee Detail';
+            var fn = document.getElementById('empModalFirstName');
+            var ln = document.getElementById('empModalLastName');
+            var occ = document.getElementById('empModalOccupation');
+            var pin = document.getElementById('empModalPin');
+            var email = document.getElementById('empModalEmail');
+            var rate = document.getElementById('empModalDailyRate');
+            var crate = document.getElementById('empModalClientRate');
+            [fn, ln, occ, pin, email, rate, crate].forEach(function (el) { if (el) el.value = ''; });
+            if (!isNew && code && window.FERIIZ_DATA) {
+                var emp = window.FERIIZ_DATA.findEmployeeByCode(code);
+                if (emp) {
+                    var parts = (emp.name || '').split(/\s+/);
+                    fn.value = parts.shift() || '';
+                    ln.value = parts.join(' ');
+                    occ.value = emp.occupation || '';
+                    pin.value = emp.pin || '';
+                    email.value = emp.email || '';
+                    rate.value = emp.dailyRate || '';
+                    crate.value = emp.clientDailyRate || '';
+                }
             }
             document.getElementById('employeeDetailModal').classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -575,155 +174,161 @@
             document.getElementById('employeeDetailModal').classList.remove('show');
             document.body.style.overflow = '';
         }
-        document.getElementById('employeeDetailModal').addEventListener('click', function(e) {
-            if(e.target === this) closeEmployeeDetailModal();
+
+        function formatJoinedDate(iso) {
+            if (!iso) return '-';
+            var d = new Date(iso);
+            if (isNaN(d)) return '-';
+            var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            return d.getDate().toString().padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        function renderEmployeeRow(emp) {
+            var avatar = window.FERIIZ_DATA.avatarSrc(emp);
+            var fallback = window.FERIIZ_DATA.initialsAvatar(emp.name);
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td>' +
+                    '<div class="action-cell">' +
+                        '<a href="#" class="btn-icon" title="Edit" data-code="' + emp.code + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
+                        '<a href="employee_attendance.html?employee=' + emp.code + '" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>' +
+                        '<a href="employee_projects.html?employee=' + emp.code + '" class="btn-icon" title="Projects"><i class="fa-regular fa-clipboard"></i></a>' +
+                    '</div>' +
+                '</td>' +
+                '<td>' +
+                    '<div class="employee-cell feriiz-u-029">' +
+                        '<img src="' + avatar + '" alt="" class="feriiz-u-030" data-fallback="' + fallback + '">' +
+                        '<div>' +
+                            '<div class="employee-name">' + emp.name + '</div>' +
+                            '<div class="employee-code feriiz-u-031">' + emp.code + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>' +
+                '<td>' + emp.occupation + '</td>' +
+                '<td>' + emp.pin + '</td>' +
+                '<td>' + formatJoinedDate(emp.joinedAt) + '</td>';
+            tr.querySelector('.btn-icon[data-code]').addEventListener('click', function (e) {
+                e.preventDefault();
+                openEmployeeDetailModal(false, emp.code);
+            });
+            tr.querySelector('img').addEventListener('error', function () {
+                if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
+            });
+            return tr;
+        }
+
+        function renderPage() {
+            var tbody = document.getElementById('employeesTableBody');
+            tbody.innerHTML = '';
+            var start = (employeesState.page - 1) * employeesState.perPage;
+            var end = Math.min(start + employeesState.perPage, employeesState.filtered.length);
+            for (var i = start; i < end; i++) {
+                tbody.appendChild(renderEmployeeRow(employeesState.filtered[i]));
+            }
+            document.getElementById('paginationInfo').textContent =
+                employeesState.filtered.length === 0
+                    ? 'No employees match your filter'
+                    : 'Showing ' + (start + 1) + ' - ' + end + ' of ' + employeesState.filtered.length + ' results';
+            renderPaginationButtons();
+        }
+
+        function renderPaginationButtons() {
+            var total = Math.ceil(employeesState.filtered.length / employeesState.perPage) || 1;
+            var current = employeesState.page;
+            var btns = document.getElementById('paginationButtons');
+            btns.innerHTML = '';
+            var prev = document.createElement('button');
+            prev.textContent = '< Previous';
+            prev.disabled = current === 1;
+            prev.addEventListener('click', function () { if (current > 1) { employeesState.page--; renderPage(); } });
+            btns.appendChild(prev);
+
+            function addPage(n) {
+                var a = document.createElement('a');
+                a.href = '#';
+                a.textContent = n;
+                if (n === current) { a.className = 'active'; a.setAttribute('aria-current', 'page'); }
+                a.addEventListener('click', function (e) { e.preventDefault(); employeesState.page = n; renderPage(); });
+                btns.appendChild(a);
+            }
+            function addDots() { var s = document.createElement('span'); s.className = 'page-dots'; s.textContent = '...'; btns.appendChild(s); }
+
+            var window_ = 2;
+            var pages = new Set([1, total]);
+            for (var i = current - window_; i <= current + window_; i++) if (i > 1 && i < total) pages.add(i);
+            var sorted = Array.from(pages).sort(function(a,b){return a-b;});
+            var lastN = 0;
+            sorted.forEach(function (n) {
+                if (lastN && n - lastN > 1) addDots();
+                addPage(n);
+                lastN = n;
+            });
+
+            var next = document.createElement('a');
+            next.href = '#';
+            next.textContent = 'Next >';
+            if (current === total) next.style.display = 'none';
+            next.addEventListener('click', function (e) { e.preventDefault(); if (current < total) { employeesState.page++; renderPage(); } });
+            btns.appendChild(next);
+        }
+
+        function applyEmployeeFilter() {
+            var occs = window.FeriizFilters?.getOccupationValues(document) || [];
+            var proj = document.getElementById('filterProject').value;
+            var q = (document.getElementById('employeeSearchInput').value || '').trim().toLowerCase();
+            employeesState.filtered = employeesState.all.filter(function (emp) {
+                if (occs.length && !occs.some(function (o) { return (emp.occupation || '').toLowerCase().indexOf(o) >= 0; })) return false;
+                if (proj && !(emp.projects || []).includes(proj)) return false;
+                if (q && (emp.name.toLowerCase().indexOf(q) < 0 && emp.code.toLowerCase().indexOf(q) < 0)) return false;
+                return true;
+            });
+            employeesState.page = 1;
+            renderPage();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.FERIIZ_DATA) return;
+            window.FERIIZ_DATA.ready.then(function (data) {
+                employeesState.all = data.employees.slice();
+                employeesState.filtered = employeesState.all.slice();
+
+                document.querySelector('[data-stat="employees"]').textContent = data.employees.length.toLocaleString('id-ID');
+                document.querySelector('[data-stat="occupations"]').textContent = data.occupations.length;
+
+                var filterProject = document.getElementById('filterProject');
+                data.projects.forEach(function (p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.code;
+                    opt.textContent = p.name;
+                    filterProject.appendChild(opt);
+                });
+
+                renderPage();
+
+                var apply = document.querySelector('.filter-apply-btn');
+                var clear = document.querySelector('.filter-clear-btn');
+                if (apply) apply.addEventListener('click', applyEmployeeFilter);
+                if (clear) clear.addEventListener('click', function () {
+                    window.FeriizFilters?.resetOccupationFilter(document);
+                    filterProject.value = '';
+                    document.getElementById('employeeSearchInput').value = '';
+                    applyEmployeeFilter();
+                });
+                var searchInput = document.getElementById('employeeSearchInput');
+                if (searchInput) {
+                    var timer;
+                    searchInput.addEventListener('input', function () {
+                        clearTimeout(timer);
+                        timer = setTimeout(applyEmployeeFilter, 200);
+                    });
+                }
+            });
+
+            document.getElementById('employeeDetailModal').addEventListener('click', function (e) {
+                if (e.target === this) closeEmployeeDetailModal();
+            });
         });
-
-        // === SEARCH AUTOCOMPLETE ===
-        (function() {
-            const searchInput = document.getElementById('employeeSearchInput');
-            const dropdown = document.getElementById('searchDropdown');
-            if (!searchInput || !dropdown) return;
-
-            // Build employee list from the table
-            const employeeData = [];
-            document.querySelectorAll('.data-table tbody tr').forEach(row => {
-                const nameEl = row.querySelector('.employee-name');
-                const codeEl = row.querySelector('.employee-code');
-                const occCell = row.querySelector('td:nth-child(3)');
-                const imgEl = row.querySelector('.employee-cell img');
-                if (nameEl) {
-                    employeeData.push({
-                        name: nameEl.textContent.trim(),
-                        code: codeEl ? codeEl.textContent.trim() : '',
-                        occupation: occCell ? occCell.textContent.trim() : '-',
-                        avatar: imgEl ? imgEl.src : '',
-                        row: row
-                    });
-                }
-            });
-
-            function highlightText(text, query) {
-                if (!query) return text;
-                const regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-                return text.replace(regex, '<span class="highlight">$1</span>');
-            }
-
-            function renderDropdown(query) {
-                const q = query.toLowerCase().trim();
-                dropdown.innerHTML = '';
-
-                if (!q) {
-                    dropdown.classList.remove('show');
-                    return;
-                }
-
-                const matches = employeeData.filter(emp =>
-                    emp.name.toLowerCase().includes(q) ||
-                    emp.code.toLowerCase().includes(q)
-                );
-
-                if (matches.length > 0) {
-                    matches.forEach(emp => {
-                        const item = document.createElement('div');
-                        item.className = 'search-dropdown-item';
-                        item.innerHTML = `
-                            <img class="sdi-avatar" src="${emp.avatar}" alt="" onerror="this.style.display='none'">
-                            <div class="sdi-info">
-                                <div class="sdi-name">${highlightText(emp.name, query)}</div>
-                                <div class="sdi-occupation">${emp.occupation}</div>
-                            </div>
-                        `;
-                        item.addEventListener('click', () => {
-                            // Close dropdown
-                            dropdown.classList.remove('show');
-                            searchInput.value = emp.name;
-
-                            // Scroll to row and highlight
-                            emp.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            emp.row.classList.remove('row-highlight');
-                            void emp.row.offsetWidth; // force reflow
-                            emp.row.classList.add('row-highlight');
-                            setTimeout(() => emp.row.classList.remove('row-highlight'), 1600);
-                        });
-                        dropdown.appendChild(item);
-                    });
-                } else {
-                    const noResult = document.createElement('div');
-                    noResult.className = 'search-no-results';
-                    noResult.textContent = 'No employee found';
-                    dropdown.appendChild(noResult);
-                }
-
-                // Always add "+ Add New Employee" at the bottom
-                const addBtn = document.createElement('div');
-                addBtn.className = 'search-dropdown-add';
-                addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add New Employee';
-                addBtn.addEventListener('click', () => {
-                    dropdown.classList.remove('show');
-                    searchInput.value = '';
-                    openEmployeeDetailModal(true, null);
-                });
-                dropdown.appendChild(addBtn);
-
-                dropdown.classList.add('show');
-            }
-
-            searchInput.addEventListener('input', function() {
-                renderDropdown(this.value);
-            });
-
-            searchInput.addEventListener('focus', function() {
-                if (this.value.trim()) renderDropdown(this.value);
-            });
-
-            // Close dropdown on outside click
-            document.addEventListener('click', function(e) {
-                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                }
-            });
-
-            // Keyboard navigation
-            searchInput.addEventListener('keydown', function(e) {
-                const items = dropdown.querySelectorAll('.search-dropdown-item, .search-dropdown-add');
-                const active = dropdown.querySelector('.search-dropdown-item:hover, .search-dropdown-add:hover');
-                let currentIdx = -1;
-                items.forEach((item, i) => {
-                    if (item.classList.contains('kbd-active')) currentIdx = i;
-                });
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    items.forEach(i => i.classList.remove('kbd-active'));
-                    currentIdx = Math.min(currentIdx + 1, items.length - 1);
-                    items[currentIdx].classList.add('kbd-active');
-                    items[currentIdx].style.background = '#EBF3FA';
-                    items[currentIdx].scrollIntoView({ block: 'nearest' });
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    items.forEach(i => i.classList.remove('kbd-active'));
-                    currentIdx = Math.max(currentIdx - 1, 0);
-                    items[currentIdx].classList.add('kbd-active');
-                    items[currentIdx].style.background = '#EBF3FA';
-                    items[currentIdx].scrollIntoView({ block: 'nearest' });
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const activeItem = dropdown.querySelector('.kbd-active');
-                    if (activeItem) activeItem.click();
-                } else if (e.key === 'Escape') {
-                    dropdown.classList.remove('show');
-                    searchInput.blur();
-                }
-
-                // Reset hover styles on non-active items
-                items.forEach((item, i) => {
-                    if (i !== currentIdx) item.style.background = '';
-                });
-            });
-        })();
     </script>
 
 </body>
-
 </html>

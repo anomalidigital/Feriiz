@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Project Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 <body data-page="project-calendar">
     <aside class="sidebar"></aside>
@@ -16,6 +16,8 @@
         <div class="feriiz-u-228">
             <div class="breadcrumb feriiz-u-229">
                 <a href="projects.html" class="feriiz-u-151">Projects</a>
+                <span>&gt;</span>
+                <a href="project_employees.html" class="feriiz-u-151" data-project-name>Project</a>
                 <span>&gt;</span>
                 <span class="feriiz-u-152">Calendar</span>
             </div>
@@ -63,35 +65,37 @@
     </div>
 
     <script>
-        // === Event Data ===
-        const EVENTS = [
-            { name:'Sandy Santuy', type:'Sick Leave', cat:'sick', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio', note:'flu berat', attachment:'' },
-            { name:'Steven Febrianto', type:'Annual Leave', cat:'leave', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'sakit rahang', attachment:'Camera_1777145042263.jpg' },
-            { name:'Yenni Tedjakoesoemo', type:'Remote Work', cat:'work', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Adam Ferial', type:'Sick Leave', cat:'sick', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Adam Ferial', type:'Remote Work', cat:'work', dateStart:'2026-05-07', dateEnd:'2026-05-08', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-05', dateEnd:'2026-05-05', status:'Accepted', pic:'Judith Anastalio', note:'sakit rahang', attachment:'Camera_1777145042263.jpg' },
-            { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', dateStart:'2026-05-11', dateEnd:'2026-05-11', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Ifan Faizal Adnan', type:'Annual Leave', cat:'leave', dateStart:'2026-05-12', dateEnd:'2026-05-12', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-04', dateEnd:'2026-05-04', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Ifan Faizal Adnan', type:'Remote Work', cat:'work', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Pending', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Mauli Hidayat', type:'Sick Leave', cat:'sick', dateStart:'2026-05-13', dateEnd:'2026-05-13', status:'Pending', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Mauli Hidayat', type:'Annual Leave', cat:'leave', dateStart:'2026-05-08', dateEnd:'2026-05-08', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Raden Maulana', type:'Sick Leave', cat:'sick', dateStart:'2026-05-12', dateEnd:'2026-05-12', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Adam Ferial', type:'Sick Leave', cat:'sick', dateStart:'2026-05-07', dateEnd:'2026-05-07', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Steven Febrianto', type:'Remote Work', cat:'work', dateStart:'2026-05-06', dateEnd:'2026-05-06', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Veronica Nathalia', type:'Annual Leave', cat:'leave', dateStart:'2026-05-15', dateEnd:'2026-05-15', status:'Accepted', pic:'Judith Anastalio', note:'', attachment:'' },
-            { name:'Ifan Faizal Adnan', type:'Annual Leave', cat:'leave', dateStart:'2026-05-19', dateEnd:'2026-05-19', status:'Pending', pic:'Judith Anastalio', note:'', attachment:'' },
-        ];
-        const HOLIDAYS = [
-            { name:'Hari Buruh Internasional / Pekerja', date:'2026-05-01', cat:'other' },
-            { name:'Kenaikan Isa Al Masih', date:'2026-05-14', cat:'other' },
-            { name:'Cuti Bersama: Kenaikan Isa Al Masih', date:'2026-05-15', cat:'other' },
-            { name:'Idul Adha (Lebaran Haji) (belum pasti)', date:'2026-05-27', cat:'other' },
-            { name:'Idul Adha (Lebaran Haji)', date:'2026-05-28', cat:'other' },
-            { name:'Hari Raya Waisak (belum pasti)', date:'2026-05-31', cat:'other' },
-        ];
+        // Populated from FERIIZ_DATA once the dataset resolves.
+        let EVENTS = [];
+        let HOLIDAYS = [];
+        function catFromType(type) {
+            var t = (type || '').toLowerCase();
+            if (t.indexOf('sick') >= 0) return 'sick';
+            if (t.indexOf('remote') >= 0) return 'work';
+            if (t.indexOf('leave') >= 0 || t.indexOf('permission') >= 0) return 'leave';
+            return 'other';
+        }
+        function buildEventsFromData(data, projectCode) {
+            var out = [];
+            for (var i = 0; i < data.requests.length; i++) {
+                var r = data.requests[i];
+                if (projectCode && r.projectCode !== projectCode) continue;
+                var emp = data.findEmployeeByCode(r.employeeCode);
+                if (!emp) continue;
+                out.push({
+                    name: emp.name,
+                    type: r.type,
+                    cat: catFromType(r.type),
+                    dateStart: r.dateStart,
+                    dateEnd: r.dateEnd || r.dateStart,
+                    status: r.status,
+                    pic: r.pic || '',
+                    note: r.reason || '',
+                    attachment: ''
+                });
+            }
+            return out;
+        }
         const DEFAULT_HOLIDAY_OVERRIDES = [
             { date:'2026-05-14', status:'working', note:'Tetap masuk kerja sesuai kebijakan perusahaan.' }
         ];
@@ -297,6 +301,25 @@
 
         renderCalendar();
         renderSidebar();
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.FERIIZ_DATA || !window.FERIIZ_DATA.ready) return;
+            var url = new URL(location.href);
+            var projectCode = url.searchParams.get('project');
+            window.FERIIZ_DATA.ready.then(function (data) {
+                var project = projectCode ? data.findProjectByCode(projectCode) : data.projects[0];
+                if (!project) project = data.projects[0];
+                EVENTS = buildEventsFromData(data, project.code);
+                HOLIDAYS = data.holidays.map(function (h) { return { name: h.name, date: h.date, cat: 'other' }; });
+                currentYear = 2026;
+                currentMonth = 4;
+                var bc = document.querySelector('[data-project-name]');
+                if (bc) bc.textContent = project.name;
+                document.title = 'Feriiz - ' + project.name + ' - Calendar';
+                renderCalendar();
+                renderSidebar();
+            });
+        });
     </script>
 </body>
 </html>

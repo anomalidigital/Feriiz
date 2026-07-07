@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
-    <script src="assets/js/data.js?v=3.3.4" defer></script>
-    <script src="assets/js/app.js?v=3.3.4" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
+    <script src="assets/js/data.js?v=3.3.5" defer></script>
+    <script src="assets/js/app.js?v=3.3.5" defer></script>
 </head>
 
 <body data-page="projects">
@@ -65,103 +65,7 @@
                         <th>Employee</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr class="project-clickable-row" data-href="project_employees.html">
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit"
-                                    onclick="event.preventDefault(); openProjectModal('project', 'Anomali')">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-
-                                <a href="project_employees.html" class="btn-icon" title="View">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="feriiz-u-188">Anomali</div>
-                            <div class="feriiz-u-189">ANM001</div>
-                        </td>
-                        <td><span class="feriiz-u-102">Active</span>
-                        </td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td class="feriiz-u-190">129</td>
-                    </tr>
-                    <tr class="project-clickable-row" data-href="project_employees.html">
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit"
-                                    onclick="event.preventDefault(); openProjectModal('project', 'Diamond Crystal Golf No. 15')">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-
-                                <a href="project_employees.html" class="btn-icon" title="View">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="feriiz-u-188">Diamond Crystal Golf No. 15</div>
-                            <div class="feriiz-u-189">DCG015</div>
-                        </td>
-                        <td><span class="feriiz-u-102">Active</span>
-                        </td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td class="feriiz-u-190">81</td>
-                    </tr>
-                    <tr class="project-clickable-row" data-href="project_employees.html">
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit"
-                                    onclick="event.preventDefault(); openProjectModal('project', 'Diamond Golf H3 No. 105')">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-
-                                <a href="project_employees.html" class="btn-icon" title="View">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="feriiz-u-188">Diamond Golf H3 No. 105</div>
-                            <div class="feriiz-u-189">DGH105</div>
-                        </td>
-                        <td><span class="feriiz-u-102">Active</span>
-                        </td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td>25 January 2025, 12:35pm</td>
-                        <td class="feriiz-u-190">139</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="action-cell">
-                                <a href="#" class="btn-icon" title="Edit"
-                                    onclick="event.preventDefault(); openProjectModal('project', 'Mangunsarkoro No. 53')">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <a href="project_employees.html" class="btn-icon" title="View">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="feriiz-u-188">Mangunsarkoro No. 53</div>
-                            <div class="feriiz-u-189">MGS053</div>
-                        </td>
-                        <td><span class="feriiz-u-102">Active</span>
-                        </td>
-                        <td>10 April 2026, 08:19am</td>
-                        <td>10 April 2026, 08:19am</td>
-                        <td>10 April 2026, 08:24am</td>
-                        <td class="feriiz-u-190">178</td>
-                    </tr>
-                </tbody>
+                <tbody id="projectsTableBody"></tbody>
             </table>
             <div class="pagination">
                 <div class="pagination-info" data-pagination-info>Showing 0 results</div>
@@ -172,7 +76,7 @@
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.3.4</div>
+        <div class="feriiz-u-032">version : 3.3.5</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -757,15 +661,56 @@
             document.body.style.overflow = '';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.project-clickable-row').forEach(row => {
-                row.addEventListener('click', event => {
-                    if (event.target.closest('a, button, input, select, textarea')) return;
-                    const href = row.dataset.href;
-                    if (href) window.location.href = href;
-                });
-            });
+        function formatProjectDate(iso) {
+            if (!iso) return '-';
+            const d = new Date(iso);
+            if (isNaN(d)) return '-';
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const day = d.getDate().toString().padStart(2,'0');
+            const month = months[d.getMonth()];
+            const yr = d.getFullYear();
+            const hh = d.getHours();
+            const mm = d.getMinutes().toString().padStart(2,'0');
+            const am = hh >= 12 ? 'pm' : 'am';
+            const h12 = hh % 12 || 12;
+            return day + ' ' + month + ' ' + yr + ', ' + h12 + ':' + mm + am;
+        }
 
+        function renderProjectsTable(projects) {
+            const tbody = document.getElementById('projectsTableBody');
+            tbody.innerHTML = '';
+            projects.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'project-clickable-row';
+                tr.dataset.href = 'project_employees.html?project=' + encodeURIComponent(p.code);
+                tr.innerHTML =
+                    '<td>' +
+                        '<div class="action-cell">' +
+                            '<a href="#" class="btn-icon" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>' +
+                            '<a href="' + tr.dataset.href + '" class="btn-icon" title="View"><i class="fa-solid fa-chevron-right"></i></a>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td><div class="feriiz-u-188">' + p.name + '</div><div class="feriiz-u-189">' + p.code + '</div></td>' +
+                    '<td><span class="feriiz-u-102">' + (p.status || 'Active') + '</span></td>' +
+                    '<td>' + formatProjectDate(p.createdAt) + '</td>' +
+                    '<td>' + formatProjectDate(p.startedAt) + '</td>' +
+                    '<td>' + formatProjectDate(p.lastActivityAt) + '</td>' +
+                    '<td class="feriiz-u-190">' + (p.employeeCount || 0) + '</td>';
+                const editBtn = tr.querySelector('a[title="Edit"]');
+                editBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openProjectModal('project', p.name);
+                });
+                tr.addEventListener('click', function (event) {
+                    if (event.target.closest('a, button, input, select, textarea')) return;
+                    window.location.href = tr.dataset.href;
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             const modalOverlay = document.getElementById('employeeDetailModal');
             if (modalOverlay) {
                 modalOverlay.addEventListener('click', function (e) {
@@ -773,11 +718,11 @@
                 });
             }
 
-            // Populate stat cards and pagination from FERIIZ_DATA
-            const data = window.FERIIZ_DATA;
-            if (data) {
-                const total = data.projects.length;
-                const active = data.projects.filter(p => (p.status || 'Active') === 'Active').length;
+            if (!window.FERIIZ_DATA) return;
+            window.FERIIZ_DATA.ready.then(data => {
+                const projects = data.projects.slice();
+                const total = projects.length;
+                const active = projects.filter(p => (p.status || 'Active') === 'Active').length;
                 const setStat = (key, value) => {
                     const el = document.querySelector('[data-stat="' + key + '"]');
                     if (el) el.textContent = value;
@@ -786,7 +731,8 @@
                 setStat('projects-active', active);
                 const info = document.querySelector('[data-pagination-info]');
                 if (info) info.textContent = 'Showing 1 - ' + total + ' of ' + total + ' results';
-            }
+                renderProjectsTable(projects);
+            });
         });
     </script>
 

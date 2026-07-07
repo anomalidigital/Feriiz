@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.2">
-    <script src="assets/js/data.js?v=3.3.2" defer></script>
-    <script src="assets/js/app.js?v=3.3.2" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
+    <script src="assets/js/data.js?v=3.3.4" defer></script>
+    <script src="assets/js/app.js?v=3.3.4" defer></script>
 </head>
 
 <body data-page="dashboard">
@@ -77,12 +77,8 @@
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >27
-                    </div>
-                    <div class="stat-label feriiz-u-165"
-                       >
-                        Employees</div>
+                    <div class="stat-number feriiz-u-026" data-stat="employees">0</div>
+                    <div class="stat-label feriiz-u-165">Employees</div>
                 </div>
             </div>
             <div class="stat-card feriiz-u-024">
@@ -90,9 +86,7 @@
                     <i class="fa-solid fa-chart-pie"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >27
-                    </div>
+                    <div class="stat-number feriiz-u-026" data-stat="attendance">0</div>
                     <div class="stat-label feriiz-u-027">Attendance</div>
                 </div>
             </div>
@@ -101,9 +95,7 @@
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >14
-                    </div>
+                    <div class="stat-number feriiz-u-026" data-stat="occupations">0</div>
                     <div class="stat-label feriiz-u-027">Occupations</div>
                 </div>
             </div>
@@ -233,7 +225,7 @@
             </table>
         </div>
 
-        <div class="feriiz-u-032">version : 3.3.2</div>
+        <div class="feriiz-u-032">version : 3.3.4</div>
     </main>
 
     <script>
@@ -269,6 +261,18 @@
                     });
                     applyOccupationFilter();
                 });
+            }
+
+            // Populate stat cards from FERIIZ_DATA
+            const data = window.FERIIZ_DATA;
+            if (data) {
+                const setStat = (key, value) => {
+                    const el = document.querySelector('[data-stat="' + key + '"]');
+                    if (el) el.textContent = value;
+                };
+                setStat('employees', data.employees.length);
+                setStat('attendance', data.employees.length); // demo: assume everyone attended today
+                setStat('occupations', data.occupations.length);
             }
         });
     </script>

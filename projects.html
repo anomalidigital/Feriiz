@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.2">
-    <script src="assets/js/data.js?v=3.3.2" defer></script>
-    <script src="assets/js/app.js?v=3.3.2" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.4">
+    <script src="assets/js/data.js?v=3.3.4" defer></script>
+    <script src="assets/js/app.js?v=3.3.4" defer></script>
 </head>
 
 <body data-page="projects">
@@ -32,32 +32,22 @@
         </div>
 
         <div class="stat-cards feriiz-u-023">
-            <div class="stat-card feriiz-u-187"
-               >
-                <div class="stat-card-icon feriiz-u-025"
-                   >
+            <div class="stat-card feriiz-u-187">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-solid fa-folder"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >4
-                    </div>
-                    <div class="stat-label feriiz-u-165"
-                       >
-                        Project</div>
+                    <div class="stat-number feriiz-u-026" data-stat="projects">0</div>
+                    <div class="stat-label feriiz-u-165">Projects</div>
                 </div>
             </div>
-            <div class="stat-card feriiz-u-187"
-               >
-                <div class="stat-card-icon feriiz-u-025"
-                   >
+            <div class="stat-card feriiz-u-187">
+                <div class="stat-card-icon feriiz-u-025">
                     <i class="fa-regular fa-folder-open"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026"
-                       >4
-                    </div>
-                    <div class="stat-label feriiz-u-027">Project Active</div>
+                    <div class="stat-number feriiz-u-026" data-stat="projects-active">0</div>
+                    <div class="stat-label feriiz-u-027">Active</div>
                 </div>
             </div>
         </div>
@@ -65,7 +55,7 @@
         <div class="table-container">
             <table class="data-table">
                 <thead>
-                    <tr class="project-clickable-row" data-href="project_employees.html">
+                    <tr>
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
                         <th>Status</th>
@@ -174,18 +164,15 @@
                 </tbody>
             </table>
             <div class="pagination">
-                <div class="pagination-info">Showing 1 - 4 of 12 results</div>
+                <div class="pagination-info" data-pagination-info>Showing 0 results</div>
                 <div class="pagination-buttons">
                     <button disabled>&lt; Previous</button>
                     <a href="#" class="active" aria-current="page">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <span class="page-dots">...</span>
-                    <a href="#">Next &gt;</a>
+                    <a href="#" style="display:none;">Next &gt;</a>
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.3.2</div>
+        <div class="feriiz-u-032">version : 3.3.4</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -784,6 +771,21 @@
                 modalOverlay.addEventListener('click', function (e) {
                     if (e.target === this) closeEmployeeDetailModal();
                 });
+            }
+
+            // Populate stat cards and pagination from FERIIZ_DATA
+            const data = window.FERIIZ_DATA;
+            if (data) {
+                const total = data.projects.length;
+                const active = data.projects.filter(p => (p.status || 'Active') === 'Active').length;
+                const setStat = (key, value) => {
+                    const el = document.querySelector('[data-stat="' + key + '"]');
+                    if (el) el.textContent = value;
+                };
+                setStat('projects', total);
+                setStat('projects-active', active);
+                const info = document.querySelector('[data-pagination-info]');
+                if (info) info.textContent = 'Showing 1 - ' + total + ' of ' + total + ' results';
             }
         });
     </script>

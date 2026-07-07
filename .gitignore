@@ -30,3 +30,4 @@ Forgot password/
 
 # AI assistant context (keep local, not in repo)
 CLAUDE.md
+.claude/

@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.5">
-    <script src="assets/js/data.js?v=3.3.5" defer></script>
-    <script src="assets/js/app.js?v=3.3.5" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
+    <script src="assets/js/data.js?v=3.3.6" defer></script>
+    <script src="assets/js/app.js?v=3.3.6" defer></script>
 </head>
 <body data-page="calendar">
     <aside class="sidebar"></aside>
@@ -97,7 +97,7 @@
                     <div class="calendar-legend-item"><span class="feriiz-u-009"></span> Libur & Lainnya</div>
                 </div>
                 <div class="cal-grid" id="calGrid"></div>
-                <div class="feriiz-u-010">version : 3.3.5</div>
+                <div class="feriiz-u-010">version : 3.3.6</div>
             </section>
         </div>
     </main>
@@ -152,7 +152,9 @@
         const CAT_CSS = { work:'cat-work-bg', leave:'cat-leave-bg', sick:'cat-sick-bg', other:'cat-other-bg' };
 
         const PROJECTS = [
-            { id:'anomali', label:'Anomali' },
+            { id:'ANM001', label:'Anomali' },
+            { id:'DCG015', label:'Diamond Crystal Golf No. 15' },
+            { id:'DGH105', label:'Diamond Golf H3 No. 105' },
         ];
         let currentYear=2026, currentMonth=4;
         let activeFilter = { type:'', status:'', dateFrom:'', dateTo:'' };

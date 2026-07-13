@@ -1298,14 +1298,16 @@ body {
 
         .col-activity-photos.col-activity-visible {
             display: table-cell;
-            width: 76px;
-            min-width: 76px;
+            width: 228px;
+            min-width: 228px;
         }
 
         .activity-photo-grid {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, 48px);
             align-items: center;
             gap: 6px;
+            width: max-content;
             min-height: 48px;
         }
 

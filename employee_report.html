@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
+    <script src="assets/js/data.js?v=3.3.7" defer></script>
+    <script src="assets/js/app.js?v=3.3.8" defer></script>
 </head>
 
 <body class="report-layout" data-page="employee-report">
@@ -141,11 +141,11 @@
                         <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down feriiz-u-124"></i>
                     </button>
                     <div id="downloadDropdown" class="feriiz-u-125">
-                        <div onclick="alert('Preparing summary export...'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
+                        <div onclick="FeriizNotify.info('The summary export is being prepared.', 'Preparing export'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
                             <i class="fa-solid fa-file-lines feriiz-u-127"></i> Summary
                         </div>
                         <div class="feriiz-u-128"></div>
-                        <div onclick="alert('Preparing timesheet export...'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
+                        <div onclick="FeriizNotify.info('The timesheet export is being prepared.', 'Preparing export'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
                             <i class="fa-solid fa-clock feriiz-u-127"></i> Timesheet
                         </div>
                     </div>

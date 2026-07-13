@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employee Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
     <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <script src="assets/js/app.js?v=3.3.8" defer></script>
 </head>
 
 <body data-page="employee-projects">
@@ -134,6 +134,7 @@
             const dateEnd = document.querySelector('.filter-date-end');
             const searchInput = document.getElementById('projectSearch');
             const tableRows = document.querySelectorAll('.data-table tbody tr');
+            const appliedFilters = { type: '', start: '', end: '' };
 
             if (toggleBtn && dropdown) {
                 toggleBtn.addEventListener('click', (e) => {
@@ -149,9 +150,9 @@
             }
 
             const applyFilters = () => {
-                const typeVal = typeSelect.value.toLowerCase();
-                const startVal = dateStart.value;
-                const endVal = dateEnd.value;
+                const typeVal = appliedFilters.type;
+                const startVal = appliedFilters.start;
+                const endVal = appliedFilters.end;
                 const searchVal = searchInput.value.toLowerCase();
 
                 tableRows.forEach(row => {
@@ -185,6 +186,9 @@
 
             if (applyBtn) {
                 applyBtn.addEventListener('click', () => {
+                    appliedFilters.type = typeSelect.value.toLowerCase();
+                    appliedFilters.start = dateStart.value;
+                    appliedFilters.end = dateEnd.value;
                     applyFilters();
                     dropdown.classList.remove('show');
                 });
@@ -195,6 +199,9 @@
                     typeSelect.selectedIndex = 0;
                     dateStart.value = '';
                     dateEnd.value = '';
+                    appliedFilters.type = '';
+                    appliedFilters.start = '';
+                    appliedFilters.end = '';
                     applyFilters();
                     dropdown.classList.remove('show');
                 });

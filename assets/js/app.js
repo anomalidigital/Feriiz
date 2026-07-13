@@ -10,6 +10,96 @@ function feriizLogout() {
     window.location.href = 'login.html';
 }
 
+/* === Application Notifications ===
+   Shared non-blocking feedback for actions across every Feriiz page. */
+(function () {
+    var DEFAULT_TITLES = {
+        success: 'Changes saved',
+        info: 'Information',
+        warning: 'Please check',
+        error: 'Something went wrong'
+    };
+    var ICONS = {
+        success: 'fa-check',
+        info: 'fa-info',
+        warning: 'fa-exclamation',
+        error: 'fa-xmark'
+    };
+
+    function getRegion() {
+        var region = document.getElementById('feriizNotificationRegion');
+        if (region) return region;
+
+        region = document.createElement('div');
+        region.id = 'feriizNotificationRegion';
+        region.className = 'notification-region';
+        region.setAttribute('role', 'region');
+        region.setAttribute('aria-label', 'Notifications');
+        region.setAttribute('aria-live', 'polite');
+        document.body.appendChild(region);
+        return region;
+    }
+
+    function dismiss(toast) {
+        if (!toast || toast.classList.contains('is-leaving')) return;
+        toast.classList.add('is-leaving');
+        window.setTimeout(function () { toast.remove(); }, 180);
+    }
+
+    function show(options) {
+        var config = typeof options === 'string' ? { message: options } : (options || {});
+        var type = Object.prototype.hasOwnProperty.call(DEFAULT_TITLES, config.type) ? config.type : 'info';
+        var duration = Number(config.duration) > 0 ? Number(config.duration) : 5000;
+        var toast = document.createElement('div');
+        toast.className = 'notification-toast notification-toast--' + type;
+        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+
+        var icon = document.createElement('span');
+        icon.className = 'notification-toast__icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.innerHTML = '<i class="fa-solid ' + ICONS[type] + '"></i>';
+
+        var content = document.createElement('div');
+        content.className = 'notification-toast__content';
+        var title = document.createElement('strong');
+        title.className = 'notification-toast__title';
+        title.textContent = config.title || DEFAULT_TITLES[type];
+        var message = document.createElement('p');
+        message.className = 'notification-toast__message';
+        message.textContent = config.message || '';
+        content.appendChild(title);
+        if (message.textContent) content.appendChild(message);
+
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'notification-toast__close';
+        close.setAttribute('aria-label', 'Dismiss notification');
+        close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        close.addEventListener('click', function () { dismiss(toast); });
+
+        var progress = document.createElement('span');
+        progress.className = 'notification-toast__progress';
+        progress.style.animationDuration = duration + 'ms';
+
+        toast.appendChild(icon);
+        toast.appendChild(content);
+        toast.appendChild(close);
+        toast.appendChild(progress);
+        getRegion().appendChild(toast);
+
+        window.setTimeout(function () { dismiss(toast); }, duration);
+        return toast;
+    }
+
+    window.FeriizNotify = {
+        show: show,
+        success: function (message, title) { return show({ type: 'success', title: title, message: message }); },
+        info: function (message, title) { return show({ type: 'info', title: title, message: message }); },
+        warning: function (message, title) { return show({ type: 'warning', title: title, message: message }); },
+        error: function (message, title) { return show({ type: 'error', title: title, message: message, duration: 7000 }); }
+    };
+})();
+
 /* === Sidebar Renderer ===
    Single source for sidebar markup. Pages opt in by adding
    <body data-page="KEY"> and an empty <aside class="sidebar"></aside>. */
@@ -472,7 +562,117 @@ function feriizLogout() {
         });
     }
 
-    document.addEventListener('DOMContentLoaded', renderAttendanceReport);
+    const appliedAttendanceFilters = { dateStart: '', dateEnd: '' };
+
+    function formatInputDate(date) {
+        return date.toISOString().slice(0, 10);
+    }
+
+    function setAttendancePeriodDraft(select, dateInputs) {
+        const value = select.value;
+        const now = new Date();
+        let start = '';
+        let end = '';
+
+        if (value === 'today') {
+            start = end = formatInputDate(now);
+        } else if (value === 'yesterday') {
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            start = end = formatInputDate(yesterday);
+        } else if (value === 'this_week') {
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
+            start = formatInputDate(monday);
+            end = formatInputDate(now);
+        } else if (value === 'last_week') {
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1) - 7);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            start = formatInputDate(monday);
+            end = formatInputDate(sunday);
+        } else if (value === 'this_month') {
+            start = formatInputDate(new Date(now.getFullYear(), now.getMonth(), 1));
+            end = formatInputDate(now);
+        } else if (value === 'last_month') {
+            start = formatInputDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+            end = formatInputDate(new Date(now.getFullYear(), now.getMonth(), 0));
+        } else if (value === 'this_year') {
+            start = formatInputDate(new Date(now.getFullYear(), 0, 1));
+            end = formatInputDate(now);
+        }
+
+        dateInputs[0].value = start;
+        dateInputs[1].value = end;
+    }
+
+    function applyAttendanceFilters() {
+        const searchInput = document.querySelector('.page-actions input[placeholder*="Search attendance"]');
+        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const startTime = appliedAttendanceFilters.dateStart
+            ? new Date(appliedAttendanceFilters.dateStart + 'T00:00:00').getTime()
+            : Number.NEGATIVE_INFINITY;
+        const endTime = appliedAttendanceFilters.dateEnd
+            ? new Date(appliedAttendanceFilters.dateEnd + 'T23:59:59').getTime()
+            : Number.POSITIVE_INFINITY;
+
+        document.querySelectorAll('.attendance-table tbody tr:not(.attendance-total-row)').forEach(row => {
+            const dateCell = row.querySelector('td:first-child');
+            if (!dateCell) return;
+            const rowTime = new Date(dateCell.textContent.trim()).getTime();
+            const matchesDate = !Number.isNaN(rowTime) && rowTime >= startTime && rowTime <= endTime;
+            const matchesSearch = !query || row.textContent.toLowerCase().includes(query);
+            row.hidden = !(matchesDate && matchesSearch);
+        });
+    }
+
+    function initAttendanceFilters() {
+        if (!document.querySelector('.attendance-table')) return;
+
+        const dateInputs = [...document.querySelectorAll('.filter-date')];
+        const periodSelect = document.querySelector('.filter-period');
+        const applyButton = document.querySelector('.filter-apply-btn');
+        const clearButton = document.querySelector('.filter-clear-btn');
+        const searchInput = document.querySelector('.page-actions input[placeholder*="Search attendance"]');
+
+        if (periodSelect && dateInputs.length >= 2) {
+            periodSelect.addEventListener('change', function () {
+                setAttendancePeriodDraft(periodSelect, dateInputs);
+            });
+        }
+
+        if (applyButton && dateInputs.length >= 2) {
+            applyButton.addEventListener('click', function () {
+                appliedAttendanceFilters.dateStart = dateInputs[0].value;
+                appliedAttendanceFilters.dateEnd = dateInputs[1].value;
+                applyAttendanceFilters();
+            });
+        }
+
+        if (clearButton) {
+            clearButton.addEventListener('click', function () {
+                dateInputs.forEach(input => { input.value = ''; });
+                if (periodSelect) periodSelect.value = 'custom';
+                appliedAttendanceFilters.dateStart = '';
+                appliedAttendanceFilters.dateEnd = '';
+                applyAttendanceFilters();
+            });
+        }
+
+        if (searchInput) {
+            let timer;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(applyAttendanceFilters, 180);
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        renderAttendanceReport();
+        initAttendanceFilters();
+    });
 })();
 
 (function () {

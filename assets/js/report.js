@@ -33,6 +33,11 @@
     var reportEmployees = [];
     // Fast lookup for attendance records keyed by employeeCode + '|' + date
     var attendanceIndex = {};
+    // Dropdown controls are drafts. Only Apply is allowed to replace this state.
+    var appliedReportFilters = {
+        missingTypes: [],
+        occupations: []
+    };
 
     function formatIDR(n) {
         if (!n && n !== 0) return 'IDR0';
@@ -66,6 +71,7 @@
         var issue = (opts && opts.issue) || '';
         var clockLines = opts && opts.clockLines;
         var isEmpty = (opts && opts.isEmpty) || false;
+        var isUpdated = Boolean(opts && opts.updated);
 
         if (isEmpty) return '';
 
@@ -78,7 +84,10 @@
 
         var html = '';
         if (totalBadge) {
-            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div></div>';
+            var updateBadge = isUpdated
+                ? '<span class="cell-updated-badge"><i class="fa-solid fa-check"></i>Updated</span>'
+                : '';
+            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + updateBadge + '</div>';
         }
 
         if (renderedLines) {
@@ -252,8 +261,12 @@
     /* =============================================
        FILTERS
        ============================================= */
-    function getSelectedMissingTypes() {
+    function getDraftMissingTypes() {
         return Array.from(document.querySelectorAll('.filter-missing:checked')).map(function (i) { return i.value; });
+    }
+
+    function getSelectedMissingTypes() {
+        return appliedReportFilters.missingTypes.slice();
     }
 
     function rowHasMissingType(row, types) {
@@ -276,7 +289,7 @@
     }
 
     function rowMatchesOccupation(row) {
-        var sel = (window.FeriizFilters && window.FeriizFilters.getOccupationValues) ? window.FeriizFilters.getOccupationValues(document) : [];
+        var sel = appliedReportFilters.occupations;
         if (sel.length === 0) return true;
         var occ = ((row.querySelector('.emp-occupation-cell') || {}).textContent || '').toLowerCase();
         return sel.some(function (s) { return occ.indexOf(s) >= 0; });
@@ -360,6 +373,27 @@
         if (deleteBtn) {
             deleteBtn.disabled = !hasLogs;
         }
+
+        syncDayHeaderSelections();
+    }
+
+    function syncDayHeaderSelections() {
+        document.querySelectorAll('.day-header-select').forEach(function (headerCb) {
+            var date = headerCb.dataset.date;
+            var checkboxes = [];
+
+            document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
+                if (row.hidden || currentVisibleDates.indexOf(date) < 0) return;
+                var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
+                if (!cell || cell.classList.contains('filtered-out-cell')) return;
+                var cb = cell.querySelector('.day-cell-select');
+                if (cb) checkboxes.push(cb);
+            });
+
+            var checkedCount = checkboxes.filter(function (cb) { return cb.checked; }).length;
+            headerCb.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+            headerCb.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+        });
     }
 
     function updateFilterIndicator() {
@@ -388,6 +422,9 @@
                 document.querySelectorAll('.filter-missing').forEach(function (cb) {
                     if (cb.value === type) cb.checked = false;
                 });
+                appliedReportFilters.missingTypes = appliedReportFilters.missingTypes.filter(function (item) {
+                    return item !== type;
+                });
                 applyReportFilters();
             });
         });
@@ -395,6 +432,15 @@
 
     function deselectAllCells() {
         document.querySelectorAll('.day-cell-select').forEach(function (cb) { cb.checked = false; });
+        document.querySelectorAll('.day-header-select').forEach(function (cb) {
+            cb.checked = false;
+            cb.indeterminate = false;
+        });
+        document.querySelectorAll('.report-table td.day-col').forEach(function (cell) {
+            cell.classList.remove('cell-selected');
+        });
+        var dropdown = document.getElementById('batchUpdateDropdown');
+        if (dropdown) dropdown.classList.remove('show');
         updateCellSelectionUI();
     }
 
@@ -495,16 +541,45 @@
         if (input) input.style.display = '';
     }
 
+    function clearRecentUpdateMarkers() {
+        // Presentation-only state: never persisted and never sent to the backend.
+        document.querySelectorAll('.recently-updated-cell').forEach(function (cell) {
+            cell.classList.remove('recently-updated-cell');
+            var badge = cell.querySelector('.cell-updated-badge');
+            if (badge) badge.remove();
+        });
+    }
+
+    function getBatchDateSummary(cells) {
+        var dates = Array.from(new Set(cells.map(function (cell) { return cell.dataset.date; }).filter(Boolean)));
+        if (dates.length !== 1) return dates.length + ' selected dates';
+
+        var parts = dates[0].split('-').map(Number);
+        var date = new Date(parts[0], parts[1] - 1, parts[2]);
+        return date.toLocaleDateString('en-GB', {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
     function applyBatchUpdate() {
         var input = document.getElementById('batchUpdateInput');
         var clockValue = input ? input.value : '07:00:00';
+        var selectedCells = getSelectedCells();
+        var affectedEmployees = getAffectedEmployeeCount();
+        var selectedLogType = getActiveLogType();
+        var dateSummary = getBatchDateSummary(selectedCells);
         var updated = 0;
+
+        clearRecentUpdateMarkers();
 
         if (activeAction === 'add') {
             // Determine if we are adding log-in or log-out based on label
             var addingIn = getActiveLogType() === 'in';
 
-            getSelectedCells().forEach(function (cell) {
+            selectedCells.forEach(function (cell) {
                 var missing = cell.dataset.missing || '';
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
@@ -535,14 +610,15 @@
                     cell.classList.remove('weekend-off-cell');
                 }
 
+                cell.classList.add('recently-updated-cell');
                 cell.classList.remove('cell-selected');
 
                 cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                    buildDayCellContent({ inTime: newIn, outTime: newOut, issue: issue, clockLines: lines.length > 0 ? lines : null });
+                    buildDayCellContent({ inTime: newIn, outTime: newOut, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
                 updated++;
             });
         } else if (activeAction.indexOf('delete') === 0) {
-            getSelectedCells().forEach(function (cell) {
+            selectedCells.forEach(function (cell) {
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
                 var date = cell.dataset.date;
@@ -574,6 +650,7 @@
                     cell.classList.remove('no-log-cell');
                 }
 
+                cell.classList.add('recently-updated-cell');
                 cell.classList.remove('cell-selected');
 
                 var lines = [];
@@ -584,16 +661,28 @@
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
                 } else {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                        buildDayCellContent({ inTime: existIn, outTime: existOut, issue: issue, clockLines: lines.length > 0 ? lines : null });
+                        buildDayCellContent({ inTime: existIn, outTime: existOut, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
                 }
                 updated++;
             });
         }
 
         closeBatchModal();
+        deselectAllCells();
         applyReportFilters();
         updateVisibleTotals(currentVisibleDates);
-        if (updated > 0) alert(updated + ' log entries updated.');
+        if (updated > 0 && window.FeriizNotify) {
+            var isAdd = activeAction === 'add';
+            var logLabel = selectedLogType === 'in' ? 'log in' : 'log out';
+            var title = isAdd ? (selectedLogType === 'in' ? 'Log in added' : 'Log out added') : 'Log deleted';
+            var message = isAdd
+                ? updated + ' ' + logLabel + ' entries were added for ' + affectedEmployees + ' employees on ' + dateSummary +
+                    (selectedLogType === 'in'
+                        ? ' Cells that still need log out remain yellow.'
+                        : ' The updated cells are highlighted in blue.')
+                : updated + ' selected log entries were deleted on ' + dateSummary + '.';
+            window.FeriizNotify.success(message, title);
+        }
     }
 
     /* =============================================
@@ -684,6 +773,10 @@
         var applyBtn = document.querySelector('.filter-apply-btn');
         if (applyBtn) {
             applyBtn.addEventListener('click', function () {
+                appliedReportFilters.missingTypes = getDraftMissingTypes();
+                appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
+                    ? window.FeriizFilters.getOccupationValues(document)
+                    : [];
                 var s = dateInputs[0] ? dateInputs[0].value : '';
                 var e = dateInputs[1] ? dateInputs[1].value : '';
                 if (s || e) {
@@ -691,7 +784,7 @@
                     var eT = e ? new Date(e).getTime() : Infinity;
                     var vis = ALL_DATES.filter(function (d) { var t = new Date(d).getTime(); return t >= sT && t <= eT; });
                     showDays(vis.length > 0 ? vis : DEFAULT_DATES);
-                } else if (action === 'delete') {
+                } else {
                     showDays(DEFAULT_DATES);
                 }
                 applyReportFilters();
@@ -707,6 +800,8 @@
                 if (ps) ps.selectedIndex = 0;
                 document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
+                appliedReportFilters.missingTypes = [];
+                appliedReportFilters.occupations = [];
                 deselectAllCells();
                 showDays(DEFAULT_DATES);
                 applyReportFilters();
@@ -716,11 +811,6 @@
         // Search
         var searchInput = document.getElementById('reportSearch');
         if (searchInput) searchInput.addEventListener('input', applyReportFilters);
-
-        // Auto-apply when Log In / Log Out checkbox is toggled
-        document.querySelectorAll('.filter-missing').forEach(function (cb) {
-            cb.addEventListener('change', applyReportFilters);
-        });
 
         // Day header select-all checkboxes
         document.querySelectorAll('.day-header-select').forEach(function (headerCb) {

@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
     <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <script src="assets/js/app.js?v=3.3.8" defer></script>
 </head>
 
 <body data-page="employees">
@@ -141,7 +141,13 @@
     </div>
 
     <script>
-        var employeesState = { all: [], filtered: [], page: 1, perPage: 25 };
+        var employeesState = {
+            all: [],
+            filtered: [],
+            filters: { occupations: [], project: '' },
+            page: 1,
+            perPage: 25
+        };
 
         function openEmployeeDetailModal(isNew, code) {
             var title = document.getElementById('employeeDetailTitle');
@@ -273,8 +279,8 @@
         }
 
         function applyEmployeeFilter() {
-            var occs = window.FeriizFilters?.getOccupationValues(document) || [];
-            var proj = document.getElementById('filterProject').value;
+            var occs = employeesState.filters.occupations;
+            var proj = employeesState.filters.project;
             var q = (document.getElementById('employeeSearchInput').value || '').trim().toLowerCase();
             employeesState.filtered = employeesState.all.filter(function (emp) {
                 if (occs.length && !occs.some(function (o) { return (emp.occupation || '').toLowerCase().indexOf(o) >= 0; })) return false;
@@ -284,6 +290,13 @@
             });
             employeesState.page = 1;
             renderPage();
+        }
+
+        function commitEmployeeFilterDraft() {
+            employeesState.filters = {
+                occupations: window.FeriizFilters?.getOccupationValues(document) || [],
+                project: document.getElementById('filterProject').value
+            };
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -307,11 +320,15 @@
 
                 var apply = document.querySelector('.filter-apply-btn');
                 var clear = document.querySelector('.filter-clear-btn');
-                if (apply) apply.addEventListener('click', applyEmployeeFilter);
+                if (apply) apply.addEventListener('click', function () {
+                    commitEmployeeFilterDraft();
+                    applyEmployeeFilter();
+                });
                 if (clear) clear.addEventListener('click', function () {
                     window.FeriizFilters?.resetOccupationFilter(document);
                     filterProject.value = '';
                     document.getElementById('employeeSearchInput').value = '';
+                    employeesState.filters = { occupations: [], project: '' };
                     applyEmployeeFilter();
                 });
                 var searchInput = document.getElementById('employeeSearchInput');

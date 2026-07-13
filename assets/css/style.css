@@ -1298,12 +1298,15 @@ body {
 
         .col-activity-photos.col-activity-visible {
             display: table-cell;
+            width: 76px;
+            min-width: 76px;
         }
 
         .activity-photo-grid {
             display: flex;
+            align-items: center;
             gap: 6px;
-            flex-wrap: wrap;
+            min-height: 48px;
         }
 
         .activity-photo-thumb {
@@ -3784,6 +3787,166 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
     padding-top: 16px;
 }
 
+/* === Application notifications === */
+.notification-region {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 5000;
+    display: grid;
+    gap: 12px;
+    width: min(380px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.notification-toast {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 28px;
+    gap: 12px;
+    align-items: start;
+    min-height: 78px;
+    padding: 16px 14px 16px 16px;
+    overflow: hidden;
+    border: 1px solid #E4E7EC;
+    border-left: 4px solid #2975BB;
+    border-radius: 8px;
+    background: #FFFFFF;
+    box-shadow: 0 16px 36px rgba(16, 24, 40, 0.18);
+    box-sizing: border-box;
+    pointer-events: auto;
+    animation: notification-in 180ms ease-out both;
+}
+
+.notification-toast.is-leaving {
+    animation: notification-out 180ms ease-in both;
+}
+
+.notification-toast__icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #EAF3FB;
+    color: #2975BB;
+    font-size: 16px;
+}
+
+.notification-toast__content {
+    min-width: 0;
+    padding-top: 1px;
+}
+
+.notification-toast__title,
+.notification-toast__message {
+    display: block;
+    margin: 0;
+    color: #1D2939;
+}
+
+.notification-toast__title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.notification-toast__message {
+    margin-top: 3px;
+    color: #667085;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.notification-toast__close {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #98A2B3;
+    cursor: pointer;
+}
+
+.notification-toast__close:hover {
+    background: #F2F4F7;
+    color: #475467;
+}
+
+.notification-toast__progress {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: currentColor;
+    transform-origin: left;
+    animation: notification-progress linear both;
+}
+
+.notification-toast--success {
+    border-left-color: #12B76A;
+    color: #12B76A;
+}
+
+.notification-toast--success .notification-toast__icon {
+    background: #ECFDF3;
+    color: #039855;
+}
+
+.notification-toast--info {
+    border-left-color: #2975BB;
+    color: #2975BB;
+}
+
+.notification-toast--warning {
+    border-left-color: #F79009;
+    color: #F79009;
+}
+
+.notification-toast--warning .notification-toast__icon {
+    background: #FFFAEB;
+    color: #DC6803;
+}
+
+.notification-toast--error {
+    border-left-color: #F04438;
+    color: #F04438;
+}
+
+.notification-toast--error .notification-toast__icon {
+    background: #FEF3F2;
+    color: #D92D20;
+}
+
+@keyframes notification-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes notification-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes notification-progress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+@media (max-width: 640px) {
+    .notification-region {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+    }
+}
+
 /* === Migrated legacy inline styles === */
 .feriiz-u-001 { margin-right:8px; }
 .feriiz-u-003 { display:flex; gap:8px; align-items:center; }
@@ -4526,6 +4689,35 @@ body.report-layout .report-table tbody td.day-col:has(.day-cell-select:checked) 
 body.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checked) {
     outline-color: #D97706 !important;
     background: #FEF3C7 !important;
+}
+
+/* Latest batch result. This is a lightweight DOM marker, not database state. */
+body.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell) {
+    background: #F0F8FF !important;
+    box-shadow: inset 3px 0 0 #2975BB !important;
+}
+
+body.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell):hover {
+    background: #E7F3FD !important;
+}
+
+.cell-updated-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 24px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: #E2F2FF;
+    color: #166DBA;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.cell-updated-badge i {
+    font-size: 8px;
 }
 
 /* Hide checkbox in filtered-out cells */

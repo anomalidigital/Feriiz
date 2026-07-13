@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Request</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
     <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <script src="assets/js/app.js?v=3.3.8" defer></script>
 </head>
 
 <body data-page="project-requests">
@@ -161,7 +161,13 @@
 
     <script>
     (function () {
-        var state = { all: [], filtered: [], page: 1, perPage: 25 };
+        var state = {
+            all: [],
+            filtered: [],
+            filters: { type: '', status: '', dateStart: '', dateEnd: '' },
+            page: 1,
+            perPage: 25
+        };
 
         function fmtDay(iso) {
             if (!iso) return '-';
@@ -260,11 +266,9 @@
         }
 
         function applyFilter() {
-            var typeSel = document.querySelector('.filter-type');
-            var statSel = document.querySelector('.filter-status');
             var search = document.querySelector('.page-actions .feriiz-u-020 input');
-            var type = typeSel ? typeSel.value.toLowerCase() : '';
-            var status = statSel ? statSel.value.toLowerCase() : '';
+            var type = state.filters.type;
+            var status = state.filters.status;
             var q = (search?.value || '').trim().toLowerCase();
             state.filtered = state.all.filter(function (r) {
                 if (type) {
@@ -272,6 +276,10 @@
                     if (typeSlug !== type) return false;
                 }
                 if (status && r.status.toLowerCase() !== status) return false;
+                var requestStart = r.dateStart || '';
+                var requestEnd = r.dateEnd || requestStart;
+                if (state.filters.dateStart && requestEnd < state.filters.dateStart) return false;
+                if (state.filters.dateEnd && requestStart > state.filters.dateEnd) return false;
                 if (q) {
                     var emp = window.FERIIZ_DATA.findEmployeeByCode(r.employeeCode);
                     if (!emp || emp.name.toLowerCase().indexOf(q) < 0) return false;
@@ -281,6 +289,18 @@
             state.page = 1;
             renderPage();
             updateStatCards();
+        }
+
+        function commitRequestFilterDraft() {
+            var typeSel = document.querySelector('.filter-type');
+            var statSel = document.querySelector('.filter-status');
+            var dates = document.querySelectorAll('.filter-date');
+            state.filters = {
+                type: typeSel ? typeSel.value.toLowerCase() : '',
+                status: statSel ? statSel.value.toLowerCase() : '',
+                dateStart: dates[0] ? dates[0].value : '',
+                dateEnd: dates[1] ? dates[1].value : ''
+            };
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -293,13 +313,18 @@
                 var apply = document.querySelector('.filter-apply-btn');
                 var clear = document.querySelector('.filter-clear-btn');
                 var search = document.querySelector('.page-actions .feriiz-u-020 input');
-                if (apply) apply.addEventListener('click', applyFilter);
+                if (apply) apply.addEventListener('click', function () {
+                    commitRequestFilterDraft();
+                    applyFilter();
+                });
                 if (clear) clear.addEventListener('click', function () {
                     var typeSel = document.querySelector('.filter-type');
                     var statSel = document.querySelector('.filter-status');
                     if (typeSel) typeSel.value = '';
                     if (statSel) statSel.value = '';
+                    document.querySelectorAll('.filter-date').forEach(function (input) { input.value = ''; });
                     if (search) search.value = '';
+                    state.filters = { type: '', status: '', dateStart: '', dateEnd: '' };
                     applyFilter();
                 });
                 if (search) {
@@ -531,92 +556,8 @@
                 });
             }
 
-            // Progressive disclosure for Add Request Modal
-            // Progressive disclosure removed - all fields visible immediately
-
-            const toggleBtn = document.querySelector('.filter-toggle-btn');
-            const dropdown = document.querySelector('.filter-dropdown');
-            const applyBtn = document.querySelector('.filter-apply-btn');
-            const clearBtn = document.querySelector('.filter-clear-btn');
-            const statusSelect = document.querySelector('.filter-status');
-            const tableRows = document.querySelectorAll('.data-table tbody tr');
-
-            if (toggleBtn && dropdown) {
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('show');
-                    toggleBtn.classList.toggle('active');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
-                        dropdown.classList.remove('show');
-                        toggleBtn.classList.remove('active');
-                    }
-                });
-
-                dropdown.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-            }
-
-            const applyFilter = () => {
-                const typeVal = document.querySelector('.filter-type').value.toLowerCase();
-                const statusVal = statusSelect.value.toLowerCase();
-                const dateInputs = document.querySelectorAll('.filter-date');
-                const startDateStr = dateInputs[0].value;
-                const endDateStr = dateInputs[1].value;
-                
-                let startFilter = null;
-                let endFilter = null;
-                if (startDateStr) startFilter = new Date(startDateStr).getTime();
-                if (endDateStr) endFilter = new Date(endDateStr).getTime();
-
-                tableRows.forEach(row => {
-                    const typeCell = row.querySelector('td:nth-child(3)');
-                    const startDateCell = row.querySelector('td:nth-child(4)');
-                    const statusCell = row.querySelector('td:nth-child(7)');
-                    if (!typeCell || !statusCell || !startDateCell) return;
-
-                    const typeText = typeCell.textContent.toLowerCase();
-                    const statusText = statusCell.textContent.toLowerCase();
-                    const rowDateStr = startDateCell.textContent.trim();
-                    let rowDateTime = null;
-                    if (rowDateStr && rowDateStr !== '-') {
-                        rowDateTime = new Date(rowDateStr).getTime();
-                    }
-
-                    let matchType = (typeVal === '' || typeText.includes(typeVal.replace(/_/g, ' ')));
-                    let matchStatus = (statusVal === '' || statusText.includes(statusVal));
-                    let matchDate = true;
-                    
-                    if (rowDateTime) {
-                        if (startFilter && rowDateTime < startFilter) matchDate = false;
-                        if (endFilter && rowDateTime > endFilter + 86400000) matchDate = false;
-                    } else if (startFilter || endFilter) {
-                        matchDate = false;
-                    }
-
-                    if (matchType && matchStatus && matchDate) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-                dropdown.classList.remove('show');
-                toggleBtn.classList.remove('active');
-            };
-
-            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
-
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    document.querySelector('.filter-type').selectedIndex = 0;
-                    document.querySelector('.filter-status').selectedIndex = 0;
-                    document.querySelectorAll('.filter-date').forEach(input => input.value = '');
-                    applyFilter();
-                });
-            }
+            // Filter handling lives in the data-driven request table above.
+            // Keeping a single owner prevents draft values from being applied twice.
         });
     </script>
 

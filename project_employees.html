@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
+    <script src="assets/js/data.js?v=3.3.7" defer></script>
+    <script src="assets/js/app.js?v=3.3.8" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -119,7 +119,6 @@
                     <tr>
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
-                        <th class="col-pictures">Pictures</th>
                         <th class="col-activity-photos">Activity</th>
                         <th>Occupation</th>
                         <th>Pin</th>
@@ -140,7 +139,16 @@
 
         <script>
         (function () {
-            var state = { project: null, all: [], filtered: [], page: 1, perPage: 25 };
+            var ACTIVITY_PHOTO_SRC = 'assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg';
+            var state = {
+                project: null,
+                all: [],
+                filtered: [],
+                lastActivity: {},
+                filters: { occupations: [], dateStart: '', dateEnd: '', showActivity: false },
+                page: 1,
+                perPage: 25
+            };
 
             function fmtJoinedShort(iso) {
                 if (!iso) return '-';
@@ -153,6 +161,10 @@
             function renderRow(emp) {
                 var avatar = window.FERIIZ_DATA.avatarSrc(emp);
                 var fallback = window.FERIIZ_DATA.initialsAvatar(emp.name);
+                var showActivity = state.filters.showActivity;
+                var activityContent = showActivity
+                    ? '<div class="activity-photo-grid"><img src="' + ACTIVITY_PHOTO_SRC + '" alt="Attendance activity for ' + emp.name + '" class="activity-photo-thumb" loading="lazy"></div>'
+                    : '';
                 var tr = document.createElement('tr');
                 tr.innerHTML =
                     '<td>' +
@@ -172,11 +184,10 @@
                             '</div>' +
                         '</div>' +
                     '</td>' +
-                    '<td class="col-pictures"></td>' +
-                    '<td class="col-activity-photos"></td>' +
+                    '<td class="col-activity-photos' + (showActivity ? ' col-activity-visible' : '') + '">' + activityContent + '</td>' +
                     '<td>' + emp.occupation + '</td>' +
                     '<td>' + emp.pin + '</td>' +
-                    '<td>' + fmtJoinedShort(emp.joinedAt) + '</td>';
+                    '<td>' + fmtJoinedShort(state.lastActivity[emp.code]) + '</td>';
                 tr.querySelector('img').addEventListener('error', function () {
                     if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
                 });
@@ -186,6 +197,9 @@
             function renderPage() {
                 var tbody = document.getElementById('projectEmployeesTableBody');
                 tbody.innerHTML = '';
+                document.querySelectorAll('th.col-activity-photos').forEach(function (header) {
+                    header.classList.toggle('col-activity-visible', state.filters.showActivity);
+                });
                 var start = (state.page - 1) * state.perPage;
                 var end = Math.min(start + state.perPage, state.filtered.length);
                 for (var i = start; i < end; i++) tbody.appendChild(renderRow(state.filtered[i]));
@@ -228,15 +242,28 @@
             }
 
             function applyFilter() {
-                var occs = window.FeriizFilters?.getOccupationValues(document) || [];
+                var occs = state.filters.occupations;
                 var q = (document.querySelector('.feriiz-u-020 input')?.value || '').trim().toLowerCase();
                 state.filtered = state.all.filter(function (emp) {
                     if (occs.length && !occs.some(function (o) { return (emp.occupation || '').toLowerCase().indexOf(o) >= 0; })) return false;
                     if (q && (emp.name.toLowerCase().indexOf(q) < 0 && emp.code.toLowerCase().indexOf(q) < 0)) return false;
+                    var activityDate = state.lastActivity[emp.code] || '';
+                    if (state.filters.dateStart && (!activityDate || activityDate < state.filters.dateStart)) return false;
+                    if (state.filters.dateEnd && (!activityDate || activityDate > state.filters.dateEnd)) return false;
                     return true;
                 });
                 state.page = 1;
                 renderPage();
+            }
+
+            function commitFilterDraft() {
+                var dates = document.querySelectorAll('.filter-date');
+                state.filters = {
+                    occupations: window.FeriizFilters?.getOccupationValues(document) || [],
+                    dateStart: dates[0] ? dates[0].value : '',
+                    dateEnd: dates[1] ? dates[1].value : '',
+                    showActivity: Boolean(document.getElementById('absenceToggle')?.checked)
+                };
             }
 
             document.addEventListener('DOMContentLoaded', function () {
@@ -253,6 +280,11 @@
                     state.all = data.employees.filter(function (e) {
                         return (e.projects || []).indexOf(state.project.code) >= 0;
                     });
+                    data.attendance.forEach(function (record) {
+                        if (record.projectCode !== state.project.code || (!record.inTime && !record.outTime)) return;
+                        var current = state.lastActivity[record.employeeCode];
+                        if (!current || record.date > current) state.lastActivity[record.employeeCode] = record.date;
+                    });
                     state.filtered = state.all.slice();
                     var occSet = new Set(state.all.map(function (e) { return e.occupation; }));
                     var setStat = function (k, v) {
@@ -267,10 +299,17 @@
                     var apply = document.querySelector('.filter-apply-btn');
                     var clear = document.querySelector('.filter-clear-btn');
                     var searchInp = document.querySelector('.feriiz-u-020 input');
-                    if (apply) apply.addEventListener('click', applyFilter);
+                    if (apply) apply.addEventListener('click', function () {
+                        commitFilterDraft();
+                        applyFilter();
+                    });
                     if (clear) clear.addEventListener('click', function () {
                         window.FeriizFilters?.resetOccupationFilter(document);
+                        document.querySelectorAll('.filter-date').forEach(function (input) { input.value = ''; });
+                        var activityToggle = document.getElementById('absenceToggle');
+                        if (activityToggle) activityToggle.checked = false;
                         if (searchInp) searchInp.value = '';
+                        state.filters = { occupations: [], dateStart: '', dateEnd: '', showActivity: false };
                         applyFilter();
                     });
                     if (searchInp) {
@@ -286,124 +325,6 @@
 
         <div class="feriiz-u-032">version : 3.3.6</div>
     </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const activityToggle = document.getElementById('absenceToggle');
-
-            const buildActivityColumn = () => {
-                document.querySelectorAll('.data-table tbody tr').forEach(row => {
-                    const pictureCell = row.querySelector('td.col-pictures');
-                    const activityCell = row.querySelector('td.col-activity-photos');
-                    if (!activityCell || !pictureCell || activityCell.dataset.built) return;
-
-                    const photos = pictureCell.querySelectorAll('img');
-                    if (photos.length === 0) return;
-
-                    const wrap = document.createElement('div');
-                    wrap.className = 'activity-photo-grid';
-
-                    photos.forEach((img, i) => {
-                        if (i >= 4) return;
-                        const clone = img.cloneNode(false);
-                        clone.className = 'activity-photo-thumb';
-                        clone.alt = 'Activity photo ' + (i + 1);
-                        clone.removeAttribute('style');
-                        wrap.appendChild(clone);
-                    });
-
-                    activityCell.appendChild(wrap);
-                    activityCell.dataset.built = 'true';
-                });
-            };
-
-            const syncActivityColumn = () => {
-                const show = !!activityToggle?.checked;
-                document.querySelectorAll('.col-activity-photos').forEach(el => {
-                    el.classList.toggle('col-activity-visible', show);
-                });
-            };
-
-            buildActivityColumn();
-
-            if (activityToggle) {
-                activityToggle.addEventListener('change', syncActivityColumn);
-                syncActivityColumn();
-            }
-        });
-    </script>
-
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleBtn = document.querySelector('.filter-toggle-btn');
-            const dropdown = document.querySelector('.filter-dropdown');
-            const applyBtn = document.querySelector('.filter-apply-btn');
-            const clearBtn = document.querySelector('.filter-clear-btn');
-            const activityToggle = document.getElementById('absenceToggle');
-            const tableRows = document.querySelectorAll('.data-table tbody tr');
-
-            if (toggleBtn && dropdown) {
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('show');
-                    toggleBtn.classList.toggle('active');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
-                        dropdown.classList.remove('show');
-                        toggleBtn.classList.remove('active');
-                    }
-                });
-
-                dropdown.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-            }
-
-            const applyFilter = () => {
-                const selectedOccupations = window.FeriizFilters?.getOccupationValues(document) || [];
-
-                tableRows.forEach(row => {
-                    // Occupation is column 4 in project_employees.html
-                    const occCell = row.querySelector('td:nth-child(4)');
-                    if (!occCell) return;
-
-                    const occText = occCell.textContent.toLowerCase();
-
-                    if (selectedOccupations.length === 0 || selectedOccupations.some(occupation => occText.includes(occupation))) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-                dropdown.classList.remove('show');
-                toggleBtn.classList.remove('active');
-            };
-
-            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
-
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    window.FeriizFilters?.resetOccupationFilter(document);
-
-                    const dateInputs = document.querySelectorAll('.filter-date');
-                    dateInputs.forEach(input => input.value = '');
-
-                    if (activityToggle) {
-                        activityToggle.checked = false;
-                        activityToggle.dispatchEvent(new Event('change'));
-                    }
-
-                    applyFilter();
-                });
-            }
-        });
-    </script>
-
-
 
     <!-- Employee Detail Overlay -->
     <div class="modal-overlay" id="empDetailOverlay">
@@ -637,7 +558,7 @@
                                 <span class="feriiz-u-281"><span
                                         id="totalEmpLabel">Total: </span><span id="totalEmpCount">14</span> <span
                                         id="totalEmpSuffix">People</span></span>
-                                <button onclick="alert('Download all employee data')"
+                                <button onclick="FeriizNotify.info('The employee export is being prepared.', 'Preparing export')"
 
                                     title="Download Employee Data" class="feriiz-u-282"><i class="fa-solid fa-download"></i></button>
                             </div>
@@ -761,7 +682,7 @@
             <div id="empModalFooter" class="feriiz-u-292">
                 <div class="feriiz-u-145">
                     <span class="feriiz-u-293">Selected: <span id="selectedEmpCount" class="feriiz-u-294">11</span> People</span>
-                    <button onclick="alert('Download selected employee data')"
+                    <button onclick="FeriizNotify.info('The selected employee export is being prepared.', 'Preparing export')"
 
                         title="Download Selected Employee Data" class="feriiz-u-295"><i class="fa-solid fa-download"></i></button>
                 </div>

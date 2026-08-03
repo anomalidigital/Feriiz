@@ -48,27 +48,39 @@
         return attendanceIndex[employeeCode + '|' + date] || null;
     }
 
+    function escapeHTML(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     /* =============================================
        CELL RENDERING
        ============================================= */
     function buildClockLine(type, value, options) {
         var fixed = (options && options.fixed) || false;
+        var note = (options && options.note) || '';
         var iconClass = type === 'in'
             ? 'fa-arrow-right-to-bracket feriiz-u-142'
             : 'fa-arrow-right-from-bracket feriiz-u-144';
         var fixedClass = fixed ? ' fixed-clock-line' : '';
-        var lockIcon = false
-            ? ''
+        var noteButton = note
+            ? '<button type="button" class="report-log-note-btn" data-log-type="' + type + '" title="View log note" aria-label="View ' + (type === 'in' ? 'log in' : 'log out') + ' note"><i class="fa-solid fa-note-sticky"></i></button>'
             : '';
         return '<div class="feriiz-u-141' + fixedClass + '">' +
-            '<span><i class="fa-solid ' + iconClass + '"></i>' + value + '</span>' +
-            lockIcon + '</div>';
+            '<span><i class="fa-solid ' + iconClass + '"></i>' + escapeHTML(value) + '</span>' +
+            noteButton + '</div>';
     }
 
     function buildDayCellContent(opts) {
         var inTime = (opts && opts.inTime) || '';
         var outTime = (opts && opts.outTime) || '';
         var issue = (opts && opts.issue) || '';
+        var inNote = (opts && opts.inNote) || '';
+        var outNote = (opts && opts.outNote) || '';
         var clockLines = opts && opts.clockLines;
         var isEmpty = (opts && opts.isEmpty) || false;
         var isUpdated = Boolean(opts && opts.updated);
@@ -97,12 +109,12 @@
             var outLines = renderedLines.filter(function (l) { return l.type === 'out'; });
             html += '<div class="feriiz-u-140">';
             if (inLines.length > 0) {
-                html += inLines.map(function (l) { return buildClockLine('in', l.value, { fixed: l.fixed }); }).join('');
+                html += inLines.map(function (l) { return buildClockLine('in', l.value, { fixed: l.fixed, note: l.note || inNote }); }).join('');
             } else {
                 html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
             }
             if (outLines.length > 0) {
-                html += outLines.map(function (l) { return buildClockLine('out', l.value, { fixed: l.fixed }); }).join('');
+                html += outLines.map(function (l) { return buildClockLine('out', l.value, { fixed: l.fixed, note: l.note || outNote }); }).join('');
             } else {
                 html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
             }
@@ -111,12 +123,12 @@
             // Default rendering: always show in row on top, out row on bottom
             html += '<div class="feriiz-u-140">';
             if (inTime) {
-                html += buildClockLine('in', inTime);
+                html += buildClockLine('in', inTime, { note: inNote });
             } else {
                 html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
             }
             if (outTime) {
-                html += buildClockLine('out', outTime);
+                html += buildClockLine('out', outTime, { note: outNote });
             } else {
                 html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
             }
@@ -143,22 +155,24 @@
             var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
 
             if (rec && (rec.status === 'weekend' || rec.status === 'holiday')) {
-                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="">' +
+                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="" data-in-note="" data-out-note="">' +
                     checkbox + '</td>';
             }
             if (!rec && isWeekend) {
-                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="">' +
+                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="" data-in-note="" data-out-note="">' +
                     checkbox + '</td>';
             }
 
             var inTime = rec ? (rec.inTime || '') : '';
             var outTime = rec ? (rec.outTime || '') : '';
+            var inNote = rec ? (rec.inNote || '') : '';
+            var outNote = rec ? (rec.outNote || '') : '';
             var issue = getMissingType(inTime, outTime);
 
             var missingAttr = issue ? ' data-missing="' + issue + '"' : '';
-            var dataAttrs = ' data-in-time="' + inTime + '" data-out-time="' + outTime + '"';
+            var dataAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"';
             var cellClass = 'day-col feriiz-u-132' + (issue ? ' no-log-cell' : '');
-            var content = buildDayCellContent({ inTime: inTime, outTime: outTime, issue: issue });
+            var content = buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue });
 
             return '<td class="' + cellClass + '" data-date="' + date + '"' + missingAttr + dataAttrs + '>' +
                 checkbox + content + '</td>';
@@ -466,7 +480,10 @@
 
     function showBatchModal(action) {
         var selected = getSelectedCells();
-        if (selected.length === 0) return;
+        if (selected.length === 0) {
+            if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
+            return;
+        }
         activeAction = action;
 
         // Close dropdown
@@ -479,7 +496,10 @@
                 return (cell.dataset.inTime && cell.dataset.inTime.trim() !== '') ||
                        (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
             });
-            if (!hasLogs) return; // Prevent action if no logs to delete
+            if (!hasLogs) {
+                if (window.FeriizNotify) FeriizNotify.warning('The selected cells do not contain a log to delete.', 'No log found');
+                return;
+            }
             showDeleteConfirm(action, selected);
             return;
         }
@@ -541,6 +561,39 @@
         if (input) input.style.display = '';
     }
 
+    function formatLogNoteDate(value) {
+        if (!value) return '-';
+        var parts = value.split('-').map(Number);
+        var date = new Date(parts[0], parts[1] - 1, parts[2]);
+        return date.toLocaleDateString('en-GB', {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    function openLogNote(cell, type) {
+        if (!cell) return;
+        var row = cell.closest('tr');
+        var note = type === 'in' ? cell.dataset.inNote : cell.dataset.outNote;
+        var clock = type === 'in' ? cell.dataset.inTime : cell.dataset.outTime;
+        var modal = document.getElementById('logNoteModal');
+        if (!modal || !note) return;
+
+        document.getElementById('logNoteEmployee').textContent = row ? (row.dataset.employeeName || '-') : '-';
+        document.getElementById('logNoteDate').textContent = formatLogNoteDate(cell.dataset.date);
+        document.getElementById('logNoteType').textContent = type === 'in' ? 'Log In' : 'Log Out';
+        document.getElementById('logNoteClock').textContent = clock || '-';
+        document.getElementById('logNoteText').textContent = note;
+        modal.classList.add('show');
+    }
+
+    function closeLogNote() {
+        var modal = document.getElementById('logNoteModal');
+        if (modal) modal.classList.remove('show');
+    }
+
     function clearRecentUpdateMarkers() {
         // Presentation-only state: never persisted and never sent to the backend.
         document.querySelectorAll('.recently-updated-cell').forEach(function (cell) {
@@ -566,12 +619,24 @@
 
     function applyBatchUpdate() {
         var input = document.getElementById('batchUpdateInput');
+        var noteInput = document.getElementById('batchUpdateNote');
         var clockValue = input ? input.value : '07:00:00';
+        var noteValue = noteInput ? noteInput.value.trim() : '';
         var selectedCells = getSelectedCells();
         var affectedEmployees = getAffectedEmployeeCount();
         var selectedLogType = getActiveLogType();
         var dateSummary = getBatchDateSummary(selectedCells);
         var updated = 0;
+
+        if (selectedCells.length === 0) {
+            if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
+            return;
+        }
+        if (activeAction === 'add' && !clockValue) {
+            if (input) input.focus();
+            if (window.FeriizNotify) FeriizNotify.warning('Set a valid clock time before saving.', 'Log not saved');
+            return;
+        }
 
         clearRecentUpdateMarkers();
 
@@ -583,19 +648,26 @@
                 var missing = cell.dataset.missing || '';
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
+                var existInNote = cell.dataset.inNote || '';
+                var existOutNote = cell.dataset.outNote || '';
 
                 var fillType = addingIn ? 'in' : 'out';
 
                 var newIn = fillType === 'in' ? clockValue : existIn;
                 var newOut = fillType === 'out' ? clockValue : existOut;
+                // A blank optional note must not erase an existing audit note.
+                var newInNote = fillType === 'in' ? (noteValue || existInNote) : existInNote;
+                var newOutNote = fillType === 'out' ? (noteValue || existOutNote) : existOutNote;
 
                 // Always: in on top, out on bottom
                 var lines = [];
-                if (newIn) lines.push({ type: 'in', value: newIn, fixed: true });
-                if (newOut) lines.push({ type: 'out', value: newOut, fixed: true });
+                if (newIn) lines.push({ type: 'in', value: newIn, fixed: true, note: newInNote });
+                if (newOut) lines.push({ type: 'out', value: newOut, fixed: true, note: newOutNote });
 
                 cell.dataset.inTime = newIn;
                 cell.dataset.outTime = newOut;
+                cell.dataset.inNote = newInNote;
+                cell.dataset.outNote = newOutNote;
 
                 var issue = getMissingType(newIn, newOut);
                 if (issue) {
@@ -614,26 +686,34 @@
                 cell.classList.remove('cell-selected');
 
                 cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                    buildDayCellContent({ inTime: newIn, outTime: newOut, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
+                    buildDayCellContent({ inTime: newIn, outTime: newOut, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
                 updated++;
             });
         } else if (activeAction.indexOf('delete') === 0) {
             selectedCells.forEach(function (cell) {
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
+                var existInNote = cell.dataset.inNote || '';
+                var existOutNote = cell.dataset.outNote || '';
                 var date = cell.dataset.date;
 
                 if (activeAction === 'delete-in') {
                     existIn = '';
+                    existInNote = '';
                 } else if (activeAction === 'delete-out') {
                     existOut = '';
+                    existOutNote = '';
                 } else {
                     existIn = '';
                     existOut = '';
+                    existInNote = '';
+                    existOutNote = '';
                 }
 
                 cell.dataset.inTime = existIn;
                 cell.dataset.outTime = existOut;
+                cell.dataset.inNote = existInNote;
+                cell.dataset.outNote = existOutNote;
 
                 var issue = getMissingType(existIn, existOut);
                 if (issue) {
@@ -654,14 +734,14 @@
                 cell.classList.remove('cell-selected');
 
                 var lines = [];
-                if (existIn) lines.push({ type: 'in', value: existIn });
-                if (existOut) lines.push({ type: 'out', value: existOut });
+                if (existIn) lines.push({ type: 'in', value: existIn, note: existInNote });
+                if (existOut) lines.push({ type: 'out', value: existOut, note: existOutNote });
 
                 if (!existIn && !existOut && WEEKEND_DATES.has(date)) {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
                 } else {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                        buildDayCellContent({ inTime: existIn, outTime: existOut, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
+                        buildDayCellContent({ inTime: existIn, outTime: existOut, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
                 }
                 updated++;
             });
@@ -675,8 +755,11 @@
             var isAdd = activeAction === 'add';
             var logLabel = selectedLogType === 'in' ? 'log in' : 'log out';
             var title = isAdd ? (selectedLogType === 'in' ? 'Log in added' : 'Log out added') : 'Log deleted';
+            var employeeLabel = affectedEmployees === 1 ? 'employee' : 'employees';
+            var entryLabel = updated === 1 ? 'entry was' : 'entries were';
             var message = isAdd
-                ? updated + ' ' + logLabel + ' entries were added for ' + affectedEmployees + ' employees on ' + dateSummary +
+                ? updated + ' ' + logLabel + ' ' + entryLabel + ' added for ' + affectedEmployees + ' ' + employeeLabel + ' on ' + dateSummary +
+                    (noteValue ? ' A note was attached to each updated log.' : '') +
                     (selectedLogType === 'in'
                         ? ' Cells that still need log out remain yellow.'
                         : ' The updated cells are highlighted in blue.')
@@ -842,6 +925,13 @@
                     updateCellSelectionUI();
                 }
             });
+            tbody.addEventListener('click', function (e) {
+                var noteButton = e.target.closest('.report-log-note-btn');
+                if (!noteButton) return;
+                e.preventDefault();
+                e.stopPropagation();
+                openLogNote(noteButton.closest('td.day-col'), noteButton.dataset.logType);
+            });
         }
 
         // Batch Update toggle
@@ -873,6 +963,16 @@
         if (cancelBtn) cancelBtn.addEventListener('click', closeBatchModal);
         if (saveBtn) saveBtn.addEventListener('click', applyBatchUpdate);
         if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeBatchModal(); });
+
+        // Log note detail
+        var noteModal = document.getElementById('logNoteModal');
+        var noteClose = document.getElementById('logNoteClose');
+        var noteDone = document.getElementById('logNoteDone');
+        if (noteClose) noteClose.addEventListener('click', closeLogNote);
+        if (noteDone) noteDone.addEventListener('click', closeLogNote);
+        if (noteModal) noteModal.addEventListener('click', function (e) {
+            if (e.target === noteModal) closeLogNote();
+        });
 
         // Delete Confirmation Modal
         var delConfirmModal = document.getElementById('deleteConfirmModal');

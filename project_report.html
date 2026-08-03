@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
-    <script src="assets/js/data.js?v=3.3.7" defer></script>
-    <script src="assets/js/app.js?v=3.3.8" defer></script>
-    <script src="assets/js/report.js?v=3.3.8" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
+    <script src="assets/js/report.js?v=3.3.11" defer></script>
 </head>
 
 <body class="report-layout" data-page="project-report">
@@ -315,6 +315,31 @@
             <div class="report-fix-footer">
                 <button class="btn btn-outline" type="button" id="batchUpdateCancel">Cancel</button>
                 <button class="btn btn-primary" type="button" id="batchUpdateSave">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Note Detail Modal -->
+    <div class="modal-overlay report-fix-modal" id="logNoteModal">
+        <div class="report-fix-card report-note-card">
+            <div class="report-fix-header">
+                <h2>Log Note</h2>
+                <button class="modal-close-btn" type="button" id="logNoteClose" aria-label="Close note">&times;</button>
+            </div>
+            <div class="report-fix-body">
+                <div class="report-note-meta">
+                    <div><span>Employee</span><strong id="logNoteEmployee">-</strong></div>
+                    <div><span>Date</span><strong id="logNoteDate">-</strong></div>
+                    <div><span>Log Type</span><strong id="logNoteType">-</strong></div>
+                    <div><span>Clock</span><strong id="logNoteClock">-</strong></div>
+                </div>
+                <div class="report-note-message">
+                    <span class="report-note-label">Note</span>
+                    <p id="logNoteText">-</p>
+                </div>
+            </div>
+            <div class="report-fix-footer">
+                <button class="btn btn-primary" type="button" id="logNoteDone">Done</button>
             </div>
         </div>
     </div>

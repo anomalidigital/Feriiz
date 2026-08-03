@@ -3792,7 +3792,7 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
 /* === Application notifications === */
 .notification-region {
     position: fixed;
-    top: 24px;
+    top: 80px;
     right: 24px;
     z-index: 5000;
     display: grid;
@@ -3946,6 +3946,70 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
         right: 16px;
         left: 16px;
         width: auto;
+    }
+}
+
+/* === Report log notes === */
+.report-log-note-btn {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 24px;
+    margin-left: 8px;
+    border: 0;
+    border-radius: 6px;
+    background: #EAF3FB;
+    color: #166DBA;
+    cursor: pointer;
+}
+
+.report-log-note-btn:hover,
+.report-log-note-btn:focus-visible {
+    background: #D8EAF8;
+    color: #0F5D9E;
+}
+
+.report-note-card {
+    width: min(480px, calc(100vw - 32px));
+}
+
+.report-note-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.report-note-meta > div,
+.report-note-message {
+    padding: 12px 14px;
+    border: 1px solid #E4E7EC;
+    border-radius: 8px;
+    background: #F8FAFC;
+}
+
+.report-note-meta span,
+.report-note-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.report-note-meta strong,
+.report-note-message p {
+    margin: 0;
+    color: #1D2939;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+@media (max-width: 520px) {
+    .report-note-meta {
+        grid-template-columns: 1fr;
     }
 }
 

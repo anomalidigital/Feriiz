@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
 </head>
 
 <body data-page="projects">
@@ -292,7 +292,7 @@
             <div id="projectModalFooter" class="feriiz-u-209">
                 <button class="btn btn-outline feriiz-u-210" onclick="closeProjectModal()"
                    >Cancel</button>
-                <button class="btn btn-primary feriiz-u-211" onclick="closeProjectModal()"
+                <button class="btn btn-primary feriiz-u-211" onclick="saveProjectChanges()"
                    >Save
                     Changes</button>
             </div>
@@ -421,6 +421,29 @@
         function closeProjectModal() {
             document.getElementById('projectModal').classList.remove('show');
             document.body.style.overflow = '';
+        }
+
+        function saveProjectChanges() {
+            const title = document.getElementById('projectModalTitle');
+            const nameInput = document.getElementById('projNameInput');
+            const codeInput = document.getElementById('projCodeInput');
+            const isNew = title && title.textContent === 'Add Project';
+            const name = nameInput ? nameInput.value.trim() : '';
+            const code = codeInput ? codeInput.value.trim() : '';
+
+            if (!name || !code) {
+                if (!name && nameInput) nameInput.focus();
+                else if (codeInput) codeInput.focus();
+                if (window.FeriizNotify) {
+                    FeriizNotify.warning('Project name and project code are required.', 'Project not saved');
+                }
+                return;
+            }
+
+            closeProjectModal();
+            if (window.FeriizNotify) {
+                FeriizNotify.success(name + (isNew ? ' was added successfully.' : ' was updated successfully.'), isNew ? 'Project added' : 'Project updated');
+            }
         }
 
         document.getElementById('projectModal').addEventListener('click', function (e) {

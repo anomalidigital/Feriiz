@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.9">
-    <script src="assets/js/data.js?v=3.3.7" defer></script>
-    <script src="assets/js/app.js?v=3.3.8" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -174,7 +174,7 @@
                 tr.innerHTML =
                     '<td>' +
                         '<div class="action-cell">' +
-                            '<a href="#" class="btn-icon" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>' +
+                            '<button type="button" class="btn-icon edit-project-employee-btn" title="Edit" aria-label="Edit ' + emp.name + '"><i class="fa-solid fa-pen-to-square"></i></button>' +
                             '<a href="project_employee_attendance.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>' +
                             '<a href="employee_report.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Report"><i class="fa-regular fa-file-lines"></i></a>' +
                             '<a href="employee_personal_request.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Request"><i class="fa-solid fa-clipboard-list"></i></a>' +
@@ -195,6 +195,9 @@
                     '<td>' + fmtJoinedShort(state.lastActivity[emp.code]) + '</td>';
                 tr.querySelector('img').addEventListener('error', function () {
                     if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
+                });
+                tr.querySelector('.edit-project-employee-btn').addEventListener('click', function () {
+                    openEmployeeDetailOverlay(emp);
                 });
                 return tr;
             }
@@ -347,12 +350,12 @@
                             <span class="feriiz-u-040">Personal Information</span>
                         </div>
                         <div class="feriiz-u-258">
-                            <input type="text" placeholder="First Name" value="Adam" class="feriiz-u-259">
-                            <input type="text" placeholder="Last Name" value="Ferial" class="feriiz-u-259">
-                            <input type="text" placeholder="Occupation" class="feriiz-u-259">
+                            <input type="text" id="projectEmpFirstName" placeholder="First Name" class="feriiz-u-259">
+                            <input type="text" id="projectEmpLastName" placeholder="Last Name" class="feriiz-u-259">
+                            <input type="text" id="projectEmpOccupation" placeholder="Occupation" class="feriiz-u-259">
                         </div>
                         <div class="feriiz-u-258">
-                            <input type="text" placeholder="Pin" class="feriiz-u-259">
+                            <input type="text" id="projectEmpPin" placeholder="Pin" class="feriiz-u-259">
                             <input type="text" placeholder="Date of Birth" class="feriiz-u-259">
                             <select class="feriiz-u-260">
                                 <option>Male</option><option>Female</option>
@@ -386,7 +389,7 @@
                         <select class="feriiz-u-263">
                             <option>Employee</option><option>Admin</option>
                         </select>
-                        <input type="email" placeholder="Email" class="feriiz-u-264">
+                        <input type="email" id="projectEmpEmail" placeholder="Email" class="feriiz-u-264">
                         <input type="text" placeholder="Reset Password" class="feriiz-u-265">
                         <div class="feriiz-u-039">
                             <span class="feriiz-u-040">Payment Rate</span>
@@ -399,7 +402,7 @@
                 </div>
             </div>
             <div class="feriiz-u-266">
-                <button class="btn btn-primary feriiz-u-056" onclick="closeEmpDetailOverlay()"
+                <button class="btn btn-primary feriiz-u-056" onclick="saveProjectEmployeeDetail()"
                    >Save Changes</button>
             </div>
         </div>
@@ -507,14 +510,38 @@
         });
 
         // Employee Detail Overlay
-        function openEmployeeDetailOverlay(name) {
+        function setProjectEmployeeField(id, value) {
+            const field = document.getElementById(id);
+            if (field) field.value = value || '';
+        }
+
+        function openEmployeeDetailOverlay(employee) {
+            const fullName = employee && employee.name ? employee.name.trim() : '';
+            const nameParts = fullName ? fullName.split(/\s+/) : [];
             document.getElementById('empDetailTitle').textContent = 'Employee Detail';
+            setProjectEmployeeField('projectEmpFirstName', nameParts.shift() || '');
+            setProjectEmployeeField('projectEmpLastName', nameParts.join(' '));
+            setProjectEmployeeField('projectEmpOccupation', employee ? employee.occupation : '');
+            setProjectEmployeeField('projectEmpPin', employee ? employee.pin : '');
+            setProjectEmployeeField('projectEmpEmail', employee ? employee.email : '');
             document.getElementById('empDetailOverlay').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
         function closeEmpDetailOverlay() {
             document.getElementById('empDetailOverlay').classList.remove('show');
             document.body.style.overflow = '';
+        }
+
+        function saveProjectEmployeeDetail() {
+            const firstNameInput = document.getElementById('projectEmpFirstName');
+            const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+            if (!firstName) {
+                if (firstNameInput) firstNameInput.focus();
+                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
+                return;
+            }
+            closeEmpDetailOverlay();
+            if (window.FeriizNotify) FeriizNotify.success(firstName + "'s project settings were updated.", 'Employee updated');
         }
         document.addEventListener('DOMContentLoaded', () => {
             const overlay = document.getElementById('empDetailOverlay');
@@ -694,7 +721,7 @@
                 <div class="feriiz-u-296">
                     <button class="btn btn-outline feriiz-u-297" onclick="closeManageEmpModal()"
                        >Cancel</button>
-                    <button id="saveChangesBtn" class="btn btn-primary feriiz-u-298" onclick="closeManageEmpModal()"
+                    <button id="saveChangesBtn" class="btn btn-primary feriiz-u-298" onclick="saveManagedEmployees()"
                        >Save
                         Changes</button>
                 </div>
@@ -775,7 +802,7 @@
                 </div>
             </div>
             <div class="feriiz-u-266">
-                <button onclick="closeAddEmployeeModal()" class="feriiz-u-056">Save Changes</button>
+                <button onclick="saveNewProjectEmployee()" class="feriiz-u-056">Save Changes</button>
             </div>
         </div>
     </div>
@@ -800,6 +827,18 @@
         function closeAddEmployeeModal() {
             document.getElementById('addEmployeeModal').classList.remove('show');
             document.body.style.overflow = 'hidden'; // keep hidden since manage modal is still behind
+        }
+
+        function saveNewProjectEmployee() {
+            const firstNameInput = document.getElementById('addEmpFirstName');
+            const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+            if (!firstName) {
+                if (firstNameInput) firstNameInput.focus();
+                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
+                return;
+            }
+            closeAddEmployeeModal();
+            if (window.FeriizNotify) FeriizNotify.success(firstName + ' was added to the employee list.', 'Employee added');
         }
         document.addEventListener('DOMContentLoaded', () => {
             const addEmpModal = document.getElementById('addEmployeeModal');
@@ -1037,6 +1076,14 @@
                 applyAllEmpFilters();
                 // Reset selected count to original assigned count
                 updateSelectedCount();
+            }
+        }
+
+        function saveManagedEmployees() {
+            const selected = document.querySelectorAll('.manage-emp-cb:checked').length;
+            closeManageEmpModal();
+            if (window.FeriizNotify) {
+                FeriizNotify.success(selected + ' employees are now assigned to this project.', 'Employee assignments saved');
             }
         }
     </script>

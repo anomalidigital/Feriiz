@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employee Detail</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
 </head>
 
 <body data-page="employee-detail">
@@ -184,13 +184,25 @@
                 </div>
 
                 <!-- Save Button -->
-                <button class="btn-save">Save Changes</button>
+                <button class="btn-save" type="button" onclick="saveEmployeeProfile()">Save Changes</button>
             </div>
 
         </div>
 
         <div class="feriiz-u-092">version : 3.3.6</div>
     </main>
+    <script>
+        function saveEmployeeProfile() {
+            const firstNameInput = document.querySelector('input[placeholder="First Name"]');
+            const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+            if (!firstName) {
+                if (firstNameInput) firstNameInput.focus();
+                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
+                return;
+            }
+            if (window.FeriizNotify) FeriizNotify.success(firstName + "'s profile was updated.", 'Employee updated');
+        }
+    </script>
 </body>
 
 </html>

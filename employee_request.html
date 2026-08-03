@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Request</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.8" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
 </head>
 
 <body data-page="project-requests">
@@ -399,9 +399,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-danger feriiz-u-157">Delete</button>
+                <button class="btn btn-danger feriiz-u-157" onclick="deleteRequest()">Delete</button>
                 <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="closeModal()">Save Changes</button>
+                <button class="btn btn-primary" onclick="saveRequestChanges()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -493,7 +493,7 @@
             <div class="modal-footer feriiz-u-161" id="addReqFooter">
                 <button class="btn btn-outline feriiz-u-162"
                     onclick="closeAddRequestModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="closeAddRequestModal()">Save Changes</button>
+                <button class="btn btn-primary" onclick="saveNewRequest()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -523,6 +523,18 @@
                 notifWrapper.style.display = 'none';
             }
         }
+
+        function saveRequestChanges() {
+            const employee = document.getElementById('modalTitle').textContent.replace(/^Approval\s+/, '') || 'Employee';
+            closeModal();
+            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was updated.', 'Request updated');
+        }
+
+        function deleteRequest() {
+            const employee = document.getElementById('modalTitle').textContent.replace(/^Approval\s+/, '') || 'Employee';
+            closeModal();
+            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was deleted.', 'Request deleted');
+        }
         document.getElementById('approvalModal').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
         });
@@ -539,6 +551,18 @@
 
             // Clean up progressive layout changes
             // Progressive disclosure removed - all fields visible immediately
+        }
+
+        function saveNewRequest() {
+            const employeeInput = document.getElementById('addReqEmployee');
+            const employee = employeeInput ? employeeInput.value.trim() : '';
+            if (!employee) {
+                if (employeeInput) employeeInput.focus();
+                if (window.FeriizNotify) FeriizNotify.warning('Employee name is required.', 'Request not saved');
+                return;
+            }
+            closeAddRequestModal();
+            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was added.', 'Request added');
         }
 
         // Dynamic Notification Checkbox logic

@@ -50,6 +50,13 @@ function feriizLogout() {
         var config = typeof options === 'string' ? { message: options } : (options || {});
         var type = Object.prototype.hasOwnProperty.call(DEFAULT_TITLES, config.type) ? config.type : 'info';
         var duration = Number(config.duration) > 0 ? Number(config.duration) : 5000;
+        var region = getRegion();
+
+        // Keep feedback noticeable without covering the page with old messages.
+        while (region.children.length >= 3) {
+            region.firstElementChild.remove();
+        }
+
         var toast = document.createElement('div');
         toast.className = 'notification-toast notification-toast--' + type;
         toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
@@ -85,7 +92,7 @@ function feriizLogout() {
         toast.appendChild(content);
         toast.appendChild(close);
         toast.appendChild(progress);
-        getRegion().appendChild(toast);
+        region.appendChild(toast);
 
         window.setTimeout(function () { dismiss(toast); }, duration);
         return toast;

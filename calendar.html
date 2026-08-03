@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.6">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.6" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
 </head>
 <body data-page="calendar">
     <aside class="sidebar"></aside>
@@ -385,8 +385,9 @@
         function persistHolidayOverrides() {
             try {
                 localStorage.setItem('feriizHolidayOverrides', JSON.stringify(HOLIDAY_OVERRIDES));
+                return true;
             } catch (error) {
-                // Static prototype fallback: keep the in-memory override.
+                return false;
             }
         }
 
@@ -424,9 +425,16 @@
             } else {
                 HOLIDAY_OVERRIDES.push({ date, status, note });
             }
-            persistHolidayOverrides();
+            if (!persistHolidayOverrides()) {
+                if (window.FeriizNotify) FeriizNotify.error('The holiday override could not be stored. Please try again.', 'Override not saved');
+                return;
+            }
             renderCalendar();
             closeOverlay();
+            if (window.FeriizNotify) {
+                const label = status === 'working' ? 'Company Working Day' : 'Company Holiday';
+                FeriizNotify.success(formatDate(date) + ' is now set as ' + label + '.', 'Holiday override saved');
+            }
         }
 
         function getProjectLabel(id) {

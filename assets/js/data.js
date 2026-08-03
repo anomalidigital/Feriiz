@@ -138,6 +138,11 @@
         })
         .catch(function (err) {
             console.error('[FERIIZ_DATA] failed to load dataset:', err);
+            window.setTimeout(function () {
+                if (window.FeriizNotify) {
+                    window.FeriizNotify.error('The application data could not be loaded. Refresh the page or try again later.', 'Data unavailable');
+                }
+            }, 0);
             // Even on failure, keep Requests/Calendar working with the demo.
             API.requests = ANOMALI_REQUESTS;
             API.holidays = ANOMALI_HOLIDAYS;

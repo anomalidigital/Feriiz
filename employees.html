@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.8">
-    <script src="assets/js/data.js?v=3.3.6" defer></script>
-    <script src="assets/js/app.js?v=3.3.8" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <script src="assets/js/data.js?v=3.3.10" defer></script>
+    <script src="assets/js/app.js?v=3.3.10" defer></script>
 </head>
 
 <body data-page="employees">
@@ -135,7 +135,7 @@
                 </div>
             </div>
             <div class="feriiz-u-055">
-                <button class="btn btn-primary feriiz-u-056" onclick="closeEmployeeDetailModal()">Save Changes</button>
+                <button class="btn btn-primary feriiz-u-056" onclick="saveEmployeeChanges()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -179,6 +179,22 @@
         function closeEmployeeDetailModal() {
             document.getElementById('employeeDetailModal').classList.remove('show');
             document.body.style.overflow = '';
+        }
+
+        function saveEmployeeChanges() {
+            var title = document.getElementById('employeeDetailTitle');
+            var firstName = document.getElementById('empModalFirstName');
+            var isNew = title && title.textContent === 'Add Employee';
+            var employeeName = firstName ? firstName.value.trim() : '';
+            if (!employeeName) {
+                if (firstName) firstName.focus();
+                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
+                return;
+            }
+            closeEmployeeDetailModal();
+            if (window.FeriizNotify) {
+                FeriizNotify.success(employeeName + (isNew ? ' was added successfully.' : ' was updated successfully.'), isNew ? 'Employee added' : 'Employee updated');
+            }
         }
 
         function formatJoinedDate(iso) {

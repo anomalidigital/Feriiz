@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Partner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.11">
+    <script src="assets/js/app.js?v=3.3.11" defer></script>
+</head>
+
+<body data-page="partner">
+    <aside class="sidebar"></aside>
+
+    <main class="main-content">
+        <div class="breadcrumb" aria-label="Breadcrumb">
+            <a href="my-account.html">My Account</a>
+            <span aria-hidden="true">&gt;</span>
+            <span>Partner</span>
+        </div>
+
+        <div class="page-header">
+            <h1 class="page-title">Partner</h1>
+            <div class="page-actions">
+                <label class="partner-search" for="partnerSearch">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search" id="partnerSearch" placeholder="Search partner" autocomplete="off">
+                </label>
+            </div>
+        </div>
+
+        <div class="stat-cards feriiz-u-023">
+            <div class="stat-card feriiz-u-187">
+                <div class="stat-card-icon feriiz-u-025">
+                    <i class="fa-solid fa-users" aria-hidden="true"></i>
+                </div>
+                <div class="stat-card-info">
+                    <div class="stat-number feriiz-u-026" id="partnerCount" aria-label="1 partner">1</div>
+                    <div class="stat-label feriiz-u-165">Partners</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="partner-table-scroll">
+                <table class="data-table partner-table">
+                    <thead>
+                        <tr>
+                            <th class="partner-action-column" aria-label="Action"></th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Date Created</th>
+                            <th>Date Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partnerTableBody"></tbody>
+                </table>
+            </div>
+            <div class="partner-empty-state" id="partnerEmptyState" hidden>No partners match your search.</div>
+            <div class="pagination">
+                <div class="pagination-info" id="partnerPaginationInfo">Showing 1 - 1 of 1 result</div>
+                <div class="pagination-buttons">
+                    <button type="button" disabled>&lt; Previous</button>
+                    <a href="#" class="active" aria-current="page">1</a>
+                    <button type="button" disabled>Next &gt;</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="feriiz-u-032">version : 3.3.6</div>
+    </main>
+
+    <div class="modal-overlay" id="partnerDetailModal" aria-hidden="true">
+        <div class="modal-card" id="partnerDetailDialog" role="dialog" aria-modal="true"
+            aria-labelledby="partnerDetailTitle" tabindex="-1">
+            <div class="modal-header">
+                <h2 id="partnerDetailTitle">Partner Detail</h2>
+                <button type="button" class="modal-close" id="closePartnerDetail" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="partner-detail-grid">
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">ID</span>
+                        <span class="partner-detail-value" id="partnerDetailId"></span>
+                    </div>
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">Name</span>
+                        <span class="partner-detail-value" id="partnerDetailName"></span>
+                    </div>
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">Date Created</span>
+                        <span class="partner-detail-value" id="partnerDetailCreated"></span>
+                    </div>
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">Date Last Updated</span>
+                        <span class="partner-detail-value" id="partnerDetailUpdated"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="partner-modal-footer">
+                <button type="button" class="btn btn-outline" id="closePartnerDetailFooter">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var partners = [
+                {
+                    id: '1629712785796FJLXHTP',
+                    name: 'Arcon & Anomali',
+                    dateCreated: '06 September 2021 - 00:00',
+                    dateLastUpdated: '-'
+                }
+            ];
+
+            var tableBody = document.getElementById('partnerTableBody');
+            var searchInput = document.getElementById('partnerSearch');
+            var emptyState = document.getElementById('partnerEmptyState');
+            var paginationInfo = document.getElementById('partnerPaginationInfo');
+            var countBadge = document.getElementById('partnerCount');
+            var detailModal = document.getElementById('partnerDetailModal');
+
+            function openPartnerDetail(partner) {
+                document.getElementById('partnerDetailId').textContent = partner.id;
+                document.getElementById('partnerDetailName').textContent = partner.name;
+                document.getElementById('partnerDetailCreated').textContent = partner.dateCreated;
+                document.getElementById('partnerDetailUpdated').textContent = partner.dateLastUpdated;
+                detailModal.classList.add('show');
+                detailModal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                document.getElementById('partnerDetailDialog').focus();
+            }
+
+            function closePartnerDetail() {
+                detailModal.classList.remove('show');
+                detailModal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            function createPartnerRow(partner) {
+                var row = document.createElement('tr');
+                var actionCell = document.createElement('td');
+                var viewButton = document.createElement('button');
+                var idCell = document.createElement('td');
+                var nameCell = document.createElement('td');
+                var createdCell = document.createElement('td');
+                var updatedCell = document.createElement('td');
+
+                row.className = 'partner-row';
+                row.tabIndex = 0;
+                viewButton.type = 'button';
+                viewButton.className = 'btn-icon';
+                viewButton.setAttribute('aria-label', 'View ' + partner.name);
+                viewButton.innerHTML = '<i class="fa-solid fa-chevron-right" aria-hidden="true"></i>';
+                actionCell.appendChild(viewButton);
+
+                idCell.className = 'partner-id';
+                idCell.textContent = partner.id;
+                nameCell.className = 'partner-name';
+                nameCell.textContent = partner.name;
+                createdCell.textContent = partner.dateCreated;
+                updatedCell.textContent = partner.dateLastUpdated;
+
+                row.appendChild(actionCell);
+                row.appendChild(idCell);
+                row.appendChild(nameCell);
+                row.appendChild(createdCell);
+                row.appendChild(updatedCell);
+
+                row.addEventListener('click', function () { openPartnerDetail(partner); });
+                row.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openPartnerDetail(partner);
+                    }
+                });
+                return row;
+            }
+
+            function renderPartners() {
+                var query = searchInput.value.trim().toLowerCase();
+                var filtered = partners.filter(function (partner) {
+                    return partner.id.toLowerCase().includes(query) || partner.name.toLowerCase().includes(query);
+                });
+
+                tableBody.innerHTML = '';
+                filtered.forEach(function (partner) {
+                    tableBody.appendChild(createPartnerRow(partner));
+                });
+
+                countBadge.textContent = String(partners.length);
+                countBadge.setAttribute('aria-label', partners.length + (partners.length === 1 ? ' partner' : ' partners'));
+                emptyState.hidden = filtered.length !== 0;
+                paginationInfo.textContent = filtered.length
+                    ? 'Showing 1 - ' + filtered.length + ' of ' + filtered.length + (filtered.length === 1 ? ' result' : ' results')
+                    : 'Showing 0 results';
+            }
+
+            searchInput.addEventListener('input', renderPartners);
+            document.getElementById('closePartnerDetail').addEventListener('click', closePartnerDetail);
+            document.getElementById('closePartnerDetailFooter').addEventListener('click', closePartnerDetail);
+            detailModal.addEventListener('click', function (event) {
+                if (event.target === detailModal) closePartnerDetail();
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && detailModal.classList.contains('show')) closePartnerDetail();
+            });
+
+            renderPartners();
+        })();
+    </script>
+</body>
+
+</html>

@@ -650,6 +650,134 @@ body {
     letter-spacing: 2px;
 }
 
+/* === PARTNER PAGE === */
+.account-partner-link,
+.account-partner-link:hover,
+.account-partner-link:focus {
+    text-decoration: none;
+}
+
+.partner-search {
+    position: relative;
+    width: 260px;
+}
+
+.partner-search i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    color: #8A96A3;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.partner-search input {
+    width: 100%;
+    height: 42px;
+    padding: 0 14px 0 40px;
+    border: 1px solid #D9D9D9;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+    font: 13px 'Poppins', sans-serif;
+    outline: none;
+}
+
+.partner-search input:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.1);
+}
+
+.partner-table-scroll {
+    overflow-x: auto;
+}
+
+.partner-table {
+    min-width: 880px;
+}
+
+.partner-table .partner-action-column {
+    width: 72px;
+}
+
+.partner-table .partner-id {
+    color: #5F6B78;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.partner-table .partner-name {
+    color: #1A1A1A;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.partner-row {
+    cursor: pointer;
+}
+
+.partner-row .btn-icon,
+.partner-row .btn-icon * {
+    cursor: pointer;
+}
+
+.partner-empty-state {
+    padding: 32px 20px;
+    color: #7D8995;
+    font-size: 13px;
+    text-align: center;
+}
+
+.partner-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.partner-detail-item {
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid #E1E6EB;
+    border-radius: 8px;
+    background: #F8FAFC;
+}
+
+.partner-detail-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #7A8693;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.partner-detail-value {
+    color: #1A1A1A;
+    font-size: 13px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.partner-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 28px 24px;
+}
+
+#partnerDetailModal .modal-card:focus {
+    outline: none;
+}
+
+@media (max-width: 620px) {
+    .partner-search {
+        width: 100%;
+    }
+
+    .partner-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* === CARDS (for My Account) === */
 .card {
     background: #fff;
@@ -5064,6 +5192,32 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     align-items: center;
     justify-content: center;
     gap: 8px;
+}
+
+.login-btn:disabled {
+    cursor: wait;
+    opacity: 0.85;
+}
+
+.login-spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: login-spinner-rotate 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+.login-btn.is-loading .login-spinner {
+    display: inline-block;
+}
+
+@keyframes login-spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .login-error {

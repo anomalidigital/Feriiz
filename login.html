@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.11">
 </head>
 
 <body class="login-body">
@@ -46,8 +46,9 @@
                 <a href="#" class="login-forgot" onclick="goForgot(); return false;">Forgot password?</a>
             </div>
 
-            <button type="submit" class="btn btn-primary login-btn">
-                Login
+            <button type="submit" class="btn btn-primary login-btn" id="loginSubmit" aria-busy="false">
+                <span class="login-spinner" aria-hidden="true"></span>
+                <span class="login-button-label">Login</span>
             </button>
 
             <!-- Error Message -->
@@ -83,13 +84,35 @@
             }
         }
 
-        function handleLogin(e) {
+        function setLoginLoading(isLoading) {
+            var submitButton = document.getElementById('loginSubmit');
+            submitButton.disabled = isLoading;
+            submitButton.classList.toggle('is-loading', isLoading);
+            submitButton.setAttribute('aria-busy', String(isLoading));
+        }
+
+        function waitForLoginDemo() {
+            return new Promise(function (resolve) {
+                window.setTimeout(resolve, 700);
+            });
+        }
+
+        async function handleLogin(e) {
             e.preventDefault();
+            var submitButton = document.getElementById('loginSubmit');
+            if (submitButton.disabled) return;
+
             var email = document.getElementById('loginEmail').value;
             var password = document.getElementById('loginPassword').value;
+            document.getElementById('loginError').style.display = 'none';
+            setLoginLoading(true);
+
+            // Keeps the loading state visible in this static prototype.
+            await waitForLoginDemo();
 
             // Demo: simulate error for wrong password
             if (password !== 'demo123') {
+                setLoginLoading(false);
                 showError('Invalid Password', 'Please try again or reset your password');
                 return;
             }

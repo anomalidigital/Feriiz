@@ -117,6 +117,7 @@ function feriizLogout() {
         'employees':                 { main: 'employees' },
         'calendar':                  { main: 'calendar' },
         'my-account':                { main: 'my-account', logout: true },
+        'partner':                   { main: 'my-account', logout: true },
         'project-activity':          { main: 'projects-group', sub: 'activity' },
         'project-attendance':        { main: 'projects-group', sub: 'activity' },
         'project-report':            { main: 'projects-group', sub: 'report' },

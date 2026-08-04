@@ -93,7 +93,7 @@
 
         function waitForLoginDemo() {
             return new Promise(function (resolve) {
-                window.setTimeout(resolve, 700);
+                window.setTimeout(resolve, 3000);
             });
         }
 
@@ -107,7 +107,7 @@
             document.getElementById('loginError').style.display = 'none';
             setLoginLoading(true);
 
-            // Keeps the loading state visible in this static prototype.
+            // Keeps the loading state visible for the static prototype.
             await waitForLoginDemo();
 
             // Demo: simulate error for wrong password

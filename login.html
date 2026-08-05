@@ -68,7 +68,7 @@
 
     <script>
         // Already logged in? go to dashboard
-        if (sessionStorage.getItem('feriiz_user')) { window.location.href = 'index.html'; }
+        if (localStorage.getItem('feriiz_user')) { window.location.href = 'index.html'; }
 
         function togglePassword() {
             var pw = document.getElementById('loginPassword');
@@ -117,8 +117,8 @@
                 return;
             }
 
-            // Save session & redirect
-            sessionStorage.setItem('feriiz_user', JSON.stringify({ email: email, name: 'Admin', loginAt: Date.now() }));
+            // Persist the authenticated user across tabs and browser restarts.
+            localStorage.setItem('feriiz_user', JSON.stringify({ email: email, name: 'Admin', loginAt: Date.now() }));
             window.location.href = 'index.html';
         }
 

@@ -1,12 +1,12 @@
 /* === Auth Guard === */
 (function() {
-    if (!sessionStorage.getItem('feriiz_user')) {
+    if (!localStorage.getItem('feriiz_user')) {
         window.location.href = 'login.html';
     }
 })();
 
 function feriizLogout() {
-    sessionStorage.removeItem('feriiz_user');
+    localStorage.removeItem('feriiz_user');
     window.location.href = 'login.html';
 }
 

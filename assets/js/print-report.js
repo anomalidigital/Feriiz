@@ -81,25 +81,25 @@
         var page = document.body.dataset.page || '';
         var projectLink = document.getElementById('reportProjectLink') ||
             document.querySelector('.breadcrumb a[href*="project_employees"]');
-        var projectName = projectLink ? projectLink.textContent.trim() : 'Project';
+        var projectName = projectLink ? projectLink.textContent.trim() : 'Project Report';
 
         if (page === 'employee-report') {
             var currentCrumb = document.querySelector('.breadcrumb > span:last-child');
             var employeeName = currentCrumb ? currentCrumb.textContent.trim() : 'Employee';
             return {
-                title: 'Employee Report',
+                mainTitle: projectName,
+                subtitle: employeeName + ' • Attendance & Payroll Summary',
                 projectName: projectName,
                 subject: employeeName,
-                subtitle: employeeName + ' | Project: ' + projectName,
                 isEmployeePage: true
             };
         }
 
         return {
-            title: 'Project Report',
+            mainTitle: projectName,
+            subtitle: 'Attendance & Payroll Summary',
             projectName: projectName,
             subject: projectName,
-            subtitle: projectName + ' - Attendance & Payroll Summary',
             isEmployeePage: false
         };
     }
@@ -289,10 +289,9 @@
         var html = '<div class="report-print-header">';
         html += '<div class="report-print-header-top">';
         html += '  <div class="report-print-brand-wrap">';
-        html += '    <div class="report-print-brand">FERIIZ</div>';
         html += '    <div class="report-print-title-group">';
-        html += '      <h1>' + escapeHTML(context.title) + '</h1>';
-        html += '      <p>' + escapeHTML(context.subtitle) + '</p>';
+        html += '      <h1 class="report-print-project-title">' + escapeHTML(context.mainTitle) + '</h1>';
+        html += '      <p class="report-print-project-subtitle">' + escapeHTML(context.subtitle) + '</p>';
         html += '    </div>';
         html += '  </div>';
         html += '  <div class="report-print-meta-grid">';

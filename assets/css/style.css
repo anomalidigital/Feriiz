@@ -5099,18 +5099,23 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         letter-spacing: 1pt !important;
     }
 
-    .report-print-title-group h1 {
+    .report-print-title-group h1,
+    .report-print-project-title {
         margin: 0 !important;
-        font-size: 13pt !important;
-        font-weight: 700 !important;
+        font-size: 16pt !important;
+        font-weight: 800 !important;
         color: #0f172a !important;
         line-height: 1.2 !important;
+        letter-spacing: -0.3pt !important;
+        text-transform: uppercase !important;
     }
 
-    .report-print-title-group p {
-        margin: 0.5mm 0 0 0 !important;
-        font-size: 8pt !important;
+    .report-print-title-group p,
+    .report-print-project-subtitle {
+        margin: 0.8mm 0 0 0 !important;
+        font-size: 8.5pt !important;
         color: #475569 !important;
+        font-weight: 600 !important;
     }
 
     .report-print-meta-grid {
@@ -5268,9 +5273,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         color: #0f172a !important;
     }
 
-    /* Print Table Footer Total Row */
+    /* Print Table Footer Total Row - Only appears once at the end of the table on the last page */
     .report-unified-table tfoot {
-        display: table-footer-group !important;
+        display: table-row-group !important;
     }
 
     .report-unified-table tfoot tr {

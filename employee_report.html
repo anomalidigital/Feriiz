@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.3.10">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.3.13">
     <script src="assets/js/data.js?v=3.3.10" defer></script>
     <script src="assets/js/app.js?v=3.3.12" defer></script>
+    <script src="assets/js/print-report.js?v=3.3.13" defer></script>
 </head>
 
 <body class="report-layout" data-page="employee-report">
@@ -135,7 +136,10 @@
                 </div><!-- End Fields Filter -->
 
                 <button class="btn-action"><i class="fa-solid fa-file-excel"></i> Import XLSX</button>
-                <button class="btn-action"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="btn-action report-print-btn" type="button" id="reportPrintBtn">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print</span>
+                </button>
                 <div class="feriiz-u-123">
                     <button class="btn-action primary" id="downloadToggleBtn" onclick="this.nextElementSibling.classList.toggle('show')">
                         <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down feriiz-u-124"></i>

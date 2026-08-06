@@ -5172,8 +5172,100 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         border-collapse: collapse !important;
         border-spacing: 0 !important;
         margin-bottom: 1mm !important;
-        font-size: 8pt !important;
+        font-size: 7.5pt !important;
         table-layout: auto !important;
+    }
+
+    /* Unified Single Wide Table (Old Feriiz Columns + New Feriiz Styling) */
+    .report-unified-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: auto !important;
+        font-size: 6pt !important;
+        box-sizing: border-box !important;
+    }
+
+    .report-unified-table th {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-size: 5.5pt !important;
+        font-weight: 700 !important;
+        padding: 0.8mm 0.6mm !important;
+        border: 0.12mm solid #94a3b8 !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.1 !important;
+    }
+
+    .report-unified-table th.th-group {
+        background: #e2e8f0 !important;
+        font-size: 6.5pt !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.2pt !important;
+        padding: 1mm 0.8mm !important;
+    }
+
+    .report-unified-table th.th-no,
+    .report-unified-table th.th-name,
+    .report-unified-table th.th-occ {
+        text-align: left !important;
+    }
+
+    .report-unified-table td {
+        padding: 0.8mm 0.6mm !important;
+        border: 0.12mm solid #cbd5e1 !important;
+        vertical-align: middle !important;
+        color: #1e293b !important;
+        background: #ffffff !important;
+        font-size: 5.8pt !important;
+        line-height: 1.15 !important;
+        text-align: center !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .report-unified-table td.td-no {
+        text-align: center !important;
+        width: 4mm !important;
+    }
+
+    .report-unified-table td.td-name {
+        text-align: left !important;
+        min-width: 18mm !important;
+        max-width: 32mm !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .report-unified-table td.td-occ {
+        text-align: left !important;
+        min-width: 12mm !important;
+        max-width: 22mm !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .report-unified-table td.td-rate,
+    .report-unified-table td.td-payment {
+        text-align: right !important;
+        white-space: nowrap !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
+        font-size: 5.2pt !important;
+        letter-spacing: -0.2pt !important;
+    }
+
+    .report-unified-table td.td-subtotal {
+        font-weight: 700 !important;
+        background: #f8fafc !important;
+    }
+
+    .report-unified-table td.td-payment {
+        font-weight: 800 !important;
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
     }
 
     .report-print-table thead {

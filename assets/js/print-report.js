@@ -259,14 +259,15 @@
         var visibleRows = getVisibleRows();
         var context = getReportContext();
         var dateRange = getDateRangeDetails();
+        var visibleDateHeaders = getVisibleDateHeaders();
 
-        // 1. Determine active sections
+        // Determine active sections
         var isEmpActive = isSectionActive('grpEmployee');
         var isCliActive = isSectionActive('grpClient');
         var isAddActive = isSectionActive('grpAdditional');
-        var isDailyActive = isSectionActive('grpDaily');
+        var isDailyActive = visibleDateHeaders.length > 0;
 
-        // 2. Build Identifier: YYMMDD_YYMMDD_PROJECT-NAME_DAILY_EMPLOYEE_CLIENT...
+        // Build Identifier
         var projectSanitized = context.projectName.toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_\-&]/g, '');
         var identifierParts = [
             dateRange.startYYMMDD + '_' + dateRange.endYYMMDD,
@@ -279,12 +280,12 @@
 
         var identifier = identifierParts.join('_');
 
-        // 3. Build Header HTML
         var nowStr = new Date().toLocaleString('en-GB', {
             day: '2-digit', month: 'short', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
         });
 
+        // Top Header
         var html = '<div class="report-print-header">';
         html += '<div class="report-print-header-top">';
         html += '  <div class="report-print-brand-wrap">';
@@ -303,136 +304,221 @@
         html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(getFilterSummary()) + '</div>';
         html += '</div>';
 
-        // Helper to extract table rows for a section
-        function buildSectionTableHTML(colsConfig) {
-            var tbl = '<table class="report-print-table"><thead><tr>';
-            colsConfig.forEach(function (c) {
-                tbl += '<th>' + escapeHTML(c.title) + '</th>';
-            });
-            tbl += '</tr></thead><tbody>';
+        // Check active sub-columns
+        var showEmpDaily = isElementVisible(document.querySelector('.col-emp-dailyrate'));
+        var showEmpRateOT = isElementVisible(document.querySelector('.col-emp-rateovertime'));
+        var showEmpTotalR = isElementVisible(document.querySelector('.col-emp-totalrate'));
+        var showEmpTotalOT = isElementVisible(document.querySelector('.col-emp-totalovertime'));
+        var empColCount = (showEmpDaily ? 1 : 0) + (showEmpRateOT ? 1 : 0) + (showEmpTotalR ? 1 : 0) + (showEmpTotalOT ? 1 : 0);
 
-            visibleRows.forEach(function (tr) {
-                tbl += '<tr>';
-                colsConfig.forEach(function (c) {
-                    tbl += '<td>' + c.getCellHTML(tr) + '</td>';
-                });
-                tbl += '</tr>';
-            });
+        var showCliDaily = isElementVisible(document.querySelector('.col-cli-dailyrate'));
+        var showCliRateOT = isElementVisible(document.querySelector('.col-cli-rateovertime'));
+        var showCliTotalR = isElementVisible(document.querySelector('.col-cli-totalrate'));
+        var showCliTotalOT = isElementVisible(document.querySelector('.col-cli-totalovertime'));
+        var cliColCount = (showCliDaily ? 1 : 0) + (showCliRateOT ? 1 : 0) + (showCliTotalR ? 1 : 0) + (showCliTotalOT ? 1 : 0);
 
-            tbl += '</tbody></table>';
-            return tbl;
-        }
+        var showAddAmt = isElementVisible(document.querySelector('.col-additional-amount'));
+        var showAddNote = isElementVisible(document.querySelector('.col-additional-note'));
+        var addColCount = (showAddAmt ? 1 : 0) + (showAddNote ? 1 : 0);
 
-        // Section 1: Work Summary
-        var showStartEnd = isElementVisible(document.querySelector('.col-inouthour'));
-        var showPeriod = isElementVisible(document.querySelector('.col-activehour'));
-
-        var summaryCols = [{ title: 'Name', getCellHTML: function (tr) { return sanitizeNameCell(tr.querySelector('.col-name')); } }];
-        if (showStartEnd) {
-            summaryCols.push({ title: 'Start', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelectorAll('.col-inouthour')[0]); } });
-            summaryCols.push({ title: 'End', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelectorAll('.col-inouthour')[1] || tr.querySelector('.col-inouthour')); } });
-        }
-        if (showPeriod) {
-            summaryCols.push({ title: 'Period', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-activehour')); } });
-        }
-        summaryCols.push({ title: 'Total Days', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-totaldays')); } });
-        summaryCols.push({ title: 'Total Hour', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-totalhour')); } });
-        summaryCols.push({ title: 'Total Overtime', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-totalovertime')); } });
-
+        // Single Unified Wide Table (Old Feriiz Structure + New Design)
         html += '<div class="report-print-section">';
-        html += '<h2 class="report-print-section-title">Work Summary</h2>';
-        html += buildSectionTableHTML(summaryCols);
-        html += '</div>';
+        html += '<table class="report-print-table report-unified-table"><thead>';
 
-        // Section 2: Employee Rates (if active)
-        if (isEmpActive) {
-            var empCols = [{ title: 'Name', getCellHTML: function (tr) { return sanitizeNameCell(tr.querySelector('.col-name')); } }];
-            if (isElementVisible(document.querySelector('.col-emp-dailyrate'))) {
-                empCols.push({ title: 'Daily Rate', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-emp-dailyrate')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-emp-rateovertime'))) {
-                empCols.push({ title: 'Rate Overtime', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-emp-rateovertime')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-emp-totalrate'))) {
-                empCols.push({ title: 'Total Rate', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-emp-totalrate')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-emp-totalovertime'))) {
-                empCols.push({ title: 'Total Overtime', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-emp-totalovertime')); } });
-            }
+        // Header Row 1
+        html += '<tr>';
+        html += '<th rowspan="2" class="th-no">No</th>';
+        html += '<th rowspan="2" class="th-name">Name</th>';
+        html += '<th rowspan="2" class="th-occ">Occupation</th>';
 
-            html += '<div class="report-print-section">';
-            html += '<h2 class="report-print-section-title">Employee Rates</h2>';
-            html += buildSectionTableHTML(empCols);
-            html += '</div>';
-        }
-
-        // Section 3: Client Rates (if active)
-        if (isCliActive) {
-            var cliCols = [{ title: 'Name', getCellHTML: function (tr) { return sanitizeNameCell(tr.querySelector('.col-name')); } }];
-            if (isElementVisible(document.querySelector('.col-cli-dailyrate'))) {
-                cliCols.push({ title: 'Daily Rate', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-cli-dailyrate')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-cli-rateovertime'))) {
-                cliCols.push({ title: 'Rate Overtime', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-cli-rateovertime')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-cli-totalrate'))) {
-                cliCols.push({ title: 'Total Rate', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-cli-totalrate')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-cli-totalovertime'))) {
-                cliCols.push({ title: 'Total Overtime', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-cli-totalovertime')); } });
-            }
-
-            html += '<div class="report-print-section">';
-            html += '<h2 class="report-print-section-title">Client Rates</h2>';
-            html += buildSectionTableHTML(cliCols);
-            html += '</div>';
-        }
-
-        // Section 4: Additional (if active)
-        if (isAddActive) {
-            var addCols = [{ title: 'Name', getCellHTML: function (tr) { return sanitizeNameCell(tr.querySelector('.col-name')); } }];
-            if (isElementVisible(document.querySelector('.col-additional-amount'))) {
-                addCols.push({ title: 'Amount', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-additional-amount')); } });
-            }
-            if (isElementVisible(document.querySelector('.col-additional-note'))) {
-                addCols.push({ title: 'Note', getCellHTML: function (tr) { return sanitizeTextCell(tr.querySelector('.col-additional-note')); } });
-            }
-
-            html += '<div class="report-print-section">';
-            html += '<h2 class="report-print-section-title">Additional</h2>';
-            html += buildSectionTableHTML(addCols);
-            html += '</div>';
-        }
-
-        // Section 5: Daily Attendance (if active)
         if (isDailyActive) {
-            var visibleDateHeaders = getVisibleDateHeaders();
-            var dailyCols = [{ title: 'Name', getCellHTML: function (tr) { return sanitizeNameCell(tr.querySelector('.col-name')); } }];
-
             visibleDateHeaders.forEach(function (th) {
                 var dateVal = th.dataset.date || '';
-                var textSpan = th.querySelector('span');
-                var headerTitle = textSpan ? textSpan.textContent.trim() : th.textContent.trim();
+                var label = formatDateLabel(dateVal);
+                if (!label) {
+                    var textSpan = th.querySelector('span');
+                    label = textSpan ? textSpan.textContent.trim() : th.textContent.trim();
+                }
+                html += '<th colspan="2" class="th-group th-date-grp">' + escapeHTML(label) + '</th>';
+            });
+        }
 
-                dailyCols.push({
-                    title: headerTitle,
-                    getCellHTML: function (tr) {
-                        var dayTd = tr.querySelector('td.day-col[data-date="' + dateVal + '"]');
-                        if (!dayTd) {
-                            var allDayTds = Array.from(tr.querySelectorAll('td.day-col')).filter(isElementVisible);
-                            var idx = visibleDateHeaders.indexOf(th);
-                            dayTd = allDayTds[idx];
-                        }
-                        return dayTd ? sanitizeDailyCell(dayTd) : '-';
-                    }
-                });
+        html += '<th rowspan="2" class="th-total-days">Total Day</th>';
+        html += '<th rowspan="2" class="th-total-ot">Total Overtime</th>';
+
+        if (isEmpActive && empColCount > 0) {
+            html += '<th colspan="' + (empColCount + 1) + '" class="th-group th-emp-grp">Employee</th>';
+        }
+
+        if (isCliActive && cliColCount > 0) {
+            html += '<th colspan="' + (cliColCount + 1) + '" class="th-group th-cli-grp">Client</th>';
+        }
+
+        if (isAddActive && addColCount > 0) {
+            html += '<th colspan="' + addColCount + '" class="th-group th-add-grp">Additional</th>';
+        }
+
+        if (isEmpActive) {
+            html += '<th rowspan="2" class="th-total-pay">Total Payment Employee</th>';
+        }
+        if (isCliActive) {
+            html += '<th rowspan="2" class="th-total-pay">Total Payment Client</th>';
+        }
+
+        html += '</tr>';
+
+        // Header Row 2
+        html += '<tr>';
+        if (isDailyActive) {
+            visibleDateHeaders.forEach(function () {
+                html += '<th>Period (daily)</th><th>Overtime (hour)</th>';
+            });
+        }
+
+        if (isEmpActive && empColCount > 0) {
+            if (showEmpDaily) html += '<th>Daily Rate</th>';
+            if (showEmpRateOT) html += '<th>Rate Overtime</th>';
+            if (showEmpTotalR) html += '<th>Total Rate</th>';
+            if (showEmpTotalOT) html += '<th>Rate Overtime</th>';
+            html += '<th>Subtotal Rate</th>';
+        }
+
+        if (isCliActive && cliColCount > 0) {
+            if (showCliDaily) html += '<th>Daily Rate</th>';
+            if (showCliRateOT) html += '<th>Rate Overtime</th>';
+            if (showCliTotalR) html += '<th>Total Rate</th>';
+            if (showCliTotalOT) html += '<th>Rate Overtime</th>';
+            html += '<th>Subtotal Rate</th>';
+        }
+
+        if (isAddActive && addColCount > 0) {
+            if (showAddAmt) html += '<th>Amount</th>';
+            if (showAddNote) html += '<th>Note</th>';
+        }
+
+        html += '</tr>';
+        html += '</thead><tbody>';
+
+        // Helper to extract text
+        function extractVal(tr, selector) {
+            var el = tr.querySelector(selector);
+            return sanitizeTextCell(el);
+        }
+
+        // Daily Period & Overtime extractor
+        function extractDailyPeriodAndOT(tr, dateVal, thIdx) {
+            var dayTd = tr.querySelector('td.day-col[data-date="' + dateVal + '"]');
+            if (!dayTd) {
+                var allDayTds = Array.from(tr.querySelectorAll('td.day-col')).filter(isElementVisible);
+                dayTd = allDayTds[thIdx];
+            }
+            if (!dayTd || dayTd.classList.contains('weekend-off-cell') || dayTd.classList.contains('holiday-off-cell')) {
+                return { period: '-', overtime: '-' };
+            }
+
+            var period = '-';
+            var overtime = '-';
+
+            var badges = Array.from(dayTd.querySelectorAll('.badge, .feriiz-u-135, .feriiz-u-136'))
+                .map(function (b) { return b.textContent.trim(); });
+
+            badges.forEach(function (b) {
+                if (b.toLowerCase().includes('ot')) {
+                    overtime = b.replace(/ot/i, '').trim();
+                } else if (b) {
+                    period = b.replace(/h/i, '').trim();
+                }
             });
 
-            html += '<div class="report-print-section">';
-            html += '<h2 class="report-print-section-title">Daily Attendance</h2>';
-            html += buildSectionTableHTML(dailyCols);
-            html += '</div>';
+            if (period === '-' && overtime === '-') {
+                var inTime = dayTd.dataset.inTime || '';
+                var outTime = dayTd.dataset.outTime || '';
+                if (inTime || outTime) period = '1';
+            }
+
+            return { period: period, overtime: overtime };
         }
+
+        // Rows
+        visibleRows.forEach(function (tr, index) {
+            var empTd = tr.querySelector('.col-name');
+            var empNameHtml = sanitizeNameCell(empTd);
+
+            var occText = '-';
+            var occEl = tr.querySelector('.emp-occupation-cell') || tr.querySelector('.col-occupation');
+            if (occEl) occText = occEl.textContent.trim() || '-';
+
+            var totalDaysText = extractVal(tr, '.col-totaldays');
+            var totalOtText = extractVal(tr, '.col-totalovertime');
+
+            html += '<tr>';
+            html += '<td class="td-no">' + (index + 1) + '</td>';
+            html += '<td class="td-name">' + empNameHtml + '</td>';
+            html += '<td class="td-occ">' + escapeHTML(occText) + '</td>';
+
+            if (isDailyActive) {
+                visibleDateHeaders.forEach(function (th, thIdx) {
+                    var dateVal = th.dataset.date || '';
+                    var dInfo = extractDailyPeriodAndOT(tr, dateVal, thIdx);
+                    html += '<td class="td-daily-period">' + escapeHTML(dInfo.period) + '</td>';
+                    html += '<td class="td-daily-ot">' + escapeHTML(dInfo.overtime) + '</td>';
+                });
+            }
+
+            html += '<td class="td-total-days">' + totalDaysText + '</td>';
+            html += '<td class="td-total-ot">' + totalOtText + '</td>';
+
+            // Employee Rates
+            if (isEmpActive && empColCount > 0) {
+                var empDaily = extractVal(tr, '.col-emp-dailyrate');
+                var empRateOT = extractVal(tr, '.col-emp-rateovertime');
+                var empTotalR = extractVal(tr, '.col-emp-totalrate');
+                var empTotalOT = extractVal(tr, '.col-emp-totalovertime');
+
+                if (showEmpDaily) html += '<td class="td-rate">' + empDaily + '</td>';
+                if (showEmpRateOT) html += '<td class="td-rate">' + empRateOT + '</td>';
+                if (showEmpTotalR) html += '<td class="td-rate">' + empTotalR + '</td>';
+                if (showEmpTotalOT) html += '<td class="td-rate">' + empTotalOT + '</td>';
+                html += '<td class="td-rate td-subtotal">' + (empTotalR !== '-' ? empTotalR : empDaily) + '</td>';
+            }
+
+            // Client Rates
+            if (isCliActive && cliColCount > 0) {
+                var cliDaily = extractVal(tr, '.col-cli-dailyrate');
+                var cliRateOT = extractVal(tr, '.col-cli-rateovertime');
+                var cliTotalR = extractVal(tr, '.col-cli-totalrate');
+                var cliTotalOT = extractVal(tr, '.col-cli-totalovertime');
+
+                if (showCliDaily) html += '<td class="td-rate">' + cliDaily + '</td>';
+                if (showCliRateOT) html += '<td class="td-rate">' + cliRateOT + '</td>';
+                if (showCliTotalR) html += '<td class="td-rate">' + cliTotalR + '</td>';
+                if (showCliTotalOT) html += '<td class="td-rate">' + cliTotalOT + '</td>';
+                html += '<td class="td-rate td-subtotal">' + (cliTotalR !== '-' ? cliTotalR : cliDaily) + '</td>';
+            }
+
+            // Additional
+            if (isAddActive && addColCount > 0) {
+                var addAmt = extractVal(tr, '.col-additional-amount');
+                var addNote = extractVal(tr, '.col-additional-note');
+                if (showAddAmt) html += '<td class="td-add-amt">' + addAmt + '</td>';
+                if (showAddNote) html += '<td class="td-add-note">' + addNote + '</td>';
+            }
+
+            // Payment Totals
+            if (isEmpActive) {
+                var empPay = extractVal(tr, '.col-emp-totalrate') || extractVal(tr, '.col-emp-dailyrate');
+                html += '<td class="td-payment">' + empPay + '</td>';
+            }
+            if (isCliActive) {
+                var cliPay = extractVal(tr, '.col-cli-totalrate') || extractVal(tr, '.col-cli-dailyrate');
+                html += '<td class="td-payment">' + cliPay + '</td>';
+            }
+
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        html += '</div>';
 
         // Footer HTML
         var pageUrl = window.location.href;

@@ -5268,6 +5268,38 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         color: #0f172a !important;
     }
 
+    /* Print Table Footer Total Row */
+    .report-unified-table tfoot {
+        display: table-footer-group !important;
+    }
+
+    .report-unified-table tfoot tr {
+        break-inside: avoid !important;
+    }
+
+    .report-unified-table tfoot td {
+        font-weight: 800 !important;
+        background: #f1f5f9 !important;
+        border-top: 0.3mm solid #475569 !important;
+        border-bottom: 0.3mm solid #475569 !important;
+        color: #0f172a !important;
+    }
+
+    .report-unified-table tfoot td.td-total-label {
+        text-align: right !important;
+        padding-right: 2mm !important;
+        font-weight: 800 !important;
+        font-size: 6.5pt !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3pt !important;
+    }
+
+    .report-unified-table tfoot td.td-total-cell {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
+        font-size: 5.2pt !important;
+        font-weight: 800 !important;
+    }
+
     .report-print-table thead {
         display: table-header-group !important;
     }

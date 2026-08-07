@@ -5185,16 +5185,16 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         max-width: 100% !important;
         border-collapse: collapse !important;
         table-layout: auto !important;
-        font-size: 8.5pt !important;
+        font-size: 10pt !important;
         box-sizing: border-box !important;
     }
 
     .report-unified-table th {
         background: #f1f5f9 !important;
         color: #0f172a !important;
-        font-size: 8.2pt !important;
+        font-size: 11pt !important;
         font-weight: 700 !important;
-        padding: 1.4mm 0.8mm !important;
+        padding: 2.5mm 1.5mm !important;
         border: 0.15mm solid #94a3b8 !important;
         text-align: left !important;
         vertical-align: middle !important;
@@ -5205,10 +5205,10 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table th.th-group {
         background: #e2e8f0 !important;
-        font-size: 9.5pt !important;
+        font-size: 12pt !important;
         text-transform: uppercase !important;
         letter-spacing: 0.2pt !important;
-        padding: 1.6mm 1.0mm !important;
+        padding: 3.0mm 2.0mm !important;
         text-align: left !important;
     }
 
@@ -5219,12 +5219,12 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table td {
-        padding: 1.4mm 0.8mm !important;
+        padding: 2.5mm 1.5mm !important;
         border: 0.15mm solid #cbd5e1 !important;
         vertical-align: middle !important;
         color: #1e293b !important;
         background: #ffffff !important;
-        font-size: 8.5pt !important;
+        font-size: 10pt !important;
         line-height: 1.25 !important;
         text-align: left !important;
         word-wrap: break-word !important;
@@ -5258,9 +5258,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         text-align: left !important;
         white-space: nowrap !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
-        font-size: 7.8pt !important;
+        font-size: 9pt !important;
         letter-spacing: -0.1pt !important;
-        padding: 1.4mm 0.5mm !important;
+        padding: 2.5mm 1.0mm !important;
     }
 
     .report-unified-table td.td-subtotal {
@@ -5296,36 +5296,36 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         text-align: left !important;
         padding-left: 1.2mm !important;
         font-weight: 800 !important;
-        font-size: 9.5pt !important;
+        font-size: 12pt !important;
         text-transform: uppercase !important;
         letter-spacing: 0.2pt !important;
     }
 
     .report-unified-table tfoot td.td-total-cell {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
-        font-size: 7.8pt !important;
+        font-size: 10pt !important;
         font-weight: 800 !important;
         letter-spacing: -0.1pt !important;
-        padding: 1.4mm 0.5mm !important;
+        padding: 2.5mm 1.0mm !important;
         text-align: left !important;
     }
 
     /* Responsive scaling for Landscape & A3 print orientation (Wide paper >= 240mm) */
     @media print and (min-width: 240mm), print and (orientation: landscape) {
         .report-unified-table {
-            font-size: 9.8pt !important;
+            font-size: 12pt !important;
         }
         .report-unified-table th {
-            font-size: 9.2pt !important;
-            padding: 1.8mm 1.2mm !important;
+            font-size: 12pt !important;
+            padding: 3.5mm 2.0mm !important;
         }
         .report-unified-table th.th-group {
-            font-size: 11.0pt !important;
-            padding: 2.2mm 1.5mm !important;
+            font-size: 14pt !important;
+            padding: 4.0mm 2.5mm !important;
         }
         .report-unified-table td {
-            font-size: 9.8pt !important;
-            padding: 1.8mm 1.2mm !important;
+            font-size: 12pt !important;
+            padding: 3.5mm 2.0mm !important;
         }
         .report-unified-table td.td-no {
             width: 6.0mm !important;
@@ -5340,16 +5340,16 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         }
         .report-unified-table td.td-rate,
         .report-unified-table td.td-payment {
-            font-size: 8.8pt !important;
-            padding: 1.8mm 1.0mm !important;
+            font-size: 11pt !important;
+            padding: 3.5mm 1.5mm !important;
             letter-spacing: normal !important;
         }
         .report-unified-table tfoot td.td-total-label {
-            font-size: 11.0pt !important;
+            font-size: 14pt !important;
         }
         .report-unified-table tfoot td.td-total-cell {
-            font-size: 8.8pt !important;
-            padding: 1.8mm 1.0mm !important;
+            font-size: 11pt !important;
+            padding: 3.5mm 1.5mm !important;
             letter-spacing: normal !important;
         }
     }

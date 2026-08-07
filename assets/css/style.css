@@ -5079,7 +5079,14 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-print-header-top {
         display: flex !important;
         justify-content: space-between !important;
-        align-items: center !important;
+        align-items: flex-start !important;
+    }
+
+    .report-print-header-right {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 1.5mm !important;
     }
 
     .report-print-brand-wrap {
@@ -5504,51 +5511,43 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding-top: 3mm !important;
-        margin-top: 4mm !important;
-        border-top: 0.2mm solid #cbd5e1 !important;
-        font-size: 7pt !important;
+        margin-top: 3mm !important;
+        padding-top: 1.5mm !important;
+        border-top: 0.25mm solid #cbd5e1 !important;
+        font-size: 8pt !important;
         color: #64748b !important;
         break-inside: avoid !important;
         page-break-inside: avoid !important;
     }
 
-    .report-print-footer-info {
-        display: flex !important;
-        align-items: center !important;
-        gap: 3mm !important;
+    .report-print-footer-url {
+        font-size: 8pt !important;
+        color: #475569 !important;
+        word-break: break-all !important;
     }
 
-    .report-print-page-badge {
+    .report-print-footer-page {
+        font-size: 11pt !important;
         font-weight: 800 !important;
-        font-size: 10pt !important;
         color: #0f172a !important;
-        background: #e2e8f0 !important;
-        padding: 0.8mm 2.8mm !important;
-        border-radius: 1mm !important;
-        border: 0.3mm solid #94a3b8 !important;
-        letter-spacing: 0.3pt !important;
+        white-space: nowrap !important;
+        text-align: right !important;
     }
 
-    .print-page-num::after {
-        content: counter(page);
-    }
-
-    .print-page-total::after {
-        content: counter(pages);
+    .report-print-footer-page::after {
+        content: counter(page) " / " counter(pages);
     }
 
     .report-print-footer-id {
         font-family: monospace !important;
-        font-size: 13.0pt !important;
+        font-size: 11.5pt !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         background: #f1f5f9 !important;
-        padding: 2.5mm 6.0mm !important;
-        border-radius: 1.8mm !important;
-        border: 0.5mm solid #475569 !important;
-        letter-spacing: 0.6pt !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        padding: 1.8mm 4.5mm !important;
+        border-radius: 1.2mm !important;
+        border: 0.35mm solid #64748b !important;
+        letter-spacing: 0.5pt !important;
     }
 
     /* A single employee report is intentionally kept on one sheet. */

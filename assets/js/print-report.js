@@ -293,10 +293,13 @@
         html += '      <p class="report-print-project-subtitle">' + escapeHTML(context.subtitle) + '</p>';
         html += '    </div>';
         html += '  </div>';
-        html += '  <div class="report-print-meta-grid">';
-        html += '    <div class="report-print-meta-item"><div class="report-print-meta-label">Period</div><div class="report-print-meta-value">' + escapeHTML(dateRange.label) + '</div></div>';
-        html += '    <div class="report-print-meta-item"><div class="report-print-meta-label">Rows</div><div class="report-print-meta-value">' + visibleRows.length + ' records</div></div>';
-        html += '    <div class="report-print-meta-item"><div class="report-print-meta-label">Generated</div><div class="report-print-meta-value">' + escapeHTML(nowStr) + '</div></div>';
+        html += '  <div class="report-print-header-right">';
+        html += '    <div class="report-print-footer-id">' + escapeHTML(identifier) + '</div>';
+        html += '    <div class="report-print-meta-grid">';
+        html += '      <div class="report-print-meta-item"><div class="report-print-meta-label">Period</div><div class="report-print-meta-value">' + escapeHTML(dateRange.label) + '</div></div>';
+        html += '      <div class="report-print-meta-item"><div class="report-print-meta-label">Rows</div><div class="report-print-meta-value">' + visibleRows.length + ' records</div></div>';
+        html += '      <div class="report-print-meta-item"><div class="report-print-meta-label">Generated</div><div class="report-print-meta-value">' + escapeHTML(nowStr) + '</div></div>';
+        html += '    </div>';
         html += '  </div>';
         html += '</div>';
         html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(getFilterSummary()) + '</div>';
@@ -595,14 +598,8 @@
         // Footer HTML
         var pageUrl = window.location.href;
         html += '<div class="report-print-footer">';
-        html += '<div class="report-print-footer-info">';
-        html += '  <span class="report-print-page-badge">Page <span class="print-page-num"></span> / <span class="print-page-total"></span></span>';
-        html += '  <span>•</span>';
-        html += '  <span>Source: ' + escapeHTML(pageUrl) + '</span>';
-        html += '  <span>•</span>';
-        html += '  <span>Printed: ' + escapeHTML(nowStr) + '</span>';
-        html += '</div>';
-        html += '<div class="report-print-footer-id">' + escapeHTML(identifier) + '</div>';
+        html += '  <div class="report-print-footer-url">' + escapeHTML(pageUrl) + '</div>';
+        html += '  <div class="report-print-footer-page"></div>';
         html += '</div>';
 
         printDoc.innerHTML = html;

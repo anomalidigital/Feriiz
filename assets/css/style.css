@@ -5309,8 +5309,8 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table tfoot td.td-total-label {
-        text-align: left !important;
-        padding-left: 1.2mm !important;
+        text-align: right !important;
+        padding-right: 3.5mm !important;
         font-weight: 800 !important;
         font-size: 12pt !important;
         text-transform: uppercase !important;

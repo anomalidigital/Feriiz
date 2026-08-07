@@ -562,16 +562,16 @@
         html += '<td colspan="' + leftColspan + '" class="td-total-label">Total</td>';
 
         if (isEmpActive && empColCount > 0) {
-            if (showEmpDaily) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumEmpDaily) + '</td>';
-            if (showEmpRateOT) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumEmpRateOT) + '</td>';
+            if (showEmpDaily) html += '<td class="td-rate td-total-cell">-</td>';
+            if (showEmpRateOT) html += '<td class="td-rate td-total-cell">-</td>';
             if (showEmpTotalR) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumEmpTotalR) + '</td>';
             if (showEmpTotalOT) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumEmpTotalOT) + '</td>';
             html += '<td class="td-rate td-subtotal td-total-cell">' + formatIDRCurrency(sumEmpSubtotal) + '</td>';
         }
 
         if (isCliActive && cliColCount > 0) {
-            if (showCliDaily) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliDaily) + '</td>';
-            if (showCliRateOT) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliRateOT) + '</td>';
+            if (showCliDaily) html += '<td class="td-rate td-total-cell">-</td>';
+            if (showCliRateOT) html += '<td class="td-rate td-total-cell">-</td>';
             if (showCliTotalR) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliTotalR) + '</td>';
             if (showCliTotalOT) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliTotalOT) + '</td>';
             html += '<td class="td-rate td-subtotal td-total-cell">' + formatIDRCurrency(sumCliSubtotal) + '</td>';

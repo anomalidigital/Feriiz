@@ -358,10 +358,10 @@
         }
 
         if (isEmpActive) {
-            html += '<th rowspan="2" class="th-total-pay">Total Payment Employee</th>';
+            html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Employee</th>';
         }
         if (isCliActive) {
-            html += '<th rowspan="2" class="th-total-pay">Total Payment Client</th>';
+            html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Client</th>';
         }
 
         html += '</tr>';
@@ -370,24 +370,24 @@
         html += '<tr>';
         if (isDailyActive) {
             visibleDateHeaders.forEach(function () {
-                html += '<th>Period (daily)</th><th>Overtime (hour)</th>';
+                html += '<th>Period<br>(daily)</th><th>Overtime<br>(hour)</th>';
             });
         }
 
         if (isEmpActive && empColCount > 0) {
-            if (showEmpDaily) html += '<th>Daily Rate</th>';
-            if (showEmpRateOT) html += '<th>Rate Overtime</th>';
-            if (showEmpTotalR) html += '<th>Total Rate</th>';
-            if (showEmpTotalOT) html += '<th>Total Rate Overtime</th>';
-            html += '<th>Subtotal Rate</th>';
+            if (showEmpDaily) html += '<th>Daily<br>Rate</th>';
+            if (showEmpRateOT) html += '<th>Rate<br>Overtime</th>';
+            if (showEmpTotalR) html += '<th>Total<br>Rate</th>';
+            if (showEmpTotalOT) html += '<th>Total Rate<br>OT</th>';
+            html += '<th>Subtotal<br>Rate</th>';
         }
 
         if (isCliActive && cliColCount > 0) {
-            if (showCliDaily) html += '<th>Daily Rate</th>';
-            if (showCliRateOT) html += '<th>Rate Overtime</th>';
-            if (showCliTotalR) html += '<th>Total Rate</th>';
-            if (showCliTotalOT) html += '<th>Total Rate Overtime</th>';
-            html += '<th>Subtotal Rate</th>';
+            if (showCliDaily) html += '<th>Daily<br>Rate</th>';
+            if (showCliRateOT) html += '<th>Rate<br>Overtime</th>';
+            if (showCliTotalR) html += '<th>Total<br>Rate</th>';
+            if (showCliTotalOT) html += '<th>Total Rate<br>OT</th>';
+            html += '<th>Subtotal<br>Rate</th>';
         }
 
         if (isAddActive && addColCount > 0) {

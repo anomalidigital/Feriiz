@@ -5405,22 +5405,22 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-print-table th {
         background: #e2e8f0 !important;
         color: #0f172a !important;
-        font-size: 7.5pt !important;
-        font-weight: 700 !important;
-        padding: 1.5mm 2mm !important;
+        font-size: 16.5pt !important;
+        font-weight: 800 !important;
+        padding: 3.2mm 2.0mm !important;
         border: 0.2mm solid #94a3b8 !important;
-        text-align: left !important;
+        text-align: center !important;
         vertical-align: middle !important;
     }
 
     .report-print-table td {
-        padding: 1.5mm 2mm !important;
+        padding: 2.5mm 1.5mm !important;
         border: 0.2mm solid #cbd5e1 !important;
-        vertical-align: top !important;
+        vertical-align: middle !important;
         color: #1e293b !important;
         background: #ffffff !important;
-        font-size: 8pt !important;
-        line-height: 1.3 !important;
+        font-size: 14pt !important;
+        line-height: 1.25 !important;
     }
 
     .report-print-table tbody tr:nth-child(even) td {

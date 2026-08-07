@@ -135,17 +135,10 @@
         if (!td) return '-';
         var empName = (td.querySelector('.emp-name-cell') || td).textContent.trim();
         var empCode = (td.querySelector('.emp-code-cell')) ? td.querySelector('.emp-code-cell').textContent.trim() : '';
-        var empOcc = (td.querySelector('.emp-occupation-cell')) ? td.querySelector('.emp-occupation-cell').textContent.trim() : '';
-        var empPin = (td.querySelector('.emp-pin-cell')) ? td.querySelector('.emp-pin-cell').textContent.trim() : '';
-
-        var subParts = [];
-        if (empCode) subParts.push(empCode);
-        if (empOcc) subParts.push(empOcc);
-        if (empPin) subParts.push(empPin);
 
         var html = '<div class="print-emp-name">' + escapeHTML(empName) + '</div>';
-        if (subParts.length) {
-            html += '<div class="print-emp-sub">' + escapeHTML(subParts.join(' • ')) + '</div>';
+        if (empCode) {
+            html += '<div class="print-emp-sub">' + escapeHTML(empCode) + '</div>';
         }
         return html;
     }

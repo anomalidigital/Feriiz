@@ -5319,26 +5319,28 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
      /* Responsive scaling for Landscape & A3 print orientation (Wide paper >= 240mm) */
     @media print and (min-width: 240mm), print and (orientation: landscape) {
         .report-unified-table {
-            font-size: 13.5pt !important;
+            font-size: 14pt !important;
         }
         .report-unified-table th {
             font-size: 13.5pt !important;
+            font-weight: 700 !important;
             padding: 2.5mm 1.5mm !important;
             text-align: center !important;
         }
         .report-unified-table th.th-group {
-            font-size: 15pt !important;
+            font-size: 15.5pt !important;
+            font-weight: 800 !important;
             padding: 3.0mm 2.0mm !important;
             text-align: center !important;
         }
         .report-unified-table td {
-            font-size: 13.5pt !important;
-            padding: 2.2mm 1.5mm !important;
+            font-size: 14pt !important;
+            padding: 2.5mm 1.5mm !important;
         }
         .report-unified-table td.td-no {
             width: 8.0mm !important;
             text-align: center !important;
-            font-size: 13.5pt !important;
+            font-size: 14pt !important;
             font-weight: 700 !important;
         }
         .report-unified-table td.td-name {
@@ -5347,6 +5349,14 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
             padding-left: 3.5mm !important;
             padding-right: 3.5mm !important;
             font-size: 14.5pt !important;
+        }
+        .report-unified-table td.td-daily-period,
+        .report-unified-table td.td-daily-ot,
+        .report-unified-table td.td-total-days,
+        .report-unified-table td.td-total-ot {
+            font-size: 14pt !important;
+            font-weight: 700 !important;
+            text-align: center !important;
         }
         .report-unified-table td.td-rate,
         .report-unified-table td.td-payment,
@@ -5360,6 +5370,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         }
         .report-unified-table tfoot td.td-total-label {
             font-size: 16pt !important;
+            font-weight: 800 !important;
         }
         .report-unified-table tfoot td.td-total-cell {
             font-size: 14pt !important;

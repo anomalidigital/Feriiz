@@ -1035,8 +1035,15 @@
     function loadProjectContext(data) {
         var url = new URL(location.href);
         var code = url.searchParams.get('project');
+        if (!code) {
+            try { code = sessionStorage.getItem('feriiz_active_project'); } catch (e) {}
+        }
         projectContext = code ? data.findProjectByCode(code) : data.projects[0];
         if (!projectContext) projectContext = data.projects[0];
+        if (projectContext && projectContext.code) {
+            try { sessionStorage.setItem('feriiz_active_project', projectContext.code); } catch (e) {}
+        }
+
         reportEmployees = data.employees.filter(function (e) {
             return (e.projects || []).indexOf(projectContext.code) >= 0;
         });
@@ -1050,7 +1057,12 @@
             }
         }
         var bc = document.querySelector('[data-project-name]');
-        if (bc) bc.textContent = projectContext.name;
+        if (bc) {
+            bc.textContent = projectContext.name;
+            if (bc.tagName === 'A') {
+                bc.href = 'project_employees.html?project=' + encodeURIComponent(projectContext.code);
+            }
+        }
         if (projectContext.name) {
             document.title = 'Feriiz - ' + projectContext.name + ' - Report';
         }

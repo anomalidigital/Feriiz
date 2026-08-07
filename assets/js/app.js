@@ -137,7 +137,13 @@ function feriizLogout() {
         var aside = document.querySelector('aside.sidebar');
         if (!page || !aside) return;
         var cfg = PAGE_MAP[page] || {};
-        var inGroup = cfg.main === 'projects-group';
+        var activeProj = new URLSearchParams(window.location.search).get('project');
+        if (activeProj) {
+            try { sessionStorage.setItem('feriiz_active_project', activeProj); } catch (e) {}
+        } else {
+            try { activeProj = sessionStorage.getItem('feriiz_active_project'); } catch (e) {}
+        }
+        var projQuery = activeProj ? '?project=' + encodeURIComponent(activeProj) : '';
 
         aside.innerHTML =
             '<div class="sidebar-logo">' +
@@ -152,13 +158,13 @@ function feriizLogout() {
                         '<i class="fa-solid fa-clipboard"></i><span class="nav-label">Projects</span>' +
                     '</a>' +
                     '<div class="nav-submenu">' +
-                        '<a href="project_employees.html"' + cls(cfg.sub === 'activity') + '>' +
+                        '<a href="project_employees.html' + projQuery + '"' + cls(cfg.sub === 'activity') + '>' +
                             '<i class="fa-solid fa-clock"></i><span class="nav-label">Activity</span>' +
                         '</a>' +
-                        '<a href="project_report.html"' + cls(cfg.sub === 'report') + '>' +
+                        '<a href="project_report.html' + projQuery + '"' + cls(cfg.sub === 'report') + '>' +
                             '<i class="fa-regular fa-file-lines"></i><span class="nav-label">Report</span>' +
                         '</a>' +
-                        '<a href="employee_request.html"' + cls(cfg.sub === 'requests') + '>' +
+                        '<a href="employee_request.html' + projQuery + '"' + cls(cfg.sub === 'requests') + '>' +
                             '<i class="fa-solid fa-clipboard-list"></i><span class="nav-label">Requests</span>' +
                         '</a>' +
                     '</div>' +

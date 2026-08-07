@@ -5529,13 +5529,14 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-print-footer-id {
         font-family: monospace !important;
-        font-weight: 700 !important;
-        color: #1e293b !important;
+        font-size: 10.5pt !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
         background: #f1f5f9 !important;
-        padding: 0.8mm 2mm !important;
-        border-radius: 0.8mm !important;
-        border: 0.2mm solid #cbd5e1 !important;
-        letter-spacing: 0.3pt !important;
+        padding: 1.5mm 3.5mm !important;
+        border-radius: 1.2mm !important;
+        border: 0.35mm solid #94a3b8 !important;
+        letter-spacing: 0.5pt !important;
     }
 
     /* A single employee report is intentionally kept on one sheet. */

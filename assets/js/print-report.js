@@ -596,6 +596,8 @@
         var pageUrl = window.location.href;
         html += '<div class="report-print-footer">';
         html += '<div class="report-print-footer-info">';
+        html += '  <span class="report-print-page-badge">Page <span class="print-page-num"></span> / <span class="print-page-total"></span></span>';
+        html += '  <span>•</span>';
         html += '  <span>Source: ' + escapeHTML(pageUrl) + '</span>';
         html += '  <span>•</span>';
         html += '  <span>Printed: ' + escapeHTML(nowStr) + '</span>';

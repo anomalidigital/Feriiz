@@ -5018,7 +5018,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
 @media print {
     @page {
-        margin: 4mm;
+        margin: 6mm 8mm 6mm 8mm;
     }
 
     html,
@@ -5170,16 +5170,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         letter-spacing: 0.5pt !important;
     }
 
-    .report-print-table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-        border-spacing: 0 !important;
-        margin-bottom: 1mm !important;
-        font-size: 7.5pt !important;
-        table-layout: auto !important;
-    }
-
-    /* Unified Single Wide Table (Old Feriiz Columns + New Feriiz Styling) */
+    /* Unified Report Table Styles */
     .report-unified-table {
         width: 100% !important;
         max-width: 100% !important;
@@ -5524,19 +5515,40 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-print-footer-info {
         display: flex !important;
+        align-items: center !important;
         gap: 3mm !important;
+    }
+
+    .report-print-page-badge {
+        font-weight: 800 !important;
+        font-size: 10pt !important;
+        color: #0f172a !important;
+        background: #e2e8f0 !important;
+        padding: 0.8mm 2.8mm !important;
+        border-radius: 1mm !important;
+        border: 0.3mm solid #94a3b8 !important;
+        letter-spacing: 0.3pt !important;
+    }
+
+    .print-page-num::after {
+        content: counter(page);
+    }
+
+    .print-page-total::after {
+        content: counter(pages);
     }
 
     .report-print-footer-id {
         font-family: monospace !important;
-        font-size: 10.5pt !important;
+        font-size: 13.0pt !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         background: #f1f5f9 !important;
-        padding: 1.5mm 3.5mm !important;
-        border-radius: 1.2mm !important;
-        border: 0.35mm solid #94a3b8 !important;
-        letter-spacing: 0.5pt !important;
+        padding: 2.5mm 6.0mm !important;
+        border-radius: 1.8mm !important;
+        border: 0.5mm solid #475569 !important;
+        letter-spacing: 0.6pt !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
     }
 
     /* A single employee report is intentionally kept on one sheet. */

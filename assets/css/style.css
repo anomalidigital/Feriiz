@@ -5192,9 +5192,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-unified-table th {
         background: #f1f5f9 !important;
         color: #0f172a !important;
-        font-size: 15.5pt !important;
+        font-size: 16.5pt !important;
         font-weight: 800 !important;
-        padding: 3.0mm 2.0mm !important;
+        padding: 3.2mm 2.0mm !important;
         border: 0.15mm solid #94a3b8 !important;
         text-align: center !important;
         vertical-align: middle !important;
@@ -5205,7 +5205,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table th.th-group {
         background: #e2e8f0 !important;
-        font-size: 17pt !important;
+        font-size: 17.5pt !important;
         text-transform: uppercase !important;
         letter-spacing: 0.2pt !important;
         padding: 3.5mm 2.0mm !important;
@@ -5213,8 +5213,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table th.th-no,
-    .report-unified-table th.th-name,
-    .report-unified-table th.th-occ {
+    .report-unified-table th.th-name {
+        font-size: 16.5pt !important;
+        font-weight: 800 !important;
         text-align: left !important;
     }
 
@@ -5322,17 +5323,25 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
             font-size: 14.5pt !important;
         }
         .report-unified-table th {
-            font-size: 15.5pt !important;
+            font-size: 16.5pt !important;
             font-weight: 800 !important;
-            padding: 3.0mm 2.0mm !important;
+            padding: 3.2mm 2.0mm !important;
             text-align: center !important;
             line-height: 1.2 !important;
         }
         .report-unified-table th.th-group {
-            font-size: 17pt !important;
+            font-size: 17.5pt !important;
             font-weight: 800 !important;
             padding: 3.5mm 2.0mm !important;
             text-align: center !important;
+        }
+        .report-unified-table th.th-no,
+        .report-unified-table th.th-name,
+        .report-unified-table th.th-total-days,
+        .report-unified-table th.th-total-ot,
+        .report-unified-table th.th-total-pay {
+            font-size: 16.5pt !important;
+            font-weight: 800 !important;
         }
         .report-unified-table td {
             font-size: 14pt !important;

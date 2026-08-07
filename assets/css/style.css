@@ -5315,52 +5315,55 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
      /* Responsive scaling for Landscape & A3 print orientation (Wide paper >= 240mm) */
     @media print and (min-width: 240mm), print and (orientation: landscape) {
         .report-unified-table {
-            font-size: 16pt !important;
+            font-size: 14pt !important;
         }
         .report-unified-table th {
-            font-size: 16pt !important;
-            padding: 3.5mm 2.0mm !important;
+            font-size: 14pt !important;
+            padding: 3.0mm 1.5mm !important;
             text-align: center !important;
         }
         .report-unified-table th.th-group {
-            font-size: 18pt !important;
-            padding: 4.0mm 2.5mm !important;
+            font-size: 16pt !important;
+            padding: 3.5mm 2.0mm !important;
             text-align: center !important;
         }
         .report-unified-table td {
-            font-size: 16pt !important;
-            padding: 3.5mm 2.0mm !important;
+            font-size: 14pt !important;
+            padding: 3.0mm 1.5mm !important;
         }
         .report-unified-table td.td-no {
             width: 8.0mm !important;
             text-align: center !important;
+            font-size: 14pt !important;
+            font-weight: 700 !important;
         }
         .report-unified-table td.td-name {
             min-width: 32mm !important;
             max-width: 50mm !important;
-            padding-left: 4.0mm !important;
-            padding-right: 4.0mm !important;
-            font-size: 16.5pt !important;
+            padding-left: 3.5mm !important;
+            padding-right: 3.5mm !important;
+            font-size: 15pt !important;
         }
         .report-unified-table td.td-occ {
             min-width: 24mm !important;
             max-width: 38mm !important;
-            padding-left: 4.0mm !important;
-            padding-right: 4.0mm !important;
-            font-size: 16pt !important;
+            padding-left: 3.5mm !important;
+            padding-right: 3.5mm !important;
+            font-size: 14pt !important;
+            font-weight: 600 !important;
         }
         .report-unified-table td.td-rate,
         .report-unified-table td.td-payment {
-            font-size: 15pt !important;
-            padding: 3.5mm 2.0mm !important;
+            font-size: 13.5pt !important;
+            padding: 3.0mm 1.5mm !important;
             letter-spacing: normal !important;
         }
         .report-unified-table tfoot td.td-total-label {
-            font-size: 18pt !important;
+            font-size: 16pt !important;
         }
         .report-unified-table tfoot td.td-total-cell {
-            font-size: 15pt !important;
-            padding: 3.5mm 1.5mm !important;
+            font-size: 13.5pt !important;
+            padding: 3.0mm 1.5mm !important;
             letter-spacing: normal !important;
         }
     }
@@ -5403,15 +5406,16 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     /* Print Employee Identity Column */
     .print-emp-name {
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         color: #0f172a !important;
-        font-size: 8.5pt !important;
+        font-size: 15pt !important;
     }
 
     .print-emp-sub {
-        font-size: 7pt !important;
-        color: #64748b !important;
-        margin-top: 0.3mm !important;
+        font-size: 11.5pt !important;
+        color: #475569 !important;
+        margin-top: 0.5mm !important;
+        font-weight: 600 !important;
     }
 
     /* Print Daily Attendance Cell Styling */

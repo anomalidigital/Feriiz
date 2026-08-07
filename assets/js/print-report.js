@@ -378,7 +378,7 @@
             if (showEmpDaily) html += '<th>Daily Rate</th>';
             if (showEmpRateOT) html += '<th>Rate Overtime</th>';
             if (showEmpTotalR) html += '<th>Total Rate</th>';
-            if (showEmpTotalOT) html += '<th>Rate Overtime</th>';
+            if (showEmpTotalOT) html += '<th>Total Rate Overtime</th>';
             html += '<th>Subtotal Rate</th>';
         }
 
@@ -386,7 +386,7 @@
             if (showCliDaily) html += '<th>Daily Rate</th>';
             if (showCliRateOT) html += '<th>Rate Overtime</th>';
             if (showCliTotalR) html += '<th>Total Rate</th>';
-            if (showCliTotalOT) html += '<th>Rate Overtime</th>';
+            if (showCliTotalOT) html += '<th>Total Rate Overtime</th>';
             html += '<th>Subtotal Rate</th>';
         }
 

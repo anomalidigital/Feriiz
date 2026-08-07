@@ -137,6 +137,7 @@ function feriizLogout() {
         var aside = document.querySelector('aside.sidebar');
         if (!page || !aside) return;
         var cfg = PAGE_MAP[page] || {};
+        var inGroup = cfg.main === 'projects-group';
         var activeProj = new URLSearchParams(window.location.search).get('project');
         if (activeProj) {
             try { sessionStorage.setItem('feriiz_active_project', activeProj); } catch (e) {}

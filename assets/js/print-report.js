@@ -340,8 +340,8 @@
             });
         }
 
-        html += '<th rowspan="2" class="th-total-days">Total Day</th>';
-        html += '<th rowspan="2" class="th-total-ot">Total Overtime</th>';
+        html += '<th rowspan="2" class="th-total-days">Total<br>Day</th>';
+        html += '<th rowspan="2" class="th-total-ot">Total<br>Overtime</th>';
 
         if (isEmpActive && empColCount > 0) {
             html += '<th colspan="' + (empColCount + 1) + '" class="th-group th-emp-grp">Employee</th>';

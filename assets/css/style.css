@@ -5258,13 +5258,15 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table td.td-rate,
-    .report-unified-table td.td-payment {
+    .report-unified-table td.td-payment,
+    .report-unified-table td.td-add-amt,
+    .report-unified-table td.td-add-note {
         text-align: left !important;
         white-space: nowrap !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
-        font-size: 9pt !important;
-        letter-spacing: -0.1pt !important;
-        padding: 2.5mm 1.0mm !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        font-size: 13.5pt !important;
+        font-weight: 700 !important;
+        padding: 2.5mm 1.5mm !important;
     }
 
     .report-unified-table td.td-subtotal {
@@ -5276,6 +5278,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         font-weight: 800 !important;
         background: #f1f5f9 !important;
         color: #0f172a !important;
+        font-size: 14pt !important;
     }
 
     /* Print Table Footer Total Row - Only appears once at the end of the table on the last page */
@@ -5306,12 +5309,13 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table tfoot td.td-total-cell {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
-        font-size: 10pt !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        font-size: 14pt !important;
         font-weight: 800 !important;
-        letter-spacing: -0.1pt !important;
-        padding: 2.5mm 1.0mm !important;
+        padding: 2.5mm 1.5mm !important;
         text-align: left !important;
+    }
+
      /* Responsive scaling for Landscape & A3 print orientation (Wide paper >= 240mm) */
     @media print and (min-width: 240mm), print and (orientation: landscape) {
         .report-unified-table {
@@ -5345,17 +5349,23 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
             font-size: 14.5pt !important;
         }
         .report-unified-table td.td-rate,
-        .report-unified-table td.td-payment {
-            font-size: 12.5pt !important;
-            padding: 2.2mm 1.5mm !important;
+        .report-unified-table td.td-payment,
+        .report-unified-table td.td-add-amt,
+        .report-unified-table td.td-add-note {
+            font-size: 14pt !important;
+            font-weight: 700 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            padding: 2.5mm 1.5mm !important;
             letter-spacing: normal !important;
         }
         .report-unified-table tfoot td.td-total-label {
-            font-size: 15pt !important;
+            font-size: 16pt !important;
         }
         .report-unified-table tfoot td.td-total-cell {
-            font-size: 12.5pt !important;
-            padding: 2.2mm 1.5mm !important;
+            font-size: 14pt !important;
+            font-weight: 800 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            padding: 2.5mm 1.5mm !important;
             letter-spacing: normal !important;
         }
     }

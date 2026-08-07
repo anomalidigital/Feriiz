@@ -5192,9 +5192,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-unified-table th {
         background: #f1f5f9 !important;
         color: #0f172a !important;
-        font-size: 11pt !important;
+        font-size: 9pt !important;
         font-weight: 700 !important;
-        padding: 2.5mm 1.5mm !important;
+        padding: 1.5mm 0.5mm !important; /* MINIMAL horizontal padding to avoid auto-scale down */
         border: 0.15mm solid #94a3b8 !important;
         text-align: left !important;
         vertical-align: middle !important;
@@ -5205,10 +5205,10 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table th.th-group {
         background: #e2e8f0 !important;
-        font-size: 12pt !important;
+        font-size: 10pt !important;
         text-transform: uppercase !important;
         letter-spacing: 0.2pt !important;
-        padding: 3.0mm 2.0mm !important;
+        padding: 1.5mm 1.0mm !important;
         text-align: left !important;
     }
 
@@ -5219,12 +5219,12 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table td {
-        padding: 2.5mm 1.5mm !important;
+        padding: 1.5mm 0.5mm !important; /* Minimal horizontal padding to prevent width overflow */
         border: 0.15mm solid #cbd5e1 !important;
         vertical-align: middle !important;
         color: #1e293b !important;
         background: #ffffff !important;
-        font-size: 10pt !important;
+        font-size: 8.5pt !important;
         line-height: 1.25 !important;
         text-align: left !important;
         word-wrap: break-word !important;
@@ -5238,19 +5238,23 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table td.td-name {
         text-align: left !important;
-        min-width: 18mm !important;
-        max-width: 30mm !important;
+        min-width: 25mm !important;
+        max-width: 40mm !important;
         font-weight: 600 !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
+        padding-left: 2.5mm !important; /* Increased padding as requested */
+        padding-right: 2.5mm !important;
     }
 
     .report-unified-table td.td-occ {
         text-align: left !important;
-        min-width: 14mm !important;
-        max-width: 22mm !important;
+        min-width: 18mm !important;
+        max-width: 30mm !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
+        padding-left: 2.5mm !important; /* Increased padding as requested */
+        padding-right: 2.5mm !important;
     }
 
     .report-unified-table td.td-rate,
@@ -5313,39 +5317,43 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     /* Responsive scaling for Landscape & A3 print orientation (Wide paper >= 240mm) */
     @media print and (min-width: 240mm), print and (orientation: landscape) {
         .report-unified-table {
-            font-size: 12pt !important;
+            font-size: 10pt !important;
         }
         .report-unified-table th {
-            font-size: 12pt !important;
-            padding: 3.5mm 2.0mm !important;
+            font-size: 9.5pt !important;
+            padding: 2.0mm 0.8mm !important;
         }
         .report-unified-table th.th-group {
-            font-size: 14pt !important;
-            padding: 4.0mm 2.5mm !important;
+            font-size: 11pt !important;
+            padding: 2.0mm 1.2mm !important;
         }
         .report-unified-table td {
-            font-size: 12pt !important;
-            padding: 3.5mm 2.0mm !important;
+            font-size: 9.5pt !important;
+            padding: 2.0mm 0.8mm !important;
         }
         .report-unified-table td.td-no {
             width: 6.0mm !important;
         }
         .report-unified-table td.td-name {
-            min-width: 24mm !important;
-            max-width: 40mm !important;
+            min-width: 30mm !important;
+            max-width: 45mm !important;
+            padding-left: 3.5mm !important; /* Generous padding */
+            padding-right: 3.5mm !important;
         }
         .report-unified-table td.td-occ {
-            min-width: 16mm !important;
-            max-width: 28mm !important;
+            min-width: 22mm !important;
+            max-width: 35mm !important;
+            padding-left: 3.5mm !important; /* Generous padding */
+            padding-right: 3.5mm !important;
         }
         .report-unified-table td.td-rate,
         .report-unified-table td.td-payment {
-            font-size: 11pt !important;
-            padding: 3.5mm 1.5mm !important;
+            font-size: 9pt !important;
+            padding: 2.0mm 1.0mm !important;
             letter-spacing: normal !important;
         }
         .report-unified-table tfoot td.td-total-label {
-            font-size: 14pt !important;
+            font-size: 12pt !important;
         }
         .report-unified-table tfoot td.td-total-cell {
             font-size: 11pt !important;

@@ -131,14 +131,20 @@
             .replace(/'/g, '&#039;');
     }
 
-    function sanitizeNameCell(td) {
+    function sanitizeNameCell(td, tr) {
         if (!td) return '-';
         var empName = (td.querySelector('.emp-name-cell') || td).textContent.trim();
-        var empCode = (td.querySelector('.emp-code-cell')) ? td.querySelector('.emp-code-cell').textContent.trim() : '';
+        var empOcc = '';
+        if (td.querySelector('.emp-occupation-cell')) {
+            empOcc = td.querySelector('.emp-occupation-cell').textContent.trim();
+        } else if (tr) {
+            var occEl = tr.querySelector('.emp-occupation-cell') || tr.querySelector('.col-occupation');
+            if (occEl) empOcc = occEl.textContent.trim();
+        }
 
         var html = '<div class="print-emp-name">' + escapeHTML(empName) + '</div>';
-        if (empCode) {
-            html += '<div class="print-emp-sub">' + escapeHTML(empCode) + '</div>';
+        if (empOcc && empOcc !== '-') {
+            html += '<div class="print-emp-sub">' + escapeHTML(empOcc) + '</div>';
         }
         return html;
     }
@@ -321,7 +327,6 @@
         html += '<tr>';
         html += '<th rowspan="2" class="th-no">No</th>';
         html += '<th rowspan="2" class="th-name">Name</th>';
-        html += '<th rowspan="2" class="th-occ">Occupation</th>';
 
         if (isDailyActive) {
             visibleDateHeaders.forEach(function (th) {
@@ -434,11 +439,7 @@
         // Rows
         visibleRows.forEach(function (tr, index) {
             var empTd = tr.querySelector('.col-name');
-            var empNameHtml = sanitizeNameCell(empTd);
-
-            var occText = '-';
-            var occEl = tr.querySelector('.emp-occupation-cell') || tr.querySelector('.col-occupation');
-            if (occEl) occText = occEl.textContent.trim() || '-';
+            var empNameHtml = sanitizeNameCell(empTd, tr);
 
             var totalDaysText = extractVal(tr, '.col-totaldays');
             var totalOtText = extractVal(tr, '.col-totalovertime');
@@ -446,7 +447,6 @@
             html += '<tr>';
             html += '<td class="td-no">' + (index + 1) + '</td>';
             html += '<td class="td-name">' + empNameHtml + '</td>';
-            html += '<td class="td-occ">' + escapeHTML(occText) + '</td>';
 
             if (isDailyActive) {
                 visibleDateHeaders.forEach(function (th, thIdx) {
@@ -556,7 +556,7 @@
             }
         });
 
-        var leftColspan = 3 + (isDailyActive ? visibleDateHeaders.length * 2 : 0) + 2;
+        var leftColspan = 2 + (isDailyActive ? visibleDateHeaders.length * 2 : 0) + 2;
 
         html += '</tbody><tfoot><tr class="tr-total-row">';
         html += '<td colspan="' + leftColspan + '" class="td-total-label">Total</td>';

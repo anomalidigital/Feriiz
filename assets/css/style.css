@@ -5019,7 +5019,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 @media print {
     @page {
         size: auto;
-        margin: 3mm 4mm;
+        margin: 2mm 3mm;
     }
 
     html,
@@ -5069,9 +5069,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-print-header {
         display: flex !important;
         flex-direction: column !important;
-        gap: 2.5mm !important;
-        padding-bottom: 3.5mm !important;
-        margin-bottom: 4.5mm !important;
+        gap: 2mm !important;
+        padding-bottom: 2.5mm !important;
+        margin-bottom: 3.5mm !important;
         border-bottom: 0.4mm solid #2563eb !important;
         break-inside: avoid !important;
         page-break-inside: avoid !important;
@@ -5102,7 +5102,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-print-title-group h1,
     .report-print-project-title {
         margin: 0 !important;
-        font-size: 16pt !important;
+        font-size: 15pt !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         line-height: 1.2 !important;
@@ -5112,8 +5112,8 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-print-title-group p,
     .report-print-project-subtitle {
-        margin: 0.8mm 0 0 0 !important;
-        font-size: 8.5pt !important;
+        margin: 0.5mm 0 0 0 !important;
+        font-size: 8pt !important;
         color: #475569 !important;
         font-weight: 600 !important;
     }
@@ -5127,12 +5127,12 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         background: #f8fafc !important;
         border: 0.2mm solid #e2e8f0 !important;
         border-radius: 1mm !important;
-        padding: 1mm 2.5mm !important;
+        padding: 0.8mm 2mm !important;
         text-align: center !important;
     }
 
     .report-print-meta-label {
-        font-size: 5.5pt !important;
+        font-size: 5.2pt !important;
         text-transform: uppercase !important;
         color: #64748b !important;
         font-weight: 600 !important;
@@ -5140,28 +5140,28 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-print-meta-value {
-        font-size: 7.5pt !important;
+        font-size: 7.0pt !important;
         font-weight: 700 !important;
         color: #0f172a !important;
     }
 
     .report-print-filter-summary {
-        font-size: 7.5pt !important;
+        font-size: 7.0pt !important;
         color: #334155 !important;
         background: #f1f5f9 !important;
         border-left: 0.8mm solid #2563eb !important;
-        padding: 1.2mm 2.5mm !important;
+        padding: 1.0mm 2.0mm !important;
         border-radius: 0 1mm 1mm 0 !important;
     }
 
     /* Print Sections */
     .report-print-section {
-        margin-bottom: 5mm !important;
+        margin-bottom: 4mm !important;
         break-inside: auto !important;
     }
 
     .report-print-section-title {
-        font-size: 9.5pt !important;
+        font-size: 9.0pt !important;
         font-weight: 700 !important;
         color: #1e293b !important;
         margin: 0 0 2mm 0 !important;
@@ -5176,7 +5176,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         border-collapse: collapse !important;
         border-spacing: 0 !important;
         margin-bottom: 1mm !important;
-        font-size: 8pt !important;
+        font-size: 7.0pt !important;
         table-layout: auto !important;
     }
 
@@ -5186,30 +5186,30 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         max-width: 100% !important;
         border-collapse: collapse !important;
         table-layout: auto !important;
-        font-size: 7.5pt !important;
+        font-size: 6.6pt !important;
         box-sizing: border-box !important;
     }
 
     .report-unified-table th {
         background: #f1f5f9 !important;
         color: #0f172a !important;
-        font-size: 7.2pt !important;
+        font-size: 6.4pt !important;
         font-weight: 700 !important;
-        padding: 1.0mm 0.6mm !important;
-        border: 0.15mm solid #94a3b8 !important;
+        padding: 0.8mm 0.3mm !important;
+        border: 0.12mm solid #94a3b8 !important;
         text-align: center !important;
         vertical-align: middle !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
-        line-height: 1.15 !important;
+        line-height: 1.1 !important;
     }
 
     .report-unified-table th.th-group {
         background: #e2e8f0 !important;
-        font-size: 8.2pt !important;
+        font-size: 7.2pt !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.2pt !important;
-        padding: 1.2mm 0.8mm !important;
+        letter-spacing: 0.1pt !important;
+        padding: 1.0mm 0.4mm !important;
     }
 
     .report-unified-table th.th-no,
@@ -5219,13 +5219,13 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table td {
-        padding: 1.0mm 0.6mm !important;
-        border: 0.15mm solid #cbd5e1 !important;
+        padding: 0.8mm 0.3mm !important;
+        border: 0.12mm solid #cbd5e1 !important;
         vertical-align: middle !important;
         color: #1e293b !important;
         background: #ffffff !important;
-        font-size: 7.5pt !important;
-        line-height: 1.2 !important;
+        font-size: 6.6pt !important;
+        line-height: 1.15 !important;
         text-align: center !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
@@ -5233,13 +5233,13 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table td.td-no {
         text-align: center !important;
-        width: 5mm !important;
+        width: 3.5mm !important;
     }
 
     .report-unified-table td.td-name {
         text-align: left !important;
-        min-width: 20mm !important;
-        max-width: 35mm !important;
+        min-width: 14mm !important;
+        max-width: 26mm !important;
         font-weight: 600 !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
@@ -5247,8 +5247,8 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table td.td-occ {
         text-align: left !important;
-        min-width: 14mm !important;
-        max-width: 24mm !important;
+        min-width: 10mm !important;
+        max-width: 18mm !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
     }
@@ -5258,8 +5258,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         text-align: right !important;
         white-space: nowrap !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
-        font-size: 7.0pt !important;
-        letter-spacing: -0.1pt !important;
+        font-size: 6.2pt !important;
+        letter-spacing: -0.3pt !important;
+        padding: 0.8mm 0.2mm !important;
     }
 
     .report-unified-table td.td-subtotal {
@@ -5285,24 +5286,26 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-unified-table tfoot td {
         font-weight: 800 !important;
         background: #f1f5f9 !important;
-        border-top: 0.35mm solid #475569 !important;
-        border-bottom: 0.35mm solid #475569 !important;
+        border-top: 0.3mm solid #475569 !important;
+        border-bottom: 0.3mm solid #475569 !important;
         color: #0f172a !important;
     }
 
     .report-unified-table tfoot td.td-total-label {
         text-align: right !important;
-        padding-right: 2mm !important;
+        padding-right: 1.5mm !important;
         font-weight: 800 !important;
-        font-size: 8.0pt !important;
+        font-size: 7.2pt !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.3pt !important;
+        letter-spacing: 0.2pt !important;
     }
 
     .report-unified-table tfoot td.td-total-cell {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace !important;
-        font-size: 7.0pt !important;
+        font-size: 6.2pt !important;
         font-weight: 800 !important;
+        letter-spacing: -0.3pt !important;
+        padding: 0.8mm 0.2mm !important;
     }
 
     /* Responsive scaling for Landscape & A3 print orientation */
@@ -5325,12 +5328,16 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         .report-unified-table td.td-rate,
         .report-unified-table td.td-payment {
             font-size: 7.8pt !important;
+            padding: 1.2mm 0.8mm !important;
+            letter-spacing: normal !important;
         }
         .report-unified-table tfoot td.td-total-label {
             font-size: 9.0pt !important;
         }
         .report-unified-table tfoot td.td-total-cell {
             font-size: 7.8pt !important;
+            padding: 1.2mm 0.8mm !important;
+            letter-spacing: normal !important;
         }
     }
 

@@ -5017,8 +5017,46 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 @media print {
+    /* Page geometry — matches the legacy Feriiz PDF (9mm top/bottom, 8.5mm sides).
+       No `size` is declared on purpose: the paper size and orientation the user
+       picks in the print dialog (A4/A3/Letter, portrait/landscape) must win. */
     @page {
-        margin: 6mm 8mm 6mm 8mm;
+        margin: 9mm 8.5mm;
+    }
+
+    /* ---------------------------------------------------------------
+       TYPE SCALE
+       One set of variables drives the whole printout. The media queries
+       further down only re-declare these, so every element scales
+       together when the paper gets wider.
+       Base tier = the tightest case: A4/Letter portrait (~193mm usable)
+       holding up to ~25 columns.
+       --------------------------------------------------------------- */
+    .report-print-document {
+        --pt-title: 12pt;
+        --pt-subtitle: 6pt;
+        --pt-meta-label: 4.6pt;
+        --pt-meta-value: 6pt;
+        --pt-filter: 5pt;
+        --pt-group: 4.8pt;   /* EMPLOYEE / CLIENT band */
+        --pt-head: 3.6pt;    /* column headers — matches the legacy PDF; keeps labels whole */
+        --pt-body: 4.2pt;    /* data cells */
+        --pt-name: 4.4pt;
+        --pt-sub: 3.8pt;     /* occupation under the name */
+        --pt-total: 4.6pt;   /* footer TOTAL row */
+        --pt-footer: 5pt;
+        --cell-pad-y: 0.8mm;
+        --cell-pad-x: 0.6mm;
+        --head-pad-x: 0.2mm;
+
+        --ink: #1e293b;
+        --ink-strong: #0f172a;
+        --ink-muted: #64748b;
+        --rule: #cbd5e1;
+        --rule-strong: #94a3b8;
+        --tint: #f1f5f9;
+        --tint-soft: #f8fafc;
+        --accent: #2563eb;
     }
 
     html,
@@ -5031,12 +5069,19 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         padding: 0 !important;
         overflow: visible !important;
         background: #ffffff !important;
-        color: #1a202c !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        color: var(--ink) !important;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
 
+    /* App chrome must never reach the paper. The mobile hamburger and the
+       overlay are injected into <body> by app.js, so they are hidden
+       unscoped rather than under .report-layout. */
+    html body .mobile-menu-btn,
+    html body .sidebar-overlay,
+    html body .notification-region,
+    html body #feriizNotificationRegion,
     body.report-layout .sidebar,
     body.report-layout .fixed-toolbar,
     body.report-layout .fixed-bottom-bar,
@@ -5061,17 +5106,17 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         margin: 0 !important;
         padding: 0 !important;
         background: #ffffff !important;
-        color: #1a202c !important;
+        color: var(--ink) !important;
     }
 
-    /* Print Header */
+    /* ===============================  HEADER  =============================== */
     .report-print-header {
         display: flex !important;
         flex-direction: column !important;
-        gap: 2mm !important;
-        padding-bottom: 2.5mm !important;
-        margin-bottom: 3.5mm !important;
-        border-bottom: 0.4mm solid #2563eb !important;
+        gap: 1.6mm !important;
+        padding-bottom: 2mm !important;
+        margin-bottom: 2.6mm !important;
+        border-bottom: 0.4mm solid var(--accent) !important;
         break-inside: avoid !important;
         page-break-inside: avoid !important;
     }
@@ -5080,13 +5125,14 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         display: flex !important;
         justify-content: space-between !important;
         align-items: flex-start !important;
+        gap: 4mm !important;
     }
 
     .report-print-header-right {
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
-        gap: 1.5mm !important;
+        gap: 1.2mm !important;
     }
 
     .report-print-brand-wrap {
@@ -5096,199 +5142,238 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-print-brand {
-        background: #2563eb !important;
+        background: var(--accent) !important;
         color: #ffffff !important;
-        font-size: 11pt !important;
-        font-weight: 800 !important;
-        padding: 1.5mm 3.5mm !important;
+        font-size: var(--pt-meta-value) !important;
+        font-weight: 700 !important;
+        padding: 1.2mm 2.5mm !important;
         border-radius: 1mm !important;
-        letter-spacing: 1pt !important;
+        letter-spacing: 0.6pt !important;
     }
 
     .report-print-title-group h1,
     .report-print-project-title {
         margin: 0 !important;
-        font-size: 15pt !important;
-        font-weight: 800 !important;
-        color: #0f172a !important;
-        line-height: 1.2 !important;
-        letter-spacing: -0.3pt !important;
+        font-size: var(--pt-title) !important;
+        font-weight: 700 !important;
+        color: var(--ink-strong) !important;
+        line-height: 1.15 !important;
+        letter-spacing: -0.2pt !important;
         text-transform: uppercase !important;
     }
 
     .report-print-title-group p,
     .report-print-project-subtitle {
-        margin: 0.5mm 0 0 0 !important;
-        font-size: 8pt !important;
+        margin: 0.6mm 0 0 0 !important;
+        font-size: var(--pt-subtitle) !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 400 !important;
     }
 
     .report-print-meta-grid {
         display: flex !important;
-        gap: 2.5mm !important;
+        gap: 1.8mm !important;
     }
 
     .report-print-meta-item {
-        background: #f8fafc !important;
-        border: 0.3mm solid #cbd5e1 !important;
-        border-radius: 1.5mm !important;
-        padding: 1.5mm 3.0mm !important;
+        background: var(--tint-soft) !important;
+        border: 0.2mm solid var(--rule) !important;
+        border-radius: 1.2mm !important;
+        padding: 1mm 2.2mm !important;
         text-align: center !important;
     }
 
     .report-print-meta-label {
-        font-size: 8.5pt !important;
+        font-size: var(--pt-meta-label) !important;
         text-transform: uppercase !important;
-        color: #475569 !important;
-        font-weight: 700 !important;
+        color: var(--ink-muted) !important;
+        font-weight: 600 !important;
         letter-spacing: 0.3pt !important;
+        line-height: 1.3 !important;
     }
 
     .report-print-meta-value {
-        font-size: 11.0pt !important;
-        font-weight: 800 !important;
-        color: #0f172a !important;
+        font-size: var(--pt-meta-value) !important;
+        font-weight: 600 !important;
+        color: var(--ink-strong) !important;
+        line-height: 1.3 !important;
     }
 
     .report-print-filter-summary {
-        font-size: 9.5pt !important;
+        font-size: var(--pt-filter) !important;
         color: #334155 !important;
-        background: #f1f5f9 !important;
-        border-left: 1.0mm solid #2563eb !important;
-        padding: 1.5mm 3.0mm !important;
-        border-radius: 0 1.5mm 1.5mm 0 !important;
+        background: var(--tint) !important;
+        border-left: 0.8mm solid var(--accent) !important;
+        padding: 1mm 2.2mm !important;
+        border-radius: 0 1.2mm 1.2mm 0 !important;
+        font-weight: 400 !important;
     }
 
-    /* Print Sections */
+    .report-print-filter-summary strong {
+        font-weight: 600 !important;
+    }
+
+    /* ===============================  SECTION  ============================== */
     .report-print-section {
-        margin-bottom: 4mm !important;
+        margin-bottom: 3mm !important;
         break-inside: auto !important;
     }
 
     .report-print-section-title {
-        font-size: 9.0pt !important;
+        font-size: var(--pt-group) !important;
         font-weight: 700 !important;
         color: #1e293b !important;
-        margin: 0 0 2mm 0 !important;
-        padding-bottom: 1mm !important;
-        border-bottom: 0.2mm solid #cbd5e1 !important;
+        margin: 0 0 1.6mm 0 !important;
+        padding-bottom: 0.8mm !important;
+        border-bottom: 0.2mm solid var(--rule) !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.5pt !important;
+        letter-spacing: 0.4pt !important;
     }
 
-    /* Unified Report Table Styles */
-    .report-unified-table {
+    /* ================================  TABLE  =============================== */
+    /* `table-layout: fixed` + `width: 100%` is what guarantees the sheet always
+       fits the chosen paper — the table can never push past the page box, so no
+       manual "Scale: 30%" is needed in the print dialog. */
+    .report-unified-table,
+    .report-print-table {
         width: 100% !important;
         max-width: 100% !important;
+        table-layout: fixed !important;
         border-collapse: collapse !important;
-        table-layout: auto !important;
-        font-size: 16pt !important;
+        font-size: var(--pt-body) !important;
         box-sizing: border-box !important;
     }
 
-    .report-unified-table th {
-        background: #f1f5f9 !important;
-        color: #0f172a !important;
-        font-size: 11.5pt !important;
-        font-weight: 700 !important;
-        padding: 2.0mm 1.2mm !important;
-        border: 0.15mm solid #94a3b8 !important;
-        text-align: center !important;
-        vertical-align: middle !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        line-height: 1.15 !important;
+    .report-unified-table thead,
+    .report-print-table thead {
+        display: table-header-group !important; /* repeat header on every page */
     }
 
-    .report-unified-table th[rowspan="2"] {
-        vertical-align: middle !important;
+    .report-unified-table tr,
+    .report-print-table tr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* --- header cells --- */
+    .report-unified-table th,
+    .report-print-table th {
+        background: var(--tint) !important;
+        color: var(--ink-strong) !important;
+        font-size: var(--pt-head) !important;
+        font-weight: 600 !important;
+        padding: var(--cell-pad-y) var(--head-pad-x) !important;
+        border: 0.15mm solid var(--rule-strong) !important;
         text-align: center !important;
-        padding: 2.2mm 1.5mm !important;
-        line-height: 1.15 !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        letter-spacing: -0.05pt !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        hyphens: none !important;
     }
 
     .report-unified-table th.th-group {
         background: #e2e8f0 !important;
-        font-size: 13pt !important;
-        font-weight: 800 !important;
+        font-size: var(--pt-group) !important;
+        font-weight: 700 !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.2pt !important;
-        padding: 2.2mm 1.5mm !important;
-        text-align: center !important;
+        letter-spacing: 0.3pt !important;
     }
 
     .report-unified-table th.th-no,
     .report-unified-table th.th-name {
-        font-size: 11.5pt !important;
-        font-weight: 700 !important;
         text-align: left !important;
     }
 
-    .report-unified-table td {
-        padding: 3.0mm 1.5mm !important;
-        border: 0.15mm solid #cbd5e1 !important;
+    /* --- body cells: regular weight by default (only names + totals stand out) --- */
+    .report-unified-table td,
+    .report-print-table td {
+        padding: var(--cell-pad-y) var(--cell-pad-x) !important;
+        border: 0.15mm solid var(--rule) !important;
         vertical-align: middle !important;
-        color: #1e293b !important;
+        color: var(--ink) !important;
         background: #ffffff !important;
-        font-size: 16pt !important;
+        font-size: var(--pt-body) !important;
+        font-weight: 400 !important;
         line-height: 1.25 !important;
-        text-align: left !important;
+        text-align: center !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
     }
 
+    .report-unified-table tbody tr:nth-child(even) td,
+    .report-print-table tbody tr:nth-child(even) td {
+        background: var(--tint-soft) !important;
+    }
+
+    /* Column widths. Only the two identity columns are pinned; every other
+       column shares the remaining space evenly, which keeps the grid even
+       no matter how many days or rate columns are switched on. */
+    .report-unified-table col.col-print-no,
+    .report-unified-table td.td-no,
+    .report-unified-table th.th-no {
+        width: 3.2% !important;
+    }
+
+    .report-unified-table col.col-print-name,
+    .report-unified-table td.td-name,
+    .report-unified-table th.th-name {
+        width: 11% !important;
+    }
+
     .report-unified-table td.td-no {
-        text-align: left !important;
-        width: 5.0mm !important;
+        text-align: right !important;
+        padding-right: 1mm !important;
+        color: var(--ink-muted) !important;
     }
 
     .report-unified-table td.td-name {
         text-align: left !important;
-        min-width: 25mm !important;
-        max-width: 40mm !important;
-        font-weight: 600 !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        padding-left: 2.5mm !important; /* Increased padding as requested */
-        padding-right: 2.5mm !important;
+        padding-left: 1.4mm !important;
+        padding-right: 1mm !important;
     }
 
     .report-unified-table td.td-occ {
         text-align: left !important;
-        min-width: 18mm !important;
-        max-width: 30mm !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        padding-left: 2.5mm !important; /* Increased padding as requested */
-        padding-right: 2.5mm !important;
+        padding-left: 1.2mm !important;
     }
 
+    /* day / hour figures — centred */
+    .report-unified-table td.td-daily-period,
+    .report-unified-table td.td-daily-ot,
+    .report-unified-table td.td-total-days,
+    .report-unified-table td.td-total-ot {
+        text-align: center !important;
+        font-variant-numeric: tabular-nums !important;
+    }
+
+    /* money — right aligned so the digits line up down the column */
     .report-unified-table td.td-rate,
     .report-unified-table td.td-payment,
     .report-unified-table td.td-add-amt,
+    .report-unified-table td.td-subtotal {
+        text-align: right !important;
+        padding-right: 1mm !important;
+        font-variant-numeric: tabular-nums !important;
+    }
+
     .report-unified-table td.td-add-note {
         text-align: left !important;
-        white-space: nowrap !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        font-size: 13.5pt !important;
-        font-weight: 700 !important;
-        padding: 2.5mm 1.5mm !important;
+        padding-left: 1.2mm !important;
     }
 
     .report-unified-table td.td-subtotal {
-        font-weight: 700 !important;
-        background: #f8fafc !important;
+        background: var(--tint-soft) !important;
     }
 
     .report-unified-table td.td-payment {
-        font-weight: 800 !important;
-        background: #f1f5f9 !important;
-        color: #0f172a !important;
-        font-size: 14pt !important;
+        font-weight: 600 !important;
+        background: var(--tint) !important;
+        color: var(--ink-strong) !important;
     }
 
-    /* Print Table Footer Total Row - Only appears once at the end of the table on the last page */
+    /* --- footer TOTAL row --- */
     .report-unified-table tfoot {
         display: table-row-group !important;
     }
@@ -5298,274 +5383,191 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table tfoot td {
-        font-weight: 800 !important;
-        background: #f1f5f9 !important;
-        border-top: 0.35mm solid #475569 !important;
-        border-bottom: 0.35mm solid #475569 !important;
-        color: #0f172a !important;
-        text-align: left !important;
+        font-size: var(--pt-total) !important;
+        font-weight: 700 !important;
+        background: var(--tint) !important;
+        border-top: 0.3mm solid #475569 !important;
+        border-bottom: 0.3mm solid #475569 !important;
+        color: var(--ink-strong) !important;
+        text-align: right !important;
+        padding-right: 1mm !important;
     }
 
     .report-unified-table tfoot td.td-total-label {
         text-align: right !important;
-        padding-right: 3.5mm !important;
-        font-weight: 800 !important;
-        font-size: 12pt !important;
+        padding-right: 2mm !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.2pt !important;
+        letter-spacing: 0.3pt !important;
     }
 
     .report-unified-table tfoot td.td-total-cell {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        font-size: 14pt !important;
-        font-weight: 800 !important;
-        padding: 2.5mm 1.5mm !important;
-        text-align: left !important;
+        font-variant-numeric: tabular-nums !important;
     }
 
-     /* Responsive scaling for Landscape & A3 print orientation (Wide paper >= 240mm) */
-    @media print and (min-width: 240mm), print and (orientation: landscape) {
-        .report-unified-table {
-            font-size: 11pt !important;
-        }
-        .report-unified-table th {
-            font-size: 11.5pt !important;
-            font-weight: 700 !important;
-            padding: 2.0mm 1.2mm !important;
-            text-align: center !important;
-            line-height: 1.15 !important;
-        }
-        .report-unified-table th.th-group {
-            font-size: 13pt !important;
-            font-weight: 800 !important;
-            padding: 2.2mm 1.5mm !important;
-            text-align: center !important;
-        }
-        .report-unified-table th[rowspan="2"] {
-            vertical-align: middle !important;
-            text-align: center !important;
-            padding: 2.2mm 1.5mm !important;
-            line-height: 1.15 !important;
-        }
-        .report-unified-table th.th-no,
-        .report-unified-table th.th-name {
-            text-align: left !important;
-        }
-        .report-unified-table th.th-no,
-        .report-unified-table th.th-name,
-        .report-unified-table th.th-total-days,
-        .report-unified-table th.th-total-ot,
-        .report-unified-table th.th-total-pay {
-            font-size: 11.5pt !important;
-            font-weight: 700 !important;
-        }
-        .report-unified-table td {
-            font-size: 11pt !important;
-            padding: 1.8mm 1.2mm !important;
-        }
-        .report-unified-table td.td-no {
-            width: 7.0mm !important;
-            text-align: center !important;
-            font-size: 11pt !important;
-            font-weight: 700 !important;
-        }
-        .report-unified-table td.td-name {
-            min-width: 38mm !important;
-            max-width: 58mm !important;
-            padding-left: 3.0mm !important;
-            padding-right: 3.0mm !important;
-            font-size: 11.5pt !important;
-        }
-        .report-unified-table td.td-daily-period,
-        .report-unified-table td.td-daily-ot,
-        .report-unified-table td.td-total-days,
-        .report-unified-table td.td-total-ot {
-            font-size: 11pt !important;
-            font-weight: 600 !important;
-            text-align: center !important;
-        }
-        .report-unified-table td.td-add-amt,
-        .report-unified-table td.td-add-note {
-            font-size: 11pt !important;
-            font-weight: 600 !important;
-            text-align: center !important;
-            padding: 1.8mm 1.2mm !important;
-        }
-        .report-unified-table tfoot td.td-total-label {
-            font-size: 12pt !important;
-            font-weight: 800 !important;
-        }
-        .report-unified-table tfoot td.td-total-cell {
-            font-size: 11pt !important;
-            font-weight: 700 !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-            padding: 1.8mm 1.2mm !important;
-            letter-spacing: normal !important;
-        }
-    }
-
-
-
-    .report-print-table thead {
-        display: table-header-group !important;
-    }
-
-    .report-print-table tr {
-        break-inside: avoid !important;
-        page-break-inside: avoid !important;
-    }
-
-    .report-print-table th {
-        background: #e2e8f0 !important;
-        color: #0f172a !important;
-        font-size: 11.5pt !important;
-        font-weight: 700 !important;
-        padding: 2.0mm 1.2mm !important;
-        border: 0.2mm solid #94a3b8 !important;
-        text-align: center !important;
-        vertical-align: middle !important;
-    }
-
-    .report-print-table td {
-        padding: 1.8mm 1.2mm !important;
-        border: 0.2mm solid #cbd5e1 !important;
-        vertical-align: middle !important;
-        color: #1e293b !important;
-        background: #ffffff !important;
-        font-size: 11pt !important;
-        line-height: 1.2 !important;
-    }
-
-    .report-print-table tbody tr:nth-child(even) td {
-        background: #f8fafc !important;
-    }
-
-    /* Print Employee Identity Column */
+    /* --- identity block inside the Name cell --- */
     .print-emp-name {
-        font-weight: 700 !important;
-        color: #0f172a !important;
-        font-size: 11.5pt !important;
+        font-weight: 600 !important;
+        color: var(--ink-strong) !important;
+        font-size: var(--pt-name) !important;
         line-height: 1.2 !important;
     }
 
     .print-emp-sub {
-        font-size: 9.5pt !important;
-        color: #475569 !important;
-        margin-top: 0.3mm !important;
-        font-weight: 500 !important;
+        font-size: var(--pt-sub) !important;
+        color: var(--ink-muted) !important;
+        margin-top: 0.2mm !important;
+        font-weight: 400 !important;
+        line-height: 1.2 !important;
     }
 
-    /* Print Daily Attendance Cell Styling */
+    /* --- daily attendance cell --- */
     .print-day-cell {
         display: flex !important;
         flex-direction: column !important;
-        gap: 0.6mm !important;
+        align-items: center !important;
+        gap: 0.3mm !important;
     }
 
     .print-day-badges {
         display: flex !important;
-        gap: 1mm !important;
+        justify-content: center !important;
+        gap: 0.5mm !important;
+        flex-wrap: wrap !important;
+    }
+
+    .print-badge-work,
+    .print-badge-ot {
+        font-size: var(--pt-sub) !important;
+        font-weight: 600 !important;
+        padding: 0.1mm 0.6mm !important;
+        border-radius: 0.6mm !important;
+        white-space: nowrap !important;
     }
 
     .print-badge-work {
         background: #dbeafe !important;
         color: #1e40af !important;
-        font-size: 6.5pt !important;
-        font-weight: 700 !important;
-        padding: 0.2mm 1mm !important;
-        border-radius: 0.5mm !important;
     }
 
     .print-badge-ot {
         background: #fef3c7 !important;
         color: #92400e !important;
-        font-size: 6.5pt !important;
-        font-weight: 700 !important;
-        padding: 0.2mm 1mm !important;
-        border-radius: 0.5mm !important;
     }
 
     .print-day-log {
-        font-size: 7pt !important;
-        color: #334155 !important;
+        font-size: var(--pt-sub) !important;
+        color: var(--ink) !important;
         white-space: nowrap !important;
+        font-variant-numeric: tabular-nums !important;
     }
 
     .print-log-label {
-        color: #64748b !important;
-        font-weight: 600 !important;
+        color: var(--ink-muted) !important;
     }
 
     .print-no-log {
-        color: #94a3b8 !important;
+        color: #cbd5e1 !important;
     }
 
     .print-day-off {
-        color: #94a3b8 !important;
-        font-style: italic !important;
-        font-size: 7.5pt !important;
+        color: var(--ink-muted) !important;
     }
 
-    /* Print Footer */
+    /* ===============================  FOOTER  =============================== */
     .report-print-footer {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        margin-top: 3mm !important;
-        padding-top: 1.5mm !important;
-        border-top: 0.25mm solid #cbd5e1 !important;
-        font-size: 8pt !important;
-        color: #64748b !important;
+        gap: 3mm !important;
+        margin-top: 2.5mm !important;
+        padding-top: 1.2mm !important;
+        border-top: 0.25mm solid var(--rule) !important;
+        font-size: var(--pt-footer) !important;
+        color: var(--ink-muted) !important;
         break-inside: avoid !important;
         page-break-inside: avoid !important;
     }
 
     .report-print-footer-url {
-        font-size: 8pt !important;
+        font-size: var(--pt-footer) !important;
         color: #475569 !important;
         word-break: break-all !important;
     }
 
     .report-print-footer-page {
-        font-size: 11pt !important;
-        font-weight: 800 !important;
-        color: #0f172a !important;
+        font-size: var(--pt-footer) !important;
+        font-weight: 600 !important;
+        color: var(--ink-strong) !important;
         white-space: nowrap !important;
         text-align: right !important;
     }
 
-    .report-print-footer-page::after {
-        content: counter(page) " / " counter(pages);
-    }
-
     .report-print-footer-id {
-        font-family: monospace !important;
-        font-size: 11.5pt !important;
-        font-weight: 800 !important;
-        color: #0f172a !important;
-        background: #f1f5f9 !important;
-        padding: 1.8mm 4.5mm !important;
-        border-radius: 1.2mm !important;
-        border: 0.35mm solid #64748b !important;
-        letter-spacing: 0.5pt !important;
+        font-family: 'Poppins', -apple-system, "Segoe UI", Roboto, sans-serif !important;
+        font-size: var(--pt-meta-label) !important;
+        font-weight: 600 !important;
+        color: var(--ink-strong) !important;
+        background: var(--tint) !important;
+        padding: 1mm 2.4mm !important;
+        border-radius: 1mm !important;
+        border: 0.2mm solid var(--rule-strong) !important;
+        letter-spacing: 0.3pt !important;
+        white-space: nowrap !important;
     }
 
     /* A single employee report is intentionally kept on one sheet. */
     body[data-page="employee-report"] .report-print-footer {
-        position: fixed !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        left: 0 !important;
         flex-wrap: nowrap !important;
-        gap: 3mm !important;
-        margin: 0 !important;
-        padding-top: 2mm !important;
-        background: #ffffff !important;
     }
 
     body[data-page="employee-report"] .report-print-footer-info,
     body[data-page="employee-report"] .report-print-footer-id {
         white-space: nowrap !important;
+    }
+
+    /* ---------------------------------------------------------------
+       WIDER PAPER — everything scales up from the same variables.
+       ~250mm+ : A4 landscape (297mm) and A3 portrait (297mm)
+       ~380mm+ : A3 landscape (420mm)
+       --------------------------------------------------------------- */
+    @media (min-width: 250mm) {
+        .report-print-document {
+            --pt-title: 15pt;
+            --pt-subtitle: 7.5pt;
+            --pt-meta-label: 6pt;
+            --pt-meta-value: 7.5pt;
+            --pt-filter: 6.5pt;
+            --pt-group: 6.6pt;
+            --pt-head: 6pt;
+            --pt-body: 6pt;
+            --pt-name: 6.3pt;
+            --pt-sub: 5.3pt;
+            --pt-total: 6.5pt;
+            --pt-footer: 6.5pt;
+            --cell-pad-y: 1.1mm;
+            --cell-pad-x: 0.9mm;
+            --head-pad-x: 0.5mm;
+        }
+    }
+
+    @media (min-width: 380mm) {
+        .report-print-document {
+            --pt-title: 19pt;
+            --pt-subtitle: 9.5pt;
+            --pt-meta-label: 7.5pt;
+            --pt-meta-value: 9.5pt;
+            --pt-filter: 8pt;
+            --pt-group: 9pt;
+            --pt-head: 8.2pt;
+            --pt-body: 8.2pt;
+            --pt-name: 8.6pt;
+            --pt-sub: 7pt;
+            --pt-total: 9pt;
+            --pt-footer: 8pt;
+            --cell-pad-y: 1.5mm;
+            --cell-pad-x: 1.2mm;
+            --head-pad-x: 0.8mm;
+        }
     }
 }
 

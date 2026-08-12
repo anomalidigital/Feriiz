@@ -24,6 +24,13 @@ cleanup.bat
 server.js
 Forgot password/
 
+# Print reference & test renders (local only — large PDFs, not part of the site)
+Print PDF simulasi/
+
+# Backend-shaped dummy dataset (14MB, not wired into any page yet).
+# Remove this line once a page actually fetches it.
+feriiz-backend-dummy-data.json
+
 # Environment
 .env
 .env.local

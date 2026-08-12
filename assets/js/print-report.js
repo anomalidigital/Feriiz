@@ -324,7 +324,40 @@
 
         // Single Unified Wide Table (Old Feriiz Structure + New Design)
         html += '<div class="report-print-section">';
-        html += '<table class="report-print-table report-unified-table"><thead>';
+        // Proportional column widths. Without this the browser splits all ~26
+        // columns evenly, which starves the money columns (they need room for
+        // "1.095.000") while the day columns sit half empty.
+        var W = { no: 0.85, name: 4.7, dayPeriod: 1.38, dayOT: 1.42, totals: 2.05, money: 4.05, addAmt: 2.7, addNote: 1.5, pay: 4.9 };
+        var colW = [W.no, W.name];
+        if (isDailyActive) visibleDateHeaders.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
+        colW.push(W.totals, W.totals);
+        if (isEmpActive && empColCount > 0) {
+            if (showEmpDaily) colW.push(W.money);
+            if (showEmpRateOT) colW.push(W.money);
+            if (showEmpTotalR) colW.push(W.money);
+            if (showEmpTotalOT) colW.push(W.money);
+            colW.push(W.money);
+        }
+        if (isCliActive && cliColCount > 0) {
+            if (showCliDaily) colW.push(W.money);
+            if (showCliRateOT) colW.push(W.money);
+            if (showCliTotalR) colW.push(W.money);
+            if (showCliTotalOT) colW.push(W.money);
+            colW.push(W.money);
+        }
+        if (isAddActive && addColCount > 0) {
+            if (showAddAmt) colW.push(W.addAmt);
+            if (showAddNote) colW.push(W.addNote);
+        }
+        if (isEmpActive) colW.push(W.pay);
+        if (isCliActive) colW.push(W.pay);
+        var colTotal = colW.reduce(function (a, b) { return a + b; }, 0);
+
+        html += '<table class="report-print-table report-unified-table">';
+        html += '<colgroup>' + colW.map(function (w) {
+            return '<col style="width:' + (w / colTotal * 100).toFixed(3) + '%">';
+        }).join('') + '</colgroup>';
+        html += '<thead>';
 
         // Header Row 1
         html += '<tr>';
@@ -344,14 +377,14 @@
         }
 
         html += '<th rowspan="2" class="th-total-days">Total<br>Day</th>';
-        html += '<th rowspan="2" class="th-total-ot">Total<br>Overtime</th>';
+        html += '<th rowspan="2" class="th-total-ot">Total<br>OT</th>';
 
         if (isEmpActive && empColCount > 0) {
-            html += '<th colspan="' + (empColCount + 1) + '" class="th-group th-emp-grp">Employee</th>';
+            html += '<th colspan="' + (empColCount + 1) + '" class="th-group th-emp-grp">Employee (IDR)</th>';
         }
 
         if (isCliActive && cliColCount > 0) {
-            html += '<th colspan="' + (cliColCount + 1) + '" class="th-group th-cli-grp">Client</th>';
+            html += '<th colspan="' + (cliColCount + 1) + '" class="th-group th-cli-grp">Client (IDR)</th>';
         }
 
         if (isAddActive && addColCount > 0) {
@@ -359,10 +392,10 @@
         }
 
         if (isEmpActive) {
-            html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Employee</th>';
+            html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Employee<br>(IDR)</th>';
         }
         if (isCliActive) {
-            html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Client</th>';
+            html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Client<br>(IDR)</th>';
         }
 
         html += '</tr>';
@@ -371,7 +404,7 @@
         html += '<tr>';
         if (isDailyActive) {
             visibleDateHeaders.forEach(function () {
-                html += '<th>Period<br>(daily)</th><th>Overtime<br>(hour)</th>';
+                html += '<th>Day</th><th>OT</th>';
             });
         }
 
@@ -392,7 +425,7 @@
         }
 
         if (isAddActive && addColCount > 0) {
-            if (showAddAmt) html += '<th>Amount</th>';
+            if (showAddAmt) html += '<th>Amount<br>(IDR)</th>';
             if (showAddNote) html += '<th>Note</th>';
         }
 
@@ -403,6 +436,14 @@
         function extractVal(tr, selector) {
             var el = tr.querySelector(selector);
             return sanitizeTextCell(el);
+        }
+
+        // The "IDR" prefix is shown once in the column header instead of on
+        // every cell — it costs ~25% of each money column's width.
+        function money(v) {
+            if (typeof v !== 'string') return v;
+            var out = v.replace(/IDR\s*/gi, '').trim();
+            return out === '' ? '-' : out;
         }
 
         // Daily Period & Overtime extractor
@@ -470,11 +511,11 @@
                 var empTotalR = extractVal(tr, '.col-emp-totalrate');
                 var empTotalOT = extractVal(tr, '.col-emp-totalovertime');
 
-                if (showEmpDaily) html += '<td class="td-rate">' + empDaily + '</td>';
-                if (showEmpRateOT) html += '<td class="td-rate">' + empRateOT + '</td>';
-                if (showEmpTotalR) html += '<td class="td-rate">' + empTotalR + '</td>';
-                if (showEmpTotalOT) html += '<td class="td-rate">' + empTotalOT + '</td>';
-                html += '<td class="td-rate td-subtotal">' + (empTotalR !== '-' ? empTotalR : empDaily) + '</td>';
+                if (showEmpDaily) html += '<td class="td-rate">' + money(empDaily) + '</td>';
+                if (showEmpRateOT) html += '<td class="td-rate">' + money(empRateOT) + '</td>';
+                if (showEmpTotalR) html += '<td class="td-rate">' + money(empTotalR) + '</td>';
+                if (showEmpTotalOT) html += '<td class="td-rate">' + money(empTotalOT) + '</td>';
+                html += '<td class="td-rate td-subtotal">' + money(empTotalR !== '-' ? empTotalR : empDaily) + '</td>';
             }
 
             // Client Rates
@@ -484,29 +525,29 @@
                 var cliTotalR = extractVal(tr, '.col-cli-totalrate');
                 var cliTotalOT = extractVal(tr, '.col-cli-totalovertime');
 
-                if (showCliDaily) html += '<td class="td-rate">' + cliDaily + '</td>';
-                if (showCliRateOT) html += '<td class="td-rate">' + cliRateOT + '</td>';
-                if (showCliTotalR) html += '<td class="td-rate">' + cliTotalR + '</td>';
-                if (showCliTotalOT) html += '<td class="td-rate">' + cliTotalOT + '</td>';
-                html += '<td class="td-rate td-subtotal">' + (cliTotalR !== '-' ? cliTotalR : cliDaily) + '</td>';
+                if (showCliDaily) html += '<td class="td-rate">' + money(cliDaily) + '</td>';
+                if (showCliRateOT) html += '<td class="td-rate">' + money(cliRateOT) + '</td>';
+                if (showCliTotalR) html += '<td class="td-rate">' + money(cliTotalR) + '</td>';
+                if (showCliTotalOT) html += '<td class="td-rate">' + money(cliTotalOT) + '</td>';
+                html += '<td class="td-rate td-subtotal">' + money(cliTotalR !== '-' ? cliTotalR : cliDaily) + '</td>';
             }
 
             // Additional
             if (isAddActive && addColCount > 0) {
                 var addAmt = extractVal(tr, '.col-additional-amount');
                 var addNote = extractVal(tr, '.col-additional-note');
-                if (showAddAmt) html += '<td class="td-add-amt">' + addAmt + '</td>';
+                if (showAddAmt) html += '<td class="td-add-amt">' + money(addAmt) + '</td>';
                 if (showAddNote) html += '<td class="td-add-note">' + addNote + '</td>';
             }
 
             // Payment Totals
             if (isEmpActive) {
                 var empPay = extractVal(tr, '.col-emp-totalrate') || extractVal(tr, '.col-emp-dailyrate');
-                html += '<td class="td-payment">' + empPay + '</td>';
+                html += '<td class="td-payment">' + money(empPay) + '</td>';
             }
             if (isCliActive) {
                 var cliPay = extractVal(tr, '.col-cli-totalrate') || extractVal(tr, '.col-cli-dailyrate');
-                html += '<td class="td-payment">' + cliPay + '</td>';
+                html += '<td class="td-payment">' + money(cliPay) + '</td>';
             }
 
             html += '</tr>';
@@ -521,8 +562,8 @@
         }
 
         function formatIDRCurrency(num) {
-            if (!num || num === 0) return 'IDR0.00';
-            return 'IDR' + Math.round(num).toLocaleString('id-ID');
+            if (!num || num === 0) return '0';
+            return Math.round(num).toLocaleString('id-ID');
         }
 
         var sumEmpDaily = 0, sumEmpRateOT = 0, sumEmpTotalR = 0, sumEmpTotalOT = 0, sumEmpSubtotal = 0;

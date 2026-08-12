@@ -5038,15 +5038,15 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         --pt-meta-label: 4.6pt;
         --pt-meta-value: 6pt;
         --pt-filter: 5pt;
-        --pt-group: 4.8pt;   /* EMPLOYEE / CLIENT band */
-        --pt-head: 3.6pt;    /* column headers — matches the legacy PDF; keeps labels whole */
-        --pt-body: 4.2pt;    /* data cells */
-        --pt-name: 4.4pt;
-        --pt-sub: 3.8pt;     /* occupation under the name */
-        --pt-total: 4.6pt;   /* footer TOTAL row */
+        --pt-group: 5.8pt;   /* EMPLOYEE / CLIENT band */
+        --pt-head: 4.2pt;    /* column headers */
+        --pt-body: 5.5pt;    /* data cells */
+        --pt-name: 5.7pt;
+        --pt-sub: 4.7pt;     /* occupation under the name */
+        --pt-total: 4.2pt;   /* footer TOTAL row — holds the widest figures */
         --pt-footer: 5pt;
         --cell-pad-y: 0.8mm;
-        --cell-pad-x: 0.6mm;
+        --cell-pad-x: 0.35mm;
         --head-pad-x: 0.2mm;
 
         --ink: #1e293b;
@@ -5532,41 +5532,41 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
        --------------------------------------------------------------- */
     @media (min-width: 250mm) {
         .report-print-document {
-            --pt-title: 15pt;
-            --pt-subtitle: 7.5pt;
-            --pt-meta-label: 6pt;
-            --pt-meta-value: 7.5pt;
-            --pt-filter: 6.5pt;
-            --pt-group: 6.6pt;
-            --pt-head: 6pt;
-            --pt-body: 6pt;
-            --pt-name: 6.3pt;
-            --pt-sub: 5.3pt;
-            --pt-total: 6.5pt;
-            --pt-footer: 6.5pt;
+            --pt-title: 17pt;
+            --pt-subtitle: 8.5pt;
+            --pt-meta-label: 6.5pt;
+            --pt-meta-value: 8.5pt;
+            --pt-filter: 7.5pt;
+            --pt-group: 8.4pt;
+            --pt-head: 6.2pt;
+            --pt-body: 8pt;
+            --pt-name: 8.3pt;
+            --pt-sub: 6.8pt;
+            --pt-total: 6.2pt;
+            --pt-footer: 7.5pt;
             --cell-pad-y: 1.1mm;
-            --cell-pad-x: 0.9mm;
-            --head-pad-x: 0.5mm;
+            --cell-pad-x: 0.55mm;
+            --head-pad-x: 0.3mm;
         }
     }
 
     @media (min-width: 380mm) {
         .report-print-document {
-            --pt-title: 19pt;
-            --pt-subtitle: 9.5pt;
-            --pt-meta-label: 7.5pt;
-            --pt-meta-value: 9.5pt;
-            --pt-filter: 8pt;
-            --pt-group: 9pt;
-            --pt-head: 8.2pt;
-            --pt-body: 8.2pt;
-            --pt-name: 8.6pt;
-            --pt-sub: 7pt;
-            --pt-total: 9pt;
-            --pt-footer: 8pt;
+            --pt-title: 22pt;
+            --pt-subtitle: 11pt;
+            --pt-meta-label: 9pt;
+            --pt-meta-value: 11pt;
+            --pt-filter: 9.5pt;
+            --pt-group: 11.5pt;
+            --pt-head: 8.6pt;
+            --pt-body: 11pt;
+            --pt-name: 11.5pt;
+            --pt-sub: 9pt;
+            --pt-total: 8.6pt;
+            --pt-footer: 9.5pt;
             --cell-pad-y: 1.5mm;
-            --cell-pad-x: 1.2mm;
-            --head-pad-x: 0.8mm;
+            --cell-pad-x: 0.8mm;
+            --head-pad-x: 0.45mm;
         }
     }
 }

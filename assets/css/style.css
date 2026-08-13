@@ -3519,6 +3519,11 @@ body.report-layout .report-table tbody td.day-col.is-manual-entry {
 
 body.report-layout .selectable-report-table tbody td.col-name {
     padding-left: 44px !important;
+    /* Top-aligned, not middle: the identity block is 69px for a one-line name
+       and ~86px when the name wraps, so centring it made the first line start
+       at a different height on every row. */
+    vertical-align: top !important;
+    padding-top: 14px !important;
 }
 
 .report-row-select {

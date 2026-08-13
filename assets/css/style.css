@@ -3422,7 +3422,7 @@ body.report-layout .report-table-wrap {
 
 /* Report tables: keep the identity columns aligned while horizontal scrolling. */
 body.report-layout .report-table {
-    --report-sticky-name-width: 180px;
+    --report-sticky-name-width: 210px;
     isolation: isolate;
 }
 
@@ -3531,12 +3531,26 @@ body.report-layout .selectable-report-table tbody td.col-name {
     min-width: 0;
 }
 
-.report-identity-content .emp-code-cell,
+.report-identity-content .emp-code-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Name and occupation wrap rather than truncate, so no row is silently cut.
+   The row's `white-space: nowrap` has to be undone here, otherwise the text
+   just spills past the sticky column instead of wrapping. */
 .report-identity-content .emp-name-cell,
 .report-identity-content .emp-occupation-cell,
 .report-identity-content .emp-pin-cell {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+/* One consistent rhythm for the four identity lines (was 0/0/3/3px). */
+.report-identity-content > * + * {
+    margin-top: 2px !important;
 }
 
 .emp-pin-cell {
@@ -5038,8 +5052,8 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         --pt-meta-label: 4.6pt;
         --pt-meta-value: 6pt;
         --pt-filter: 5pt;
-        --pt-group: 6.4pt;   /* EMPLOYEE / CLIENT band */
-        --pt-head: 4.2pt;    /* column headers */
+        --pt-group: 7pt;     /* EMPLOYEE / CLIENT band */
+        --pt-head: 4.8pt;    /* column headers */
         --pt-body: 6pt;      /* data cells */
         --pt-name: 6.2pt;
         --pt-sub: 5pt;       /* occupation under the name */
@@ -5264,7 +5278,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         font-weight: 600 !important;
         padding: var(--cell-pad-y) var(--head-pad-x) !important;
         border: 0.15mm solid var(--rule-strong) !important;
-        text-align: left !important;
+        text-align: center !important;
         vertical-align: middle !important;
         line-height: 1.2 !important;
         letter-spacing: -0.05pt !important;
@@ -5283,7 +5297,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     .report-unified-table th.th-no,
     .report-unified-table th.th-name {
-        text-align: left !important;
+        text-align: center !important;
     }
 
     /* --- body cells: regular weight by default (only names + totals stand out) --- */

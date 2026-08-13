@@ -327,7 +327,7 @@
         // Proportional column widths. Without this the browser splits all ~26
         // columns evenly, which starves the money columns (they need room for
         // "1.095.000") while the day columns sit half empty.
-        var W = { no: 0.85, name: 4.7, dayPeriod: 1.38, dayOT: 1.42, totals: 2.05, money: 4.05, addAmt: 2.7, addNote: 1.5, pay: 4.9 };
+        var W = { no: 0.7, name: 3.9, dayPeriod: 1.45, dayOT: 1.5, totals: 1.9, money: 4.45, addAmt: 2.85, addNote: 1.7, pay: 4.6 };
         var colW = [W.no, W.name];
         if (isDailyActive) visibleDateHeaders.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
         colW.push(W.totals, W.totals);

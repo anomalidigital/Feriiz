@@ -5021,7 +5021,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
        No `size` is declared on purpose: the paper size and orientation the user
        picks in the print dialog (A4/A3/Letter, portrait/landscape) must win. */
     @page {
-        margin: 9mm 8.5mm;
+        margin: 9mm 6mm;
     }
 
     /* ---------------------------------------------------------------
@@ -5038,12 +5038,12 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         --pt-meta-label: 4.6pt;
         --pt-meta-value: 6pt;
         --pt-filter: 5pt;
-        --pt-group: 5.8pt;   /* EMPLOYEE / CLIENT band */
+        --pt-group: 6.4pt;   /* EMPLOYEE / CLIENT band */
         --pt-head: 4.2pt;    /* column headers */
-        --pt-body: 5.5pt;    /* data cells */
-        --pt-name: 5.7pt;
-        --pt-sub: 4.7pt;     /* occupation under the name */
-        --pt-total: 4.2pt;   /* footer TOTAL row — holds the widest figures */
+        --pt-body: 6pt;      /* data cells */
+        --pt-name: 6.2pt;
+        --pt-sub: 5pt;       /* occupation under the name */
+        --pt-total: 5pt;     /* footer TOTAL row — holds the widest figures */
         --pt-footer: 5pt;
         --cell-pad-y: 0.8mm;
         --cell-pad-x: 0.35mm;
@@ -5264,7 +5264,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         font-weight: 600 !important;
         padding: var(--cell-pad-y) var(--head-pad-x) !important;
         border: 0.15mm solid var(--rule-strong) !important;
-        text-align: center !important;
+        text-align: left !important;
         vertical-align: middle !important;
         line-height: 1.2 !important;
         letter-spacing: -0.05pt !important;
@@ -5297,7 +5297,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         font-size: var(--pt-body) !important;
         font-weight: 400 !important;
         line-height: 1.25 !important;
-        text-align: center !important;
+        text-align: left !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
     }
@@ -5323,8 +5323,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table td.td-no {
-        text-align: right !important;
-        padding-right: 1mm !important;
+        text-align: left !important;
         color: var(--ink-muted) !important;
     }
 
@@ -5344,7 +5343,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-unified-table td.td-daily-ot,
     .report-unified-table td.td-total-days,
     .report-unified-table td.td-total-ot {
-        text-align: center !important;
+        text-align: left !important;
         font-variant-numeric: tabular-nums !important;
     }
 
@@ -5353,8 +5352,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     .report-unified-table td.td-payment,
     .report-unified-table td.td-add-amt,
     .report-unified-table td.td-subtotal {
-        text-align: right !important;
-        padding-right: 1mm !important;
+        text-align: left !important;
         font-variant-numeric: tabular-nums !important;
     }
 
@@ -5389,13 +5387,11 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         border-top: 0.3mm solid #475569 !important;
         border-bottom: 0.3mm solid #475569 !important;
         color: var(--ink-strong) !important;
-        text-align: right !important;
-        padding-right: 1mm !important;
+        text-align: left !important;
     }
 
     .report-unified-table tfoot td.td-total-label {
-        text-align: right !important;
-        padding-right: 2mm !important;
+        text-align: left !important;
         text-transform: uppercase !important;
         letter-spacing: 0.3pt !important;
     }

@@ -38,3 +38,8 @@ feriiz-backend-dummy-data.json
 # AI assistant context (keep local, not in repo)
 CLAUDE.md
 .claude/
+
+# .NET / Blazor build output
+bin/
+obj/
+*.user

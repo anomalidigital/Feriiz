@@ -1,0 +1,105 @@
+@*
+    The sidebar. In the static site this markup was rebuilt by app.js and
+    duplicated across 15 HTML files; here it exists exactly once.
+
+    Active state is derived from the current route, so adding a page no longer
+    means editing a PAGE_MAP table.
+*@
+@implements IDisposable
+@inject NavigationManager Nav
+
+<aside class="sidebar @(_mobileOpen ? "mobile-open" : "")">
+    <div class="sidebar-logo">
+        <img src="assets/images/logo.png" alt="Feriiz" class="sidebar-logo-img" />
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="" class="@Active(IsDashboard)">
+            <i class="fa-solid fa-table-cells-large"></i><span class="nav-label">Dashboard</span>
+        </a>
+
+        <div class="nav-group @(InProjectGroup ? "open" : "")">
+            <a href="projects" class="@Active(InProjectGroup || Is("projects"))">
+                <i class="fa-solid fa-clipboard"></i><span class="nav-label">Projects</span>
+            </a>
+            <div class="nav-submenu">
+                <a href="@WithProject("project-activity")" class="@Active(Is("project-activity"))">
+                    <i class="fa-solid fa-clock"></i><span class="nav-label">Activity</span>
+                </a>
+                <a href="@WithProject("project-report")" class="@Active(Is("project-report"))">
+                    <i class="fa-regular fa-file-lines"></i><span class="nav-label">Report</span>
+                </a>
+                <a href="@WithProject("requests")" class="@Active(Is("requests"))">
+                    <i class="fa-solid fa-clipboard-list"></i><span class="nav-label">Requests</span>
+                </a>
+            </div>
+        </div>
+
+        <a href="employees" class="@Active(Is("employees"))">
+            <i class="fa-solid fa-users"></i><span class="nav-label">Employees</span>
+        </a>
+        <a href="calendar" class="@Active(Is("calendar"))">
+            <i class="fa-regular fa-calendar"></i><span class="nav-label">Calendar</span>
+        </a>
+        <a href="my-account" class="@Active(Is("my-account"))">
+            <i class="fa-regular fa-user"></i><span class="nav-label">My Account</span>
+        </a>
+
+        @if (Is("my-account"))
+        {
+            <a href="#" class="nav-logout" @onclick="OnLogout" @onclick:preventDefault>
+                <i class="fa-solid fa-right-from-bracket"></i><span class="nav-label">Logout</span>
+            </a>
+        }
+    </nav>
+</aside>
+
+@if (_mobileOpen)
+{
+    <div class="sidebar-overlay show" @onclick="() => _mobileOpen = false"></div>
+}
+
+@code {
+    [Parameter] public EventCallback OnLogoutRequested { get; set; }
+
+    private bool _mobileOpen;
+
+    /// <summary>Route segment of the current page, e.g. "project-report".</summary>
+    private string CurrentPage =>
+        Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Split('/')[0].ToLowerInvariant();
+
+    private bool IsDashboard => CurrentPage is "" or "index";
+
+    private bool Is(string page) => CurrentPage == page;
+
+    private bool InProjectGroup =>
+        CurrentPage is "project-activity" or "project-report" or "requests"
+                    or "project-attendance" or "employee-report" or "employee-request";
+
+    private static string Active(bool on) => on ? "active" : "";
+
+    /// <summary>Carries the selected project across the submenu links.</summary>
+    private string WithProject(string page)
+    {
+        var project = QueryString.Get(Nav.Uri, "project");
+        return string.IsNullOrEmpty(project) ? page : $"{page}?project={Uri.EscapeDataString(project)}";
+    }
+
+    public void ToggleMobile()
+    {
+        _mobileOpen = !_mobileOpen;
+        StateHasChanged();
+    }
+
+    private async Task OnLogout() => await OnLogoutRequested.InvokeAsync();
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _mobileOpen = false;
+        StateHasChanged();
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

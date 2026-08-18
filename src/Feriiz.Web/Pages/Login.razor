@@ -1,0 +1,86 @@
+@page "/login"
+@layout EmptyLayout
+@inject AuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - Login</PageTitle>
+
+<div class="login-body">
+    <div class="login-card">
+        <div class="login-card-header">
+            <img src="assets/images/icon_feriiz.png" alt="Feriiz" class="login-card-logo" />
+            <h1 class="login-title">Login</h1>
+            <p class="login-subtitle">Sign in to your account</p>
+        </div>
+
+        <form class="login-form" @onsubmit="HandleLogin" @onsubmit:preventDefault>
+            <div class="login-field">
+                <label for="loginEmail">Email address</label>
+                <div class="login-input-wrap">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" id="loginEmail" class="input" placeholder="Enter your email"
+                           required @bind="_email" />
+                </div>
+            </div>
+
+            <div class="login-field">
+                <label for="loginPassword">Password</label>
+                <div class="login-input-wrap">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="@(_showPassword ? "text" : "password")" id="loginPassword" class="input"
+                           placeholder="Enter your password" required @bind="_password" />
+                    <button type="button" class="login-eye-btn" @onclick="() => _showPassword = !_showPassword">
+                        <i class="fa-regular @(_showPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="login-options">
+                <label class="login-remember"><input type="checkbox" checked /> Remember me</label>
+                <a href="forgot-password" class="login-forgot">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary login-btn">Login</button>
+
+            @if (_error is not null)
+            {
+                <div class="login-error shake" style="display:flex;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <div>
+                        <div class="login-error-title">Invalid Password</div>
+                        <div class="login-error-msg">@_error</div>
+                    </div>
+                </div>
+            }
+        </form>
+
+        <div class="login-footer"><span>version : 4.0.0</span></div>
+    </div>
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private bool _showPassword;
+    private string? _error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Already signed in? Skip straight to the dashboard.
+        if (firstRender && await Auth.IsAuthenticatedAsync())
+            Nav.NavigateTo("", replace: true);
+    }
+
+    private async Task HandleLogin()
+    {
+        if (await Auth.SignInAsync(_email, _password))
+        {
+            _error = null;
+            Nav.NavigateTo("", replace: true);
+        }
+        else
+        {
+            _error = "Please try again or reset your password";
+        }
+    }
+}

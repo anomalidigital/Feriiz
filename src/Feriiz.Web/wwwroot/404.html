@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Feriiz</title>
+    <script>
+        // GitHub Pages has no server-side routing: a deep link such as
+        // /Feriiz/employees is a 404. Stash the requested path and bounce to
+        // index.html, which replays it into the Blazor router.
+        (function () {
+            var base = '/Feriiz/';
+            var path = window.location.pathname;
+            if (path.indexOf(base) !== 0) base = '/';
+            sessionStorage.setItem(
+                'feriiz_spa_redirect',
+                window.location.pathname + window.location.search + window.location.hash
+            );
+            window.location.replace(base);
+        })();
+    </script>
+</head>
+
+<body></body>
+
+</html>

@@ -1,0 +1,57 @@
+name: Build and deploy Blazor to GitHub Pages
+
+# Disabled for now: the static HTML site is still what serves at
+# anomalidigital.github.io/Feriiz. Once the Blazor port is complete, change
+# the trigger to `push: branches: [main]` and switch Pages to "GitHub Actions"
+# in Settings → Pages.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install wasm-tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish
+        run: dotnet publish src/Feriiz.Web/Feriiz.Web.csproj -c Release -o build
+
+      # The site lives at /Feriiz/, not the domain root, so the base href the
+      # app was built with has to be rewritten.
+      - name: Point base href at /Feriiz/
+        run: sed -i 's|<base href="/" />|<base href="/Feriiz/" />|g' build/wwwroot/index.html
+
+      # Without this GitHub Pages strips the _framework folder (leading underscore).
+      - name: Add .nojekyll
+        run: touch build/wwwroot/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

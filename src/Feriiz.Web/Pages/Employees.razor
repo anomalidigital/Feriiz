@@ -1,0 +1,232 @@
+@page "/employees"
+@inject FeriizDataService Data
+
+<PageTitle>Feriiz - Employees</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Employees</h1>
+    <div class="page-actions">
+        <div class="feriiz-u-014">
+            <button class="btn btn-outline filter-toggle-btn @(_filterOpen ? "active" : "")"
+                    title="Filter" @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="filter-dropdown feriiz-u-015 @(_filterOpen ? "show" : "")">
+                <div class="feriiz-u-016">Filter Employees</div>
+
+                <label>Occupation</label>
+                <select class="input feriiz-u-017" @bind="_draftOccupation">
+                    <option value="">All Occupations</option>
+                    @foreach (var o in Data.Occupations)
+                    {
+                        <option value="@o">@o</option>
+                    }
+                </select>
+
+                <label>Project</label>
+                <select class="input feriiz-u-017" @bind="_draftProject">
+                    <option value="">All Projects</option>
+                    @foreach (var p in Data.Projects)
+                    {
+                        <option value="@p.Code">@p.Name</option>
+                    }
+                </select>
+
+                <div class="feriiz-u-018">
+                    <button class="btn btn-outline feriiz-u-019" @onclick="ClearFilter">Clear</button>
+                    <button class="btn btn-primary feriiz-u-019" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="feriiz-u-020">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-021"></i>
+            <input type="text" placeholder="Search" autocomplete="off" class="feriiz-u-022"
+                   @bind="_search" @bind:event="oninput" @bind:after="OnSearchChanged" />
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-user"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Data.Employees.Count.ToString("#,##0")</div>
+            <div class="stat-label feriiz-u-027">Employees</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-briefcase"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Data.Occupations.Count</div>
+            <div class="stat-label feriiz-u-027">Occupations</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="feriiz-u-028"></th>
+                <th>Name</th>
+                <th>Occupation</th>
+                <th>Pin</th>
+                <th>Joined</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in PageItems)
+            {
+                <tr @key="emp.Code">
+                    <td>
+                        <div class="action-cell">
+                            <a href="employee-attendance?employee=@emp.Code" class="btn-icon" title="Attendance">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </a>
+                            <a href="employee-projects?employee=@emp.Code" class="btn-icon" title="Projects">
+                                <i class="fa-regular fa-clipboard"></i>
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell feriiz-u-029">
+                            <img src="@Data.AvatarSrc(emp)" alt="@emp.Name" class="feriiz-u-030"
+                                 onerror="this.onerror=null;this.src='@FeriizDataService.InitialsAvatar(emp.Name)'" />
+                            <div>
+                                <div class="employee-name">@emp.Name</div>
+                                <div class="employee-code feriiz-u-031">@emp.Code</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@emp.Occupation</td>
+                    <td>@emp.Pin</td>
+                    <td>@FormatJoined(emp.JoinedAt)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <div class="pagination-info">@PaginationLabel</div>
+        <div class="pagination-buttons">
+            <button disabled="@(_page == 1)" @onclick="() => GoTo(_page - 1)">&lt; Previous</button>
+            @foreach (var n in PageNumbers)
+            {
+                if (n < 0)
+                {
+                    <span class="page-dots">…</span>
+                }
+                else
+                {
+                    <a href="#" class="@(n == _page ? "active" : "")"
+                       aria-current="@(n == _page ? "page" : null)"
+                       @onclick="() => GoTo(n)" @onclick:preventDefault>@n</a>
+                }
+            }
+            @if (_page < PageCount)
+            {
+                <a href="#" @onclick="() => GoTo(_page + 1)" @onclick:preventDefault>Next &gt;</a>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private const int PerPage = 25;
+
+    // Draft values live in the dropdown; they only reach the table on Apply.
+    private string _draftOccupation = "";
+    private string _draftProject = "";
+    private string _appliedOccupation = "";
+    private string _appliedProject = "";
+    private string _search = "";
+
+    private bool _filterOpen;
+    private int _page = 1;
+    private List<Employee> _filtered = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+        Recompute();
+    }
+
+    private IEnumerable<Employee> PageItems =>
+        _filtered.Skip((_page - 1) * PerPage).Take(PerPage);
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_filtered.Count / (double)PerPage));
+
+    private string PaginationLabel
+    {
+        get
+        {
+            if (_filtered.Count == 0) return "No employees match your filter";
+            var from = (_page - 1) * PerPage + 1;
+            var to = Math.Min(_page * PerPage, _filtered.Count);
+            return $"Showing {from} - {to} of {_filtered.Count} results";
+        }
+    }
+
+    /// <summary>1 … n-1, n, n+1 … last. Negative entries render as an ellipsis.</summary>
+    private IEnumerable<int> PageNumbers
+    {
+        get
+        {
+            var pages = new SortedSet<int> { 1, PageCount };
+            for (var i = _page - 2; i <= _page + 2; i++)
+                if (i > 1 && i < PageCount) pages.Add(i);
+
+            var last = 0;
+            foreach (var n in pages)
+            {
+                if (last != 0 && n - last > 1) yield return -1;
+                yield return n;
+                last = n;
+            }
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _appliedOccupation = _draftOccupation;
+        _appliedProject = _draftProject;
+        _filterOpen = false;
+        Recompute();
+    }
+
+    private void ClearFilter()
+    {
+        _draftOccupation = _draftProject = "";
+        _appliedOccupation = _appliedProject = "";
+        _search = "";
+        Recompute();
+    }
+
+    private void OnSearchChanged() => Recompute();
+
+    private void Recompute()
+    {
+        var q = _search.Trim();
+
+        _filtered = Data.Employees.Where(e =>
+        {
+            if (_appliedOccupation.Length > 0 && e.Occupation != _appliedOccupation) return false;
+            if (_appliedProject.Length > 0 && !e.Projects.Contains(_appliedProject, StringComparer.Ordinal)) return false;
+            if (q.Length > 0
+                && e.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0
+                && e.Code.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+            return true;
+        }).ToList();
+
+        _page = 1;
+    }
+
+    private void GoTo(int page)
+    {
+        if (page >= 1 && page <= PageCount) _page = page;
+    }
+
+    private static string FormatJoined(DateOnly? d) =>
+        d is null ? "-" : d.Value.ToString("dd MMMM yyyy");
+}

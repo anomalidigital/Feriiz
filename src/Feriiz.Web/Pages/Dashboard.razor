@@ -1,0 +1,108 @@
+@page "/"
+@page "/index"
+@inject FeriizDataService Data
+
+<PageTitle>Feriiz - Dashboard</PageTitle>
+
+<div class="page-header feriiz-u-163">
+    <h1 class="page-title">Dashboard</h1>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-user"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@_employeeCount.ToString("#,##0")</div>
+            <div class="stat-label feriiz-u-165">Employees</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@_attendanceCount.ToString("#,##0")</div>
+            <div class="stat-label feriiz-u-027">Attendance</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-briefcase"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Data.Occupations.Count</div>
+            <div class="stat-label feriiz-u-027">Occupations</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container dashboard-table-container">
+    <table class="data-table dashboard-table">
+        <thead>
+            <tr>
+                <th>Occupation</th>
+                @foreach (var p in Data.Projects)
+                {
+                    <th title="@p.Code">@p.Name</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in _matrix)
+            {
+                <tr>
+                    <td>@row.Occupation</td>
+                    @foreach (var p in Data.Projects)
+                    {
+                        <td>@row.Counts[p.Code] Person</td>
+                    }
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr class="feriiz-u-166">
+                <td class="feriiz-u-167"></td>
+                @foreach (var p in Data.Projects)
+                {
+                    <td class="feriiz-u-167">@_totals[p.Code] Person</td>
+                }
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+@code {
+    private sealed record MatrixRow(string Occupation, Dictionary<string, int> Counts);
+
+    private int _employeeCount;
+    private int _attendanceCount;
+    private List<MatrixRow> _matrix = new();
+    private Dictionary<string, int> _totals = new(StringComparer.Ordinal);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        _employeeCount = Data.Employees.Count;
+
+        // Distinct people who actually clocked in — mirrors the JS dashboard.
+        _attendanceCount = Data.Attendance
+            .Where(a => a.Status == "present" && !string.IsNullOrEmpty(a.InTime))
+            .Select(a => a.EmployeeCode)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
+        if (_attendanceCount == 0) _attendanceCount = _employeeCount;
+
+        _totals = Data.Projects.ToDictionary(p => p.Code, _ => 0, StringComparer.Ordinal);
+
+        foreach (var occupation in Data.Occupations)
+        {
+            var counts = Data.Projects.ToDictionary(p => p.Code, _ => 0, StringComparer.Ordinal);
+
+            foreach (var emp in Data.Employees.Where(e => e.Occupation == occupation))
+                foreach (var code in emp.Projects)
+                    if (counts.ContainsKey(code)) counts[code]++;
+
+            if (counts.Values.Sum() == 0) continue; // skip occupations nobody holds
+
+            foreach (var (code, n) in counts) _totals[code] += n;
+            _matrix.Add(new MatrixRow(occupation, counts));
+        }
+    }
+}

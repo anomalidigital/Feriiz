@@ -1,0 +1,50 @@
+@*
+    Shell for every page: sidebar + main content, plus the auth guard that
+    assets/js/app.js used to run at the top of each file.
+    Login and Forgot Password opt out via their own EmptyLayout.
+*@
+@inherits LayoutComponentBase
+@inject AuthState Auth
+@inject NavigationManager Nav
+
+<NavMenu @ref="_nav" OnLogoutRequested="Logout" />
+
+<button class="mobile-menu-btn" aria-label="Menu" @onclick="() => _nav?.ToggleMobile()">
+    <i class="fa-solid fa-bars"></i>
+</button>
+
+<main class="main-content">
+    @if (_checkingAuth)
+    {
+        <p style="padding:24px;color:#667085;">Loading…</p>
+    }
+    else
+    {
+        @Body
+    }
+</main>
+
+@code {
+    private NavMenu? _nav;
+    private bool _checkingAuth = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        if (!await Auth.IsAuthenticatedAsync())
+        {
+            Nav.NavigateTo("login", replace: true);
+            return;
+        }
+
+        _checkingAuth = false;
+        StateHasChanged();
+    }
+
+    private async Task Logout()
+    {
+        await Auth.SignOutAsync();
+        Nav.NavigateTo("login", replace: true);
+    }
+}

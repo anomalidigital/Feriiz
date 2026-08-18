@@ -84,13 +84,18 @@ public sealed class FeriizDataService
         Employees.Where(e => e.Projects.Contains(projectCode, StringComparer.Ordinal));
 
     /// <summary>Photo URL, falling back to a generated initials avatar.</summary>
+    /// <remarks>
+    /// Only photoFile is trusted, because it holds a real filename. The
+    /// generated employees carry a "photo" slug instead, and no file matches
+    /// it - the JS version still requested it and let onerror swap in the
+    /// initials, which cost a 404 for every row on screen. Everyone without a
+    /// photoFile goes straight to initials.
+    /// </remarks>
     public string AvatarSrc(Employee? employee)
     {
         if (employee is null) return InitialsAvatar("");
         if (!string.IsNullOrEmpty(employee.PhotoFile))
             return $"assets/images/employees/{Uri.EscapeDataString(employee.PhotoFile)}";
-        if (!string.IsNullOrEmpty(employee.Photo))
-            return $"assets/images/employees/{employee.Photo}.jpg";
         return InitialsAvatar(employee.Name);
     }
 

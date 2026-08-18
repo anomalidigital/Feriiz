@@ -43,3 +43,11 @@ CLAUDE.md
 bin/
 obj/
 *.user
+
+# Mirrored into the Blazor wwwroot by sync-assets.sh; the tracked copy is at
+# the repo root. See that script for why they cannot be linked from the csproj.
+src/Feriiz.Web/wwwroot/assets/
+src/Feriiz.Web/wwwroot/feriiz-data.json
+
+# Local publish output (the workflow builds its own)
+build/

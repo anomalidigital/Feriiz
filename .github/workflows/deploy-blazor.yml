@@ -30,6 +30,12 @@ jobs:
       - name: Install wasm-tools
         run: dotnet workload install wasm-tools
 
+      # The stylesheet, images and dataset are owned by the static site at the
+      # repo root. Blazor only picks up files physically inside its wwwroot,
+      # so they are mirrored in before the build.
+      - name: Sync shared assets into wwwroot
+        run: ./sync-assets.sh
+
       - name: Publish
         run: dotnet publish src/Feriiz.Web/Feriiz.Web.csproj -c Release -o build
 

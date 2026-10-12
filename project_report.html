@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.5.7">
-    <script src="assets/js/data.js?v=3.5.7" defer></script>
-    <script src="assets/js/app.js?v=3.5.7" defer></script>
-    <script src="assets/js/report.js?v=3.5.7" defer></script>
-    <script src="assets/js/print-report.js?v=3.5.7" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.6.0">
+    <script src="assets/js/data.js?v=3.6.0" defer></script>
+    <script src="assets/js/app.js?v=3.6.0" defer></script>
+    <script src="assets/js/report.js?v=3.6.0" defer></script>
+    <script src="assets/js/print-report.js?v=3.6.0" defer></script>
 </head>
 
 <body class="report-layout" data-page="project-report">
@@ -129,49 +129,49 @@
                             <label for="colActiveHour" class="feriiz-u-121">Active Hour</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colInOutHour" class="feriiz-u-120">
+                            <input type="checkbox" id="colInOutHour" checked class="feriiz-u-120">
                             <label for="colInOutHour" class="feriiz-u-121">In Out Hour</label>
                         </div>
                         <div class="feriiz-u-122"></div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmployee" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmployee" class="feriiz-u-120">
                             <label for="colEmployee" class="feriiz-u-121">Employee</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpDailyRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpDailyRate" class="feriiz-u-120">
                             <label for="colEmpDailyRate" class="feriiz-u-121">Daily Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpRateOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpRateOvertime" class="feriiz-u-120">
                             <label for="colEmpRateOvertime" class="feriiz-u-121">Rate Overtime</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpTotalRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpTotalRate" class="feriiz-u-120">
                             <label for="colEmpTotalRate" class="feriiz-u-121">Total Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpTotalOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpTotalOvertime" class="feriiz-u-120">
                             <label for="colEmpTotalOvertime" class="feriiz-u-121">Total Overtime</label>
                         </div>
                         <div class="feriiz-u-122"></div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClient" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClient" class="feriiz-u-120">
                             <label for="colClient" class="feriiz-u-121">Client</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientDailyRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientDailyRate" class="feriiz-u-120">
                             <label for="colClientDailyRate" class="feriiz-u-121">Daily Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientRateOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientRateOvertime" class="feriiz-u-120">
                             <label for="colClientRateOvertime" class="feriiz-u-121">Rate Overtime</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientTotalRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientTotalRate" class="feriiz-u-120">
                             <label for="colClientTotalRate" class="feriiz-u-121">Total Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientTotalOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientTotalOvertime" class="feriiz-u-120">
                             <label for="colClientTotalOvertime" class="feriiz-u-121">Total Overtime</label>
                         </div>
                     </div>
@@ -214,7 +214,6 @@
                         <th colspan="4" class="group-header" id="grpEmployee">Employee</th>
                         <th colspan="4" class="group-header" id="grpClient">Client</th>
                         <th colspan="2" class="group-header" id="grpAdditional">Additional</th>
-                        <th colspan="7" class="group-header" id="monthHeader">June 2026</th>
                     </tr>
                     <tr>
                         <th class="col-inouthour">Start</th>
@@ -230,13 +229,6 @@
                         <th class="col-cli-totalovertime">Total Rate Overtime</th>
                         <th class="col-additional-amount">Amount</th>
                         <th class="col-additional-note">Note</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-15"><span>Mon 15</span><input type="checkbox" class="day-header-select" data-date="2026-06-15"></th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-16"><span>Tue 16</span><input type="checkbox" class="day-header-select" data-date="2026-06-16"></th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-17"><span>Wed 17</span><input type="checkbox" class="day-header-select" data-date="2026-06-17"></th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-18"><span>Thu 18</span><input type="checkbox" class="day-header-select" data-date="2026-06-18"></th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-19"><span>Fri 19</span><input type="checkbox" class="day-header-select" data-date="2026-06-19"></th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-20"><span>Sat 20</span><input type="checkbox" class="day-header-select" data-date="2026-06-20"></th>
-                        <th class="day-col feriiz-u-130" data-date="2026-06-21"><span>Sun 21</span><input type="checkbox" class="day-header-select" data-date="2026-06-21"></th>
                     </tr>
                 </thead>
                 <tbody id="reportTableBody">
@@ -246,7 +238,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.5.7</div>
+            <div class="version-text">version : 3.6.0</div>
             <div class="feriiz-u-145">
                 <button class="btn btn-outline feriiz-u-146" disabled>Prev</button>
                 <button class="btn btn-primary feriiz-u-147">1</button>

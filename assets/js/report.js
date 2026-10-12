@@ -4,35 +4,73 @@
     /* =============================================
        DATA
        ============================================= */
-    var ALL_DATES = [
-        '2026-06-15', '2026-06-16', '2026-06-17',
-        '2026-06-18', '2026-06-19', '2026-06-20', '2026-06-21'
-    ];
-    var WEEKEND_DATES = new Set(['2026-06-20', '2026-06-21']);
-    // Smart default: Monday of current week through today
-    // For demo purposes, simulate "today" as within the data range
-    var DEMO_TODAY = '2026-06-18'; // Thursday — shows Mon 15 to Thu 18
-    function getDefaultDates() {
-        var today = new Date(DEMO_TODAY);
-        var day = today.getDay(); // 0=Sun, 1=Mon...
-        var monday = new Date(today);
-        monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
-        var dates = [];
-        var d = new Date(monday);
-        while (d <= today) {
-            var str = d.toISOString().slice(0, 10);
-            if (ALL_DATES.indexOf(str) >= 0) dates.push(str);
-            d.setDate(d.getDate() + 1);
-        }
-        return dates.length > 0 ? dates : [ALL_DATES[0]];
-    }
-    var DEFAULT_DATES = getDefaultDates();
+    /* Day columns run from the start of the selected range up to TODAY and never
+       past it: a day that has not happened yet has no attendance, so it gets no
+       column. Default range = Monday of the current week through today, so on a
+       Monday the table shows one day, on Tuesday two, and so on.
 
-    // Project + employees are resolved from URL ?project=CODE and FERIIZ_DATA.
+       All dates are 'YYYY-MM-DD' strings in local time (never toISOString(),
+       which shifts the day in UTC+7). */
+    var DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                       'August', 'September', 'October', 'November', 'December'];
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function toISO(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+    function fromISO(iso) { var p = iso.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+    function addDays(iso, n) { var d = fromISO(iso); d.setDate(d.getDate() + n); return toISO(d); }
+    function mondayOf(iso) { var day = fromISO(iso).getDay(); return addDays(iso, day === 0 ? -6 : 1 - day); }
+
+    // Set once the dataset loads (see loadProjectContext).
+    var reportToday = toISO(new Date());
+    var dataStart = '';
+
+    function defaultRange() {
+        return { start: mondayOf(reportToday), end: reportToday };
+    }
+
+    // Every day from start to end, cut off at today and at the first day with data.
+    function datesInRange(start, end) {
+        var from = start || defaultRange().start;
+        var to = end || reportToday;
+        if (to > reportToday) to = reportToday;
+        if (dataStart && from < dataStart) from = dataStart;
+        var dates = [];
+        for (var d = from; d <= to; d = addDays(d, 1)) dates.push(d);
+        return dates;
+    }
+
+    // Project + employees are resolved from URL ?project=CODE (&employee=CODE) and FERIIZ_DATA.
     var projectContext = null;
     var reportEmployees = [];
     // Fast lookup for attendance records keyed by employeeCode + '|' + date
     var attendanceIndex = {};
+    // Logs added or deleted with Batch Update in this visit, keyed like attendanceIndex.
+    // Presentation-only (never sent anywhere) but survives a change of date range.
+    var cellOverrides = {};
+
+    function isOffDay(date) {
+        var days = projectContext && projectContext.workingDays;
+        if (!days || !days.length) return false;
+        return days.indexOf(DAY_NAMES[fromISO(date).getDay()]) < 0;
+    }
+
+    // Weekend or holiday for this person: from their record, else the project's working days.
+    function isOffCell(employeeCode, date) {
+        var rec = attendanceIndex[employeeCode + '|' + date];
+        return rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
+    }
+
+    function rememberCell(cell) {
+        var row = cell.closest('tr');
+        if (!row) return;
+        cellOverrides[row.dataset.employeeCode + '|' + cell.dataset.date] = {
+            inTime: cell.dataset.inTime || '',
+            outTime: cell.dataset.outTime || '',
+            inNote: cell.dataset.inNote || '',
+            outNote: cell.dataset.outNote || ''
+        };
+    }
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
         missingTypes: [],
@@ -151,22 +189,20 @@
     function createDayCells(employee, dates) {
         return dates.map(function (date) {
             var rec = attendanceFor(employee.code, date);
-            var isWeekend = WEEKEND_DATES.has(date);
+            var override = cellOverrides[employee.code + '|' + date];
             var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+            var dayOff = rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
 
-            if (rec && (rec.status === 'weekend' || rec.status === 'holiday')) {
-                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="" data-in-note="" data-out-note="">' +
-                    checkbox + '</td>';
-            }
-            if (!rec && isWeekend) {
+            if (dayOff && !(override && (override.inTime || override.outTime))) {
                 return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="" data-in-note="" data-out-note="">' +
                     checkbox + '</td>';
             }
 
-            var inTime = rec ? (rec.inTime || '') : '';
-            var outTime = rec ? (rec.outTime || '') : '';
-            var inNote = rec ? (rec.inNote || '') : '';
-            var outNote = rec ? (rec.outNote || '') : '';
+            var src = override || rec || {};
+            var inTime = src.inTime || '';
+            var outTime = src.outTime || '';
+            var inNote = src.inNote || '';
+            var outNote = src.outNote || '';
             var issue = getMissingType(inTime, outTime);
 
             var missingAttr = issue ? ' data-missing="' + issue + '"' : '';
@@ -182,13 +218,13 @@
     function createEmployeeRow(employee, dates) {
         var empRateOT = projectContext ? projectContext.overtimeRate || 0 : 0;
         var cliRateOT = projectContext ? projectContext.clientOvertimeRate || 0 : 0;
-        return '<tr data-employee-code="' + employee.code + '" data-employee-name="' + employee.name + '">' +
+        return '<tr data-employee-code="' + escapeHTML(employee.code) + '" data-employee-name="' + escapeHTML(employee.name) + '">' +
             '<td class="col-name sticky-col">' +
                 '<div class="report-identity-content">' +
-                    '<div class="emp-code-cell">' + employee.code + '</div>' +
-                    '<div class="emp-name-cell">' + employee.name + '</div>' +
-                    '<div class="emp-occupation-cell">' + employee.occupation + '</div>' +
-                    '<div class="emp-pin-cell">Pin: ' + employee.pin + '</div>' +
+                    '<div class="emp-code-cell">' + escapeHTML(employee.code) + '</div>' +
+                    '<div class="emp-name-cell">' + escapeHTML(employee.name) + '</div>' +
+                    '<div class="emp-occupation-cell">' + escapeHTML(employee.occupation) + '</div>' +
+                    '<div class="emp-pin-cell">Pin: ' + escapeHTML(employee.pin) + '</div>' +
                 '</div>' +
             '</td>' +
             '<td class="col-inouthour">' + (projectContext ? projectContext.workStart + ':00' : '08:00:00') + '</td>' +
@@ -211,27 +247,64 @@
         '</tr>';
     }
 
-    function renderTable() {
+    // One month band per calendar month in the range, then one header per day.
+    function renderDayHeaders(dates) {
+        var table = document.querySelector('.report-table');
+        if (!table) return;
+        var groupRow = table.querySelector('thead tr:first-child');
+        var dayRow = table.querySelector('thead tr:nth-child(2)');
+        table.querySelectorAll('thead th.month-header, thead th.day-col').forEach(function (th) { th.remove(); });
+
+        var months = [];
+        dates.forEach(function (date) {
+            var key = date.slice(0, 7);
+            var last = months[months.length - 1];
+            if (last && last.key === key) last.count++;
+            else months.push({ key: key, count: 1 });
+        });
+        months.forEach(function (m) {
+            var th = document.createElement('th');
+            th.className = 'group-header month-header';
+            th.colSpan = m.count;
+            var d = fromISO(m.key + '-01');
+            th.textContent = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+            groupRow.appendChild(th);
+        });
+
+        dates.forEach(function (date) {
+            var th = document.createElement('th');
+            th.className = 'day-col feriiz-u-130';
+            th.dataset.date = date;
+            th.innerHTML = '<span>' + DAY_NAMES[fromISO(date).getDay()] + ' ' + fromISO(date).getDate() + '</span>' +
+                '<input type="checkbox" class="day-header-select" data-date="' + date + '" aria-label="Select every log on ' + date + '">';
+            dayRow.appendChild(th);
+        });
+    }
+
+    function renderTable(dates) {
         var tbody = document.getElementById('reportTableBody');
         if (!tbody) return;
+        renderDayHeaders(dates);
         tbody.innerHTML = reportEmployees.map(function (emp) {
-            return createEmployeeRow(emp, ALL_DATES);
+            return createEmployeeRow(emp, dates);
         }).join('');
     }
 
     /* =============================================
-       DAY COLUMN VISIBILITY
+       DAY COLUMNS
        ============================================= */
-    var currentVisibleDates = DEFAULT_DATES.slice();
+    var currentVisibleDates = [];
 
+    // Re-render only when the set of days actually changes; selection is reset.
     function showDays(datesToShow) {
+        var same = datesToShow.length === currentVisibleDates.length &&
+            datesToShow.every(function (d, i) { return d === currentVisibleDates[i]; });
         currentVisibleDates = datesToShow.slice();
-        document.querySelectorAll('.day-col').forEach(function (el) {
-            el.classList.toggle('day-col-hidden', datesToShow.indexOf(el.dataset.date) < 0);
-        });
-        var header = document.getElementById('monthHeader');
-        if (header) header.colSpan = datesToShow.length || 1;
-        updateVisibleTotals(datesToShow);
+        if (!same || !document.querySelector('#reportTableBody tr')) {
+            renderTable(currentVisibleDates);
+            updateFieldsVisibility();
+        }
+        updateVisibleTotals(currentVisibleDates);
     }
 
     /* =============================================
@@ -283,14 +356,27 @@
         return appliedReportFilters.missingTypes.slice();
     }
 
+    // The ticked boxes must equal exactly what the cell is missing:
+    //   Log In only        -> cells missing only the log in
+    //   Log Out only       -> cells missing only the log out
+    //   Log In + Log Out   -> cells missing both (one-sided cells stay hidden)
+    // Same rule as the live Feriiz report.
+    function cellMatchesMissing(cellMissing, types) {
+        var wantIn = types.indexOf('in') >= 0;
+        var wantOut = types.indexOf('out') >= 0;
+        if (cellMissing === 'both') return wantIn && wantOut;
+        if (cellMissing === 'in') return wantIn && !wantOut;
+        if (cellMissing === 'out') return wantOut && !wantIn;
+        return false;
+    }
+
     function rowHasMissingType(row, types) {
         if (types.length === 0) return true;
         var cells = row.querySelectorAll('td.day-col');
         for (var i = 0; i < cells.length; i++) {
-            if (currentVisibleDates.indexOf(cells[i].dataset.date) >= 0) {
-                var m = cells[i].dataset.missing || '';
-                if (m === 'both' && (types.indexOf('in') >= 0 || types.indexOf('out') >= 0)) return true;
-                if (types.indexOf(m) >= 0) return true;
+            if (currentVisibleDates.indexOf(cells[i].dataset.date) >= 0 &&
+                cellMatchesMissing(cells[i].dataset.missing || '', types)) {
+                return true;
             }
         }
         return false;
@@ -327,13 +413,7 @@
                     cell.classList.remove('filtered-out-cell');
                     return;
                 }
-                var cellMissing = cell.dataset.missing || '';
-                var isMatch = false;
-                if (cellMissing === 'both') {
-                    isMatch = types.indexOf('in') >= 0 || types.indexOf('out') >= 0;
-                } else {
-                    isMatch = cellMissing && types.indexOf(cellMissing) >= 0;
-                }
+                var isMatch = cellMatchesMissing(cell.dataset.missing || '', types);
                 cell.classList.toggle('filtered-out-cell', !isMatch);
             });
         });
@@ -668,6 +748,7 @@
                 cell.dataset.outTime = newOut;
                 cell.dataset.inNote = newInNote;
                 cell.dataset.outNote = newOutNote;
+                rememberCell(cell);
 
                 var issue = getMissingType(newIn, newOut);
                 if (issue) {
@@ -714,20 +795,18 @@
                 cell.dataset.outTime = existOut;
                 cell.dataset.inNote = existInNote;
                 cell.dataset.outNote = existOutNote;
+                rememberCell(cell);
 
-                var issue = getMissingType(existIn, existOut);
+                // An emptied day off goes back to grey; an emptied work day is missing both logs.
+                var backToDayOff = !existIn && !existOut && isOffCell(cell.closest('tr').dataset.employeeCode, date);
+                var issue = backToDayOff ? '' : getMissingType(existIn, existOut);
                 if (issue) {
                     cell.dataset.missing = issue;
                     cell.classList.add('no-log-cell');
-                } else if (!existIn && !existOut) {
-                    cell.removeAttribute('data-missing');
-                    cell.classList.remove('no-log-cell');
-                    if (WEEKEND_DATES.has(date)) {
-                        cell.classList.add('weekend-off-cell');
-                    }
                 } else {
                     cell.removeAttribute('data-missing');
                     cell.classList.remove('no-log-cell');
+                    if (backToDayOff) cell.classList.add('weekend-off-cell');
                 }
 
                 cell.classList.add('recently-updated-cell');
@@ -737,7 +816,7 @@
                 if (existIn) lines.push({ type: 'in', value: existIn, note: existInNote });
                 if (existOut) lines.push({ type: 'out', value: existOut, note: existOutNote });
 
-                if (!existIn && !existOut && WEEKEND_DATES.has(date)) {
+                if (backToDayOff) {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
                 } else {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
@@ -828,29 +907,50 @@
         var di = document.querySelectorAll('.filter-date');
         if (!ps || di.length < 2) return;
         ps.addEventListener('change', function () {
-            var v = this.value, now = new Date(), s = '', e = '';
-            var fmt = function (d) { return d.toISOString().slice(0, 10); };
-            if (v === 'today') { s = e = fmt(now); }
-            else if (v === 'yesterday') { var y = new Date(now); y.setDate(y.getDate() - 1); s = e = fmt(y); }
-            else if (v === 'this_week') { var d = new Date(now); d.setDate(d.getDate() - d.getDay() + 1); s = fmt(d); e = fmt(now); }
-            else if (v === 'last_week') { var d2 = new Date(now); d2.setDate(d2.getDate() - d2.getDay() - 6); s = fmt(d2); var d3 = new Date(d2); d3.setDate(d2.getDate() + 6); e = fmt(d3); }
-            else if (v === 'this_month') { s = fmt(new Date(now.getFullYear(), now.getMonth(), 1)); e = fmt(now); }
-            else if (v === 'last_month') { s = fmt(new Date(now.getFullYear(), now.getMonth() - 1, 1)); e = fmt(new Date(now.getFullYear(), now.getMonth(), 0)); }
-            else if (v === 'this_year') { s = fmt(new Date(now.getFullYear(), 0, 1)); e = fmt(now); }
-            else if (v === 'all_time') { s = ''; e = ''; }
+            var v = this.value, today = reportToday, s = '', e = '';
+            var monthStart = today.slice(0, 8) + '01';
+            if (v === 'today') { s = e = today; }
+            else if (v === 'yesterday') { s = e = addDays(today, -1); }
+            else if (v === 'this_week') { s = mondayOf(today); e = today; }
+            else if (v === 'last_week') { s = addDays(mondayOf(today), -7); e = addDays(s, 6); }
+            else if (v === 'this_month') { s = monthStart; e = today; }
+            else if (v === 'last_month') { e = addDays(monthStart, -1); s = e.slice(0, 8) + '01'; }
+            else if (v === 'this_year') { s = today.slice(0, 4) + '-01-01'; e = today; }
+            else if (v === 'all_time') { s = dataStart || ''; e = today; }
+            else return; // Custom: leave the dates as typed
             di[0].value = s; di[1].value = e;
         });
+    }
+
+    // The date fields show the range in use, so "This Week" is visible as real dates.
+    function resetDateDraft() {
+        var range = defaultRange();
+        var di = document.querySelectorAll('.filter-date');
+        var ps = document.querySelector('.filter-period');
+        if (di.length >= 2) { di[0].value = range.start; di[1].value = range.end; }
+        if (ps) ps.value = 'this_week';
+    }
+
+    function datesFromDraft() {
+        var di = document.querySelectorAll('.filter-date');
+        var s = di[0] ? di[0].value : '';
+        var e = di[1] ? di[1].value : '';
+        if (!s && !e) return datesInRange();
+        if (s && e && s > e) { var t = s; s = e; e = t; }
+        var dates = datesInRange(s || e, e || s);
+        if (dates.length === 0 && window.FeriizNotify) {
+            FeriizNotify.info('There is no attendance for these days yet. Only days up to today are shown.', 'Nothing to show yet');
+        }
+        return dates;
     }
 
     /* =============================================
        INIT
        ============================================= */
     function init() {
-        renderTable();
-        showDays(DEFAULT_DATES);
         initPeriodPresets();
-
-        var dateInputs = document.querySelectorAll('.filter-date');
+        resetDateDraft();
+        showDays(datesInRange());
 
         // Apply filter
         var applyBtn = document.querySelector('.filter-apply-btn');
@@ -860,16 +960,7 @@
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
-                var s = dateInputs[0] ? dateInputs[0].value : '';
-                var e = dateInputs[1] ? dateInputs[1].value : '';
-                if (s || e) {
-                    var sT = s ? new Date(s).getTime() : -Infinity;
-                    var eT = e ? new Date(e).getTime() : Infinity;
-                    var vis = ALL_DATES.filter(function (d) { var t = new Date(d).getTime(); return t >= sT && t <= eT; });
-                    showDays(vis.length > 0 ? vis : DEFAULT_DATES);
-                } else {
-                    showDays(DEFAULT_DATES);
-                }
+                showDays(datesFromDraft());
                 applyReportFilters();
             });
         }
@@ -878,15 +969,13 @@
         var clearBtn = document.querySelector('.filter-clear-btn');
         if (clearBtn) {
             clearBtn.addEventListener('click', function () {
-                dateInputs.forEach(function (i) { i.value = ''; });
-                var ps = document.querySelector('.filter-period');
-                if (ps) ps.selectedIndex = 0;
+                resetDateDraft();
                 document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                 appliedReportFilters.missingTypes = [];
                 appliedReportFilters.occupations = [];
                 deselectAllCells();
-                showDays(DEFAULT_DATES);
+                showDays(datesInRange());
                 applyReportFilters();
             });
         }
@@ -895,9 +984,12 @@
         var searchInput = document.getElementById('reportSearch');
         if (searchInput) searchInput.addEventListener('input', applyReportFilters);
 
-        // Day header select-all checkboxes
-        document.querySelectorAll('.day-header-select').forEach(function (headerCb) {
-            headerCb.addEventListener('change', function () {
+        // Day header select-all checkboxes (headers are re-rendered, so delegate)
+        var thead = document.querySelector('.report-table thead');
+        if (thead) {
+            thead.addEventListener('change', function (e) {
+                var headerCb = e.target;
+                if (!headerCb.classList.contains('day-header-select')) return;
                 var date = headerCb.dataset.date;
                 document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
                     if (row.hidden) return;
@@ -908,7 +1000,7 @@
                 });
                 updateCellSelectionUI();
             });
-        });
+        }
 
         // Log type toggle in modal
         document.querySelectorAll('.batch-log-type-btn').forEach(function (btn) {
@@ -1032,9 +1124,30 @@
         });
     }
 
+    // Today, unless the dataset stops earlier: the bundled dummy data ends on
+    // meta.periodEnd, so "today" is held there to keep the demo populated.
+    // With the live API, periodEnd is today and this is simply the real date.
+    function resolveToday(data) {
+        var meta = data.meta || {};
+        var first = meta.periodStart || '';
+        var last = meta.periodEnd || '';
+        if (!first || !last) {
+            data.attendance.forEach(function (a) {
+                if (!first || a.date < first) first = a.date;
+                if (!last || a.date > last) last = a.date;
+            });
+        }
+        dataStart = first;
+        var today = toISO(new Date());
+        reportToday = last && today > last ? last : today;
+    }
+
     function loadProjectContext(data) {
         var url = new URL(location.href);
         var code = url.searchParams.get('project');
+        var employeeCode = url.searchParams.get('employee');
+        var employee = employeeCode ? data.findEmployeeByCode(employeeCode) : null;
+        if (!code && employee && employee.projects && employee.projects.length) code = employee.projects[0];
         if (!code) {
             try { code = sessionStorage.getItem('feriiz_active_project'); } catch (e) {}
         }
@@ -1043,10 +1156,23 @@
         if (projectContext && projectContext.code) {
             try { sessionStorage.setItem('feriiz_active_project', projectContext.code); } catch (e) {}
         }
+        resolveToday(data);
 
         reportEmployees = data.employees.filter(function (e) {
             return (e.projects || []).indexOf(projectContext.code) >= 0;
         });
+        // Employee report: the same table, narrowed to one person.
+        if (employeeCode) {
+            reportEmployees = reportEmployees.filter(function (e) { return e.code === employeeCode; });
+            var who = employee ? employee.name : employeeCode;
+            document.querySelectorAll('[data-report-employee]').forEach(function (el) { el.textContent = who; });
+            document.title = 'Feriiz - ' + who + ' - Report';
+            if (!reportEmployees.length && window.FeriizNotify) {
+                FeriizNotify.warning(who + ' is not assigned to ' + projectContext.name + '.', 'No report to show');
+            }
+        }
+        var reportLink = document.getElementById('reportBackLink');
+        if (reportLink) reportLink.href = 'project_report.html?project=' + encodeURIComponent(projectContext.code);
         // Build attendance index for just this project's dates
         attendanceIndex = {};
         var relevant = new Set(reportEmployees.map(function (e) { return e.code; }));
@@ -1063,7 +1189,7 @@
                 bc.href = 'project_employees.html?project=' + encodeURIComponent(projectContext.code);
             }
         }
-        if (projectContext.name) {
+        if (projectContext.name && !employeeCode) {
             document.title = 'Feriiz - ' + projectContext.name + ' - Report';
         }
     }

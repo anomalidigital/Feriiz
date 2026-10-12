@@ -6,51 +6,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.5.7">
-    <script src="assets/js/data.js?v=3.5.7" defer></script>
-    <script src="assets/js/app.js?v=3.5.7" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.6.0">
+    <script src="assets/js/data.js?v=3.6.0" defer></script>
+    <script src="assets/js/app.js?v=3.6.0" defer></script>
 </head>
 
 <body data-page="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar"></aside>
 
-    <main class="main-content">
-        <!-- Header -->
-        <div class="page-header feriiz-u-163">
-            <h1 class="page-title">Dashboard</h1>
-            <div class="page-actions feriiz-u-164">
+    <main class="main-content dash">
+        <!-- Header: title, attendance day, search and filter -->
+        <div class="page-header dash-header">
+            <div class="dash-heading">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="dash-day">
+                    <button type="button" class="dash-day-step" id="dashPrevDay" aria-label="Previous day" disabled>
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <span class="dash-day-label" id="dashDayLabel" aria-live="polite">Loading attendance…</span>
+                    <button type="button" class="dash-day-step" id="dashNextDay" aria-label="Next day" disabled>
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="page-actions dash-actions">
+                <label class="dash-search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search" id="dashSearch" placeholder="Search project" autocomplete="off" aria-label="Search project">
+                </label>
                 <div class="feriiz-u-014">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter" aria-label="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
                     <div class="filter-dropdown feriiz-u-015">
-                        <div class="feriiz-u-016">Filter Activity
-                        </div>
-                        <label>Date Range</label>
-                        <div class="feriiz-u-003">
-                            <input type="date" class="input filter-date feriiz-u-004">
-                            <span class="feriiz-u-005">-</span>
-                            <input type="date" class="input filter-date feriiz-u-004">
-                        </div>
+                        <div class="feriiz-u-016">Filter Dashboard</div>
+                        <label for="dashDateInput">Attendance date</label>
+                        <input type="date" class="input" id="dashDateInput">
                         <label>Occupation</label>
-                        <select class="input filter-occ feriiz-u-017"
-                           >
-                            <option>All Occupations</option>
-                            <option>Graphic Design</option>
-                            <option>Sr.Programmer</option>
-                            <option>Teknisi</option>
-                            <option>Manager</option>
-                            <option>Marketing</option>
-                            <option>Frontend</option>
-                            <option>Backend</option>
-                            <option>HR Administrator</option>
-                            <option>3D Artist</option>
-                            <option>Tukang Kayu</option>
-                            <option>Tukang Keramik</option>
-                            <option>Tukang Las</option>
-                            <option>Mandor Lapangan</option>
-                            <option>Surveyor</option>
+                        <select class="input filter-occ feriiz-u-017">
+                            <option value="">All Occupations</option>
                         </select>
                         <div class="feriiz-u-018">
                             <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
@@ -58,151 +53,557 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary">
-                    <i class="fa-solid fa-file-export"></i>
-                    Export
+            </div>
+        </div>
+
+        <p class="dash-filter-note" id="dashFilterNote" hidden>
+            <span id="dashFilterText"></span>
+            <button type="button" class="dash-link" id="dashClearOccupation">Show all occupations</button>
+        </p>
+
+        <!-- Attendance for the selected day -->
+        <section class="dash-panel" aria-labelledby="dashHeadline">
+            <div class="dash-summary">
+                <div>
+                    <h2 class="dash-headline" id="dashHeadline">Loading attendance…</h2>
+                    <p class="dash-scope" id="dashScope"></p>
+                </div>
+                <p class="dash-rate" id="dashRate"></p>
+            </div>
+
+            <div class="dash-bar dash-bar--total" id="dashTotalBar" role="img" aria-label="Attendance breakdown">
+                <span class="dash-seg dash-seg--present"></span>
+                <span class="dash-seg dash-seg--missing"></span>
+                <span class="dash-seg dash-seg--leave"></span>
+                <span class="dash-seg dash-seg--absent"></span>
+            </div>
+
+            <ul class="dash-legend" id="dashLegend">
+                <li><span class="dash-dot dash-dot--present"></span>Present <strong data-count="present">–</strong></li>
+                <li><span class="dash-dot dash-dot--missing"></span>Missing log <strong data-count="missing">–</strong></li>
+                <li><span class="dash-dot dash-dot--leave"></span>On leave <strong data-count="leave">–</strong></li>
+                <li><span class="dash-dot dash-dot--absent"></span>Absent <strong data-count="absent">–</strong></li>
+            </ul>
+
+            <div class="dash-projects-wrap">
+                <table class="dash-projects">
+                    <thead>
+                        <tr>
+                            <th scope="col">Project</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Attendance</th>
+                            <th scope="col" class="num">Showed up</th>
+                            <th scope="col" class="num">Missing log</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashProjectRows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Workforce composition: occupation × project -->
+        <section class="dash-panel" aria-labelledby="dashWorkforceTitle">
+            <div class="dash-panel-head">
+                <div>
+                    <h2 class="dash-title" id="dashWorkforceTitle">Workforce by occupation</h2>
+                    <p class="dash-scope" id="dashWorkforceScope"></p>
+                </div>
+                <button type="button" class="btn btn-outline dash-export" id="dashExport" disabled>
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    Export CSV
                 </button>
-                <div class="feriiz-u-020">
-                    <i class="fa-solid fa-magnifying-glass feriiz-u-067"
-                       ></i>
-                    <input type="text" placeholder="Search" class="feriiz-u-068">
-                </div>
             </div>
-        </div>
+            <div class="dash-matrix-wrap" id="dashMatrixWrap">
+                <table class="dash-matrix" id="dashMatrix"></table>
+            </div>
+            <p class="dash-footnote">Workers assigned to more than one project are counted once in each project.</p>
+        </section>
 
-        <!-- Stat Cards -->
-        <div class="stat-cards feriiz-u-023">
-            <div class="stat-card feriiz-u-024">
-                <div class="stat-card-icon feriiz-u-025">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-                <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026" data-stat="employees">0</div>
-                    <div class="stat-label feriiz-u-165">Employees</div>
-                </div>
-            </div>
-            <div class="stat-card feriiz-u-024">
-                <div class="stat-card-icon feriiz-u-025">
-                    <i class="fa-solid fa-chart-pie"></i>
-                </div>
-                <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026" data-stat="attendance">0</div>
-                    <div class="stat-label feriiz-u-027">Attendance</div>
-                </div>
-            </div>
-            <div class="stat-card feriiz-u-024">
-                <div class="stat-card-icon feriiz-u-025">
-                    <i class="fa-solid fa-briefcase"></i>
-                </div>
-                <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026" data-stat="occupations">0</div>
-                    <div class="stat-label feriiz-u-027">Occupations</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Table: Group by Occupation -->
-        <div class="table-container dashboard-table-container">
-            <table class="data-table dashboard-table" id="dashboardTable">
-                <thead><tr id="dashboardTableHead"><th>Occupation</th></tr></thead>
-                <tbody id="dashboardTableBody"></tbody>
-                <tfoot><tr class="feriiz-u-166" id="dashboardTableFoot"></tr></tfoot>
-            </table>
-        </div>
-
-        <div class="feriiz-u-032">version : 3.5.7</div>
+        <div class="feriiz-u-032">version : 3.6.0</div>
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.FERIIZ_DATA) return;
+    (function () {
+        'use strict';
 
-            window.FERIIZ_DATA.ready.then(data => {
-                // Stat cards
-                const setStat = (k, v) => {
-                    const el = document.querySelector('[data-stat="' + k + '"]');
-                    if (el) el.textContent = v.toLocaleString('id-ID');
-                };
-                setStat('employees', data.employees.length);
-                // Attendance today: sum of unique employee codes marked 'present' or with times
-                const todayAttended = new Set(
-                    data.attendance
-                        .filter(a => a.status === 'present' && a.inTime)
-                        .map(a => a.employeeCode)
-                ).size;
-                setStat('attendance', todayAttended || data.employees.length);
-                setStat('occupations', data.occupations.length);
+        var NUM = new Intl.NumberFormat('id-ID');
+        var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                      'August', 'September', 'October', 'November', 'December'];
+        var SEGMENTS = ['present', 'missing', 'leave', 'absent'];
+        var SEGMENT_LABELS = { present: 'present', missing: 'missing a log', leave: 'on leave', absent: 'absent' };
+        var STATUS_CLASS = { 'active': 'is-active', 'on hold': 'is-hold', 'completed': 'is-done' };
 
-                // Build occupation × project matrix
-                const projects = data.projects;
-                const occupations = data.occupations;
-                const head = document.getElementById('dashboardTableHead');
-                projects.forEach(p => {
-                    const th = document.createElement('th');
-                    th.textContent = p.name;
-                    th.title = p.code;
-                    head.appendChild(th);
-                });
+        var state = {
+            projects: [],
+            occupations: [],
+            dates: [],
+            byDate: {},
+            empByCode: {},
+            workforce: {},            // occupation -> projectCode -> headcount
+            defaultDate: '',
+            applied: { date: '', occupations: [] },
+            query: '',
+            matrixModel: null
+        };
 
-                // Count employees per (occupation, project)
-                const counts = {};
-                occupations.forEach(o => { counts[o] = {}; projects.forEach(p => counts[o][p.code] = 0); });
-                data.employees.forEach(emp => {
-                    if (!counts[emp.occupation]) return;
-                    (emp.projects || []).forEach(pc => {
-                        if (counts[emp.occupation][pc] !== undefined) counts[emp.occupation][pc]++;
-                    });
-                });
+        /* ---------- helpers ---------- */
+        function $(id) { return document.getElementById(id); }
+        function fmt(n) { return NUM.format(n); }
+        function norm(v) { return String(v || '').trim().toLowerCase(); }
+        function pad(n) { return String(n).padStart(2, '0'); }
+        function parseISO(iso) {
+            var p = iso.split('-').map(Number);
+            return new Date(p[0], p[1] - 1, p[2]);
+        }
+        function longDate(iso) {
+            var d = parseISO(iso);
+            return DAYS[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+        }
+        function todayISO() {
+            var d = new Date();
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        }
+        function make(tag, className, text) {
+            var node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) node.textContent = text;
+            return node;
+        }
+        function percent(part, whole) {
+            return whole > 0 ? Math.round((part / whole) * 100) : 0;
+        }
 
-                const body = document.getElementById('dashboardTableBody');
-                const totals = {};
-                projects.forEach(p => { totals[p.code] = 0; });
-                occupations.forEach(o => {
-                    const rowTotal = projects.reduce((s, p) => s + counts[o][p.code], 0);
-                    if (rowTotal === 0) return; // skip empty occupations
-                    const tr = document.createElement('tr');
-                    tr.appendChild(cell(o));
-                    projects.forEach(p => {
-                        const v = counts[o][p.code];
-                        totals[p.code] += v;
-                        tr.appendChild(cell(v + ' Person'));
-                    });
-                    body.appendChild(tr);
-                });
+        /* One attendance record → one bar segment. Weekends and holidays are "off". */
+        function categorize(rec) {
+            switch (rec.status) {
+                case 'present': return rec.inTime && rec.outTime ? 'present' : 'missing';
+                case 'remote': return 'present';
+                case 'sick':
+                case 'leave': return 'leave';
+                case 'absent': return 'absent';
+                default: return 'off';
+            }
+        }
 
-                const foot = document.getElementById('dashboardTableFoot');
-                foot.appendChild(cell(''));
-                projects.forEach(p => foot.appendChild(cell(totals[p.code] + ' Person', 'feriiz-u-167')));
+        function emptyTally() {
+            return { present: 0, missing: 0, leave: 0, absent: 0, off: 0, holiday: 0, scheduled: 0 };
+        }
 
-                function cell(text, cls) {
-                    const td = document.createElement('td');
-                    td.textContent = text;
-                    if (cls) td.className = cls;
-                    return td;
+        function matchesOccupation(occupation) {
+            var selected = state.applied.occupations;
+            return selected.length === 0 || selected.indexOf(norm(occupation)) >= 0;
+        }
+
+        function visibleProjects() {
+            var q = norm(state.query);
+            if (!q) return state.projects;
+            return state.projects.filter(function (p) {
+                return norm(p.name).indexOf(q) >= 0 || norm(p.code).indexOf(q) >= 0;
+            });
+        }
+
+        function tallyDay(date, projects) {
+            var byProject = {};
+            var total = emptyTally();
+            projects.forEach(function (p) { byProject[p.code] = emptyTally(); });
+
+            (state.byDate[date] || []).forEach(function (rec) {
+                var tally = byProject[rec.projectCode];
+                if (!tally) return;
+                var emp = state.empByCode[rec.employeeCode];
+                if (!matchesOccupation(emp && emp.occupation)) return;
+
+                var cat = categorize(rec);
+                tally[cat]++;
+                total[cat]++;
+                if (cat === 'off') {
+                    if (rec.status === 'holiday') {
+                        tally.holiday++;
+                        total.holiday++;
+                    }
+                } else {
+                    tally.scheduled++;
+                    total.scheduled++;
+                }
+            });
+            return { total: total, byProject: byProject };
+        }
+
+        /* ---------- bars ---------- */
+        function fillBar(bar, tally) {
+            var segs = bar.querySelectorAll('.dash-seg');
+            SEGMENTS.forEach(function (key, i) {
+                var share = tally.scheduled > 0 ? (tally[key] / tally.scheduled) * 100 : 0;
+                segs[i].style.width = share + '%';
+                segs[i].title = fmt(tally[key]) + ' ' + SEGMENT_LABELS[key];
+            });
+            bar.setAttribute('aria-label', SEGMENTS.map(function (key) {
+                return fmt(tally[key]) + ' ' + SEGMENT_LABELS[key];
+            }).join(', '));
+        }
+
+        function buildBar(tally) {
+            var bar = make('div', 'dash-bar');
+            bar.setAttribute('role', 'img');
+            SEGMENTS.forEach(function (key) { bar.appendChild(make('span', 'dash-seg dash-seg--' + key)); });
+            fillBar(bar, tally);
+            return bar;
+        }
+
+        /* ---------- attendance panel ---------- */
+        function renderAttendance(projects) {
+            var date = state.applied.date;
+            var result = tallyDay(date, projects);
+            var total = result.total;
+            var showedUp = total.present + total.missing;
+            var scopeParts = [];
+
+            if (projects.length === state.projects.length) {
+                scopeParts.push('Across all ' + fmt(projects.length) + ' projects');
+            } else {
+                scopeParts.push('Across ' + fmt(projects.length) + ' of ' + fmt(state.projects.length) + ' projects');
+            }
+
+            var offProjects = projects.filter(function (p) {
+                var t = result.byProject[p.code];
+                return t.scheduled === 0 && t.off > 0;
+            }).length;
+            if (offProjects > 0 && offProjects < projects.length) {
+                scopeParts.push(fmt(offProjects) + (offProjects === 1 ? ' project has' : ' projects have') + ' a day off');
+            }
+
+            if (projects.length === 0) {
+                $('dashHeadline').textContent = 'No project matches “' + state.query.trim() + '”';
+                $('dashScope').textContent = 'Check the spelling or clear the search to see every project.';
+                $('dashRate').textContent = '';
+            } else if (total.scheduled === 0) {
+                $('dashHeadline').textContent = total.off > 0
+                    ? 'Day off for every project'
+                    : 'No attendance recorded for this day';
+                $('dashScope').textContent = total.off === 0
+                    ? 'Choose another date from the filter.'
+                    : (total.holiday > 0 ? 'Public holiday. ' : 'Weekend. ') + 'No one was scheduled to work.';
+                $('dashRate').textContent = '';
+            } else {
+                $('dashHeadline').textContent = fmt(showedUp) + ' of ' + fmt(total.scheduled) + ' scheduled workers showed up';
+                $('dashScope').textContent = scopeParts.join('. ') + '.';
+                $('dashRate').textContent = percent(showedUp, total.scheduled) + '% attendance';
+            }
+
+            fillBar($('dashTotalBar'), total);
+            SEGMENTS.forEach(function (key) {
+                var node = document.querySelector('[data-count="' + key + '"]');
+                if (node) node.textContent = fmt(total[key]);
+            });
+
+            renderProjectRows(projects, result.byProject);
+        }
+
+        function renderProjectRows(projects, byProject) {
+            var tbody = $('dashProjectRows');
+            tbody.innerHTML = '';
+
+            if (projects.length === 0) {
+                var emptyRow = make('tr', 'dash-empty-row');
+                var cell = make('td', '', 'No project to show.');
+                cell.colSpan = 5;
+                emptyRow.appendChild(cell);
+                tbody.appendChild(emptyRow);
+                return;
+            }
+
+            projects.forEach(function (p) {
+                var t = byProject[p.code];
+                var tr = make('tr');
+
+                var nameCell = make('th', 'dash-project');
+                nameCell.scope = 'row';
+                var link = make('a', 'dash-project-name', p.name);
+                link.href = 'project_employees.html?project=' + encodeURIComponent(p.code);
+                nameCell.appendChild(link);
+                nameCell.appendChild(make('span', 'dash-project-code', p.code));
+                tr.appendChild(nameCell);
+
+                var statusCell = make('td', 'dash-status-cell');
+                var status = p.status || 'Active';
+                statusCell.appendChild(make('span', 'dash-status ' + (STATUS_CLASS[norm(status)] || ''), status));
+                tr.appendChild(statusCell);
+
+                var barCell = make('td', 'dash-bar-cell');
+                var showedCell = make('td', 'num dash-showed');
+                var missingCell = make('td', 'num dash-missing');
+
+                if (t.scheduled > 0) {
+                    barCell.appendChild(buildBar(t));
+                    var showed = t.present + t.missing;
+                    showedCell.appendChild(make('span', 'dash-showed-count', fmt(showed)));
+                    showedCell.appendChild(document.createTextNode(' / ' + fmt(t.scheduled)));
+                    if (t.missing > 0) {
+                        missingCell.appendChild(make('span', 'dash-dot dash-dot--missing'));
+                        missingCell.appendChild(document.createTextNode(fmt(t.missing)));
+                    } else {
+                        missingCell.appendChild(make('span', 'dash-none', '–'));
+                    }
+                } else {
+                    var reason = t.off === 0 ? 'No workers scheduled'
+                        : (t.holiday > 0 ? 'Day off, public holiday' : 'Day off, weekend');
+                    barCell.appendChild(make('span', 'dash-dayoff', reason));
+                    showedCell.appendChild(make('span', 'dash-none', '–'));
+                    missingCell.appendChild(make('span', 'dash-none', '–'));
                 }
 
-                // Occupation filter — hide rows not matching selection
-                const applyOccupationFilter = () => {
-                    const selected = window.FeriizFilters?.getOccupationValues(document) || [];
-                    body.querySelectorAll('tr').forEach(row => {
-                        const occText = row.firstElementChild?.textContent.toLowerCase() || '';
-                        row.style.display = selected.length === 0 || selected.some(o => occText.includes(o))
-                            ? '' : 'none';
-                    });
-                };
-                const applyBtn = document.querySelector('.filter-apply-btn');
-                const clearBtn = document.querySelector('.filter-clear-btn');
-                if (applyBtn) applyBtn.addEventListener('click', applyOccupationFilter);
-                if (clearBtn) clearBtn.addEventListener('click', () => {
-                    window.FeriizFilters?.resetOccupationFilter(document);
-                    document.querySelectorAll('.filter-date').forEach(i => i.value = '');
-                    applyOccupationFilter();
+                tr.appendChild(barCell);
+                tr.appendChild(showedCell);
+                tr.appendChild(missingCell);
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* ---------- workforce matrix ---------- */
+        function buildMatrixModel(projects) {
+            var rows = [];
+            var colTotals = projects.map(function () { return 0; });
+            var max = 0;
+
+            state.occupations.forEach(function (occ) {
+                if (!matchesOccupation(occ)) return;
+                var counts = projects.map(function (p) { return (state.workforce[occ] || {})[p.code] || 0; });
+                var rowTotal = counts.reduce(function (s, n) { return s + n; }, 0);
+                if (rowTotal === 0) return;
+                counts.forEach(function (n, i) {
+                    colTotals[i] += n;
+                    if (n > max) max = n;
                 });
+                rows.push({ occupation: occ, counts: counts, total: rowTotal });
+            });
+
+            return {
+                projects: projects,
+                rows: rows,
+                colTotals: colTotals,
+                grandTotal: colTotals.reduce(function (s, n) { return s + n; }, 0),
+                max: max
+            };
+        }
+
+        function renderMatrix(projects) {
+            var model = buildMatrixModel(projects);
+            var table = $('dashMatrix');
+            table.innerHTML = '';
+            state.matrixModel = model;
+
+            var workers = state.employeeCount;
+            $('dashWorkforceScope').textContent = fmt(workers) + ' workers across ' +
+                fmt(state.projects.length) + ' projects and ' + fmt(state.occupations.length) + ' occupations.';
+
+            if (projects.length === 0 || model.rows.length === 0) {
+                var empty = make('caption', 'dash-matrix-empty',
+                    projects.length === 0 ? 'No project matches your search.' : 'No workers match the selected occupations.');
+                table.appendChild(empty);
+                $('dashExport').disabled = true;
+                return;
+            }
+            $('dashExport').disabled = false;
+
+            var thead = make('thead');
+            var headRow = make('tr');
+            var corner = make('th', 'dash-matrix-corner', 'Occupation');
+            corner.scope = 'col';
+            headRow.appendChild(corner);
+            projects.forEach(function (p) {
+                var th = make('th', 'dash-matrix-project', p.name);
+                th.scope = 'col';
+                th.title = p.code;
+                headRow.appendChild(th);
+            });
+            var totalHead = make('th', 'dash-matrix-total', 'Total');
+            totalHead.scope = 'col';
+            headRow.appendChild(totalHead);
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            var tbody = make('tbody');
+            model.rows.forEach(function (row) {
+                var tr = make('tr');
+                var th = make('th', 'dash-matrix-occ', row.occupation);
+                th.scope = 'row';
+                tr.appendChild(th);
+                row.counts.forEach(function (n, i) {
+                    var td = make('td', n === 0 ? 'is-zero' : '', n === 0 ? '–' : fmt(n));
+                    if (n > 0) td.style.setProperty('--heat', (n / model.max).toFixed(3));
+                    td.title = row.occupation + ' at ' + projects[i].name + ': ' + fmt(n);
+                    tr.appendChild(td);
+                });
+                tr.appendChild(make('td', 'dash-matrix-total', fmt(row.total)));
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            var tfoot = make('tfoot');
+            var footRow = make('tr');
+            var footHead = make('th', 'dash-matrix-occ', 'Total');
+            footHead.scope = 'row';
+            footRow.appendChild(footHead);
+            model.colTotals.forEach(function (n) { footRow.appendChild(make('td', '', fmt(n))); });
+            footRow.appendChild(make('td', 'dash-matrix-total', fmt(model.grandTotal)));
+            tfoot.appendChild(footRow);
+            table.appendChild(tfoot);
+        }
+
+        function exportMatrix() {
+            var model = state.matrixModel;
+            if (!model || model.rows.length === 0) return;
+            var quote = function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; };
+            var lines = [];
+            lines.push(['Occupation'].concat(model.projects.map(function (p) { return p.name; }), ['Total']).map(quote).join(','));
+            model.rows.forEach(function (row) {
+                lines.push([quote(row.occupation)].concat(row.counts, [row.total]).join(','));
+            });
+            lines.push([quote('Total')].concat(model.colTotals, [model.grandTotal]).join(','));
+
+            var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = make('a');
+            a.href = url;
+            a.download = 'feriiz-workforce-by-occupation.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            if (window.FeriizNotify) {
+                FeriizNotify.success(fmt(model.rows.length) + ' occupations across ' + fmt(model.projects.length) +
+                    ' projects were exported.', 'CSV exported');
+            }
+        }
+
+        /* ---------- day + filter state ---------- */
+        function renderDay() {
+            var date = state.applied.date;
+            var idx = state.dates.indexOf(date);
+            $('dashDayLabel').textContent = date ? longDate(date) : 'No attendance data';
+            $('dashPrevDay').disabled = idx <= 0;
+            $('dashNextDay').disabled = idx < 0 || idx >= state.dates.length - 1;
+            $('dashDateInput').value = date;
+        }
+
+        function renderFilterNote() {
+            var selected = state.applied.occupations;
+            var note = $('dashFilterNote');
+            if (selected.length === 0) {
+                note.hidden = true;
+                return;
+            }
+            var labels = state.occupations.filter(function (o) { return selected.indexOf(norm(o)) >= 0; });
+            $('dashFilterText').textContent = 'Showing ' + (labels.length === 1 ? 'one occupation: ' : fmt(labels.length) + ' occupations: ') +
+                labels.join(', ') + '.';
+            note.hidden = false;
+        }
+
+        function render() {
+            var projects = visibleProjects();
+            renderDay();
+            renderFilterNote();
+            renderAttendance(projects);
+            renderMatrix(projects);
+        }
+
+        function nearestDate(value) {
+            if (!value) return state.defaultDate;
+            if (state.dates.indexOf(value) >= 0) return value;
+            if (value < state.dates[0]) return state.dates[0];
+            return state.dates[state.dates.length - 1];
+        }
+
+        function stepDay(offset) {
+            var idx = state.dates.indexOf(state.applied.date) + offset;
+            if (idx < 0 || idx >= state.dates.length) return;
+            state.applied.date = state.dates[idx];
+            render();
+        }
+
+        function bindControls() {
+            $('dashPrevDay').addEventListener('click', function () { stepDay(-1); });
+            $('dashNextDay').addEventListener('click', function () { stepDay(1); });
+
+            var timer;
+            $('dashSearch').addEventListener('input', function () {
+                var input = this;
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    state.query = input.value;
+                    render();
+                }, 150);
+            });
+
+            // Dropdown fields are drafts: only Apply changes the dashboard.
+            document.querySelector('.filter-apply-btn').addEventListener('click', function () {
+                var picked = nearestDate($('dashDateInput').value);
+                if ($('dashDateInput').value && picked !== $('dashDateInput').value && window.FeriizNotify) {
+                    FeriizNotify.info('Attendance is available from ' + longDate(state.dates[0]) + ' to ' +
+                        longDate(state.dates[state.dates.length - 1]) + '. Showing the closest day.', 'Date adjusted');
+                }
+                state.applied = {
+                    date: picked,
+                    occupations: window.FeriizFilters ? window.FeriizFilters.getOccupationValues(document) : []
+                };
+                render();
+            });
+
+            document.querySelector('.filter-clear-btn').addEventListener('click', function () {
+                if (window.FeriizFilters) window.FeriizFilters.resetOccupationFilter(document);
+                state.applied = { date: state.defaultDate, occupations: [] };
+                render();
+            });
+
+            $('dashClearOccupation').addEventListener('click', function () {
+                if (window.FeriizFilters) window.FeriizFilters.resetOccupationFilter(document);
+                state.applied.occupations = [];
+                render();
+            });
+
+            $('dashExport').addEventListener('click', exportMatrix);
+        }
+
+        /* ---------- boot ---------- */
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.FERIIZ_DATA) return;
+
+            window.FERIIZ_DATA.ready.then(function (data) {
+                state.projects = data.projects.slice();
+                state.occupations = data.occupations.slice();
+                state.employeeCount = data.employees.length;
+
+                data.employees.forEach(function (emp) {
+                    state.empByCode[emp.code] = emp;
+                    var row = state.workforce[emp.occupation] || (state.workforce[emp.occupation] = {});
+                    (emp.projects || []).forEach(function (code) { row[code] = (row[code] || 0) + 1; });
+                });
+
+                data.attendance.forEach(function (rec) {
+                    (state.byDate[rec.date] || (state.byDate[rec.date] = [])).push(rec);
+                });
+                state.dates = Object.keys(state.byDate).sort();
+
+                var today = todayISO();
+                state.defaultDate = state.dates.indexOf(today) >= 0 ? today : (state.dates[state.dates.length - 1] || '');
+                state.applied.date = state.defaultDate;
+
+                var dateInput = $('dashDateInput');
+                if (state.dates.length) {
+                    dateInput.min = state.dates[0];
+                    dateInput.max = state.dates[state.dates.length - 1];
+                }
+
+                bindControls();
+                render();
+                // One entrance moment: the attendance bars grow in once the data arrives.
+                window.requestAnimationFrame(function () { document.body.classList.add('dash-ready'); });
             });
         });
+    })();
     </script>
 
 </body>
-
 
 </html>

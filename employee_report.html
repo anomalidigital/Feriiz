@@ -4,40 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feriiz - Anomali - Employee Report</title>
+    <title>Feriiz - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.5.7">
-    <script src="assets/js/data.js?v=3.5.7" defer></script>
-    <script src="assets/js/app.js?v=3.5.7" defer></script>
-    <script src="assets/js/print-report.js?v=3.5.7" defer></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=3.6.0">
+    <script src="assets/js/data.js?v=3.6.0" defer></script>
+    <script src="assets/js/app.js?v=3.6.0" defer></script>
+    <script src="assets/js/report.js?v=3.6.0" defer></script>
+    <script src="assets/js/print-report.js?v=3.6.0" defer></script>
 </head>
 
 <body class="report-layout" data-page="employee-report">
+    <!-- Sidebar -->
     <aside class="sidebar"></aside>
 
     <main class="main-content">
+
+        <!-- Breadcrumb & Toolbar -->
         <div class="fixed-toolbar feriiz-u-105">
             <div>
                 <div class="breadcrumb feriiz-u-106">
-                    <a href="projects.html">Projects</a> <span>&gt;</span>
-                    <a href="project_employees.html">Anomali</a> <span>&gt;</span>
-                    <a href="project_report.html">Report</a> <span>&gt;</span>
-                    <span class="feriiz-u-057">Indra Naftali</span>
+                    <a href="projects.html">Projects</a>
+                    <span>&gt;</span>
+                    <a href="project_employees.html" id="reportProjectLink" data-project-name>Project</a>
+                    <span>&gt;</span>
+                    <a href="project_report.html" id="reportBackLink">Report</a>
+                    <span>&gt;</span>
+                    <span class="feriiz-u-057" data-report-employee>Employee</span>
                 </div>
                 <h1 class="page-title feriiz-u-107">Report</h1>
             </div>
 
             <div class="report-actions feriiz-u-065">
 
-                <!-- 1. Main Filter Button (Icon Only) -->
+                <div class="report-bulk-actions" id="reportBulkActions" hidden>
+                    <div class="report-bulk-summary">
+                        <strong id="selectedCellCount">0 selected</strong>
+                    </div>
+                    <div class="batch-update-action">
+                        <button class="btn-action primary" type="button" id="batchUpdateToggle">
+                            Batch Update
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="batch-update-dropdown" id="batchUpdateDropdown">
+                            <button type="button" data-action="add">Add Log</button>
+                            <div class="batch-dropdown-divider"></div>
+                            <button type="button" data-action="delete">Delete Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Button -->
                 <div class="feriiz-u-014">
                     <button class="btn btn-outline filter-toggle-btn feriiz-u-108" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
-                    <!-- Filter Dropdown Menu -->
                     <div class="filter-dropdown feriiz-u-109">
                         <div class="feriiz-u-016">Filter Report</div>
-                        
+
                         <label class="feriiz-u-110">Date Range</label>
                         <div class="feriiz-u-095">
                             <input type="date" class="input filter-date feriiz-u-004">
@@ -58,9 +81,35 @@
                             <option value="custom" selected>Custom</option>
                         </select>
 
+                        <label class="feriiz-u-110">Occupation</label>
+                        <select class="input filter-occ feriiz-u-113">
+                            <option>All Occupations</option>
+                            <option>Graphic Design</option>
+                            <option>Sr.Programmer</option>
+                            <option>Teknisi</option>
+                            <option>Manager</option>
+                            <option>Marketing</option>
+                            <option>Frontend</option>
+                            <option>Backend</option>
+                            <option>HR Administrator</option>
+                            <option>3D Artist</option>
+                        </select>
+
+                        <label class="feriiz-u-110">Log Status</label>
+                        <div class="missing-filter-group">
+                            <label class="missing-filter-option">
+                                <input type="checkbox" class="filter-missing" value="in">
+                                <span>Log In</span>
+                            </label>
+                            <label class="missing-filter-option">
+                                <input type="checkbox" class="filter-missing" value="out">
+                                <span>Log Out</span>
+                            </label>
+                        </div>
+
                         <div class="feriiz-u-114">
-                            <button class="btn btn-outline filter-clear-btn feriiz-u-115" onclick="this.closest('.filter-dropdown').classList.remove('show');">Clear</button>
-                            <button class="btn btn-primary filter-apply-btn feriiz-u-116" onclick="this.closest('.filter-dropdown').classList.remove('show');">Apply</button>
+                            <button class="btn btn-outline filter-clear-btn feriiz-u-115">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn feriiz-u-116">Apply</button>
                         </div>
                     </div>
                 </div>
@@ -71,69 +120,64 @@
                     <input type="text" id="reportSearch" class="report-search-input" placeholder="Search employee" autocomplete="off">
                 </div>
 
-                <!-- 2. Fields Filter Button -->
+                <!-- Column visibility toggle -->
                 <div class="feriiz-u-014">
-                    <button class="btn btn-outline col-toggle-btn feriiz-u-117" title="Filter">
+                    <button class="btn btn-outline col-toggle-btn feriiz-u-117" title="Filter report fields">
                         <i class="fa-solid fa-table-columns"></i> Filter
                     </button>
-                    <!-- Fields Dropdown Menu -->
                     <div class="filter-dropdown feriiz-u-118">
                         <div class="feriiz-u-119">
                             <input type="checkbox" id="colActiveHour" checked class="feriiz-u-120">
                             <label for="colActiveHour" class="feriiz-u-121">Active Hour</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colInOutHour" class="feriiz-u-120">
+                            <input type="checkbox" id="colInOutHour" checked class="feriiz-u-120">
                             <label for="colInOutHour" class="feriiz-u-121">In Out Hour</label>
                         </div>
-
                         <div class="feriiz-u-122"></div>
-
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmployee" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmployee" class="feriiz-u-120">
                             <label for="colEmployee" class="feriiz-u-121">Employee</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpDailyRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpDailyRate" class="feriiz-u-120">
                             <label for="colEmpDailyRate" class="feriiz-u-121">Daily Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpRateOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpRateOvertime" class="feriiz-u-120">
                             <label for="colEmpRateOvertime" class="feriiz-u-121">Rate Overtime</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpTotalRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpTotalRate" class="feriiz-u-120">
                             <label for="colEmpTotalRate" class="feriiz-u-121">Total Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colEmpTotalOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colEmpTotalOvertime" class="feriiz-u-120">
                             <label for="colEmpTotalOvertime" class="feriiz-u-121">Total Overtime</label>
                         </div>
-
                         <div class="feriiz-u-122"></div>
-
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClient" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClient" class="feriiz-u-120">
                             <label for="colClient" class="feriiz-u-121">Client</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientDailyRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientDailyRate" class="feriiz-u-120">
                             <label for="colClientDailyRate" class="feriiz-u-121">Daily Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientRateOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientRateOvertime" class="feriiz-u-120">
                             <label for="colClientRateOvertime" class="feriiz-u-121">Rate Overtime</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientTotalRate" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientTotalRate" class="feriiz-u-120">
                             <label for="colClientTotalRate" class="feriiz-u-121">Total Rate</label>
                         </div>
                         <div class="feriiz-u-119">
-                            <input type="checkbox" id="colClientTotalOvertime" checked class="feriiz-u-120">
+                            <input type="checkbox" id="colClientTotalOvertime" class="feriiz-u-120">
                             <label for="colClientTotalOvertime" class="feriiz-u-121">Total Overtime</label>
                         </div>
                     </div>
-                </div><!-- End Fields Filter -->
+                </div>
 
                 <button class="btn-action"><i class="fa-solid fa-file-excel"></i> Import XLSX</button>
                 <button class="btn-action report-print-btn" type="button" id="reportPrintBtn">
@@ -141,24 +185,27 @@
                     <span>Print</span>
                 </button>
                 <div class="feriiz-u-123">
-                    <button class="btn-action primary" id="downloadToggleBtn" onclick="this.nextElementSibling.classList.toggle('show')">
+                    <button class="btn-action primary" id="downloadToggleBtn">
                         <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down feriiz-u-124"></i>
                     </button>
                     <div id="downloadDropdown" class="feriiz-u-125">
-                        <div onclick="FeriizNotify.info('The summary export is being prepared.', 'Preparing export'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
-                            <i class="fa-solid fa-file-lines feriiz-u-127"></i> Summary
-                        </div>
+                        <div class="feriiz-u-129"><i class="fa-solid fa-file-lines feriiz-u-127"></i> Summary</div>
                         <div class="feriiz-u-128"></div>
-                        <div onclick="FeriizNotify.info('The timesheet export is being prepared.', 'Preparing export'); this.parentElement.classList.remove('show')" class="feriiz-u-129">
-                            <i class="fa-solid fa-clock feriiz-u-127"></i> Timesheet
-                        </div>
+                        <div class="feriiz-u-129"><i class="fa-solid fa-clock feriiz-u-127"></i> Timesheet</div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Active Filter Indicator -->
+        <div class="report-filter-indicator" id="reportFilterIndicator" style="display:none;">
+            <span class="filter-indicator-label">Active filter:</span>
+            <div class="filter-indicator-chips" id="filterIndicatorChips"></div>
+        </div>
+
+        <!-- Report Table -->
         <div class="report-table-wrap">
-            <table class="report-table">
+            <table class="report-table selectable-report-table">
                 <thead>
                     <tr>
                         <th rowspan="2" class="col-name sticky-col">Name</th>
@@ -169,73 +216,31 @@
                         <th colspan="4" class="group-header" id="grpEmployee">Employee</th>
                         <th colspan="4" class="group-header" id="grpClient">Client</th>
                         <th colspan="2" class="group-header" id="grpAdditional">Additional</th>
-                        <th colspan="5" class="group-header" id="monthHeader">May 2026</th>
                     </tr>
                     <tr>
-                        <!-- Time Period -->
                         <th class="col-inouthour">Start</th>
                         <th class="col-inouthour">End</th>
                         <th class="col-activehour">Period</th>
-                        <!-- Employee -->
                         <th class="col-emp-dailyrate">Daily Rate</th>
                         <th class="col-emp-rateovertime">Rate Overtime</th>
                         <th class="col-emp-totalrate">Total Rate</th>
                         <th class="col-emp-totalovertime">Total Rate Overtime</th>
-                        <!-- Client -->
                         <th class="col-cli-dailyrate">Daily Rate</th>
                         <th class="col-cli-rateovertime">Rate Overtime</th>
                         <th class="col-cli-totalrate">Total Rate</th>
                         <th class="col-cli-totalovertime">Total Rate Overtime</th>
-                        <!-- Additional -->
                         <th class="col-additional-amount">Amount</th>
                         <th class="col-additional-note">Note</th>
-                        <!-- May 2026 day entries -->
-                        <th class="day-col feriiz-u-130" data-date="2026-05-25">Mon 25</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-05-26">Tue 26</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-05-27">Wed 27</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-05-28">Thu 28</th>
-                        <th class="day-col feriiz-u-130" data-date="2026-05-29">Fri 29</th>
                     </tr>
                 </thead>
-                                <tbody>
-                    <tr>
-                        <td class="col-name sticky-col">
-                            <div class="emp-code-cell">IND693283053999</div>
-                            <div class="emp-name-cell">Indra Naftali</div>
-                            <div class="emp-occupation-cell">Manager</div>
-                            <div class="emp-pin-cell">Pin: -</div>
-                        </td>
-                        <td class="col-inouthour">08:00:00</td>
-                        <td class="col-inouthour">17:00:00</td>
-                        <td class="col-activehour">9h</td>
-                        <td class="col-totaldays">2.02d</td>
-                        <td class="col-totalhour">18.18h</td>
-                        <td class="col-totalovertime">4h</td>
-                        <!-- Employee Rates -->
-                        <td class="col-emp-dailyrate rate-cell">IDR0.00</td>
-                        <td class="col-emp-rateovertime rate-cell">IDR0.00</td>
-                        <td class="col-emp-totalrate rate-cell">IDR0.00</td>
-                        <td class="col-emp-totalovertime rate-cell">IDR0.00</td>
-                        <!-- Client Rates -->
-                        <td class="col-cli-dailyrate rate-cell">IDR0.00</td>
-                        <td class="col-cli-rateovertime rate-cell">IDR0.00</td>
-                        <td class="col-cli-totalrate rate-cell">IDR0.00</td>
-                        <td class="col-cli-totalovertime rate-cell">IDR0.00</td>
-                        <!-- Additional -->
-                        <td class="col-additional-amount feriiz-u-073"><span class="note-icon feriiz-u-131"><i class="fa-solid fa-plus"></i></span></td>
-                        <td class="col-additional-note"></td>
-                        <!-- Days -->
-                        <td class="day-col feriiz-u-132" data-date="2026-05-25"><div class="feriiz-u-133"><div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h OT</span></div><div class="feriiz-u-137"><button class="btn btn-primary feriiz-u-138"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline feriiz-u-139"><i class="fa-solid fa-plus"></i></button></div></div><div class="feriiz-u-140"><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-to-bracket feriiz-u-142"></i>09:10:29</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-from-bracket feriiz-u-144"></i>18:45:07</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div></div></td>
-                        <td class="day-col feriiz-u-132" data-date="2026-05-26"><div class="feriiz-u-133"><div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h OT</span></div><div class="feriiz-u-137"><button class="btn btn-primary feriiz-u-138"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline feriiz-u-139"><i class="fa-solid fa-plus"></i></button></div></div><div class="feriiz-u-140"><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-to-bracket feriiz-u-142"></i>09:10:29</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-from-bracket feriiz-u-144"></i>18:45:07</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div></div></td>
-                        <td class="day-col feriiz-u-132" data-date="2026-05-27"><div class="feriiz-u-133"><div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">2h OT</span></div><div class="feriiz-u-137"><button class="btn btn-primary feriiz-u-138"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline feriiz-u-139"><i class="fa-solid fa-plus"></i></button></div></div><div class="feriiz-u-140"><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-to-bracket feriiz-u-142"></i>09:10:29</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-from-bracket feriiz-u-144"></i>18:45:07</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div></div></td>
-                        <td class="day-col feriiz-u-132" data-date="2026-05-28"><div class="feriiz-u-133"><div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">1h OT</span></div><div class="feriiz-u-137"><button class="btn btn-primary feriiz-u-138"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline feriiz-u-139"><i class="fa-solid fa-plus"></i></button></div></div><div class="feriiz-u-140"><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-to-bracket feriiz-u-142"></i>09:10:29</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-from-bracket feriiz-u-144"></i>18:45:07</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div></div></td>
-                        <td class="day-col feriiz-u-132" data-date="2026-05-29"><div class="feriiz-u-133"><div class="feriiz-u-134"><span class="feriiz-u-135">9h</span><span class="feriiz-u-136">1h OT</span></div><div class="feriiz-u-137"><button class="btn btn-primary feriiz-u-138"><i class="fa-solid fa-pen"></i></button><button class="btn btn-outline feriiz-u-139"><i class="fa-solid fa-plus"></i></button></div></div><div class="feriiz-u-140"><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-to-bracket feriiz-u-142"></i>09:10:29</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div><div class="feriiz-u-141"><span><i class="fa-solid fa-arrow-right-from-bracket feriiz-u-144"></i>18:45:07</span><i class="fa-solid fa-trash-can feriiz-u-143"></i></div></div></td>
-                    </tr>
+                <tbody id="reportTableBody">
+                    <!-- Rows generated by report.js -->
                 </tbody>
             </table>
         </div>
+
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.5.7</div>
+            <div class="version-text">version : 3.6.0</div>
             <div class="feriiz-u-145">
                 <button class="btn btn-outline feriiz-u-146" disabled>Prev</button>
                 <button class="btn btn-primary feriiz-u-147">1</button>
@@ -248,251 +253,94 @@
         </div>
     </main>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const filterBtn = document.querySelector('.filter-toggle-btn');
-        const filterDD = filterBtn ? filterBtn.nextElementSibling : null;
-        const colBtn = document.querySelector('.col-toggle-btn');
-        const colDD = colBtn ? colBtn.nextElementSibling : null;
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="report-fix-card" style="width:440px;">
+            <div class="report-fix-header">
+                <h2 id="deleteConfirmTitle">Delete Log</h2>
+                <button class="modal-close-btn" type="button" id="deleteConfirmClose">&times;</button>
+            </div>
+            <div class="report-fix-body">
+                <p id="deleteConfirmMessage" style="font-size:14px;color:#344054;margin:0 0 16px;line-height:1.6;">
+                    Are you sure you want to delete the selected log? This action cannot be undone.
+                </p>
+                <div class="report-fix-summary">
+                    <div>
+                        <span>Selected Log</span>
+                        <strong id="deleteSelectedSummary">0 log</strong>
+                    </div>
+                    <div>
+                        <span>Employee</span>
+                        <strong id="deleteEmployeeSummary">0 employee</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="report-fix-footer">
+                <button class="btn btn-outline" type="button" id="deleteConfirmCancel">Cancel</button>
+                <button class="btn btn-danger" type="button" id="deleteConfirmYes">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Batch Update Modal -->
+    <div class="modal-overlay report-fix-modal" id="batchUpdateModal">
+        <div class="report-fix-card">
+            <div class="report-fix-header">
+                <h2 id="batchUpdateTitle">Add Log</h2>
+                <button class="modal-close-btn" type="button" id="batchUpdateClose">&times;</button>
+            </div>
+            <div class="report-fix-body">
+                <div class="report-fix-summary">
+                    <div>
+                        <span>Selected Log</span>
+                        <strong id="batchSelectedSummary">0 log</strong>
+                    </div>
+                    <div>
+                        <span>Employee</span>
+                        <strong id="batchEmployeeSummary">0 employee</strong>
+                    </div>
+                </div>
+                <label class="report-fix-label">Log Type</label>
+                <div class="batch-log-type-toggle">
+                    <button type="button" class="batch-log-type-btn active" data-log-type="in">Log In</button>
+                    <button type="button" class="batch-log-type-btn" data-log-type="out">Log Out</button>
+                </div>
+                <label class="report-fix-label" for="batchUpdateInput" id="batchUpdateLabel">Set Log In Time</label>
+                <input type="time" step="1" id="batchUpdateInput" class="report-fix-input" value="07:00:00">
+                <label class="report-fix-label" for="batchUpdateNote">Note</label>
+                <textarea id="batchUpdateNote" class="report-fix-note" placeholder="Note"></textarea>
+            </div>
+            <div class="report-fix-footer">
+                <button class="btn btn-outline" type="button" id="batchUpdateCancel">Cancel</button>
+                <button class="btn btn-primary" type="button" id="batchUpdateSave">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
-        const periodSelect = document.querySelector('.filter-period');
-        const dateInputs = document.querySelectorAll('.filter-date');
-
-        if (periodSelect && dateInputs.length >= 2) {
-            periodSelect.addEventListener('change', function() {
-                const v = this.value;
-                const now = new Date();
-                let s = '', e = '';
-                const fmt = (d) => d.toISOString().slice(0,10);
-                if (v === 'today') { s = e = fmt(now); }
-                else if (v === 'yesterday') { const y = new Date(now); y.setDate(y.getDate()-1); s = e = fmt(y); }
-                else if (v === 'this_week') { const d = new Date(now); d.setDate(d.getDate() - d.getDay() + 1); s = fmt(d); e = fmt(now); }
-                else if (v === 'last_week') { const d = new Date(now); d.setDate(d.getDate() - d.getDay() - 6); s = fmt(d); const d2 = new Date(d); d2.setDate(d.getDate()+6); e = fmt(d2); }
-                else if (v === 'this_month') { s = fmt(new Date(now.getFullYear(), now.getMonth(), 1)); e = fmt(now); }
-                else if (v === 'last_month') { s = fmt(new Date(now.getFullYear(), now.getMonth()-1, 1)); e = fmt(new Date(now.getFullYear(), now.getMonth(), 0)); }
-                else if (v === 'this_year') { s = fmt(new Date(now.getFullYear(), 0, 1)); e = fmt(now); }
-                else if (v === 'all_time') { s = ''; e = ''; }
-                dateInputs[0].value = s;
-                dateInputs[1].value = e;
-            });
-        }
-
-        const allDayCols = document.querySelectorAll('.day-col');
-        const allDates = [...new Set([...document.querySelectorAll('th.day-col')].map(th => th.dataset.date))].sort();
-        const reportDefaultDate = '2026-05-25';
-        const reportHolidayDates = new Set(['2026-05-27']);
-        const defaultDates = allDates.includes(reportDefaultDate) ? [reportDefaultDate] : allDates.slice(0, 1);
-
-        function showDays(datesToShow) {
-            allDayCols.forEach(el => {
-                if (datesToShow.includes(el.dataset.date)) {
-                    el.classList.remove('day-col-hidden');
-                } else {
-                    el.classList.add('day-col-hidden');
-                }
-            });
-            const header = document.getElementById('monthHeader');
-            if (header) header.colSpan = datesToShow.length || 1;
-            updateVisibleReportTotals(datesToShow);
-        }
-
-        function parseHourBadge(text) {
-            const match = String(text || '').match(/(\d+(?:\.\d+)?)/);
-            return match ? Number(match[1]) : 0;
-        }
-
-        function formatHourValue(hours) {
-            if (!Number.isFinite(hours) || hours <= 0) return '0h';
-            return Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(2).replace(/\.?0+$/, '')}h`;
-        }
-
-        function updateVisibleReportTotals(datesToShow) {
-            document.querySelectorAll('.report-table tbody tr').forEach(row => {
-                const visibleDays = [...row.querySelectorAll('td.day-col')].filter(cell => datesToShow.includes(cell.dataset.date) && !reportHolidayDates.has(cell.dataset.date));
-                const totalWork = visibleDays.reduce((sum, cell) => {
-                    const workBadge = [...cell.querySelectorAll('span')].find(span => /h$/.test(span.textContent.trim()) && !span.textContent.includes('OT'));
-                    return sum + parseHourBadge(workBadge ? workBadge.textContent : '');
-                }, 0);
-                const totalOvertime = visibleDays.reduce((sum, cell) => {
-                    const overtimeBadge = [...cell.querySelectorAll('span')].find(span => span.textContent.includes('OT'));
-                    return sum + parseHourBadge(overtimeBadge ? overtimeBadge.textContent : '');
-                }, 0);
-
-                const daysCell = row.querySelector('.col-totaldays');
-                const hoursCell = row.querySelector('.col-totalhour');
-                const overtimeCell = row.querySelector('.col-totalovertime');
-                if (daysCell) daysCell.textContent = `${visibleDays.length}d`;
-                if (hoursCell) hoursCell.textContent = formatHourValue(totalWork);
-                if (overtimeCell) overtimeCell.textContent = formatHourValue(totalOvertime);
-            });
-        }
-
-        showDays(defaultDates);
-
-        const applyBtn = document.querySelector('.filter-apply-btn');
-        const clearBtn = document.querySelector('.filter-clear-btn');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', () => {
-                const startStr = dateInputs[0].value;
-                const endStr = dateInputs[1].value;
-                if (startStr || endStr) {
-                    const sTime = startStr ? new Date(startStr).getTime() : Number.NEGATIVE_INFINITY;
-                    const eTime = endStr ? new Date(endStr).getTime() : Number.POSITIVE_INFINITY;
-                    const visibleDates = allDates.filter(d => {
-                        const t = new Date(d).getTime();
-                        return t >= sTime && t <= eTime;
-                    });
-                    showDays(visibleDates.length > 0 ? visibleDates : defaultDates);
-                } else { showDays(defaultDates); }
-                if (filterDD) filterDD.classList.remove('show');
-            });
-        }
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                dateInputs.forEach(i => i.value = '');
-                if (periodSelect) periodSelect.selectedIndex = 0;
-                showDays(defaultDates);
-                if (filterDD) filterDD.classList.remove('show');
-            });
-        }
-
-        // Column mapping: Checkbox ID -> CSS classes to hide/show
-        const colMap = {
-            colActiveHour: ['.col-activehour'],
-            colInOutHour: ['.col-inouthour'],
-            colEmpDailyRate: ['.col-emp-dailyrate'],
-            colEmpRateOvertime: ['.col-emp-rateovertime'],
-            colEmpTotalRate: ['.col-emp-totalrate'],
-            colEmpTotalOvertime: ['.col-emp-totalovertime'],
-            colClientDailyRate: ['.col-cli-dailyrate'],
-            colClientRateOvertime: ['.col-cli-rateovertime'],
-            colClientTotalRate: ['.col-cli-totalrate'],
-            colClientTotalOvertime: ['.col-cli-totalovertime']
-        };
-
-        // Master-slave logic for Employee and Client groups
-        const masterGroups = {
-            colEmployee: ['colEmpDailyRate', 'colEmpRateOvertime', 'colEmpTotalRate', 'colEmpTotalOvertime'],
-            colClient: ['colClientDailyRate', 'colClientRateOvertime', 'colClientTotalRate', 'colClientTotalOvertime']
-        };
-
-        // Header groups to update colspan dynamically
-        const groupHeaders = {
-            grpTimePeriod: ['.col-inouthour', '.col-activehour'],
-            grpEmployee: ['.col-emp-dailyrate', '.col-emp-rateovertime', '.col-emp-totalrate', '.col-emp-totalovertime'],
-            grpClient: ['.col-cli-dailyrate', '.col-cli-rateovertime', '.col-cli-totalrate', '.col-cli-totalovertime'],
-            grpAdditional: ['.col-additional-amount', '.col-additional-note']
-        };
-
-        // Master checkbox logic
-        Object.keys(masterGroups).forEach(masterId => {
-            const masterCb = document.getElementById(masterId);
-            if (!masterCb) return;
-            const slaveIds = masterGroups[masterId];
-            
-            masterCb.addEventListener('change', () => {
-                const targetChecked = masterCb.checked;
-                slaveIds.forEach(id => {
-                    const cb = document.getElementById(id);
-                    if (cb) cb.checked = targetChecked;
-                });
-                masterCb.checked = targetChecked;
-                masterCb.indeterminate = false;
-                updateVisibility();
-            });
-
-            slaveIds.forEach(id => {
-                const cb = document.getElementById(id);
-                if (!cb) return;
-                cb.addEventListener('change', () => {
-                    // Update master state based on slaves
-                    const allChecked = slaveIds.every(sid => document.getElementById(sid).checked);
-                    const someChecked = slaveIds.some(sid => document.getElementById(sid).checked);
-                    masterCb.checked = allChecked;
-                    masterCb.indeterminate = someChecked && !allChecked;
-                });
-            });
-        });
-
-        const updateVisibility = () => {
-            // Apply visibility via day-col-hidden class to avoid inline style conflicts
-            Object.keys(colMap).forEach(id => {
-                const cb = document.getElementById(id);
-                if (!cb) return;
-                const classes = colMap[id];
-                classes.forEach(cls => {
-                    document.querySelectorAll(cls).forEach(el => {
-                        if (cb.checked) {
-                            el.classList.remove('day-col-hidden');
-                        } else {
-                            el.classList.add('day-col-hidden');
-                        }
-                    });
-                });
-            });
-
-            // Recalculate colspans for group headers
-            Object.keys(groupHeaders).forEach(headerId => {
-                const th = document.getElementById(headerId);
-                if (!th) return;
-                const classes = groupHeaders[headerId];
-                // Count visible columns governed by this header
-                // We check the first body row to see which columns are actually visible
-                const firstRow = document.querySelector('tbody tr');
-                if (!firstRow) return;
-                let visibleCount = 0;
-                classes.forEach(cls => {
-                    // .col-inouthour appears twice (Start, End), others appear once
-                    const cells = firstRow.querySelectorAll(cls);
-                    cells.forEach(c => {
-                        if (!c.classList.contains('day-col-hidden')) visibleCount++;
-                    });
-                });
-                if (visibleCount > 0) {
-                    th.colSpan = visibleCount;
-                    th.classList.remove('day-col-hidden');
-                } else {
-                    th.classList.add('day-col-hidden');
-                }
-            });
-        };
-
-        // Bind standard columns
-        Object.keys(colMap).forEach(id => {
-            const cb = document.getElementById(id);
-            if (!cb) return;
-            cb.addEventListener('change', updateVisibility);
-        });
-        
-        // Initial sync
-        updateVisibility();
-    });
-    </script>
-    <script>
-        document.addEventListener('click', function(e) {
-            const dd = document.getElementById('downloadDropdown');
-            const btn = document.getElementById('downloadToggleBtn');
-            if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
-                dd.classList.remove('show');
-            }
-        });
-    </script>
-    <script>
-        // Report Search -- filter table rows by employee name
-        (function() {
-            const searchInput = document.getElementById('reportSearch');
-            if (!searchInput) return;
-            searchInput.addEventListener('input', function() {
-                const query = this.value.trim().toLowerCase();
-                document.querySelectorAll('.report-table tbody tr').forEach(row => {
-                    const nameCell = row.querySelector('.col-name');
-                    if (!nameCell) return;
-                    const name = nameCell.textContent.toLowerCase();
-                    row.style.display = (!query || name.includes(query)) ? '' : 'none';
-                });
-            });
-        })();
-    </script>
+    <!-- Log Note Detail Modal -->
+    <div class="modal-overlay report-fix-modal" id="logNoteModal">
+        <div class="report-fix-card report-note-card">
+            <div class="report-fix-header">
+                <h2>Log Note</h2>
+                <button class="modal-close-btn" type="button" id="logNoteClose" aria-label="Close note">&times;</button>
+            </div>
+            <div class="report-fix-body">
+                <div class="report-note-meta">
+                    <div><span>Employee</span><strong id="logNoteEmployee">-</strong></div>
+                    <div><span>Date</span><strong id="logNoteDate">-</strong></div>
+                    <div><span>Log Type</span><strong id="logNoteType">-</strong></div>
+                    <div><span>Clock</span><strong id="logNoteClock">-</strong></div>
+                </div>
+                <div class="report-note-message">
+                    <span class="report-note-label">Note</span>
+                    <p id="logNoteText">-</p>
+                </div>
+            </div>
+            <div class="report-fix-footer">
+                <button class="btn btn-primary" type="button" id="logNoteDone">Done</button>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>

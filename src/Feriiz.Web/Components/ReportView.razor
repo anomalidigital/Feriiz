@@ -1,0 +1,380 @@
+@*
+    Tabel laporan proyek / karyawan.
+
+    Kelas dan struktur DOM-nya sengaja dibuat identik dengan halaman lama,
+    karena print-report.js membaca DOM ini apa adanya saat mencetak. Semua
+    penyetelan lebar kolom dan ukuran font untuk A4/A3 jadi tetap berlaku
+    tanpa disentuh.
+
+    Bedanya: angka-angka di sini dihitung dari dataset. Versi lama mengisinya
+    dengan nilai contoh (selalu 9h, 0d, IDR0).
+*@
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<div class="report-actions feriiz-u-065">
+    <div class="report-search-wrap">
+        <i class="fa-solid fa-magnifying-glass report-search-icon"></i>
+        <input type="text" id="reportSearch" class="report-search-input" placeholder="Search employee"
+               autocomplete="off" @bind="_search" @bind:event="oninput" @bind:after="Rebuild" />
+    </div>
+
+    <div class="feriiz-u-014">
+        <button class="btn-action @(_columnsOpen ? "active" : "")" type="button"
+                @onclick="() => _columnsOpen = !_columnsOpen">
+            <i class="fa-solid fa-table-columns"></i> Fields
+        </button>
+
+        <div class="filter-dropdown feriiz-u-015 @(_columnsOpen ? "show" : "")">
+            <div class="feriiz-u-016">Columns</div>
+            @foreach (var col in _columns)
+            {
+                <label class="feriiz-u-207" style="display:flex;gap:8px;align-items:center;padding:3px 0;">
+                    <input type="checkbox" class="feriiz-u-120" checked="@col.Visible"
+                           @onchange="e => col.Visible = e.Value is true" />
+                    <span>@col.Label</span>
+                </label>
+            }
+        </div>
+    </div>
+
+    <div class="feriiz-u-014">
+        <button class="btn-action @(_rangeOpen ? "active" : "")" type="button"
+                @onclick="() => _rangeOpen = !_rangeOpen">
+            <i class="fa-solid fa-filter"></i> Filter
+        </button>
+
+        <div class="filter-dropdown feriiz-u-015 @(_rangeOpen ? "show" : "")">
+            <div class="feriiz-u-016">Filter Report</div>
+            <label>Date Range</label>
+            <div class="feriiz-u-003">
+                <input type="date" class="input filter-date feriiz-u-004" @bind="_draftFrom" />
+                <span class="feriiz-u-005">-</span>
+                <input type="date" class="input filter-date feriiz-u-004" @bind="_draftTo" />
+            </div>
+            <div class="feriiz-u-018">
+                <button class="btn btn-outline feriiz-u-019" @onclick="ClearRange">Clear</button>
+                <button class="btn btn-primary feriiz-u-019" @onclick="ApplyRange">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-action report-print-btn" type="button" @onclick="Print">
+        <i class="fa-solid fa-print"></i> Print
+    </button>
+</div>
+
+<div class="report-filter-indicator" style="@(HasRangeFilter ? "" : "display:none;")">
+    <span>Filtered:</span>
+    <div class="filter-indicator-chips" id="filterIndicatorChips">
+        @if (HasRangeFilter)
+        {
+            <span class="filter-indicator-chip">@RangeLabel</span>
+        }
+    </div>
+</div>
+
+<div class="report-table-wrap">
+    <table class="report-table selectable-report-table">
+        <thead>
+            <tr>
+                <th rowspan="2" class="col-name sticky-col">Name</th>
+                <th colspan="3" class="group-header">Time Period</th>
+                <th rowspan="2" class="col-totaldays">Total Days</th>
+                <th rowspan="2" class="col-totalhour">Total Hour</th>
+                <th rowspan="2" class="col-totalovertime">Total Overtime</th>
+                <th colspan="4" class="group-header">Employee</th>
+                <th colspan="4" class="group-header">Client</th>
+                <th colspan="2" class="group-header">Additional</th>
+                <th colspan="@Math.Max(1, _dates.Count)" class="group-header" id="monthHeader">@_monthLabel</th>
+            </tr>
+            <tr>
+                <th class="col-inouthour">Start</th>
+                <th class="col-inouthour">End</th>
+                <th class="col-activehour">Period</th>
+                <th class="col-emp-dailyrate">Daily Rate</th>
+                <th class="col-emp-rateovertime">Rate Overtime</th>
+                <th class="col-emp-totalrate">Total Rate</th>
+                <th class="col-emp-totalovertime">Total Rate Overtime</th>
+                <th class="col-cli-dailyrate">Daily Rate</th>
+                <th class="col-cli-rateovertime">Rate Overtime</th>
+                <th class="col-cli-totalrate">Total Rate</th>
+                <th class="col-cli-totalovertime">Total Rate Overtime</th>
+                <th class="col-additional-amount">Amount</th>
+                <th class="col-additional-note">Note</th>
+                @foreach (var d in _dates)
+                {
+                    <th class="day-col feriiz-u-130" data-date="@d.ToString("yyyy-MM-dd")">
+                        <span>@d.ToString("ddd dd")</span>
+                    </th>
+                }
+            </tr>
+        </thead>
+
+        <tbody id="reportTableBody">
+            @foreach (var row in PageRows)
+            {
+                <tr data-employee-code="@row.Employee.Code" data-employee-name="@row.Employee.Name">
+                    <td class="col-name sticky-col">
+                        <div class="report-identity-content">
+                            <div class="emp-code-cell">@row.Employee.Code</div>
+                            <div class="emp-name-cell">@row.Employee.Name</div>
+                            <div class="emp-occupation-cell">@row.Employee.Occupation</div>
+                            <div class="emp-pin-cell">Pin: @row.Employee.Pin</div>
+                        </div>
+                    </td>
+                    <td class="col-inouthour">@WorkStart</td>
+                    <td class="col-inouthour">@WorkEnd</td>
+                    <td class="col-activehour">@Hours(ShiftHours)</td>
+                    <td class="col-totaldays">@row.Days<text>d</text></td>
+                    <td class="col-totalhour">@Hours(row.Hours)</td>
+                    <td class="col-totalovertime">@Hours(row.Overtime)</td>
+                    <td class="col-emp-dailyrate rate-cell">@Idr(row.Employee.DailyRate)</td>
+                    <td class="col-emp-rateovertime rate-cell">@Idr(EmpOvertimeRate)</td>
+                    <td class="col-emp-totalrate rate-cell">@Idr(row.Employee.DailyRate * row.Days)</td>
+                    <td class="col-emp-totalovertime rate-cell">@Idr((decimal)row.Overtime * EmpOvertimeRate)</td>
+                    <td class="col-cli-dailyrate rate-cell">@Idr(row.Employee.ClientDailyRate)</td>
+                    <td class="col-cli-rateovertime rate-cell">@Idr(CliOvertimeRate)</td>
+                    <td class="col-cli-totalrate rate-cell">@Idr(row.Employee.ClientDailyRate * row.Days)</td>
+                    <td class="col-cli-totalovertime rate-cell">@Idr((decimal)row.Overtime * CliOvertimeRate)</td>
+                    <td class="col-additional-amount"></td>
+                    <td class="col-additional-note"></td>
+
+                    @foreach (var d in _dates)
+                    {
+                        var cell = row.Day(d);
+                        <td class="day-col feriiz-u-131" data-date="@d.ToString("yyyy-MM-dd")">
+                            @if (cell is not null && !cell.IsOffDay)
+                            {
+                                <div class="feriiz-u-133">
+                                    <div class="feriiz-u-134">
+                                        <span class="badge feriiz-u-135">@Hours(cell.WorkHours)</span>
+                                        <span class="badge feriiz-u-136">@Hours(cell.OvertimeHours) OT</span>
+                                    </div>
+                                </div>
+                                <div class="feriiz-u-140">
+                                    @if (!string.IsNullOrEmpty(cell.InTime))
+                                    {
+                                        <div class="feriiz-u-141">
+                                            <span><i class="fa-solid fa-arrow-right-to-bracket feriiz-u-142"></i>@cell.InTime</span>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(cell.OutTime))
+                                    {
+                                        <div class="feriiz-u-141">
+                                            <span><i class="fa-solid fa-arrow-right-from-bracket feriiz-u-144"></i>@cell.OutTime</span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    <Pagination Page="_page" TotalItems="_rows.Count" PerPage="PerPage"
+                EmptyLabel="No employees match your filter"
+                PageChanged="p => _page = p" />
+</div>
+
+<div class="fixed-bottom-bar">
+    <div class="version-text">version : @AppInfo.Version</div>
+</div>
+
+@code {
+    // Query dibaca sendiri, bukan diterima dari halaman induk.
+    //
+    // Induknya menetapkan kodenya di dalam OnInitializedAsync, yaitu setelah
+    // await. Komponen ini sudah dirender lebih dulu dengan nilai null, dan
+    // OnParametersSetAsync tidak pernah dipanggil lagi sesudahnya - tabelnya
+    // selamanya kosong. Membaca URL langsung menghilangkan urutan itu.
+    private string? _projectCode;
+    private string? _employeeCode;
+
+    private sealed class ColumnToggle
+    {
+        public string Label { get; init; } = "";
+        public bool Visible { get; set; } = true;
+    }
+
+    private sealed class ReportRow
+    {
+        public Employee Employee { get; init; } = default!;
+        public Dictionary<string, AttendanceEntry> ByDate { get; init; } = new(StringComparer.Ordinal);
+        public int Days { get; set; }
+        public double Hours { get; set; }
+        public double Overtime { get; set; }
+
+        public AttendanceEntry? Day(DateOnly d) =>
+            ByDate.TryGetValue(d.ToString("yyyy-MM-dd"), out var e) ? e : null;
+    }
+
+    private readonly List<ColumnToggle> _columns = new()
+    {
+        new() { Label = "Active Hour" },
+        new() { Label = "In/Out Hour", Visible = false },
+        new() { Label = "Employee" },
+        new() { Label = "Client" },
+        new() { Label = "Additional" },
+    };
+
+    private const int PerPage = 25;
+
+    private int _page = 1;
+    private Project? _project;
+    private List<Employee> _employees = new();
+    private string _search = "";
+    private bool _columnsOpen, _rangeOpen;
+
+    private DateOnly? _draftFrom, _appliedFrom;
+    private DateOnly? _draftTo, _appliedTo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        _employeeCode = QueryString.Get(Nav.Uri, "employee");
+        _projectCode = QueryString.Get(Nav.Uri, "project");
+
+        var one = _employeeCode is null ? null : Data.FindEmployee(_employeeCode);
+
+        // ?employee= tanpa ?project= tetap perlu proyek, untuk jam kerja dan tarif.
+        _project = Data.FindProject(_projectCode)
+                   ?? (one is null ? null : Data.FindProject(one.Projects.FirstOrDefault()))
+                   ?? Data.DefaultProject;
+
+        _employees = one is not null
+            ? new List<Employee> { one }
+            : _project is null
+                ? new List<Employee>()
+                : Data.EmployeesOfProject(_project.Code).ToList();
+
+        Rebuild();
+    }
+
+    private string WorkStart => (_project?.WorkStart ?? "08:00") + ":00";
+    private string WorkEnd => (_project?.WorkEnd ?? "17:00") + ":00";
+    private decimal EmpOvertimeRate => _project?.OvertimeRate ?? 0;
+    private decimal CliOvertimeRate => _project?.ClientOvertimeRate ?? 0;
+
+    private double ShiftHours
+    {
+        get
+        {
+            if (!TimeOnly.TryParse(_project?.WorkStart, out var s)) return 9;
+            if (!TimeOnly.TryParse(_project?.WorkEnd, out var e)) return 9;
+            var span = (e - s).TotalHours;
+            return span <= 0 ? 9 : span;
+        }
+    }
+
+    private bool HasRangeFilter => _appliedFrom is not null || _appliedTo is not null;
+
+    private string RangeLabel =>
+        $"{_appliedFrom?.ToString("dd MMM yyyy") ?? "…"} - {_appliedTo?.ToString("dd MMM yyyy") ?? "…"}";
+
+    /// <summary>
+    /// Halaman lama juga berpaginasi. Tanpa ini satu proyek besar merender 142
+    /// baris x 24 kolom sekaligus dan tabnya membeku.
+    /// </summary>
+    private IEnumerable<ReportRow> PageRows =>
+        _rows.Skip((_page - 1) * PerPage).Take(PerPage);
+
+    private List<DateOnly> _dates = new();
+    private List<ReportRow> _rows = new();
+    private string _monthLabel = "-";
+
+    /// <summary>
+    /// Dihitung sekali per perubahan, bukan sebagai properti.
+    /// Sebagai properti, Razor memanggilnya berkali-kali tiap render dan tiap
+    /// panggilan memindai 80.520 baris absensi - halamannya menggantung.
+    /// </summary>
+    private void Rebuild()
+    {
+        _dates = ResolveDates();
+        _monthLabel = _dates.Count == 0 ? "-" : _dates[^1].ToString("MMMM yyyy");
+        _rows = BuildRows(_dates);
+        _page = 1;
+    }
+
+    /// <summary>Kolom hari: rentang yang dipilih, atau 7 hari terakhir yang ada datanya.</summary>
+    private List<DateOnly> ResolveDates()
+    {
+        if (_appliedFrom is { } from && _appliedTo is { } to && to >= from)
+        {
+            var span = to.DayNumber - from.DayNumber + 1;
+            return Enumerable.Range(0, Math.Min(span, 31)).Select(from.AddDays).ToList();
+        }
+
+        var latest = "";
+        foreach (var a in Data.Attendance)
+        {
+            if (_project is not null && a.ProjectCode != _project.Code) continue;
+            if (string.CompareOrdinal(a.Date, latest) > 0) latest = a.Date;
+        }
+
+        if (!DateOnly.TryParse(latest, out var end)) return new List<DateOnly>();
+        return Enumerable.Range(0, 7).Select(i => end.AddDays(i - 6)).ToList();
+    }
+
+    private List<ReportRow> BuildRows(List<DateOnly> dates)
+    {
+        if (dates.Count == 0) return new List<ReportRow>();
+
+        var first = dates[0].ToString("yyyy-MM-dd");
+        var last = dates[^1].ToString("yyyy-MM-dd");
+        var q = _search.Trim();
+
+        var wanted = _employees.Where(e =>
+            q.Length == 0
+            || e.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0
+            || e.Code.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+
+        var rows = wanted.Select(e => new ReportRow { Employee = e }).ToList();
+        var byCode = rows.ToDictionary(r => r.Employee.Code, StringComparer.Ordinal);
+
+        // Satu kali lintasan atas seluruh absensi, bukan satu per karyawan.
+        foreach (var a in Data.Attendance)
+        {
+            if (_project is not null && a.ProjectCode != _project.Code) continue;
+            if (string.CompareOrdinal(a.Date, first) < 0
+                || string.CompareOrdinal(a.Date, last) > 0) continue;
+            if (!byCode.TryGetValue(a.EmployeeCode, out var row)) continue;
+
+            row.ByDate[a.Date] = a;
+            if (a.Status != "present") continue;
+            row.Days++;
+            row.Hours += a.WorkHours;
+            row.Overtime += a.OvertimeHours;
+        }
+
+        return rows;
+    }
+
+    private void ApplyRange()
+    {
+        _appliedFrom = _draftFrom;
+        _appliedTo = _draftTo;
+        _rangeOpen = false;
+        Rebuild();
+    }
+
+    private void ClearRange()
+    {
+        _draftFrom = _appliedFrom = _draftTo = _appliedTo = null;
+        _rangeOpen = false;
+        Rebuild();
+    }
+
+    private async Task Print() => await JS.InvokeVoidAsync("window.print");
+
+    private static string Hours(double h)
+    {
+        if (h <= 0) return "0h";
+        return h % 1 == 0 ? $"{h:0}h" : $"{h:0.##}h";
+    }
+
+    private static string Idr(decimal amount) => FeriizDataService.Idr(amount);
+}

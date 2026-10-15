@@ -1,0 +1,252 @@
+@*
+    Form Add Project / Project Detail.
+
+    Isinya masih demo, sama seperti halaman lama: tidak ada backend yang
+    menerima perubahannya. Dipisah jadi komponen supaya Projects.razor tetap
+    terbaca, dan supaya baris hari lembur cukup ditulis sekali lalu di-loop
+    (di HTML lama ketujuh harinya disalin satu per satu).
+*@
+
+<div class="modal-overlay show" @onclick="Close">
+    <div class="modal-card feriiz-u-192" @onclick:stopPropagation>
+        <div class="modal-header feriiz-u-193">
+            <h2 class="feriiz-u-194">@Title</h2>
+            <button class="modal-close feriiz-u-195" @onclick="Close">&times;</button>
+        </div>
+
+        <div class="modal-body feriiz-u-196">
+
+            <div>
+                <div class="feriiz-u-177">
+                    <h3 class="feriiz-u-197">Project Info</h3>
+
+                    <div class="feriiz-u-198">
+                        <div>
+                            <label class="feriiz-u-199">Project Name</label>
+                            <input type="text" class="input feriiz-u-200" placeholder="Project Name" @bind="_name" />
+                        </div>
+                        <div>
+                            <label class="feriiz-u-199">Project Code</label>
+                            <input type="text" class="input feriiz-u-200" placeholder="Project Code" @bind="_code" />
+                        </div>
+                    </div>
+
+                    <div class="feriiz-u-198">
+                        <div>
+                            <label class="feriiz-u-199">Type</label>
+                            <select class="select feriiz-u-201" @bind="_type">
+                                <option value="Attendance">Attendance</option>
+                                <option value="Vision">Vision</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="feriiz-u-199">Description</label>
+                            <input type="text" class="input feriiz-u-200" placeholder="Description" @bind="_description" />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="feriiz-u-177">
+                        <h3 class="feriiz-u-202">Working Time</h3>
+                        <div class="project-working-hour-grid">
+                            <input type="text" placeholder="Start Hour" aria-label="Start hour" @bind="_startHour" />
+                            <input type="text" placeholder="End Hour" aria-label="End hour" @bind="_endHour" />
+                            <input type="text" placeholder="Cut Off Hour" aria-label="Cut off hour" @bind="_cutOffHour" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="feriiz-u-202">Overtime</h3>
+                        <div class="project-overtime-panel">
+                            <div class="project-overtime-table" aria-label="Default overtime setting">
+                                <div class="project-overtime-head">Overtime</div>
+                                <div class="project-overtime-head">Start</div>
+                                <div class="project-overtime-head">End</div>
+                                <div class="project-overtime-head">Total</div>
+
+                                <div class="project-overtime-day">Daily Default</div>
+                                <input type="text" inputmode="numeric" aria-label="Daily default start overtime minutes"
+                                       @bind="_defaultStart" />
+                                <input type="text" inputmode="numeric" aria-label="Daily default end overtime minutes"
+                                       @bind="_defaultEnd" />
+                                <div class="project-overtime-total">@TotalHours(_defaultStart, _defaultEnd)</div>
+                            </div>
+
+                            <label class="project-overtime-custom-toggle">
+                                <input type="checkbox" @bind="_customizeOvertime" />
+                                <span>Customize Overtime</span>
+                            </label>
+
+                            @if (_customizeOvertime)
+                            {
+                                <div class="project-overtime-daily">
+                                    <div class="project-overtime-table" aria-label="Daily overtime setting">
+                                        <div class="project-overtime-head">Overtime</div>
+                                        <div class="project-overtime-head">Start</div>
+                                        <div class="project-overtime-head">End</div>
+                                        <div class="project-overtime-head">Total</div>
+
+                                        @foreach (var day in Days)
+                                        {
+                                            <div class="project-overtime-day">@day</div>
+                                            <input type="text" inputmode="numeric" aria-label="@day start overtime minutes"
+                                                   value="@_perDayStart[day]"
+                                                   @onchange="e => _perDayStart[day] = Text(e)" />
+                                            <input type="text" inputmode="numeric" aria-label="@day end overtime minutes"
+                                                   value="@_perDayEnd[day]"
+                                                   @onchange="e => _perDayEnd[day] = Text(e)" />
+                                            <div class="project-overtime-total">
+                                                @TotalHours(_perDayStart[day], _perDayEnd[day])
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="feriiz-u-177">
+                    <h3 class="feriiz-u-202">Check In/Out Tolerance</h3>
+                    <div class="project-tolerance-grid">
+                        <div>
+                            <label class="feriiz-u-203">Check In Before</label>
+                            <input type="text" placeholder="Check In Before" class="feriiz-u-204" @bind="_checkInBefore" />
+                            <label class="feriiz-u-203">Check In After</label>
+                            <input type="text" class="feriiz-u-205" @bind="_checkInAfter" />
+                        </div>
+                        <div>
+                            <label class="feriiz-u-203">Check Out Before</label>
+                            <input type="text" class="feriiz-u-205" @bind="_checkOutBefore" />
+                            <label class="feriiz-u-203">Check Out After</label>
+                            <input type="text" placeholder="Check Out After" class="feriiz-u-204" @bind="_checkOutAfter" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feriiz-u-177">
+                    <h3 class="feriiz-u-202">Overtime Tolerance</h3>
+                    <div class="project-tolerance-grid">
+                        <div>
+                            <label class="feriiz-u-203">Check In Before</label>
+                            <input type="text" placeholder="Check In Before" class="feriiz-u-204" @bind="_otInBefore" />
+                            <label class="feriiz-u-203">Check In After</label>
+                            <input type="text" class="feriiz-u-205" @bind="_otInAfter" />
+                        </div>
+                        <div>
+                            <label class="feriiz-u-203">Check Out Before</label>
+                            <input type="text" class="feriiz-u-205" @bind="_otOutBefore" />
+                            <label class="feriiz-u-203">Check Out After</label>
+                            <input type="text" placeholder="Check Out After" class="feriiz-u-204" @bind="_otOutAfter" />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="button" class="project-config-toggle @(_penaltyOpen ? "is-open" : "")"
+                            @onclick="() => _penaltyOpen = !_penaltyOpen">
+                        <span>@(_penaltyOpen ? "Hide" : "Show") Penalty &amp; Config</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+
+                    @if (_penaltyOpen)
+                    {
+                        <div class="project-penalty-config">
+                            <div class="feriiz-u-198">
+                                <div>
+                                    <label class="feriiz-u-203">Forgot Check In/Out</label>
+                                    <input type="text" placeholder="Forgot Check In/Out" class="feriiz-u-204"
+                                           @bind="_penaltyForgot" />
+                                </div>
+                                <div>
+                                    <label class="feriiz-u-203">Early/Late Check In/Out</label>
+                                    <input type="text" placeholder="Early/Late Check In/Out" class="feriiz-u-204"
+                                           @bind="_penaltyEarlyLate" />
+                                </div>
+                            </div>
+                            <div class="feriiz-u-206">
+                                <label class="feriiz-u-207">
+                                    <input type="checkbox" class="feriiz-u-208" @bind="_timeStrict" />
+                                    Time Strict
+                                </label>
+                                <label class="feriiz-u-207">
+                                    <input type="checkbox" class="feriiz-u-208" @bind="_overtimeStrict" />
+                                    Overtime Strict
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="feriiz-u-209">
+            <button class="btn btn-outline feriiz-u-210" @onclick="Close">Cancel</button>
+            <button class="btn btn-primary feriiz-u-211" @onclick="Save">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly string[] Days = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    /// <summary>Proyek yang sedang dibuka. null berarti mode Add Project.</summary>
+    [Parameter] public Project? Project { get; set; }
+
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnSaved { get; set; }
+
+    private string Title => Project is null ? "Add Project" : "Project Detail";
+
+    private string _name = "", _code = "", _type = "Attendance", _description = "Attendance";
+    private string _startHour = "", _endHour = "", _cutOffHour = "";
+    private string _defaultStart = "0", _defaultEnd = "0";
+    private string _checkInBefore = "", _checkInAfter = "0", _checkOutBefore = "0", _checkOutAfter = "";
+    private string _otInBefore = "", _otInAfter = "0", _otOutBefore = "0", _otOutAfter = "";
+    private string _penaltyForgot = "", _penaltyEarlyLate = "";
+    private bool _customizeOvertime, _penaltyOpen, _timeStrict, _overtimeStrict;
+
+    private readonly Dictionary<string, string> _perDayStart = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _perDayEnd = new(StringComparer.Ordinal);
+
+    protected override void OnParametersSet()
+    {
+        foreach (var d in Days)
+        {
+            _perDayStart.TryAdd(d, "0");
+            _perDayEnd.TryAdd(d, "0");
+        }
+
+        if (Project is null) return;
+
+        _name = Project.Name;
+        _code = Project.Code;
+        _type = Project.Type;
+        _startHour = Project.WorkStart;
+        _endHour = Project.WorkEnd;
+        // Membuka proyek yang sudah ada langsung menampilkan tabel lembur harian,
+        // sama seperti perilaku halaman lama.
+        _customizeOvertime = true;
+    }
+
+    private static string Text(ChangeEventArgs e) => e.Value?.ToString() ?? "";
+
+    /// <summary>Menit awal + akhir dijumlahkan lalu ditampilkan dalam jam.</summary>
+    private static string TotalHours(string start, string end)
+    {
+        _ = int.TryParse(start, out var s);
+        _ = int.TryParse(end, out var f);
+        var hours = (s + f) / 60d;
+        return hours == 0 ? "0h" : $"{hours:0.##}h";
+    }
+
+    private async Task Close() => await OnClose.InvokeAsync();
+
+    private async Task Save()
+    {
+        await OnSaved.InvokeAsync(string.IsNullOrWhiteSpace(_name) ? "" : _name.Trim());
+    }
+}

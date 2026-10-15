@@ -1,0 +1,222 @@
+@page "/employee-personal-request"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - @(_employee?.Name ?? "Employee") - Request</PageTitle>
+
+<div class="breadcrumb">
+    <a href="projects">Projects</a>
+    <span>&gt;</span>
+    <a href="project-employees?project=@_projectCode">@Data.ProjectLabel(_projectCode)</a>
+    <span>&gt;</span>
+    <a href="requests">Request</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">@(_employee?.Name ?? "Employee")</span>
+</div>
+
+<div class="page-header">
+    <EmployeeHeader Employee="_employee" BackHref="@($"project-employees?project={_projectCode}")" />
+
+    <div class="page-actions feriiz-u-065">
+        <div class="feriiz-u-014">
+            <button class="btn btn-outline filter-toggle-btn @(_filterOpen ? "active" : "")" title="Filter"
+                    @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="filter-dropdown feriiz-u-015 @(_filterOpen ? "show" : "")">
+                <div class="feriiz-u-016">Filter Request</div>
+
+                <label>Date Range</label>
+                <div class="feriiz-u-095">
+                    <input type="date" class="input feriiz-u-004" @bind="_draftFrom" />
+                    <span class="feriiz-u-005">-</span>
+                    <input type="date" class="input feriiz-u-004" @bind="_draftTo" />
+                </div>
+
+                <label>Request</label>
+                <select class="input feriiz-u-094" @bind="_draftType">
+                    <option value="">-- All Request --</option>
+                    <option value="Annual Leave">Annual Leave</option>
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Remote Work">Remote Work</option>
+                    <option value="Permission">Permission</option>
+                </select>
+
+                <label>Status</label>
+                <select class="input feriiz-u-096" @bind="_draftStatus">
+                    <option value="">-- All Status --</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+
+                <div class="feriiz-u-018">
+                    <button class="btn btn-outline feriiz-u-019" @onclick="ClearFilter">Clear</button>
+                    <button class="btn btn-primary feriiz-u-019" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="feriiz-u-020">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
+            <input type="text" placeholder="Search request..." class="feriiz-u-068"
+                   @bind="_search" @bind:event="oninput" />
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-098">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-clock"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-099">@Count("Pending")</div>
+            <div class="stat-label feriiz-u-027">Pending</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-072">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-099">@Count("Accepted")</div>
+            <div class="stat-label feriiz-u-027">Accepted</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-071">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-099">@Count("Rejected")</div>
+            <div class="stat-label feriiz-u-027">Rejected</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Project Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Remark</th>
+                <th>Request</th>
+                <th>Status</th>
+                <th>Approval</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Filtered)
+            {
+                <tr @key="r.Id">
+                    <td>
+                        <div class="employee-cell">
+                            <img class="employee-avatar feriiz-u-100" src="@Data.AvatarSrc(_employee)" alt="@(_employee?.Name ?? "")" />
+                            <div>
+                                <div class="employee-name">@(_employee?.Name ?? "-")</div>
+                                <div class="employee-code feriiz-u-031">@(_employee?.Code ?? "")</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@Data.ProjectLabel(r.ProjectCode)</td>
+                    <td>@ShortDate(r.DateStart)</td>
+                    <td>@ShortDate(r.DateEnd)</td>
+                    <td>@(string.IsNullOrWhiteSpace(r.Reason) ? "-" : r.Reason)</td>
+                    <td>@r.Type</td>
+                    <td><span class="@StatusClass(r.Status)">@r.Status</span></td>
+                    <td>@(string.IsNullOrWhiteSpace(r.Pic) ? "-" : r.Pic)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Filtered.Count == 0)
+    {
+        <div class="partner-empty-state">No requests match your filter.</div>
+    }
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@code {
+    private Employee? _employee;
+    private string _projectCode = "ANM001";
+    private List<LeaveRequest> _mine = new();
+
+    private bool _filterOpen;
+    private string _search = "";
+    private string _draftType = "", _appliedType = "";
+    private string _draftStatus = "", _appliedStatus = "";
+    private DateOnly? _draftFrom, _appliedFrom;
+    private DateOnly? _draftTo, _appliedTo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        var code = QueryString.Get(Nav.Uri, "employee");
+        _projectCode = QueryString.Get(Nav.Uri, "project") ?? "ANM001";
+
+        // Requests memakai tim Anomali, bukan dataset besar.
+        _mine = Data.Requests.Where(r => r.EmployeeCode == code).ToList();
+        _employee = Data.FindEmployee(code)
+                    ?? Data.FindEmployee(_mine.FirstOrDefault()?.EmployeeCode);
+    }
+
+    private int Count(string status) =>
+        _mine.Count(r => string.Equals(r.Status, status, StringComparison.OrdinalIgnoreCase));
+
+    private List<LeaveRequest> Filtered
+    {
+        get
+        {
+            var q = _search.Trim();
+            return _mine.Where(r =>
+            {
+                if (_appliedType.Length > 0
+                    && !r.Type.Contains(_appliedType, StringComparison.OrdinalIgnoreCase)) return false;
+                if (_appliedStatus.Length > 0
+                    && !r.Status.Contains(_appliedStatus, StringComparison.OrdinalIgnoreCase)) return false;
+
+                if (DateOnly.TryParse(r.DateStart, out var start))
+                {
+                    if (_appliedFrom is { } from && start < from) return false;
+                    if (_appliedTo is { } to && start > to) return false;
+                }
+
+                if (q.Length > 0)
+                {
+                    var haystack = $"{r.Type} {r.Reason} {r.Status} {r.Pic}";
+                    if (haystack.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+                }
+                return true;
+            }).ToList();
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _appliedType = _draftType;
+        _appliedStatus = _draftStatus;
+        _appliedFrom = _draftFrom;
+        _appliedTo = _draftTo;
+        _filterOpen = false;
+    }
+
+    private void ClearFilter()
+    {
+        _draftType = _appliedType = "";
+        _draftStatus = _appliedStatus = "";
+        _draftFrom = _appliedFrom = _draftTo = _appliedTo = null;
+        _filterOpen = false;
+    }
+
+    /// <summary>Kelas warna badge status, mengikuti kelas yang dipakai halaman lama.</summary>
+    private static string StatusClass(string status) => status switch
+    {
+        "Pending" => "feriiz-u-101",
+        "Rejected" => "feriiz-u-071",
+        _ => "feriiz-u-102",
+    };
+
+    private static string ShortDate(string iso) =>
+        DateOnly.TryParse(iso, out var d) ? d.ToString("dd MMM yyyy") : "-";
+}

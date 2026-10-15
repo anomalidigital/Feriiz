@@ -23,13 +23,13 @@
                 <i class="fa-solid fa-clipboard"></i><span class="nav-label">Projects</span>
             </a>
             <div class="nav-submenu">
-                <a href="@WithProject("project-activity")" class="@Active(Is("project-activity"))">
+                <a href="@WithProject("project-employees")" class="@Active(ActivityPages.Contains(CurrentPage))">
                     <i class="fa-solid fa-clock"></i><span class="nav-label">Activity</span>
                 </a>
-                <a href="@WithProject("project-report")" class="@Active(Is("project-report"))">
+                <a href="@WithProject("project-report")" class="@Active(ReportPages.Contains(CurrentPage))">
                     <i class="fa-regular fa-file-lines"></i><span class="nav-label">Report</span>
                 </a>
-                <a href="@WithProject("requests")" class="@Active(Is("requests"))">
+                <a href="@WithProject("requests")" class="@Active(RequestPages.Contains(CurrentPage))">
                     <i class="fa-solid fa-clipboard-list"></i><span class="nav-label">Requests</span>
                 </a>
             </div>
@@ -72,9 +72,23 @@
 
     private bool Is(string page) => CurrentPage == page;
 
+    // Halaman turunan proyek, dikelompokkan per submenu yang harus menyala.
+    // Ini menggantikan tabel PAGE_MAP di app.js; daftarnya harus lengkap, kalau
+    // ada rute yang terlewat submenunya tidak pernah terbuka di halaman itu dan
+    // Report jadi tak terjangkau dari sidebar.
+    private static readonly string[] ActivityPages =
+        { "project-employees", "project-activity", "project-attendance" };
+
+    private static readonly string[] ReportPages =
+        { "project-report", "employee-report" };
+
+    private static readonly string[] RequestPages =
+        { "requests", "employee-personal-request" };
+
     private bool InProjectGroup =>
-        CurrentPage is "project-activity" or "project-report" or "requests"
-                    or "project-attendance" or "employee-report" or "employee-request";
+        ActivityPages.Contains(CurrentPage)
+        || ReportPages.Contains(CurrentPage)
+        || RequestPages.Contains(CurrentPage);
 
     private static string Active(bool on) => on ? "active" : "";
 

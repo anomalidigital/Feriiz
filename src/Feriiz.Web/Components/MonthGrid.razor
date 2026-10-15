@@ -1,0 +1,120 @@
+@*
+    Grid tanggal satu bulan: baris hari, sel bulan sebelumnya/berikutnya yang
+    diredupkan, bar hari libur, dan badge event per orang.
+
+    Dipakai Calendar dan ProjectCalendar supaya perhitungan tanggalnya hanya
+    ada di satu tempat.
+*@
+
+<div class="cal-grid">
+    @foreach (var d in DayNames)
+    {
+        <div class="cal-day-header">@d</div>
+    }
+
+    @foreach (var lead in LeadingDays)
+    {
+        <div class="cal-cell other-month"><div class="cal-date">@lead</div></div>
+    }
+
+    @foreach (var cell in MonthDays)
+    {
+        <div class="@cell.CssClass">
+            <div class="cal-date">@cell.Day</div>
+
+            @foreach (var h in cell.Holidays)
+            {
+                <div class="cal-holiday-bar @(IsWorkingDay(h.Date) ? "company-working" : "")"
+                     @onclick="() => OnHolidayClick.InvokeAsync(h)" @onclick:stopPropagation>
+                    @(IsWorkingDay(h.Date) ? $"{h.Name} - Company Working" : h.Name)
+                </div>
+            }
+
+            @foreach (var e in cell.Events)
+            {
+                <div class="cal-count-badge cal-person-event @CatCss(e.Cat)"
+                     @onclick="() => OnEventClick.InvokeAsync(e)" @onclick:stopPropagation>
+                    <span class="badge-dot"></span>@e.Name | @e.Type
+                </div>
+            }
+        </div>
+    }
+
+    @foreach (var trail in TrailingDays)
+    {
+        <div class="cal-cell other-month"><div class="cal-date">@trail</div></div>
+    }
+</div>
+
+@code {
+    private static readonly string[] DayNames = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+    [Parameter, EditorRequired] public int Year { get; set; }
+    [Parameter, EditorRequired] public int Month { get; set; }
+    [Parameter] public IReadOnlyList<CalendarEvent> Events { get; set; } = Array.Empty<CalendarEvent>();
+    [Parameter] public IReadOnlyList<Holiday> Holidays { get; set; } = Array.Empty<Holiday>();
+
+    /// <summary>Menjawab apakah tanggal itu ditandai tetap masuk kerja.</summary>
+    [Parameter] public Func<string, bool>? WorkingOverride { get; set; }
+
+    [Parameter] public EventCallback<CalendarEvent> OnEventClick { get; set; }
+    [Parameter] public EventCallback<Holiday> OnHolidayClick { get; set; }
+
+    private sealed record DayCell(int Day, string CssClass,
+                                  IReadOnlyList<Holiday> Holidays,
+                                  IReadOnlyList<CalendarEvent> Events);
+
+    private int DaysInMonth => DateTime.DaysInMonth(Year, Month);
+    private int FirstDayOfWeek => (int)new DateTime(Year, Month, 1).DayOfWeek;
+
+    private bool IsWorkingDay(string date) => WorkingOverride?.Invoke(date) ?? false;
+
+    private IEnumerable<int> LeadingDays
+    {
+        get
+        {
+            var prev = DateTime.DaysInMonth(Month == 1 ? Year - 1 : Year, Month == 1 ? 12 : Month - 1);
+            for (var i = FirstDayOfWeek - 1; i >= 0; i--) yield return prev - i;
+        }
+    }
+
+    private IEnumerable<int> TrailingDays
+    {
+        get
+        {
+            var used = FirstDayOfWeek + DaysInMonth;
+            for (var i = 1; i <= (7 - (used % 7)) % 7; i++) yield return i;
+        }
+    }
+
+    private IEnumerable<DayCell> MonthDays
+    {
+        get
+        {
+            var today = DateTime.Today;
+            for (var day = 1; day <= DaysInMonth; day++)
+            {
+                var iso = $"{Year:D4}-{Month:D2}-{day:D2}";
+                var dow = (int)new DateTime(Year, Month, day).DayOfWeek;
+
+                var css = "cal-cell";
+                if (today.Year == Year && today.Month == Month && today.Day == day) css += " today";
+                if (dow is 0 or 6) css += " weekend";
+
+                yield return new DayCell(
+                    day, css,
+                    Holidays.Where(h => h.Date == iso).ToList(),
+                    Events.Where(e => string.CompareOrdinal(e.DateStart, iso) <= 0
+                                   && string.CompareOrdinal(e.DateEnd, iso) >= 0).ToList());
+            }
+        }
+    }
+
+    private static string CatCss(string cat) => cat switch
+    {
+        "work" => "cat-work-bg",
+        "leave" => "cat-leave-bg",
+        "sick" => "cat-sick-bg",
+        _ => "cat-other-bg",
+    };
+}

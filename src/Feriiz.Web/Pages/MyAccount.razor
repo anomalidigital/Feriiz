@@ -1,0 +1,129 @@
+@page "/my-account"
+@inject FeriizDataService Data
+@inject AuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - My Account</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Account</h1>
+    <div class="page-actions">
+        <a class="btn btn-outline account-partner-link" href="partner">
+            <i class="fa-solid fa-users"></i>
+            Partner
+        </a>
+        <button class="btn btn-danger" @onclick="Logout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            Logout
+        </button>
+    </div>
+</div>
+
+<div class="three-col-grid">
+
+    <div class="card">
+        <div class="feriiz-u-168">
+            <div class="feriiz-u-169">
+                <i class="fa-solid fa-user feriiz-u-170"></i>
+            </div>
+            <div>
+                <div class="feriiz-u-171">Baldyas Satrio</div>
+                <div class="feriiz-u-093">Admin</div>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Code</span>
+            <span class="info-value feriiz-u-172">BILFBY9N8YJ1YDN</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Email</span>
+            <span class="info-value feriiz-u-173">baldy@anomalistudio.co.id</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Mobile</span>
+            <span class="info-value">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Gender</span>
+            <span class="info-value">Male</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Company</span>
+            <span class="info-value">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Pin</span>
+            <span class="info-value feriiz-u-174">3131</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title feriiz-u-175">
+            <i class="fa-solid fa-lock feriiz-u-176"></i>
+            Security
+        </div>
+
+        <div class="feriiz-u-177">
+            <div class="feriiz-u-178">OTP</div>
+            <div class="otp-display">
+                <div class="otp-number">4536</div>
+            </div>
+        </div>
+
+        <div>
+            <div class="feriiz-u-178">OTP Change In</div>
+            <div class="feriiz-u-179">
+                <div class="feriiz-u-180">1340 Minutes 55 Seconds</div>
+                <div class="cooldown-bar">
+                    <div class="cooldown-progress feriiz-u-181"></div>
+                </div>
+                <div class="cooldown-text feriiz-u-182">Cooldown active -- please wait for reset</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title feriiz-u-183">
+            <span class="feriiz-u-175">
+                <i class="fa-solid fa-folder feriiz-u-176"></i>
+                Assigned Projects
+            </span>
+        </div>
+
+        @*
+            Demo behaviour, carried over from the static page: "assigned" means
+            every project in the dataset. A real backend would scope this to the
+            signed-in account.
+        *@
+        <div class="project-list feriiz-u-184">
+            @foreach (var p in Data.Projects)
+            {
+                <a href="project-employees?project=@Uri.EscapeDataString(p.Code)"
+                   class="project-item feriiz-u-185">
+                    <div>
+                        <div class="project-item-name">@p.Name</div>
+                        <div class="project-item-type">@p.Type</div>
+                    </div>
+                    <div class="feriiz-u-029">
+                        <div class="project-item-employee">@p.EmployeeCount</div>
+                        <i class="fa-solid fa-chevron-right feriiz-u-186"></i>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@code {
+    protected override async Task OnInitializedAsync() => await Data.EnsureLoadedAsync();
+
+    private async Task Logout()
+    {
+        await Auth.SignOutAsync();
+        Nav.NavigateTo("login", replace: true);
+    }
+}

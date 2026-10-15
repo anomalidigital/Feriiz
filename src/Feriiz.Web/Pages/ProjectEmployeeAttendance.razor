@@ -1,0 +1,32 @@
+@page "/project-attendance"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - @Data.ProjectLabel(_projectCode) - Employee Attendance</PageTitle>
+
+<div class="breadcrumb">
+    <a href="projects">Projects</a>
+    <span>&gt;</span>
+    <a href="project-employees?project=@_projectCode">@Data.ProjectLabel(_projectCode)</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">Attendance</span>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">@(_employee?.Name ?? "")</span>
+</div>
+
+@* ProjectCode bertipe string: tanpa @ Razor mengirim teks "_projectCode",
+   bukan isinya - dan itu tidak memunculkan error apa pun. *@
+<AttendanceView Employee="_employee" ProjectCode="@_projectCode"
+                BackHref="@($"project-employees?project={_projectCode}")" />
+
+@code {
+    private Employee? _employee;
+    private string? _projectCode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+        _employee = Data.FindEmployee(QueryString.Get(Nav.Uri, "employee"));
+        _projectCode = QueryString.Get(Nav.Uri, "project") ?? _employee?.Projects.FirstOrDefault();
+    }
+}

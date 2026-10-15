@@ -1,0 +1,167 @@
+@page "/projects"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - Projects</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Projects</h1>
+    <div class="page-actions">
+        <button class="btn btn-primary" @onclick="OpenAdd">
+            <i class="fa-solid fa-plus"></i>
+            Add Project
+        </button>
+        <div class="feriiz-u-020">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
+            <input type="text" placeholder="Search" class="feriiz-u-068"
+                   @bind="_search" @bind:event="oninput" />
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-187">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-folder"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Data.Projects.Count</div>
+            <div class="stat-label feriiz-u-165">Projects</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-187">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-regular fa-folder-open"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Data.Projects.Count(p => p.Status == "Active")</div>
+            <div class="stat-label feriiz-u-027">Active</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="feriiz-u-028"></th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Date Created</th>
+                <th>First Activity</th>
+                <th>Last Activity</th>
+                <th>Employee</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Filtered)
+            {
+                <tr class="project-clickable-row" @key="p.Code" @onclick="() => GoToEmployees(p)">
+                    <td>
+                        <div class="action-cell">
+                            @* Edit tidak boleh ikut memicu klik baris. *@
+                            <a href="#" class="btn-icon" title="Edit"
+                               @onclick="() => OpenEdit(p)" @onclick:preventDefault @onclick:stopPropagation>
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a href="@EmployeesHref(p)" class="btn-icon" title="View" @onclick:stopPropagation>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="feriiz-u-188">@p.Name</div>
+                        <div class="feriiz-u-189">@p.Code</div>
+                    </td>
+                    <td><span class="feriiz-u-102">@p.Status</span></td>
+                    <td>@FormatDate(p.CreatedAt)</td>
+                    <td>@FormatDate(p.StartedAt)</td>
+                    <td>@FormatDate(p.LastActivityAt)</td>
+                    <td class="feriiz-u-190">@p.EmployeeCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <div class="pagination-info">@PaginationLabel</div>
+        <div class="pagination-buttons">
+            <button disabled>&lt; Previous</button>
+            <a href="#" class="active" aria-current="page" @onclick:preventDefault>1</a>
+        </div>
+    </div>
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@if (_modalOpen)
+{
+    <ProjectModal Project="_editing" OnClose="CloseModal" OnSaved="OnModalSaved" />
+}
+
+@if (_toast is not null)
+{
+    <div class="feriiz-toast-region">
+        <div class="feriiz-toast feriiz-toast-success">@_toast</div>
+    </div>
+}
+
+@code {
+    private string _search = "";
+    private bool _modalOpen;
+    private Project? _editing;
+    private string? _toast;
+
+    protected override async Task OnInitializedAsync() => await Data.EnsureLoadedAsync();
+
+    private List<Project> Filtered
+    {
+        get
+        {
+            var q = _search.Trim();
+            if (q.Length == 0) return Data.Projects.ToList();
+            return Data.Projects.Where(p =>
+                p.Name.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                p.Code.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    private static string EmployeesHref(Project p) =>
+        $"project-employees?project={Uri.EscapeDataString(p.Code)}";
+
+    private void GoToEmployees(Project p) => Nav.NavigateTo(EmployeesHref(p));
+
+    private void OpenAdd()
+    {
+        _editing = null;
+        _modalOpen = true;
+    }
+
+    private void OpenEdit(Project p)
+    {
+        _editing = p;
+        _modalOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        _modalOpen = false;
+        _editing = null;
+    }
+
+    private void OnModalSaved(string name)
+    {
+        CloseModal();
+        // Demo: tidak ada yang benar-benar disimpan, hanya konfirmasi ke layar.
+        _toast = string.IsNullOrEmpty(name) ? "Project name is required." : $"{name} was saved.";
+    }
+
+    private string PaginationLabel =>
+        Filtered.Count == 0
+            ? "No projects match your search"
+            : $"Showing 1 - {Filtered.Count} of {Filtered.Count} results";
+
+    /// <summary>"18 November 2025, 9:30am" - format yang dipakai tabel lama.</summary>
+    private static string FormatDate(DateTimeOffset? d)
+    {
+        if (d is null) return "-";
+        var suffix = d.Value.Hour >= 12 ? "pm" : "am";
+        return d.Value.ToString("dd MMMM yyyy, h:mm") + suffix;
+    }
+}

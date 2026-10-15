@@ -719,6 +719,10 @@
         });
     }
 
+    // Blazor merender tabelnya setelah DOMContentLoaded, jadi init() perlu bisa
+    // dipanggil ulang dari luar. Situs statis tetap memakai jalur di bawah.
+    window.FeriizPrintReport = { init: init };
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

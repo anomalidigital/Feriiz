@@ -51,3 +51,12 @@ src/Feriiz.Web/wwwroot/feriiz-data.json
 
 # Local publish output (the workflow builds its own)
 build/
+
+# Data contract handed to the backend team - kept local, not published
+backend-contract/
+
+# Dokumen serah-terima untuk developer frontend - kept local
+frontend-handover/
+
+# Simulasi hasil publish, lokal saja
+publish-test/

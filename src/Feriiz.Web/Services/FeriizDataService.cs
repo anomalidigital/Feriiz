@@ -83,6 +83,18 @@ public sealed class FeriizDataService
     public IEnumerable<Employee> EmployeesOfProject(string projectCode) =>
         Employees.Where(e => e.Projects.Contains(projectCode, StringComparer.Ordinal));
 
+    /// <summary>
+    /// Nama proyek untuk ditampilkan. Requests dan Calendar memakai tim Anomali
+    /// yang kode proyeknya tidak ada di dataset besar, jadi kalau tidak ketemu
+    /// di sana dicari di daftar demo dulu sebelum menyerah ke kodenya sendiri.
+    /// </summary>
+    public string ProjectLabel(string? code)
+    {
+        if (string.IsNullOrEmpty(code)) return "-";
+        if (FindProject(code) is { } p) return p.Name;
+        return AnomaliDemo.ProjectLabels.TryGetValue(code, out var label) ? label : code;
+    }
+
     /// <summary>Photo URL, falling back to a generated initials avatar.</summary>
     /// <remarks>
     /// Only photoFile is trusted, because it holds a real filename. The

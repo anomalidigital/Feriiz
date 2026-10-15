@@ -1,0 +1,186 @@
+@page "/partner"
+
+<PageTitle>Feriiz - Partner</PageTitle>
+
+<div class="breadcrumb" aria-label="Breadcrumb">
+    <a href="my-account">My Account</a>
+    <span aria-hidden="true">&gt;</span>
+    <span>Partner</span>
+</div>
+
+<div class="page-header">
+    <h1 class="page-title">Partner</h1>
+    <div class="page-actions">
+        <label class="partner-search" for="partnerSearch">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="partnerSearch" placeholder="Search partner" autocomplete="off"
+                   @bind="_search" @bind:event="oninput" />
+        </label>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-187">
+        <div class="stat-card-icon feriiz-u-025">
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
+        </div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026" aria-label="@Partners.Count @(Partners.Count == 1 ? "partner" : "partners")">
+                @Partners.Count
+            </div>
+            <div class="stat-label feriiz-u-165">Partners</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="partner-table-scroll">
+        <table class="data-table partner-table">
+            <thead>
+                <tr>
+                    <th class="partner-action-column" aria-label="Action"></th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Date Created</th>
+                    <th>Date Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Filtered)
+                {
+                    <tr class="partner-row" tabindex="0" @key="p.Id"
+                        @onclick="() => Open(p)"
+                        @onkeydown="e => OnRowKey(e, p)">
+                        <td>
+                            <button type="button" class="btn-icon" aria-label="View @p.Name">
+                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                        <td class="partner-id">@p.Id</td>
+                        <td class="partner-name">@p.Name</td>
+                        <td>@p.DateCreated</td>
+                        <td>@p.DateLastUpdated</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Filtered.Count == 0)
+    {
+        <div class="partner-empty-state">No partners match your search.</div>
+    }
+
+    <div class="pagination">
+        <div class="pagination-info">@PaginationLabel</div>
+        <div class="pagination-buttons">
+            <button type="button" disabled>&lt; Previous</button>
+            <a href="#" class="active" aria-current="page" @onclick:preventDefault>1</a>
+            <button type="button" disabled>Next &gt;</button>
+        </div>
+    </div>
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+<div class="modal-overlay @(_selected is null ? "" : "show")"
+     aria-hidden="@(_selected is null ? "true" : "false")"
+     @onclick="Close">
+    @if (_selected is not null)
+    {
+        @* Clicking the card must not reach the overlay's close handler. *@
+        <div class="modal-card" role="dialog" aria-modal="true"
+             aria-labelledby="partnerDetailTitle" tabindex="-1"
+             @ref="_dialog" @onkeydown="OnDialogKey" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h2 id="partnerDetailTitle">Partner Detail</h2>
+                <button type="button" class="modal-close" aria-label="Close" @onclick="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="partner-detail-grid">
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">ID</span>
+                        <span class="partner-detail-value">@_selected.Id</span>
+                    </div>
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">Name</span>
+                        <span class="partner-detail-value">@_selected.Name</span>
+                    </div>
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">Date Created</span>
+                        <span class="partner-detail-value">@_selected.DateCreated</span>
+                    </div>
+                    <div class="partner-detail-item">
+                        <span class="partner-detail-label">Date Last Updated</span>
+                        <span class="partner-detail-value">@_selected.DateLastUpdated</span>
+                    </div>
+                </div>
+            </div>
+            <div class="partner-modal-footer">
+                <button type="button" class="btn btn-outline" @onclick="Close">Close</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private sealed record PartnerRow(string Id, string Name, string DateCreated, string DateLastUpdated);
+
+    private static readonly List<PartnerRow> Partners = new()
+    {
+        new("1629712785796FJLXHTP", "Arcon & Anomali", "06 September 2021 - 00:00", "-"),
+    };
+
+    private string _search = "";
+    private PartnerRow? _selected;
+    private ElementReference _dialog;
+    private bool _focusDialog;
+
+    private List<PartnerRow> Filtered
+    {
+        get
+        {
+            var q = _search.Trim();
+            if (q.Length == 0) return Partners;
+            return Partners.Where(p =>
+                p.Id.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                p.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    private string PaginationLabel
+    {
+        get
+        {
+            var n = Filtered.Count;
+            if (n == 0) return "Showing 0 results";
+            return $"Showing 1 - {n} of {n} {(n == 1 ? "result" : "results")}";
+        }
+    }
+
+    private void Open(PartnerRow p)
+    {
+        _selected = p;
+        _focusDialog = true;
+    }
+
+    private void Close() => _selected = null;
+
+    private void OnRowKey(KeyboardEventArgs e, PartnerRow p)
+    {
+        if (e.Key is "Enter" or " ") Open(p);
+    }
+
+    private void OnDialogKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") Close();
+    }
+
+    /// <summary>Moves focus into the dialog so Escape reaches its keydown handler.</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusDialog) return;
+        _focusDialog = false;
+        await _dialog.FocusAsync();
+    }
+}

@@ -1,0 +1,77 @@
+@*
+    Sama seperti MainLayout, tapi menambahkan kelas "report-layout" ke <body>.
+
+    CSS cetak bergantung pada kelas itu (body.report-layout .sidebar { display:none })
+    dan kelas harus benar-benar ada di <body>, bukan di elemen pembungkus, jadi
+    dipasang lewat JS lalu dilepas saat pindah halaman.
+*@
+@inherits LayoutComponentBase
+@inject AuthState Auth
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<NavMenu @ref="_nav" OnLogoutRequested="Logout" />
+
+<button class="mobile-menu-btn" aria-label="Menu" @onclick="() => _nav?.ToggleMobile()">
+    <i class="fa-solid fa-bars"></i>
+</button>
+
+<main class="main-content">
+    @if (_checkingAuth)
+    {
+        <p style="padding:24px;color:#667085;">Loading…</p>
+    }
+    else
+    {
+        @Body
+    }
+</main>
+
+@code {
+    private NavMenu? _nav;
+    private bool _checkingAuth = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("document.body.classList.add", "report-layout");
+
+            if (!await Auth.IsAuthenticatedAsync())
+            {
+                Nav.NavigateTo("login", replace: true);
+                return;
+            }
+
+            _checkingAuth = false;
+            StateHasChanged();
+            return;
+        }
+
+        // Tabelnya baru ada setelah render, jadi print-report.js dipasang di sini.
+        // Helper-nya menjaga agar listener beforeprint hanya terpasang sekali.
+        if (!_checkingAuth)
+        {
+            await JS.InvokeVoidAsync("feriizInitPrintReport");
+        }
+    }
+
+    private async Task Logout()
+    {
+        await Auth.SignOutAsync();
+        Nav.NavigateTo("login", replace: true);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("document.body.classList.remove", "report-layout");
+        }
+        catch (JSDisconnectedException)
+        {
+            // Halaman sedang ditutup; tidak ada yang perlu dibersihkan.
+        }
+    }
+}

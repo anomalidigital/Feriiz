@@ -1,0 +1,383 @@
+@page "/project-employees"
+@page "/project-activity"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - @Data.ProjectLabel(_projectCode) - Activity</PageTitle>
+
+<div class="breadcrumb">
+    <a href="projects">Projects</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">@Data.ProjectLabel(_projectCode)</span>
+</div>
+
+<div class="page-header feriiz-u-163">
+    <h1 class="page-title">Activity</h1>
+    <div class="page-actions feriiz-u-065">
+        <div class="feriiz-u-014">
+            <button class="btn btn-outline filter-toggle-btn @(_filterOpen ? "active" : "")" title="Filter"
+                    @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="filter-dropdown feriiz-u-015 activity-filter-dropdown @(_filterOpen ? "show" : "")">
+                <div class="feriiz-u-016">Filter Activity</div>
+
+                <label>Date Range</label>
+                <div class="feriiz-u-003 activity-date-range">
+                    <input type="date" class="input feriiz-u-004" @bind="_draftFrom" />
+                    <span class="feriiz-u-005">-</span>
+                    <input type="date" class="input feriiz-u-004" @bind="_draftTo" />
+                </div>
+
+                <label>Occupation</label>
+                <select class="input feriiz-u-017" @bind="_draftOccupation">
+                    <option value="">All Occupations</option>
+                    @foreach (var o in OccupationsInProject)
+                    {
+                        <option value="@o">@o</option>
+                    }
+                </select>
+
+                <label class="feriiz-u-242 activity-toggle-row">
+                    <input type="checkbox" class="feriiz-u-243" @bind="_draftShowActivity" />
+                    <span class="feriiz-u-244">Show Activity</span>
+                </label>
+
+                <div class="feriiz-u-018">
+                    <button class="btn btn-outline feriiz-u-019" @onclick="ClearFilter">Clear</button>
+                    <button class="btn btn-primary feriiz-u-019" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" @onclick="() => _manageOpen = true">
+            <i class="fa-solid fa-users-gear"></i>
+            Manage Employee
+        </button>
+
+        <div class="feriiz-u-020">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
+            <input type="text" placeholder="Search" class="feriiz-u-068"
+                   @bind="_search" @bind:event="oninput" @bind:after="() => _page = 1" />
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-user"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@_members.Count</div>
+            <div class="stat-label feriiz-u-249">Employees</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@_attendedCount</div>
+            <div class="stat-label feriiz-u-070">Attendance</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-briefcase"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@OccupationsInProject.Count</div>
+            <div class="stat-label feriiz-u-070">Occupations</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="feriiz-u-028"></th>
+                <th>Name</th>
+                <th class="col-activity-photos @(_appliedShowActivity ? "col-activity-visible" : "")">Activity</th>
+                <th>Occupation</th>
+                <th>Pin</th>
+                <th>Last Activity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in PageItems)
+            {
+                <tr @key="emp.Code">
+                    <td>
+                        <div class="action-cell">
+                            <button type="button" class="btn-icon" title="Edit" aria-label="Edit @emp.Name"
+                                    @onclick="() => _detail = emp">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <a href="project-attendance?project=@_projectCode&employee=@emp.Code" class="btn-icon" title="Attendance">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </a>
+                            <a href="employee-report?project=@_projectCode&employee=@emp.Code" class="btn-icon" title="Report">
+                                <i class="fa-regular fa-file-lines"></i>
+                            </a>
+                            <a href="employee-personal-request?project=@_projectCode&employee=@emp.Code" class="btn-icon" title="Request">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell feriiz-u-029">
+                            <img src="@Data.AvatarSrc(emp)" alt="@emp.Name" class="feriiz-u-030" />
+                            <div>
+                                <div class="employee-name">@emp.Name</div>
+                                <div class="employee-code feriiz-u-031">@emp.Code</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="col-activity-photos @(_appliedShowActivity ? "col-activity-visible" : "")">
+                        @if (_appliedShowActivity)
+                        {
+                            <div class="activity-photo-grid">
+                                @for (var i = 1; i <= 4; i++)
+                                {
+                                    <img src="@Data.AvatarSrc(emp)" alt="Attendance activity for @emp.Name"
+                                         class="activity-photo-thumb" loading="lazy" decoding="async" />
+                                }
+                            </div>
+                        }
+                    </td>
+                    <td>@emp.Occupation</td>
+                    <td>@emp.Pin</td>
+                    <td>@LastActivity(emp.Code)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination Page="_page" TotalItems="Filtered.Count" PerPage="PerPage"
+                EmptyLabel="No employees match your filter"
+                PageChanged="p => _page = p" />
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@if (_detail is not null)
+{
+    <div class="modal-overlay show" @onclick="() => _detail = null">
+        <div class="modal-card" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h2 class="feriiz-u-254">Employee Detail</h2>
+                <button class="modal-close" @onclick="() => _detail = null">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="feriiz-u-259" value="@_detail.Name" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Occupation</label>
+                        <input type="text" class="feriiz-u-259" value="@_detail.Occupation" readonly />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Pin</label>
+                        <input type="text" class="feriiz-u-259" value="@_detail.Pin" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="feriiz-u-264" value="@(_detail.Email ?? "")" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="partner-modal-footer">
+                <a class="btn btn-outline" href="employee-detail?employee=@_detail.Code">Open full profile</a>
+                <button class="btn btn-primary" @onclick="() => _detail = null">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_manageOpen)
+{
+    <div class="modal-overlay show" @onclick="() => _manageOpen = false">
+        <div class="modal-card" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h2>Manage Employee</h2>
+                <button class="modal-close" @onclick="() => _manageOpen = false">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="feriiz-u-018" style="gap:8px;">
+                    <select class="input feriiz-u-271" @bind="_manageScope">
+                        <option value="all">All Employees</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="unassigned">Unassigned</option>
+                    </select>
+                    <input type="text" class="input" placeholder="Search Employee"
+                           @bind="_manageSearch" @bind:event="oninput" />
+                </div>
+
+                <div class="feriiz-u-283" style="max-height:320px;overflow:auto;margin-top:12px;">
+                    @foreach (var emp in ManageList.Take(200))
+                    {
+                        <label class="feriiz-u-207" style="display:flex;gap:8px;align-items:center;padding:6px 0;">
+                            <input type="checkbox" checked="@IsAssigned(emp)"
+                                   @onchange="e => ToggleAssignment(emp, e)" />
+                            <span>@emp.Name <span class="employee-code">@emp.Code</span></span>
+                        </label>
+                    }
+                    @if (ManageList.Count > 200)
+                    {
+                        <div class="feriiz-u-093">…@(ManageList.Count - 200) more. Narrow the search to see them.</div>
+                    }
+                </div>
+
+                <div style="margin-top:12px;">
+                    <span>Total: <strong>@_members.Count</strong> People</span>
+                </div>
+            </div>
+
+            <div class="partner-modal-footer">
+                <button class="btn btn-primary" @onclick="() => _manageOpen = false">Done</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private const int PerPage = 25;
+
+    private string? _projectCode;
+    private List<Employee> _members = new();
+    private Dictionary<string, string> _lastActivity = new(StringComparer.Ordinal);
+    private int _attendedCount;
+
+    private bool _filterOpen, _manageOpen;
+    private int _page = 1;
+    private string _search = "";
+    private Employee? _detail;
+
+    private string _draftOccupation = "", _appliedOccupation = "";
+    private bool _draftShowActivity, _appliedShowActivity;
+    private DateOnly? _draftFrom, _appliedFrom;
+    private DateOnly? _draftTo, _appliedTo;
+
+    private string _manageScope = "all", _manageSearch = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        _projectCode = QueryString.Get(Nav.Uri, "project") ?? Data.DefaultProject?.Code;
+        if (_projectCode is null) return;
+
+        _members = Data.EmployeesOfProject(_projectCode).ToList();
+
+        // Aktivitas terakhir per orang, sekali jalan - tabelnya bisa 1.320 baris.
+        foreach (var a in Data.Attendance.Where(a => a.ProjectCode == _projectCode && a.Status == "present"))
+        {
+            if (!_lastActivity.TryGetValue(a.EmployeeCode, out var current)
+                || string.CompareOrdinal(a.Date, current) > 0)
+            {
+                _lastActivity[a.EmployeeCode] = a.Date;
+            }
+        }
+        _attendedCount = _lastActivity.Count;
+    }
+
+    private List<string> OccupationsInProject =>
+        _members.Select(e => e.Occupation).Distinct(StringComparer.Ordinal)
+                .OrderBy(o => o, StringComparer.Ordinal).ToList();
+
+    private List<Employee> Filtered
+    {
+        get
+        {
+            var q = _search.Trim();
+            return _members.Where(e =>
+            {
+                if (_appliedOccupation.Length > 0 && e.Occupation != _appliedOccupation) return false;
+
+                if (_appliedFrom is not null || _appliedTo is not null)
+                {
+                    if (!_lastActivity.TryGetValue(e.Code, out var last)) return false;
+                    if (_appliedFrom is { } from
+                        && string.CompareOrdinal(last, from.ToString("yyyy-MM-dd")) < 0) return false;
+                    if (_appliedTo is { } to
+                        && string.CompareOrdinal(last, to.ToString("yyyy-MM-dd")) > 0) return false;
+                }
+
+                if (q.Length > 0
+                    && e.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0
+                    && e.Code.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+
+                return true;
+            }).ToList();
+        }
+    }
+
+    private IEnumerable<Employee> PageItems =>
+        Filtered.Skip((_page - 1) * PerPage).Take(PerPage);
+
+    private void ApplyFilter()
+    {
+        _appliedOccupation = _draftOccupation;
+        _appliedShowActivity = _draftShowActivity;
+        _appliedFrom = _draftFrom;
+        _appliedTo = _draftTo;
+        _filterOpen = false;
+        _page = 1;
+    }
+
+    private void ClearFilter()
+    {
+        _draftOccupation = _appliedOccupation = "";
+        _draftShowActivity = _appliedShowActivity = false;
+        _draftFrom = _appliedFrom = _draftTo = _appliedTo = null;
+        _search = "";
+        _filterOpen = false;
+        _page = 1;
+    }
+
+    private string LastActivity(string code) =>
+        _lastActivity.TryGetValue(code, out var iso) && DateOnly.TryParse(iso, out var d)
+            ? d.ToString("dd MMM yyyy")
+            : "-";
+
+    // ---- modal Manage Employee ----
+
+    private bool IsAssigned(Employee e) =>
+        _projectCode is not null && e.Projects.Contains(_projectCode, StringComparer.Ordinal);
+
+    private List<Employee> ManageList
+    {
+        get
+        {
+            var q = _manageSearch.Trim();
+            return Data.Employees.Where(e =>
+            {
+                if (_manageScope == "assigned" && !IsAssigned(e)) return false;
+                if (_manageScope == "unassigned" && IsAssigned(e)) return false;
+                if (q.Length > 0
+                    && e.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0
+                    && e.Code.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+                return true;
+            }).ToList();
+        }
+    }
+
+    /// <summary>Demo: penugasan hanya hidup selama sesi ini, tidak dikirim ke mana pun.</summary>
+    private void ToggleAssignment(Employee e, ChangeEventArgs args)
+    {
+        if (_projectCode is null) return;
+
+        if (args.Value is true)
+        {
+            if (!e.Projects.Contains(_projectCode, StringComparer.Ordinal)) e.Projects.Add(_projectCode);
+        }
+        else
+        {
+            e.Projects.Remove(_projectCode);
+        }
+
+        _members = Data.EmployeesOfProject(_projectCode).ToList();
+        _page = 1;
+    }
+}

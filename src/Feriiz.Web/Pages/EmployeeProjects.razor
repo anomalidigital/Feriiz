@@ -1,0 +1,158 @@
+@page "/employee-projects"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - @(_employee?.Name ?? "Employee") - Projects</PageTitle>
+
+<div class="breadcrumb">
+    <a href="employees">Employees</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">@(_employee?.Name ?? "Employee") - Projects</span>
+</div>
+
+<div class="page-header">
+    <EmployeeHeader Employee="_employee" />
+
+    <div class="page-actions feriiz-u-065">
+        <div class="feriiz-u-014">
+            <button class="btn btn-outline filter-toggle-btn @(_filterOpen ? "active" : "")" title="Filter"
+                    @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="filter-dropdown feriiz-u-015 @(_filterOpen ? "show" : "")">
+                <div class="feriiz-u-016">Filter Projects</div>
+
+                <label>Start Date Range</label>
+                <div class="feriiz-u-003">
+                    <input type="date" class="input feriiz-u-004" @bind="_draftStart" />
+                    <span class="feriiz-u-005">-</span>
+                    <input type="date" class="input feriiz-u-004" @bind="_draftEnd" />
+                </div>
+
+                <label>Project Type</label>
+                <select class="input feriiz-u-017" @bind="_draftType">
+                    <option value="">All Types</option>
+                    <option value="Attendance">Attendance</option>
+                    <option value="Overtime">Overtime</option>
+                </select>
+
+                <div class="feriiz-u-018">
+                    <button class="btn btn-outline feriiz-u-019" @onclick="ClearFilter">Clear</button>
+                    <button class="btn btn-primary feriiz-u-019" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="feriiz-u-020">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
+            <input type="text" placeholder="Search projects..." class="feriiz-u-068"
+                   @bind="_search" @bind:event="oninput" />
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-103">
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025">
+            <i class="fa-solid fa-folder"></i>
+        </div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-099">@Filtered.Count</div>
+            <div class="stat-label feriiz-u-027">Assigned Projects</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Project Code</th>
+                <th>Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Filtered)
+            {
+                <tr @key="p.Code">
+                    <td class="feriiz-u-104">@p.Name</td>
+                    <td>@p.Code</td>
+                    <td>@p.Type</td>
+                    <td>@FormatDate(p.StartedAt)</td>
+                    <td>-</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@code {
+    private Employee? _employee;
+    private List<Project> _assigned = new();
+
+    private bool _filterOpen;
+    private string _search = "";
+
+    // Draft hanya pindah ke applied saat Apply ditekan.
+    private string _draftType = "", _appliedType = "";
+    private DateOnly? _draftStart, _appliedStart;
+    private DateOnly? _draftEnd, _appliedEnd;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        _employee = Data.FindEmployee(QueryString.Get(Nav.Uri, "employee"));
+        _assigned = _employee is null
+            ? new List<Project>()
+            : _employee.Projects.Select(Data.FindProject).OfType<Project>().ToList();
+    }
+
+    private List<Project> Filtered
+    {
+        get
+        {
+            var q = _search.Trim();
+            return _assigned.Where(p =>
+            {
+                if (q.Length > 0
+                    && p.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0
+                    && p.Code.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+
+                if (_appliedType.Length > 0
+                    && !p.Type.Contains(_appliedType, StringComparison.OrdinalIgnoreCase)) return false;
+
+                if (p.StartedAt is { } startedAt)
+                {
+                    var started = DateOnly.FromDateTime(startedAt.Date);
+                    if (_appliedStart is { } from && started < from) return false;
+                    if (_appliedEnd is { } to && started > to) return false;
+                }
+                return true;
+            }).ToList();
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _appliedType = _draftType;
+        _appliedStart = _draftStart;
+        _appliedEnd = _draftEnd;
+        _filterOpen = false;
+    }
+
+    private void ClearFilter()
+    {
+        _draftType = _appliedType = "";
+        _draftStart = _appliedStart = _draftEnd = _appliedEnd = null;
+        _filterOpen = false;
+    }
+
+    private static string FormatDate(DateTimeOffset? d) =>
+        d is null ? "-" : d.Value.ToString("dd MMMM yyyy");
+}

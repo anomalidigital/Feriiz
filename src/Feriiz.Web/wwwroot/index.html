@@ -36,6 +36,20 @@
         })();
     </script>
 
+    <!-- Dipakai halaman Report. Skripnya hanya membaca DOM tabel, jadi tetap
+         bekerja apa adanya pada markup yang dirender Blazor. -->
+    <script src="assets/js/print-report.js"></script>
+    <script>
+        // Blazor merender tabel setelah DOMContentLoaded, jadi init dipanggil
+        // ulang dari ReportLayout. Dipasang sekali saja.
+        window.feriizInitPrintReport = function () {
+            if (window.__feriizPrintReady) return;
+            if (!window.FeriizPrintReport) return;
+            window.FeriizPrintReport.init();
+            window.__feriizPrintReady = true;
+        };
+    </script>
+
     <script src="_framework/blazor.webassembly.js"></script>
 
 </body>

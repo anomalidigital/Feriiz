@@ -1,0 +1,26 @@
+@*
+    Judul halaman untuk halaman-halaman milik satu karyawan: tombol kembali,
+    foto, nama, kode. Dipakai employee_projects / attendance / report, yang di
+    situs lama menyalin markup ini satu per satu.
+*@
+@inject FeriizDataService Data
+
+<div class="feriiz-u-058">
+    <a href="@BackHref" class="feriiz-u-059">
+        <i class="fa-solid fa-chevron-left feriiz-u-060"></i>
+    </a>
+    <div class="feriiz-u-061">
+        <img src="@Data.AvatarSrc(Employee)" alt="@(Employee?.Name ?? "")" class="feriiz-u-062" />
+        <div>
+            <h1 class="page-title feriiz-u-063">@(Employee?.Name ?? "Unknown employee")</h1>
+            <div class="feriiz-u-064">@(Employee?.Code ?? "")</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Employee? Employee { get; set; }
+
+    /// <summary>Ke mana panah kembali menuju. Halaman proyek menimpanya.</summary>
+    [Parameter] public string BackHref { get; set; } = "employees";
+}

@@ -1,0 +1,297 @@
+@page "/requests"
+@inject FeriizDataService Data
+
+<PageTitle>Feriiz - Requests</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Requests</h1>
+    <div class="page-actions">
+        <div class="feriiz-u-014">
+            <button class="btn btn-outline filter-toggle-btn @(_filterOpen ? "active" : "")" title="Filter"
+                    @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="filter-dropdown feriiz-u-015 @(_filterOpen ? "show" : "")">
+                <div class="feriiz-u-016">Filter Requests</div>
+
+                <label>Date Range</label>
+                <div class="feriiz-u-095">
+                    <input type="date" class="input feriiz-u-004" @bind="_draftFrom" />
+                    <span class="feriiz-u-005">-</span>
+                    <input type="date" class="input feriiz-u-004" @bind="_draftTo" />
+                </div>
+
+                <label>Type</label>
+                <select class="select feriiz-u-106" @bind="_draftType">
+                    <option value="">-- All Types --</option>
+                    @foreach (var t in Types)
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+
+                <label>Status</label>
+                <select class="select" @bind="_draftStatus">
+                    <option value="">-- All Status --</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+
+                <div class="feriiz-u-018">
+                    <button class="btn btn-outline feriiz-u-019" @onclick="ClearFilter">Clear</button>
+                    <button class="btn btn-primary feriiz-u-019" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="feriiz-u-020">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
+            <input type="text" placeholder="Search" class="feriiz-u-068"
+                   @bind="_search" @bind:event="oninput" @bind:after="ResetPage" />
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-098">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-clock"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Count("Pending")</div>
+            <div class="stat-label feriiz-u-027">Pending</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-072">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Count("Accepted")</div>
+            <div class="stat-label feriiz-u-027">Accepted</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-071">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-026">@Count("Rejected")</div>
+            <div class="stat-label feriiz-u-027">Rejected</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="feriiz-u-028"></th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Date Request</th>
+                <th>Date Range</th>
+                <th>Approval</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in PageItems)
+            {
+                var emp = Data.FindEmployee(r.EmployeeCode);
+                <tr @key="r.Id">
+                    <td>
+                        <div class="action-cell">
+                            <button class="btn-icon" title="Edit" @onclick="() => Open(r)">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-cell">
+                            <img class="employee-avatar" src="@Data.AvatarSrc(emp)" alt="@(emp?.Name ?? "")" />
+                            <div>
+                                <div class="employee-name">@(emp?.Name ?? r.EmployeeCode)</div>
+                                <div class="employee-code">@r.EmployeeCode</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@r.Type</td>
+                    <td>@FmtDay(r.SubmittedAt?.ToString("yyyy-MM-dd") ?? r.DateStart)</td>
+                    <td>@DateRange(r)</td>
+                    <td>@(string.IsNullOrWhiteSpace(r.Pic) ? "-" : r.Pic)</td>
+                    <td><span class="@BadgeClass(r.Status)">@r.Status</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination Page="_page" TotalItems="Filtered.Count" PerPage="PerPage"
+                EmptyLabel="No requests match your filter"
+                PageChanged="p => _page = p" />
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@if (_selected is not null)
+{
+    <div class="modal-overlay show" @onclick="Close">
+        <div class="modal-card" role="dialog" aria-modal="true" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h2>Approval</h2>
+                <button class="modal-close" aria-label="Close" @onclick="Close">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select class="select feriiz-u-153" @bind="_modalStatus">
+                        <option value="Pending">Pending</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Note To Sender</label>
+                    <input type="text" class="input feriiz-u-153" placeholder="Note To Sender" @bind="_modalNote" />
+                </div>
+
+                <div class="modal-info-row">
+                    <span class="modal-info-label">Employee</span>
+                    <span class="modal-info-value">@(Data.FindEmployee(_selected.EmployeeCode)?.Name ?? _selected.EmployeeCode)</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="modal-info-label">Request</span>
+                    <span class="modal-info-value">@_selected.Type</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="modal-info-label">Date Request</span>
+                    <span class="modal-info-value">@FmtDay(_selected.SubmittedAt?.ToString("yyyy-MM-dd") ?? _selected.DateStart)</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="modal-info-label">Date</span>
+                    <span class="modal-info-value">@DateRange(_selected)</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="modal-info-label">Reason</span>
+                    <span class="modal-info-value">@(string.IsNullOrWhiteSpace(_selected.Reason) ? "-" : _selected.Reason)</span>
+                </div>
+            </div>
+
+            <div class="partner-modal-footer">
+                <button class="btn btn-outline" @onclick="Close">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveApproval">Save Changes</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private const int PerPage = 25;
+
+    private static readonly string[] Types =
+    {
+        "Annual Leave", "Sick Leave", "Remote Work", "Permission",
+    };
+
+    private bool _filterOpen;
+    private int _page = 1;
+    private string _search = "";
+
+    private string _draftType = "", _appliedType = "";
+    private string _draftStatus = "", _appliedStatus = "";
+    private DateOnly? _draftFrom, _appliedFrom;
+    private DateOnly? _draftTo, _appliedTo;
+
+    private LeaveRequest? _selected;
+    private string _modalStatus = "Pending";
+    private string _modalNote = "";
+
+    protected override async Task OnInitializedAsync() => await Data.EnsureLoadedAsync();
+
+    /// <summary>Requests memakai tim Anomali (12 orang), bukan 1.320 data generated.</summary>
+    private List<LeaveRequest> Filtered
+    {
+        get
+        {
+            var q = _search.Trim();
+            return Data.Requests.Where(r =>
+            {
+                if (_appliedType.Length > 0
+                    && !string.Equals(r.Type, _appliedType, StringComparison.OrdinalIgnoreCase)) return false;
+                if (_appliedStatus.Length > 0
+                    && !string.Equals(r.Status, _appliedStatus, StringComparison.OrdinalIgnoreCase)) return false;
+
+                // Rentang dianggap tumpang tindih, bukan harus termuat seluruhnya.
+                var start = r.DateStart;
+                var end = string.IsNullOrEmpty(r.DateEnd) ? start : r.DateEnd;
+                if (_appliedFrom is { } from && string.CompareOrdinal(end, from.ToString("yyyy-MM-dd")) < 0) return false;
+                if (_appliedTo is { } to && string.CompareOrdinal(start, to.ToString("yyyy-MM-dd")) > 0) return false;
+
+                if (q.Length > 0)
+                {
+                    var name = Data.FindEmployee(r.EmployeeCode)?.Name ?? r.EmployeeCode;
+                    if (name.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+                }
+                return true;
+            }).ToList();
+        }
+    }
+
+    private IEnumerable<LeaveRequest> PageItems =>
+        Filtered.Skip((_page - 1) * PerPage).Take(PerPage);
+
+    private int Count(string status) =>
+        Filtered.Count(r => string.Equals(r.Status, status, StringComparison.OrdinalIgnoreCase));
+
+    private void ResetPage() => _page = 1;
+
+    private void ApplyFilter()
+    {
+        _appliedType = _draftType;
+        _appliedStatus = _draftStatus;
+        _appliedFrom = _draftFrom;
+        _appliedTo = _draftTo;
+        _filterOpen = false;
+        _page = 1;
+    }
+
+    private void ClearFilter()
+    {
+        _draftType = _appliedType = "";
+        _draftStatus = _appliedStatus = "";
+        _draftFrom = _appliedFrom = _draftTo = _appliedTo = null;
+        _search = "";
+        _filterOpen = false;
+        _page = 1;
+    }
+
+    private void Open(LeaveRequest r)
+    {
+        _selected = r;
+        _modalStatus = r.Status;
+        _modalNote = r.Remark ?? "";
+    }
+
+    private void Close() => _selected = null;
+
+    private void SaveApproval()
+    {
+        if (_selected is null) return;
+        // Demo: perubahan hanya hidup selama sesi ini, tidak dikirim ke mana pun.
+        _selected.Status = _modalStatus;
+        _selected.Remark = _modalNote;
+        _selected = null;
+    }
+
+    private static string BadgeClass(string status) => status.ToLowerInvariant() switch
+    {
+        "accepted" => "badge badge-accepted",
+        "rejected" => "badge badge-rejected",
+        _ => "badge badge-pending",
+    };
+
+    private static string FmtDay(string? iso) =>
+        DateOnly.TryParse(iso, out var d) ? d.ToString("ddd, dd MMM yyyy") : "-";
+
+    private static string DateRange(LeaveRequest r) =>
+        !string.IsNullOrEmpty(r.DateEnd) && r.DateEnd != r.DateStart
+            ? $"{FmtDay(r.DateStart)} – {FmtDay(r.DateEnd)}"
+            : FmtDay(r.DateStart);
+}

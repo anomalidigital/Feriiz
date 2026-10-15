@@ -1,0 +1,30 @@
+@page "/employee-report"
+@layout ReportLayout
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - @(_employee?.Name ?? "Employee") - Report</PageTitle>
+
+<div class="breadcrumb">
+    <a href="projects">Projects</a>
+    <span>&gt;</span>
+    <a href="project-employees?project=@_projectCode" id="reportProjectLink">@Data.ProjectLabel(_projectCode)</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-152">@(_employee?.Name ?? "Report")</span>
+</div>
+
+<ReportView />
+
+@code {
+    private string? _projectCode;
+    private string? _employeeCode;
+    private Employee? _employee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+        _employeeCode = QueryString.Get(Nav.Uri, "employee");
+        _employee = Data.FindEmployee(_employeeCode);
+        _projectCode = QueryString.Get(Nav.Uri, "project") ?? _employee?.Projects.FirstOrDefault();
+    }
+}

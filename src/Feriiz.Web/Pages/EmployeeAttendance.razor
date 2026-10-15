@@ -1,0 +1,23 @@
+@page "/employee-attendance"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - Employee Attendance</PageTitle>
+
+<div class="breadcrumb">
+    <a href="employees">Employees</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">Report Attendance</span>
+</div>
+
+<AttendanceView Employee="_employee" BackHref="employees" />
+
+@code {
+    private Employee? _employee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+        _employee = Data.FindEmployee(QueryString.Get(Nav.Uri, "employee"));
+    }
+}

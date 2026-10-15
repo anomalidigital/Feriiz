@@ -1,0 +1,78 @@
+@*
+    Baris paginasi: keterangan jumlah + tombol halaman dengan elipsis.
+    Di situs lama tiap halaman menulis logikanya sendiri-sendiri.
+*@
+
+<div class="pagination">
+    <div class="pagination-info">@Label</div>
+    <div class="pagination-buttons">
+        <button disabled="@(Page <= 1)" @onclick="() => Go(Page - 1)">&lt; Previous</button>
+
+        @foreach (var n in PageNumbers)
+        {
+            if (n < 0)
+            {
+                <span class="page-dots">…</span>
+            }
+            else
+            {
+                <a href="#" class="@(n == Page ? "active" : "")"
+                   aria-current="@(n == Page ? "page" : null)"
+                   @onclick="() => Go(n)" @onclick:preventDefault>@n</a>
+            }
+        }
+
+        @if (Page < PageCount)
+        {
+            <a href="#" @onclick="() => Go(Page + 1)" @onclick:preventDefault>Next &gt;</a>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int Page { get; set; } = 1;
+    [Parameter, EditorRequired] public int TotalItems { get; set; }
+    [Parameter] public int PerPage { get; set; } = 25;
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    /// <summary>Ditampilkan saat tidak ada hasil sama sekali.</summary>
+    [Parameter] public string EmptyLabel { get; set; } = "No results match your filter";
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)PerPage));
+
+    private string Label
+    {
+        get
+        {
+            if (TotalItems == 0) return EmptyLabel;
+            var from = (Page - 1) * PerPage + 1;
+            var to = Math.Min(Page * PerPage, TotalItems);
+            return $"Showing {from} - {to} of {TotalItems} results";
+        }
+    }
+
+    /// <summary>1 … n-1, n, n+1 … terakhir. Angka negatif dirender sebagai elipsis.</summary>
+    private IEnumerable<int> PageNumbers
+    {
+        get
+        {
+            var pages = new SortedSet<int> { 1, PageCount };
+            for (var i = Page - 2; i <= Page + 2; i++)
+                if (i > 1 && i < PageCount) pages.Add(i);
+
+            var last = 0;
+            foreach (var n in pages)
+            {
+                if (last != 0 && n - last > 1) yield return -1;
+                yield return n;
+                last = n;
+            }
+        }
+    }
+
+    private async Task Go(int page)
+    {
+        if (page < 1 || page > PageCount || page == Page) return;
+        await PageChanged.InvokeAsync(page);
+    }
+}

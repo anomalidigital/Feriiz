@@ -1,0 +1,461 @@
+@page "/calendar"
+@inject FeriizDataService Data
+@inject IJSRuntime JS
+
+<PageTitle>Feriiz - Calendar</PageTitle>
+
+<div class="cal-header-bar">
+    <div class="cal-header-left">
+        <h1 class="cal-title"><i class="fa-regular fa-calendar feriiz-u-001"></i>Calendar</h1>
+    </div>
+    <div class="cal-header-right">
+        <div class="cal-filter-wrap">
+            <button class="cal-filter-btn @(FilterActive ? "active" : "")" title="Filter"
+                    @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="cal-filter-dropdown @(_filterOpen ? "show" : "")">
+                <div class="f-title">Filter Calendar</div>
+
+                <label>Date Range</label>
+                <div class="feriiz-u-003">
+                    <input type="date" class="feriiz-u-004" @bind="_draftFrom" />
+                    <span class="feriiz-u-005">-</span>
+                    <input type="date" class="feriiz-u-004" @bind="_draftTo" />
+                </div>
+
+                <label>Type</label>
+                <select @bind="_draftType">
+                    <option value="">-- All Types --</option>
+                    <option value="work">Remote Work</option>
+                    <option value="leave">Cuti (Leave)</option>
+                    <option value="sick">Sakit (Sick)</option>
+                    <option value="other">Libur &amp; Lainnya</option>
+                </select>
+
+                <label>Status</label>
+                <select @bind="_draftStatus">
+                    <option value="">-- All Status --</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+
+                <div class="cal-filter-actions">
+                    <button class="f-btn-clear" @onclick="ClearFilter">Clear</button>
+                    <button class="f-btn-apply" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="cal-search-wrap">
+            <i class="fa-solid fa-magnifying-glass cal-search-icon"></i>
+            <input type="text" class="cal-search-input" placeholder="Search employee" autocomplete="off"
+                   @bind="_calendarSearch" @bind:event="oninput" />
+        </div>
+    </div>
+</div>
+
+<div class="calendar-layout">
+    <aside class="request-panel" aria-label="Request overview">
+        <div class="request-panel-head">
+            <div class="request-title-row">
+                <div class="request-title"><i class="fa-solid fa-clipboard-list"></i>Request</div>
+                <div class="request-count-pill">@ScopedEvents.Count Request</div>
+            </div>
+
+            <div class="request-toggle">
+                <button class="@(_requestView == "today" ? "active" : "")" type="button"
+                        @onclick='() => _requestView = "today"'>Today</button>
+                <button class="@(_requestView == "month" ? "active" : "")" type="button"
+                        @onclick='() => _requestView = "month"'>Month</button>
+            </div>
+
+            <div class="request-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request" autocomplete="off"
+                       @bind="_requestSearch" @bind:event="oninput" />
+            </div>
+
+            <div class="request-chip-row">
+                @foreach (var chip in new[] { "all", "Pending", "Accepted" })
+                {
+                    <button type="button" class="request-chip @(_requestStatus == chip ? "active" : "")"
+                            data-status="@chip" @onclick="() => _requestStatus = chip">
+                        @(chip == "all" ? "All" : chip)
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="request-summary">
+            <div class="request-summary-card">
+                <div class="summary-label"><span class="summary-dot feriiz-u-006"></span>Remote</div>
+                <div class="summary-number">@ScopedEvents.Count(e => e.Cat == "work")</div>
+            </div>
+            <div class="request-summary-card">
+                <div class="summary-label"><span class="summary-dot feriiz-u-007"></span>Leave</div>
+                <div class="summary-number">@ScopedEvents.Count(e => e.Cat == "leave")</div>
+            </div>
+            <div class="request-summary-card">
+                <div class="summary-label"><span class="summary-dot feriiz-u-008"></span>Sick</div>
+                <div class="summary-number">@ScopedEvents.Count(e => e.Cat == "sick")</div>
+            </div>
+            <div class="request-summary-card">
+                <div class="summary-label"><span class="summary-dot feriiz-u-009"></span>Pending</div>
+                <div class="summary-number">@ScopedEvents.Count(e => e.Status == "Pending")</div>
+            </div>
+        </div>
+
+        <div class="request-list">
+            @if (ScopedEvents.Count == 0)
+            {
+                <div class="request-empty">
+                    <i class="fa-regular fa-calendar-check"></i>No request for this view.
+                </div>
+            }
+            else
+            {
+                @foreach (var e in ScopedEvents)
+                {
+                    <button class="request-card cat-@e.Cat" type="button" @onclick="() => ShowEvent(e)">
+                        <div class="request-card-top">
+                            <div>
+                                <div class="request-card-name">@e.Name</div>
+                                <div class="request-card-type">@e.Type</div>
+                            </div>
+                            <span class="badge-sm @BadgeClass(e.Status)">@e.Status</span>
+                        </div>
+                        <div class="request-card-meta">
+                            <span><i class="fa-regular fa-calendar"></i> @ShortDate(e.DateStart)</span>
+                            <span class="request-project">
+                                <i class="fa-solid fa-clipboard"></i> @Data.ProjectLabel(e.Project)
+                            </span>
+                        </div>
+                    </button>
+                }
+            }
+        </div>
+    </aside>
+
+    <section class="calendar-board">
+        <div class="calendar-board-top">
+            <div class="cal-month-label">@MonthTitle</div>
+            <div class="cal-nav">
+                <button class="cal-today-btn" @onclick="GoToday">Today</button>
+                <button class="cal-nav-btn" @onclick="() => ChangeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="cal-nav-btn" @onclick="() => ChangeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div class="calendar-legend">
+            <div class="calendar-legend-item"><span class="feriiz-u-006"></span> Remote Work</div>
+            <div class="calendar-legend-item"><span class="feriiz-u-007"></span> Cuti (Leave)</div>
+            <div class="calendar-legend-item"><span class="feriiz-u-008"></span> Sakit (Sick)</div>
+            <div class="calendar-legend-item"><span class="feriiz-u-009"></span> Libur &amp; Lainnya</div>
+        </div>
+
+        <MonthGrid Year="_year" Month="_month"
+                   Events="FilteredEvents" Holidays="Data.Holidays"
+                   WorkingOverride="IsWorkingOverride"
+                   OnEventClick="ShowEvent" OnHolidayClick="ShowHoliday" />
+
+        <div class="feriiz-u-010">version : @AppInfo.Version</div>
+    </section>
+</div>
+
+@if (_overlayEvent is not null || _overlayHoliday is not null)
+{
+    <div class="cal-overlay show" @onclick="CloseOverlay">
+        <div class="cal-detail" @onclick:stopPropagation>
+            <div class="cal-detail-header">
+                <h3>@OverlayTitle</h3>
+                <button class="cal-detail-close" @onclick="CloseOverlay">&times;</button>
+            </div>
+
+            <div class="cal-detail-body">
+                @if (_overlayEvent is { } ev)
+                {
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Employee</div>
+                        <div class="cal-detail-value">: @ev.Name</div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Request</div>
+                        <div class="cal-detail-value">: @ev.Type</div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Date</div>
+                        <div class="cal-detail-value">: @LongDate(ev.DateStart)@(ev.DateEnd != ev.DateStart ? $" – {LongDate(ev.DateEnd)}" : "")</div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Project</div>
+                        <div class="cal-detail-value">: @Data.ProjectLabel(ev.Project)</div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Status</div>
+                        <div class="cal-detail-value">: <span class="badge-sm @BadgeClass(ev.Status)">@ev.Status</span></div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">PIC</div>
+                        <div class="cal-detail-value">: @(string.IsNullOrWhiteSpace(ev.Pic) ? "-" : ev.Pic)</div>
+                    </div>
+                }
+                else if (_overlayHoliday is { } hol)
+                {
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Holiday</div>
+                        <div class="cal-detail-value">: @hol.Name</div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Date</div>
+                        <div class="cal-detail-value">: @LongDate(hol.Date)</div>
+                    </div>
+                    <div class="cal-detail-row">
+                        <div class="cal-detail-label">Gov. Status</div>
+                        <div class="cal-detail-value">: <span class="badge-sm feriiz-u-009">Official Holiday</span></div>
+                    </div>
+
+                    <div class="feriiz-u-011">
+                        <label class="feriiz-u-012">Company Status</label>
+                        <select class="holiday-edit-field" @bind="_holidayStatus">
+                            <option value="holiday">Company Holiday</option>
+                            <option value="working">Company Working Day</option>
+                        </select>
+
+                        <label class="feriiz-u-012">Note</label>
+                        <input type="text" class="holiday-edit-field" placeholder="Optional note"
+                               @bind="_holidayNote" />
+
+                        <button class="btn btn-primary" style="margin-top:10px;" @onclick="SaveHolidayOverride">
+                            Save
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private const string OverrideKey = "feriizHolidayOverrides";
+
+    private int _year = 2026;
+    private int _month = 5;   // 1-based; halaman lama membuka di Mei 2026
+    private List<CalendarEvent> _events = new();
+    private List<HolidayOverride> _overrides = new();
+
+    private bool _filterOpen;
+    private string _calendarSearch = "", _requestSearch = "";
+    private string _requestView = "today", _requestStatus = "all";
+
+    private string _draftType = "", _appliedType = "";
+    private string _draftStatus = "", _appliedStatus = "";
+    private DateOnly? _draftFrom, _appliedFrom;
+    private DateOnly? _draftTo, _appliedTo;
+
+    private CalendarEvent? _overlayEvent;
+    private Holiday? _overlayHoliday;
+    private string _holidayStatus = "holiday", _holidayNote = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        // Calendar memakai tim Anomali, sama seperti Requests.
+        _events = Data.Requests
+            .Select(r => new { r, emp = Data.FindEmployee(r.EmployeeCode) })
+            .Where(x => x.emp is not null)
+            .Select(x => new CalendarEvent(
+                x.emp!.Name, x.r.Type, x.r.Category, x.r.ProjectCode,
+                x.r.DateStart,
+                string.IsNullOrEmpty(x.r.DateEnd) ? x.r.DateStart : x.r.DateEnd,
+                x.r.Status, x.r.Pic ?? ""))
+            .ToList();
+
+        _overrides = await LoadOverridesAsync();
+    }
+
+    // ---- kalender ----
+
+    private string MonthTitle => new DateTime(_year, _month, 1).ToString("MMMM yyyy");
+
+    private int DaysInMonth => DateTime.DaysInMonth(_year, _month);
+
+    private void ChangeMonth(int direction)
+    {
+        var d = new DateTime(_year, _month, 1).AddMonths(direction);
+        _year = d.Year;
+        _month = d.Month;
+    }
+
+    private void GoToday()
+    {
+        _year = DateTime.Today.Year;
+        _month = DateTime.Today.Month;
+    }
+
+    // ---- filter ----
+
+    private bool FilterActive =>
+        _appliedType.Length > 0 || _appliedStatus.Length > 0 || _appliedFrom is not null || _appliedTo is not null;
+
+    private List<CalendarEvent> FilteredEvents
+    {
+        get
+        {
+            var q = _calendarSearch.Trim();
+            return _events.Where(e =>
+            {
+                if (q.Length > 0 && e.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) return false;
+                if (_appliedType.Length > 0 && e.Cat != _appliedType) return false;
+                if (_appliedStatus.Length > 0 && e.Status != _appliedStatus) return false;
+                if (_appliedFrom is { } from
+                    && string.CompareOrdinal(e.DateEnd, from.ToString("yyyy-MM-dd")) < 0) return false;
+                if (_appliedTo is { } to
+                    && string.CompareOrdinal(e.DateStart, to.ToString("yyyy-MM-dd")) > 0) return false;
+                return true;
+            }).ToList();
+        }
+    }
+
+    /// <summary>Event yang masuk panel kanan: hari ini, atau seluruh bulan yang sedang dilihat.</summary>
+    private List<CalendarEvent> ScopedEvents
+    {
+        get
+        {
+            var events = FilteredEvents;
+            var today = DateTime.Today.ToString("yyyy-MM-dd");
+            var monthStart = $"{_year:D4}-{_month:D2}-01";
+            var monthEnd = $"{_year:D4}-{_month:D2}-{DaysInMonth:D2}";
+
+            var scoped = _requestView == "today"
+                ? events.Where(e => string.CompareOrdinal(e.DateStart, today) <= 0
+                                 && string.CompareOrdinal(e.DateEnd, today) >= 0)
+                : events.Where(e => string.CompareOrdinal(e.DateStart, monthEnd) <= 0
+                                 && string.CompareOrdinal(e.DateEnd, monthStart) >= 0);
+
+            if (_requestStatus != "all") scoped = scoped.Where(e => e.Status == _requestStatus);
+
+            var rq = _requestSearch.Trim();
+            if (rq.Length > 0)
+            {
+                scoped = scoped.Where(e =>
+                    $"{e.Name} {e.Type} {e.Status} {Data.ProjectLabel(e.Project)} {e.Pic}"
+                        .IndexOf(rq, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            return scoped.OrderBy(e => e.DateStart, StringComparer.Ordinal)
+                         .ThenBy(e => e.Name, StringComparer.Ordinal)
+                         .ToList();
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _appliedType = _draftType;
+        _appliedStatus = _draftStatus;
+        _appliedFrom = _draftFrom;
+        _appliedTo = _draftTo;
+        _filterOpen = false;
+    }
+
+    private void ClearFilter()
+    {
+        _draftType = _appliedType = "";
+        _draftStatus = _appliedStatus = "";
+        _draftFrom = _appliedFrom = _draftTo = _appliedTo = null;
+        _filterOpen = false;
+    }
+
+    // ---- overlay ----
+
+    private string OverlayTitle => _overlayEvent is { } e
+        ? $"{e.Name} - {e.Type}"
+        : _overlayHoliday is { } h ? $"{h.Name} - {LongDate(h.Date)}" : "";
+
+    private void ShowEvent(CalendarEvent e)
+    {
+        _overlayHoliday = null;
+        _overlayEvent = e;
+    }
+
+    private void ShowHoliday(Holiday h)
+    {
+        _overlayEvent = null;
+        _overlayHoliday = h;
+
+        var existing = _overrides.FirstOrDefault(o => o.Date == h.Date);
+        _holidayStatus = existing?.Status ?? "holiday";
+        _holidayNote = existing?.Note ?? "";
+    }
+
+    private void CloseOverlay()
+    {
+        _overlayEvent = null;
+        _overlayHoliday = null;
+    }
+
+    // ---- override hari libur ----
+
+    private bool IsWorkingOverride(string date) =>
+        _overrides.Any(o => o.Date == date && o.Status == "working");
+
+    private async Task SaveHolidayOverride()
+    {
+        if (_overlayHoliday is not { } h) return;
+
+        _overrides.RemoveAll(o => o.Date == h.Date);
+        _overrides.Add(new HolidayOverride { Date = h.Date, Status = _holidayStatus, Note = _holidayNote });
+
+        await JS.InvokeVoidAsync("localStorage.setItem", OverrideKey,
+            System.Text.Json.JsonSerializer.Serialize(_overrides, FeriizJsonContext.Default.ListHolidayOverride));
+
+        CloseOverlay();
+    }
+
+    private async Task<List<HolidayOverride>> LoadOverridesAsync()
+    {
+        // Default: 14 Mei 2026 tetap masuk kerja, sama seperti halaman lama.
+        var fallback = new List<HolidayOverride>
+        {
+            new() { Date = "2026-05-14", Status = "working",
+                    Note = "Tetap masuk kerja sesuai kebijakan perusahaan." },
+        };
+
+        try
+        {
+            var raw = await JS.InvokeAsync<string?>("localStorage.getItem", OverrideKey);
+            if (string.IsNullOrWhiteSpace(raw)) return fallback;
+            return System.Text.Json.JsonSerializer
+                .Deserialize(raw, FeriizJsonContext.Default.ListHolidayOverride) ?? fallback;
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
+
+    // ---- format ----
+
+    private static string CatCss(string cat) => cat switch
+    {
+        "work" => "cat-work-bg",
+        "leave" => "cat-leave-bg",
+        "sick" => "cat-sick-bg",
+        _ => "cat-other-bg",
+    };
+
+    private static string BadgeClass(string status) => status switch
+    {
+        "Accepted" => "badge-accepted",
+        "Pending" => "badge-pending",
+        _ => "badge-rejected",
+    };
+
+    private static string ShortDate(string iso) =>
+        DateOnly.TryParse(iso, out var d) ? d.ToString("dd MMM") : iso;
+
+    private static string LongDate(string iso) =>
+        DateOnly.TryParse(iso, out var d) ? d.ToString("ddd, dd MMM yyyy") : iso;
+}

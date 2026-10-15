@@ -14,6 +14,7 @@ namespace Feriiz.Web.Models;
 /// </summary>
 [JsonSerializable(typeof(FeriizDataset))]
 [JsonSerializable(typeof(AuthState.Session))]
+[JsonSerializable(typeof(List<HolidayOverride>))]
 internal sealed partial class FeriizJsonContext : JsonSerializerContext
 {
 }

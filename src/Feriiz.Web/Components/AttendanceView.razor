@@ -1,0 +1,312 @@
+@*
+    Tabel absensi harian seorang karyawan.
+
+    employee_attendance.html dan project_employee_attendance.html itu praktis
+    file yang sama - 556 baris, hanya 30 yang berbeda (judul dan breadcrumb).
+    Keduanya sekarang memakai komponen ini.
+
+    Di situs lama isinya baris HTML yang ditulis tangan; di sini dibaca dari
+    dataset.
+*@
+@inject FeriizDataService Data
+
+<div class="page-header">
+    <EmployeeHeader Employee="Employee" BackHref="@BackHref" />
+
+    <div class="page-actions feriiz-u-065 attendance-report-actions">
+        <div class="feriiz-u-020 attendance-search-control">
+            <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
+            <input type="text" placeholder="Search attendance..." class="feriiz-u-068"
+                   @bind="_search" @bind:event="oninput" />
+        </div>
+
+        <button class="btn btn-primary attendance-print-btn" type="button" @onclick="Print">
+            <i class="fa-solid fa-print"></i>
+            <span>Print</span>
+        </button>
+
+        <div class="feriiz-u-014">
+            <button class="btn btn-outline filter-toggle-btn @(_filterOpen ? "active" : "")" title="Filter"
+                    @onclick="() => _filterOpen = !_filterOpen">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+            <div class="filter-dropdown feriiz-u-066 @(_filterOpen ? "show" : "")">
+                <div class="feriiz-u-016">Filter Attendance</div>
+
+                <label>Date Range</label>
+                <div class="feriiz-u-003">
+                    <input type="date" class="input feriiz-u-004" @bind="_draftFrom" />
+                    <span class="feriiz-u-005">-</span>
+                    <input type="date" class="input feriiz-u-004" @bind="_draftTo" />
+                </div>
+
+                <label class="feriiz-u-013">Period</label>
+                <select class="input feriiz-u-017" @bind="_draftPeriod">
+                    <option value="today">Today</option>
+                    <option value="this_week">This Week</option>
+                    <option value="this_month">This Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="last_week">Last Week</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="all_time">All Time</option>
+                    <option value="custom">Custom</option>
+                </select>
+
+                <div class="feriiz-u-018">
+                    <button class="btn btn-outline feriiz-u-019" @onclick="ClearFilter">Clear</button>
+                    <button class="btn btn-primary feriiz-u-019" @onclick="ApplyFilter">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="stat-cards feriiz-u-023">
+    <div class="stat-card feriiz-u-024">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-clock"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-069">@Clock(_totalWorked)</div>
+            <div class="stat-label feriiz-u-070">Attendance Hours</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-071">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-069">@Clock(_deficit)</div>
+            <div class="stat-label feriiz-u-070">Hours Deficit</div>
+        </div>
+    </div>
+    <div class="stat-card feriiz-u-072">
+        <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-number feriiz-u-069">@Clock(_surplus)</div>
+            <div class="stat-label feriiz-u-070">Hours Surplus</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container attendance-table-container">
+    <table class="data-table attendance-table feriiz-u-073">
+        <colgroup>
+            <col width="190" />
+            <col width="96" /><col width="96" /><col width="96" />
+            <col width="96" /><col width="96" /><col width="96" />
+            <col width="96" />
+            <col width="220" />
+            <col />
+        </colgroup>
+        <thead>
+            <tr>
+                <th rowspan="2" class="feriiz-u-074">Date</th>
+                <th colspan="3" class="feriiz-u-075">Time Period</th>
+                <th colspan="3" class="feriiz-u-075">Attendance</th>
+                <th rowspan="2" class="feriiz-u-076">Period</th>
+                <th rowspan="2" class="feriiz-u-076">Request</th>
+                <th rowspan="2" class="feriiz-u-076">Note</th>
+            </tr>
+            <tr>
+                <th class="feriiz-u-077">Start</th>
+                <th class="feriiz-u-077">End</th>
+                <th class="feriiz-u-077">Period</th>
+                <th class="feriiz-u-077">Start</th>
+                <th class="feriiz-u-077">End</th>
+                <th class="feriiz-u-077">Period</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Rows)
+            {
+                <tr @key="row.Entry.Date">
+                    <td class="feriiz-u-078">@row.DateLabel</td>
+                    <td class="@(row.OffDay ? "feriiz-u-079" : "feriiz-u-073")">@row.ShiftStart</td>
+                    <td class="@(row.OffDay ? "feriiz-u-079" : "feriiz-u-073")">@row.ShiftEnd</td>
+                    <td class="@(row.OffDay ? "feriiz-u-079" : "feriiz-u-073")">@row.ShiftPeriod</td>
+                    <td class="@(row.LateIn ? "feriiz-u-081" : row.OffDay ? "feriiz-u-079" : "feriiz-u-073")">@row.InTime</td>
+                    <td class="@(row.OffDay ? "feriiz-u-079" : "feriiz-u-073")">@row.OutTime</td>
+                    <td class="@(row.OffDay ? "feriiz-u-079" : "feriiz-u-073")">@row.WorkedPeriod</td>
+                    <td class="feriiz-u-079">@row.Overtime</td>
+                    <td class="@(row.Request == "-" ? "feriiz-u-079" : "feriiz-u-082")">@row.Request</td>
+                    <td class="feriiz-u-080">@row.Note</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Rows.Count == 0)
+    {
+        <div class="partner-empty-state">No attendance for this filter.</div>
+    }
+</div>
+
+<div class="feriiz-u-032">version : @AppInfo.Version</div>
+
+@code {
+    [Parameter, EditorRequired] public Employee? Employee { get; set; }
+
+    /// <summary>Kalau diisi, hanya absensi di proyek itu yang ditampilkan.</summary>
+    [Parameter] public string? ProjectCode { get; set; }
+
+    [Parameter] public string BackHref { get; set; } = "employees";
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private sealed record Row(AttendanceEntry Entry, string DateLabel,
+                              string ShiftStart, string ShiftEnd, string ShiftPeriod,
+                              string InTime, string OutTime, string WorkedPeriod,
+                              string Overtime, string Request, string Note,
+                              bool OffDay, bool LateIn);
+
+    private string _search = "";
+    private bool _filterOpen;
+    private string _draftPeriod = "all_time", _appliedPeriod = "all_time";
+    private DateOnly? _draftFrom, _appliedFrom;
+    private DateOnly? _draftTo, _appliedTo;
+
+    private double _totalWorked, _deficit, _surplus;
+
+    private List<Row> Rows { get; set; } = new();
+
+    protected override void OnParametersSet() => Build();
+
+    private async Task Print() => await JS.InvokeVoidAsync("window.print");
+
+    private void ApplyFilter()
+    {
+        _appliedPeriod = _draftPeriod;
+        _appliedFrom = _draftFrom;
+        _appliedTo = _draftTo;
+        _filterOpen = false;
+        Build();
+    }
+
+    private void ClearFilter()
+    {
+        _draftPeriod = _appliedPeriod = "all_time";
+        _draftFrom = _appliedFrom = _draftTo = _appliedTo = null;
+        _search = "";
+        _filterOpen = false;
+        Build();
+    }
+
+    private void Build()
+    {
+        _totalWorked = _deficit = _surplus = 0;
+        Rows = new List<Row>();
+        if (Employee is null) return;
+
+        var (from, to) = ResolveRange();
+        var project = Data.FindProject(ProjectCode)
+                      ?? Employee.Projects.Select(Data.FindProject).OfType<Project>().FirstOrDefault();
+
+        var shiftHours = ShiftLength(project);
+        var q = _search.Trim();
+
+        var entries = Data.Attendance
+            .Where(a => a.EmployeeCode == Employee.Code)
+            .Where(a => ProjectCode is null || a.ProjectCode == ProjectCode)
+            .Where(a => from is null || string.CompareOrdinal(a.Date, from) >= 0)
+            .Where(a => to is null || string.CompareOrdinal(a.Date, to) <= 0)
+            .OrderBy(a => a.Date, StringComparer.Ordinal);
+
+        foreach (var a in entries)
+        {
+            var offDay = a.IsOffDay;
+            var worked = a.WorkHours;
+
+            _totalWorked += worked;
+            if (!offDay)
+            {
+                if (worked < shiftHours) _deficit += shiftHours - worked;
+                else _surplus += worked - shiftHours;
+            }
+
+            var label = DateOnly.TryParse(a.Date, out var d)
+                ? d.ToString("dddd, dd MMMM yyyy")
+                : a.Date;
+
+            var request = a.Status switch
+            {
+                "remote" => "Remote Work",
+                "sick" => "Sick Leave",
+                "leave" => "Annual Leave",
+                "holiday" => "Public Holiday",
+                _ => "-",
+            };
+
+            var note = a.IsMissingCheckIn ? "Missing check-in"
+                     : a.IsMissingCheckOut ? "Missing check-out"
+                     : "-";
+
+            var row = new Row(
+                a, label,
+                offDay ? "-" : (project?.WorkStart ?? "-") + ":00",
+                offDay ? "-" : (project?.WorkEnd ?? "-") + ":00",
+                offDay ? "-" : Clock(shiftHours),
+                string.IsNullOrEmpty(a.InTime) ? "-" : a.InTime,
+                string.IsNullOrEmpty(a.OutTime) ? "-" : a.OutTime,
+                worked > 0 ? Clock(worked) : "-",
+                a.OvertimeHours > 0 ? Clock(a.OvertimeHours) : "-",
+                request, note,
+                offDay,
+                LateCheckIn(a.InTime, project?.WorkStart));
+
+            if (q.Length > 0)
+            {
+                var haystack = $"{label} {row.InTime} {row.OutTime} {request} {note}";
+                if (haystack.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) continue;
+            }
+
+            Rows.Add(row);
+        }
+
+    }
+
+    /// <summary>Rentang tanggal dari pilihan Period, atau dari dua kotak tanggal kalau Custom.</summary>
+    private (string? From, string? To) ResolveRange()
+    {
+        var today = DateTime.Today;
+
+        static string S(DateTime d) => d.ToString("yyyy-MM-dd");
+
+        return _appliedPeriod switch
+        {
+            "today" => (S(today), S(today)),
+            "yesterday" => (S(today.AddDays(-1)), S(today.AddDays(-1))),
+            "this_week" => (S(today.AddDays(-(int)today.DayOfWeek)), S(today.AddDays(6 - (int)today.DayOfWeek))),
+            "last_week" => (S(today.AddDays(-(int)today.DayOfWeek - 7)), S(today.AddDays(-(int)today.DayOfWeek - 1))),
+            "this_month" => (S(new DateTime(today.Year, today.Month, 1)),
+                             S(new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month)))),
+            "last_month" => (S(new DateTime(today.Year, today.Month, 1).AddMonths(-1)),
+                             S(new DateTime(today.Year, today.Month, 1).AddDays(-1))),
+            "this_year" => ($"{today.Year}-01-01", $"{today.Year}-12-31"),
+            "custom" => (_appliedFrom?.ToString("yyyy-MM-dd"), _appliedTo?.ToString("yyyy-MM-dd")),
+            _ => (null, null),
+        };
+    }
+
+    private static double ShiftLength(Project? p)
+    {
+        if (p is null) return 9;
+        if (!TimeOnly.TryParse(p.WorkStart, out var start)) return 9;
+        if (!TimeOnly.TryParse(p.WorkEnd, out var end)) return 9;
+        var span = end - start;
+        return span.TotalHours <= 0 ? 9 : span.TotalHours;
+    }
+
+    private static bool LateCheckIn(string inTime, string? workStart)
+    {
+        if (string.IsNullOrEmpty(inTime) || string.IsNullOrEmpty(workStart)) return false;
+        return TimeOnly.TryParse(inTime, out var actual)
+            && TimeOnly.TryParse(workStart, out var expected)
+            && actual > expected;
+    }
+
+    /// <summary>Jam desimal menjadi "HH:MM", format yang dipakai kartu statistik.</summary>
+    private static string Clock(double hours)
+    {
+        if (hours <= 0) return "0:00";
+        var total = (int)Math.Round(hours * 60);
+        return $"{total / 60}:{total % 60:D2}";
+    }
+}

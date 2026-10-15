@@ -1,0 +1,251 @@
+@page "/employee-detail"
+@inject FeriizDataService Data
+@inject NavigationManager Nav
+
+<PageTitle>Feriiz - Employee Detail</PageTitle>
+
+<div class="breadcrumb">
+    <a href="employees">Employees</a>
+    <span>&gt;</span>
+    <span class="feriiz-u-057">Employee Detail</span>
+</div>
+
+<div class="page-header">
+    <h1 class="page-title">Employee Detail</h1>
+</div>
+
+<div class="form-grid">
+
+    <div>
+        <div class="form-section">
+            <div class="form-section-title">Personal Information</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" placeholder="First Name" @bind="_firstName" />
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" placeholder="Last Name" @bind="_lastName" />
+                </div>
+                <div class="form-group">
+                    <label>Occupation</label>
+                    <input type="text" placeholder="Occupation" @bind="_occupation" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pin</label>
+                    <input type="text" placeholder="Pin" @bind="_pin" />
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" @bind="_dateOfBirth" />
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select @bind="_gender">
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea placeholder="Add notes about this employee..." @bind="_note"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section feriiz-u-089">
+            <div class="form-section-title">Working Time</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Start Hour</label>
+                    <input type="time" value="@_startHour" @onchange="e => _startHour = AsText(e)" />
+                </div>
+                <div class="form-group">
+                    <label>End Hour</label>
+                    <input type="time" value="@_endHour" @onchange="e => _endHour = AsText(e)" />
+                </div>
+                <div class="form-group">
+                    <label>Cut Off Hour</label>
+                    <input type="time" value="@_cutOffHour" @onchange="e => _cutOffHour = AsText(e)" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Working Days</label>
+                    <div class="day-checks">
+                        @foreach (var day in Days)
+                        {
+                            <label class="day-check">
+                                <input type="checkbox" checked="@_workingDays.Contains(day)"
+                                       @onchange="e => ToggleDay(day, e)" />
+                                <span>@day</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="form-section">
+            <div class="form-section-title">Account Configuration</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Role</label>
+                    <select @bind="_role">
+                        <option value="">Select Role</option>
+                        <option value="employee">Employee</option>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="Email" @bind="_email" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Reset Password</label>
+                    <input type="text" placeholder="Reset Password" class="feriiz-u-090" @bind="_resetPassword" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section feriiz-u-089">
+            <div class="form-section-title">Payment Rate</div>
+
+            <div class="form-row feriiz-u-091">
+                <div class="form-group">
+                    <label>Hourly Rate</label>
+                    <div class="rate-input">
+                        <span class="rate-icon">$</span>
+                        <input type="number" placeholder="0" @bind="_hourlyRate" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Hourly Overtime Rate</label>
+                    <div class="rate-input">
+                        <span class="rate-icon">$</span>
+                        <input type="number" placeholder="0" @bind="_hourlyOvertimeRate" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Client Rate</label>
+                    <div class="rate-input">
+                        <span class="rate-icon">$</span>
+                        <input type="number" placeholder="0" @bind="_clientRate" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Client Overtime Rate</label>
+                    <div class="rate-input">
+                        <span class="rate-icon">$</span>
+                        <input type="number" placeholder="0" @bind="_clientOvertimeRate" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-save" type="button" @onclick="Save">Save Changes</button>
+
+        @if (_message is not null)
+        {
+            <div class="form-save-message" style="margin-top:12px;color:@(_saved ? "#12805c" : "#b54708");">
+                @_message
+            </div>
+        }
+    </div>
+
+</div>
+
+<div class="feriiz-u-092">version : @AppInfo.Version</div>
+
+@code {
+    private static readonly string[] Days = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    private string _firstName = "", _lastName = "", _occupation = "", _pin = "";
+    private string _gender = "male", _role = "employee";
+    private string _note = "", _email = "", _resetPassword = "";
+    private DateOnly? _dateOfBirth;
+    private string _startHour = "08:00";
+    private string _endHour = "17:00";
+    private string _cutOffHour = "18:00";
+    private decimal? _hourlyRate, _hourlyOvertimeRate, _clientRate, _clientOvertimeRate;
+
+    private readonly HashSet<string> _workingDays = new(StringComparer.Ordinal)
+        { "Mon", "Tue", "Wed", "Thu", "Fri" };
+
+    private string? _message;
+    private bool _saved;
+
+    /// <summary>
+    /// Halaman statisnya menampilkan satu karyawan contoh yang ditulis langsung
+    /// di HTML. Di sini formnya diisi dari ?employee=KODE kalau ada, supaya
+    /// halaman ini menampilkan orang yang benar-benar diklik.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        await Data.EnsureLoadedAsync();
+
+        var employee = Data.FindEmployee(QueryString.Get(Nav.Uri, "employee"));
+        if (employee is null) return;
+
+        var parts = employee.Name.Split(' ', 2, StringSplitOptions.TrimEntries);
+        _firstName = parts.Length > 0 ? parts[0] : "";
+        _lastName = parts.Length > 1 ? parts[1] : "";
+        _occupation = employee.Occupation;
+        _pin = employee.Pin;
+        _email = employee.Email ?? "";
+
+        var project = employee.Projects.Select(Data.FindProject).OfType<Project>().FirstOrDefault();
+        if (project is not null)
+        {
+            if (!string.IsNullOrEmpty(project.WorkStart)) _startHour = project.WorkStart;
+            if (!string.IsNullOrEmpty(project.WorkEnd)) _endHour = project.WorkEnd;
+            if (project.WorkingDays.Count > 0)
+            {
+                _workingDays.Clear();
+                foreach (var d in project.WorkingDays) _workingDays.Add(d);
+            }
+        }
+    }
+
+    private static string AsText(ChangeEventArgs e) => e.Value?.ToString() ?? "";
+
+    private void ToggleDay(string day, ChangeEventArgs e)
+    {
+        if (e.Value is true) _workingDays.Add(day);
+        else _workingDays.Remove(day);
+    }
+
+    private void Save()
+    {
+        if (string.IsNullOrWhiteSpace(_firstName))
+        {
+            _saved = false;
+            _message = "First name is required.";
+            return;
+        }
+        // Demo saja - tidak ada backend yang menerima perubahan ini.
+        _saved = true;
+        _message = $"{_firstName.Trim()}'s profile was updated.";
+    }
+}

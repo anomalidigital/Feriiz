@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/data.js?v=3.6.1" defer></script>
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.1" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="employees">
@@ -40,7 +43,7 @@
                     <i class="fa-solid fa-file-export"></i>
                     Export
                 </button>
-                <button class="btn btn-primary" onclick="openEmployeeDetailModal(true, null)">
+                <button class="btn btn-primary" type="button" id="addEmployeeBtn">
                     <i class="fa-solid fa-plus"></i>
                     Add Employee
                 </button>
@@ -93,52 +96,8 @@
                 <div class="pagination-buttons" id="paginationButtons"></div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.6.1</div>
+        <div class="feriiz-u-032">version : 3.7.1</div>
     </main>
-
-    <!-- Employee Detail Modal -->
-    <div class="modal-overlay" id="employeeDetailModal">
-        <div class="modal-card feriiz-u-033">
-            <div class="modal-header feriiz-u-034">
-                <h2 id="employeeDetailTitle" class="feriiz-u-035">Employee Detail</h2>
-                <button class="modal-close feriiz-u-036" onclick="closeEmployeeDetailModal()">&times;</button>
-            </div>
-            <div class="modal-body feriiz-u-037">
-                <div class="feriiz-u-038">
-                    <div>
-                        <div class="feriiz-u-039"><span class="feriiz-u-040">Personal Information</span></div>
-                        <div class="feriiz-u-041">
-                            <input type="text" id="empModalFirstName" placeholder="First Name" class="feriiz-u-042">
-                            <input type="text" id="empModalLastName" placeholder="Last Name" class="feriiz-u-042">
-                            <input type="text" id="empModalOccupation" placeholder="Occupation" class="feriiz-u-042">
-                        </div>
-                        <div class="feriiz-u-041">
-                            <input type="text" id="empModalPin" placeholder="Pin" class="feriiz-u-042">
-                            <input type="date" class="feriiz-u-042">
-                            <select class="feriiz-u-043">
-                                <option value="" disabled selected>Gender</option>
-                                <option>Male</option>
-                                <option>Female</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="feriiz-u-039"><span class="feriiz-u-040">Account Configuration</span></div>
-                        <select class="feriiz-u-052">
-                            <option>Employee</option><option>Admin</option>
-                        </select>
-                        <input type="email" id="empModalEmail" placeholder="Email" class="feriiz-u-053">
-                        <div class="feriiz-u-039"><span class="feriiz-u-040">Payment Rate</span></div>
-                        <input type="text" id="empModalDailyRate" placeholder="Daily Rate" class="feriiz-u-053">
-                        <input type="text" id="empModalClientRate" placeholder="Client Daily Rate" class="feriiz-u-053">
-                    </div>
-                </div>
-            </div>
-            <div class="feriiz-u-055">
-                <button class="btn btn-primary feriiz-u-056" onclick="saveEmployeeChanges()">Save Changes</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         var employeesState = {
@@ -149,52 +108,47 @@
             perPage: 25
         };
 
-        function openEmployeeDetailModal(isNew, code) {
-            var title = document.getElementById('employeeDetailTitle');
-            title.textContent = isNew ? 'Add Employee' : 'Employee Detail';
-            var fn = document.getElementById('empModalFirstName');
-            var ln = document.getElementById('empModalLastName');
-            var occ = document.getElementById('empModalOccupation');
-            var pin = document.getElementById('empModalPin');
-            var email = document.getElementById('empModalEmail');
-            var rate = document.getElementById('empModalDailyRate');
-            var crate = document.getElementById('empModalClientRate');
-            [fn, ln, occ, pin, email, rate, crate].forEach(function (el) { if (el) el.value = ''; });
-            if (!isNew && code && window.FERIIZ_DATA) {
-                var emp = window.FERIIZ_DATA.findEmployeeByCode(code);
-                if (emp) {
-                    var parts = (emp.name || '').split(/\s+/);
-                    fn.value = parts.shift() || '';
-                    ln.value = parts.join(' ');
-                    occ.value = emp.occupation || '';
-                    pin.value = emp.pin || '';
-                    email.value = emp.email || '';
-                    rate.value = emp.dailyRate || '';
-                    crate.value = emp.clientDailyRate || '';
+        // Add and edit use the shared employee form (assets/js/employee-form.js).
+        function openEmployeeForm(emp) {
+            // Schedule and overtime defaults come from the employee's first project.
+            var project = emp && emp.projects && emp.projects.length
+                ? window.FERIIZ_DATA.findProjectByCode(emp.projects[0]) : null;
+            window.FeriizEmployeeForm.open({
+                employee: emp,
+                project: project,
+                onSave: function (v, isNew) {
+                    var target = emp || {
+                        code: 'NEW' + Date.now().toString(36).toUpperCase(),
+                        projects: [],
+                        status: 'Active',
+                        joinedAt: new Date().toISOString().slice(0, 10)
+                    };
+                    target.name = v.name;
+                    target.firstName = v.firstName;
+                    target.middleName = v.middleName;
+                    target.lastName = v.lastName;
+                    target.occupation = v.occupation;
+                    target.pin = v.pin;
+                    target.phone = v.phone;
+                    target.email = v.email;
+                    target.gender = v.gender;
+                    target.birthDate = v.birthDate;
+                    target.note = v.note;
+                    target.status = v.status;
+                    target.role = v.role;
+                    target.workStart = v.startHour;
+                    target.workEnd = v.endHour;
+                    target.cutOff = v.cutOff;
+                    target.workingDays = v.workingDays;
+                    target.dailyRate = v.dailyRate;
+                    target.overtimeRate = v.overtimeRate;
+                    target.clientDailyRate = v.clientDailyRate;
+                    target.clientOvertimeRate = v.clientOvertimeRate;
+                    if (isNew) employeesState.all.unshift(target);
+                    applyEmployeeFilter();
+                    document.querySelector('[data-stat="employees"]').textContent = employeesState.all.length.toLocaleString('id-ID');
                 }
-            }
-            document.getElementById('employeeDetailModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeEmployeeDetailModal() {
-            document.getElementById('employeeDetailModal').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function saveEmployeeChanges() {
-            var title = document.getElementById('employeeDetailTitle');
-            var firstName = document.getElementById('empModalFirstName');
-            var isNew = title && title.textContent === 'Add Employee';
-            var employeeName = firstName ? firstName.value.trim() : '';
-            if (!employeeName) {
-                if (firstName) firstName.focus();
-                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
-                return;
-            }
-            closeEmployeeDetailModal();
-            if (window.FeriizNotify) {
-                FeriizNotify.success(employeeName + (isNew ? ' was added successfully.' : ' was updated successfully.'), isNew ? 'Employee added' : 'Employee updated');
-            }
+            });
         }
 
         function formatJoinedDate(iso) {
@@ -231,7 +185,7 @@
                 '<td>' + formatJoinedDate(emp.joinedAt) + '</td>';
             tr.querySelector('.btn-icon[data-code]').addEventListener('click', function (e) {
                 e.preventDefault();
-                openEmployeeDetailModal(false, emp.code);
+                openEmployeeForm(emp);
             });
             tr.querySelector('img').addEventListener('error', function () {
                 if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
@@ -357,8 +311,8 @@
                 }
             });
 
-            document.getElementById('employeeDetailModal').addEventListener('click', function (e) {
-                if (e.target === this) closeEmployeeDetailModal();
+            document.getElementById('addEmployeeBtn').addEventListener('click', function () {
+                openEmployeeForm(null);
             });
         });
     </script>

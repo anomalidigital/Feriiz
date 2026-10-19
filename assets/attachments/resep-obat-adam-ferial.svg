@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 595" width="420" height="595" font-family="Poppins, Arial, sans-serif">
+  <rect width="420" height="595" fill="#FBFCFE"/>
+  <rect x="0" y="0" width="420" height="6" fill="#27AE60"/>
+  <text x="210" y="310" text-anchor="middle" font-size="90" font-weight="700" fill="#27AE60" fill-opacity="0.07" transform="rotate(-30 210 310)">CONTOH</text>
+  <text x="36" y="58" font-size="16" font-weight="700" fill="#1a1a1a">Apotek Contoh Farma</text>
+  <text x="36" y="78" font-size="10" fill="#6B7480">Sample document for the Feriiz prototype</text>
+  <line x1="36" y1="94" x2="384" y2="94" stroke="#D9D9D9"/>
+  <text x="36" y="128" font-size="13" font-weight="700" fill="#1a1a1a">Resep</text>
+  <text x="36" y="152" font-size="12" fill="#333">Pasien: Adam Ferial</text>
+  <text x="36" y="172" font-size="12" fill="#333">Tanggal: 06 Mei 2026</text>
+  <text x="36" y="214" font-size="12" fill="#333">R/ Paracetamol 500 mg  — 3 x 1 tablet</text>
+  <text x="36" y="238" font-size="12" fill="#333">R/ Vitamin C 500 mg   — 1 x 1 tablet</text>
+  <text x="36" y="262" font-size="12" fill="#333">R/ Istirahat yang cukup</text>
+</svg>

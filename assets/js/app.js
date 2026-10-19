@@ -107,6 +107,276 @@ function feriizLogout() {
     };
 })();
 
+/* === Workspaces ===
+   A workspace is what the backend calls a "partner": the company whose
+   projects and employees you are looking at. The switcher sits at the bottom
+   of the sidebar; partner.html lists them ("Workspaces"). The choice is kept
+   in localStorage. In this prototype every workspace shows the same demo
+   dataset — switching only changes the label until the API filters by partner. */
+(function () {
+    var WORKSPACES = [
+        { id: '1629712785796FJLXHTP', name: 'Arcon & Anomali', createdAt: '06 September 2021 - 00:00', updatedAt: '-' },
+        // Second entry is demo-only, so the switch can be tried out.
+        { id: '1700000000000DEMOWSP', name: 'Anomali Digital', createdAt: '14 November 2023 - 09:00', updatedAt: '-' }
+    ];
+    var STORAGE_KEY = 'feriiz_workspace';
+    var menu = null;
+    var activeButton = null;
+
+    function current() {
+        var id = null;
+        try { id = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+        return WORKSPACES.filter(function (w) { return w.id === id; })[0] || WORKSPACES[0];
+    }
+
+    function initials(name) {
+        var words = String(name || '').replace(/[^A-Za-z0-9 ]/g, ' ').trim().split(/\s+/);
+        return ((words[0] || '?')[0] + ((words[1] || '')[0] || '')).toUpperCase();
+    }
+
+    function paint(button) {
+        var ws = current();
+        button.querySelector('.workspace-avatar').textContent = initials(ws.name);
+        button.querySelector('.workspace-name').textContent = ws.name;
+        button.title = 'Workspace: ' + ws.name;
+    }
+
+    function closeMenu() {
+        if (!menu) return;
+        menu.remove();
+        menu = null;
+        if (activeButton) {
+            activeButton.setAttribute('aria-expanded', 'false');
+            var sidebar = activeButton.closest('.sidebar');
+            if (sidebar) sidebar.classList.remove('is-pinned');
+            activeButton.focus();
+        }
+        document.removeEventListener('mousedown', onOutside, true);
+        document.removeEventListener('keydown', onKey, true);
+        window.removeEventListener('resize', closeMenu);
+    }
+
+    function onOutside(e) {
+        if (menu && !menu.contains(e.target) && !(activeButton && activeButton.contains(e.target))) closeMenu();
+    }
+
+    function onKey(e) {
+        if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; }
+        if (!menu || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
+        var items = Array.prototype.slice.call(menu.querySelectorAll('[role^="menuitem"]'));
+        var i = items.indexOf(document.activeElement);
+        e.preventDefault();
+        var next = e.key === 'ArrowDown' ? (i + 1) % items.length : (i - 1 + items.length) % items.length;
+        items[next].focus();
+    }
+
+    function choose(ws) {
+        var before = current();
+        try { localStorage.setItem(STORAGE_KEY, ws.id); } catch (e) {}
+        closeMenu();
+        document.querySelectorAll('.workspace-switch').forEach(paint);
+        if (ws.id !== before.id && window.FeriizNotify) {
+            window.FeriizNotify.success('You are now working in ' + ws.name + '.', 'Workspace switched');
+        }
+    }
+
+    function openMenu(button) {
+        if (menu) { closeMenu(); return; }
+        activeButton = button;
+        var sidebar = button.closest('.sidebar');
+        if (sidebar) sidebar.classList.add('is-pinned');   // keep the rail expanded while choosing
+
+        var ws = current();
+        menu = document.createElement('div');
+        menu.className = 'workspace-menu';
+        menu.setAttribute('role', 'menu');
+        menu.setAttribute('aria-label', 'Workspaces');
+
+        var title = document.createElement('div');
+        title.className = 'workspace-menu-title';
+        title.textContent = 'Switch workspace';
+        menu.appendChild(title);
+
+        WORKSPACES.forEach(function (w) {
+            var item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'workspace-menu-item';
+            item.setAttribute('role', 'menuitemradio');
+            item.setAttribute('aria-checked', w.id === ws.id ? 'true' : 'false');
+            item.innerHTML = '<span class="workspace-avatar" aria-hidden="true"></span><span class="workspace-menu-name"></span>' +
+                '<i class="fa-solid fa-check workspace-menu-check" aria-hidden="true"></i>';
+            item.querySelector('.workspace-avatar').textContent = initials(w.name);
+            item.querySelector('.workspace-menu-name').textContent = w.name;
+            item.addEventListener('click', function () { choose(w); });
+            menu.appendChild(item);
+        });
+
+        var divider = document.createElement('div');
+        divider.className = 'workspace-menu-divider';
+        menu.appendChild(divider);
+
+        var manage = document.createElement('a');
+        manage.href = 'partner.html';
+        manage.className = 'workspace-menu-link';
+        manage.setAttribute('role', 'menuitem');
+        manage.innerHTML = '<i class="fa-solid fa-gear" aria-hidden="true"></i>Manage workspaces';
+        menu.appendChild(manage);
+
+        var logout = document.createElement('button');
+        logout.type = 'button';
+        logout.className = 'workspace-menu-link workspace-menu-logout';
+        logout.setAttribute('role', 'menuitem');
+        logout.innerHTML = '<i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>Log out';
+        logout.addEventListener('click', function () { window.feriizLogout(); });
+        menu.appendChild(logout);
+
+        document.body.appendChild(menu);
+
+        // Beside the expanded rail on desktop; above the button when there is no room (phones).
+        var rect = button.getBoundingClientRect();
+        var side = sidebar ? sidebar.getBoundingClientRect() : rect;
+        // The rail is still animating 56px -> 200px, so place against its expanded edge.
+        var railRight = side.left + Math.max(side.width, 200);
+        var width = menu.offsetWidth;
+        if (window.innerWidth - railRight >= width + 16) {
+            menu.style.left = (railRight + 8) + 'px';
+            menu.style.bottom = Math.max(8, window.innerHeight - rect.bottom) + 'px';
+        } else {
+            menu.style.left = Math.max(8, rect.left) + 'px';
+            menu.style.width = Math.max(220, rect.width) + 'px';
+            menu.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+        }
+
+        button.setAttribute('aria-expanded', 'true');
+        var checked = menu.querySelector('[aria-checked="true"]');
+        (checked || menu.querySelector('[role^="menuitem"]')).focus();
+        document.addEventListener('mousedown', onOutside, true);
+        document.addEventListener('keydown', onKey, true);
+        window.addEventListener('resize', closeMenu);
+    }
+
+    window.FeriizWorkspaces = {
+        list: function () { return WORKSPACES.slice(); },
+        current: current,
+        initials: initials,
+        bindSwitcher: function (root) {
+            var button = root.querySelector('.workspace-switch');
+            if (!button) return;
+            paint(button);
+            button.addEventListener('click', function () { openMenu(button); });
+        }
+    };
+})();
+
+/* === Attachment viewer ===
+   FeriizAttachments.open(files, context) shows request attachments in a
+   Bootstrap modal: preview for images and PDFs, plus Open and Download.
+   files: [{ name, url, type, size }]. The modal is created on first use. */
+(function () {
+    var modal = null;
+    var files = [];
+
+    function sizeLabel(bytes) {
+        if (!bytes && bytes !== 0) return '';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+
+    function build() {
+        var el = document.createElement('div');
+        el.className = 'modal fade attachment-modal';
+        el.id = 'attachmentModal';
+        el.tabIndex = -1;
+        el.setAttribute('aria-labelledby', 'attachmentModalTitle');
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML =
+            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<div class="attachment-heading">' +
+                            '<h2 class="modal-title text-truncate" id="attachmentModalTitle">Attachment</h2>' +
+                            '<p class="attachment-context" id="attachmentContext"></p>' +
+                        '</div>' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="attachment-files" id="attachmentFiles" role="tablist" aria-label="Files"></div>' +
+                        '<div class="attachment-stage" id="attachmentStage"></div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<span class="attachment-size me-auto" id="attachmentSize"></span>' +
+                        '<a class="btn btn-outline" id="attachmentOpen" target="_blank" rel="noopener">' +
+                            '<i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open in new tab</a>' +
+                        '<a class="btn btn-primary" id="attachmentDownload" download>' +
+                            '<i class="fa-solid fa-download" aria-hidden="true"></i> Download</a>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(el);
+        return el;
+    }
+
+    function show(index) {
+        var f = files[index];
+        if (!f) return;
+        modal.querySelector('#attachmentModalTitle').textContent = f.name;
+        modal.querySelector('#attachmentSize').textContent = sizeLabel(f.size);
+        modal.querySelector('#attachmentOpen').href = f.url;
+        var dl = modal.querySelector('#attachmentDownload');
+        dl.href = f.url;
+        dl.setAttribute('download', f.name);
+        modal.querySelectorAll('.attachment-file').forEach(function (b, i) {
+            b.classList.toggle('active', i === index);
+            b.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        });
+
+        var stage = modal.querySelector('#attachmentStage');
+        stage.innerHTML = '';
+        var type = (f.type || '').toLowerCase();
+        if (type.indexOf('image/') === 0 || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name)) {
+            var img = document.createElement('img');
+            img.src = f.url;
+            img.alt = f.name;
+            img.className = 'attachment-preview';
+            stage.appendChild(img);
+        } else if (type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+            var frame = document.createElement('iframe');
+            frame.src = f.url;
+            frame.title = f.name;
+            frame.className = 'attachment-pdf';
+            stage.appendChild(frame);
+        } else {
+            stage.innerHTML = '<div class="attachment-noprev"><i class="fa-regular fa-file" aria-hidden="true"></i>' +
+                '<p>No preview for this file type. Use Download to open it.</p></div>';
+        }
+    }
+
+    window.FeriizAttachments = {
+        open: function (list, context) {
+            files = (list || []).slice();
+            if (!files.length) return;
+            if (!modal) modal = build();
+            modal.querySelector('#attachmentContext').textContent = context || '';
+            var tabs = modal.querySelector('#attachmentFiles');
+            tabs.innerHTML = '';
+            tabs.hidden = files.length < 2;
+            files.forEach(function (f, i) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'attachment-file';
+                b.setAttribute('role', 'tab');
+                b.innerHTML = '<i class="fa-regular fa-file-image" aria-hidden="true"></i><span></span>';
+                b.querySelector('span').textContent = f.name;
+                b.addEventListener('click', function () { show(i); });
+                tabs.appendChild(b);
+            });
+            show(0);
+            window.bootstrap.Modal.getOrCreateInstance(modal).show();
+        }
+    };
+})();
+
 /* === Sidebar Renderer ===
    Single source for sidebar markup. Pages opt in by adding
    <body data-page="KEY"> and an empty <aside class="sidebar"></aside>. */
@@ -116,8 +386,8 @@ function feriizLogout() {
         'projects':                  { main: 'projects-flat' },
         'employees':                 { main: 'employees' },
         'calendar':                  { main: 'calendar' },
-        'my-account':                { main: 'my-account', logout: true },
-        'partner':                   { main: 'my-account', logout: true },
+        'my-account':                { main: 'my-account' },
+        'partner':                   { main: 'workspaces' },
         'project-activity':          { main: 'projects-group', sub: 'activity' },
         'project-attendance':        { main: 'projects-group', sub: 'activity' },
         'project-report':            { main: 'projects-group', sub: 'report' },
@@ -179,12 +449,20 @@ function feriizLogout() {
                 '<a href="my-account.html"' + cls(cfg.main === 'my-account') + '>' +
                     '<i class="fa-regular fa-user"></i><span class="nav-label">My Account</span>' +
                 '</a>' +
-                (cfg.logout
-                    ? '<a href="#" onclick="feriizLogout(); return false;" class="nav-logout">' +
-                          '<i class="fa-solid fa-right-from-bracket"></i><span class="nav-label">Logout</span>' +
-                      '</a>'
-                    : '') +
-            '</nav>';
+            '</nav>' +
+            // Workspace (= partner) switcher. Log out lives in its menu.
+            '<div class="sidebar-footer">' +
+                '<button type="button" class="workspace-switch' + (cfg.main === 'workspaces' ? ' active' : '') + '" ' +
+                    'aria-haspopup="menu" aria-expanded="false" aria-label="Switch workspace">' +
+                    '<span class="workspace-avatar" aria-hidden="true"></span>' +
+                    '<span class="nav-label workspace-text">' +
+                        '<span class="workspace-caption">Workspace</span>' +
+                        '<span class="workspace-name"></span>' +
+                    '</span>' +
+                    '<i class="fa-solid fa-chevron-up nav-label workspace-chevron" aria-hidden="true"></i>' +
+                '</button>' +
+            '</div>';
+        if (window.FeriizWorkspaces) window.FeriizWorkspaces.bindSwitcher(aside);
     }
 
     if (document.readyState === 'loading') {

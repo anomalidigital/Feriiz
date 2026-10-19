@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Request</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/data.js?v=3.6.1" defer></script>
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.1" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="project-requests">
@@ -143,6 +145,7 @@
                         <th>Date Request</th>
                         <th>Date Range</th>
                         <th>Approval</th>
+                        <th>Attachment</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -200,14 +203,41 @@
                 '<td>' + fmtDay(req.submittedAt || req.dateStart) + '</td>' +
                 '<td>' + fmtDay(req.dateStart) + (req.dateEnd && req.dateEnd !== req.dateStart ? ' – ' + fmtDay(req.dateEnd) : '') + '</td>' +
                 '<td>' + (req.pic || '-') + '</td>' +
+                '<td class="attachment-cell"></td>' +
                 '<td><span class="' + statusBadgeClass(req.status) + '">' + req.status + '</span></td>';
+            tr.querySelector('.attachment-cell').appendChild(attachmentLink(req, emp));
             tr.querySelector('img').addEventListener('error', function () {
                 if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
             });
             tr.querySelector('.btn-icon').addEventListener('click', function () {
-                openModal(emp.name, req.type, fmtDay(req.dateStart), fmtDay(req.dateEnd), req.status);
+                openModal(emp.name, req.type, fmtDay(req.dateStart), fmtDay(req.dateEnd), req.status, req);
             });
             return tr;
+        }
+
+        /* ---------- Attachments ---------- */
+        window.requestAttachmentLink = function (req, name) { return attachmentLink(req, { name: name }); };
+        // One button per row: the file name for one file, "N files" for more.
+        function attachmentLink(req, emp) {
+            var files = req.attachments || [];
+            if (!files.length) {
+                var none = document.createElement('span');
+                none.className = 'attachment-none';
+                none.textContent = '–';
+                none.setAttribute('aria-label', 'No attachment');
+                return none;
+            }
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'attachment-link';
+            btn.title = files.map(function (f) { return f.name; }).join(', ');
+            btn.innerHTML = '<i class="fa-solid fa-paperclip" aria-hidden="true"></i><span></span>';
+            btn.querySelector('span').textContent = files.length === 1 ? files[0].name : files.length + ' files';
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                window.FeriizAttachments.open(files, req.type + ' from ' + emp.name + ', ' + fmtDay(req.dateStart));
+            });
+            return btn;
         }
 
         function renderPage() {
@@ -394,7 +424,7 @@
                     </div>
                     <div class="modal-info-item">
                         <span class="modal-info-label">Attachment</span>
-                        <span class="modal-info-value feriiz-u-156">—</span>
+                        <span class="modal-info-value feriiz-u-156" id="modalAttachment">–</span>
                     </div>
                 </div>
             </div>
@@ -499,8 +529,11 @@
     </div>
 
     <script>
-        function openModal(name, type, dateReq, dateRange, status) {
+        function openModal(name, type, dateReq, dateRange, status, req) {
             document.getElementById('modalTitle').textContent = 'Approval ' + name;
+            var attachmentSlot = document.getElementById('modalAttachment');
+            attachmentSlot.innerHTML = '';
+            attachmentSlot.appendChild(req ? window.requestAttachmentLink(req, name) : document.createTextNode('–'));
             document.getElementById('modalRequest').textContent = type || 'Sick Leave';
             document.getElementById('modalDateRequest').textContent = dateReq || 'Thu, 05 Mar 2026';
             document.getElementById('modalDate').textContent = dateRange || 'Thu, 05 Mar 2026';

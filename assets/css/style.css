@@ -65,6 +65,154 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* === Bootstrap 5.3 compatibility (v3.7.0) ===
+   Bootstrap is loaded before this file. Its Reboot restyles bare elements
+   (line-height, heading/paragraph/list margins, link colour, table header
+   alignment...). These pages were laid out on a zero-margin reset, so the
+   element defaults below put that baseline back. Bootstrap components are
+   class-based (.form-control, .modal, .input-group, .row/.col...) and keep their
+   own styling; Feriiz colours reach them through Bootstrap's CSS variables. */
+:root {
+    scroll-behavior: auto;
+    --bs-body-font-family: 'Poppins', sans-serif;
+    --bs-body-color: #333;
+    --bs-body-color-rgb: 51, 51, 51;
+    --bs-body-bg: #F2F2F2;
+    --bs-body-bg-rgb: 242, 242, 242;
+    --bs-primary: #2975BB;
+    --bs-primary-rgb: 41, 117, 187;
+    --bs-primary-text-emphasis: #10304d;
+    --bs-primary-bg-subtle: #EBF3FA;
+    --bs-primary-border-subtle: #a9c8e4;
+    --bs-link-color: #2975BB;
+    --bs-link-color-rgb: 41, 117, 187;
+    --bs-link-hover-color: #1e5a91;
+    --bs-link-hover-color-rgb: 30, 90, 145;
+    --bs-border-color: #D9D9D9;
+    --bs-border-radius: 7px;
+    --bs-focus-ring-color: rgba(41, 117, 187, 0.25);
+}
+
+body {
+    line-height: normal;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, blockquote, figure, pre, address {
+    margin: 0;
+}
+
+ul, ol {
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    line-height: normal;
+    color: inherit;
+}
+
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+h4 { font-size: 1em; }
+h5 { font-size: 0.83em; }
+h6 { font-size: 0.67em; }
+
+/* Browsers centre table headers by default; Reboot left-aligns them. */
+th {
+    text-align: center;
+}
+
+/* Form controls: keep the browser's 13.33px / normal line-height that unsized
+   controls were designed with (Reboot makes them inherit). Bootstrap's own
+   .form-control/.form-select/.btn set their sizes by class and are unaffected. */
+button, input, optgroup, select, textarea {
+    font-size: 13.333333px;
+    line-height: normal;
+}
+
+.form-check-input {
+    font-size: inherit;
+}
+
+/* Reboot middle-aligns images; the login logo was laid out on the baseline. */
+img, svg {
+    vertical-align: baseline;
+}
+
+/* Our status/hour badges inherit their line-height from the cell (Bootstrap forces 1). */
+.badge {
+    line-height: inherit;
+}
+
+/* Feriiz palette for Bootstrap buttons and form controls. */
+.btn {
+    --bs-btn-font-family: 'Poppins', sans-serif;
+    --bs-btn-line-height: normal;
+    --bs-btn-active-border-color: transparent;
+}
+
+.btn-primary {
+    --bs-btn-bg: #2975BB;
+    --bs-btn-border-color: #2975BB;
+    --bs-btn-hover-bg: #1e5a91;
+    --bs-btn-hover-border-color: #1e5a91;
+    --bs-btn-active-bg: #1a4f80;
+    --bs-btn-active-border-color: #1a4f80;
+    --bs-btn-disabled-bg: #2975BB;
+    --bs-btn-disabled-border-color: #2975BB;
+    --bs-btn-focus-shadow-rgb: 41, 117, 187;
+}
+
+.btn-outline {
+    --bs-btn-hover-bg: #F2F2F2;
+    --bs-btn-active-bg: #EBF3FA;
+    --bs-btn-disabled-color: #666;
+    --bs-btn-disabled-bg: #fff;
+    --bs-btn-disabled-border-color: #D9D9D9;
+    --bs-btn-focus-shadow-rgb: 41, 117, 187;
+}
+
+/* Bootstrap outline variants need their border back (legacy .btn sets border: none). */
+.btn[class*="btn-outline-"] {
+    border: 1px solid var(--bs-btn-border-color);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #2975BB;
+    --bs-btn-border-color: #2975BB;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #2975BB;
+    --bs-btn-hover-border-color: #2975BB;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #2975BB;
+    --bs-btn-active-border-color: #2975BB;
+    --bs-btn-focus-shadow-rgb: 41, 117, 187;
+}
+
+.btn-danger {
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #DC3545;
+    --bs-btn-disabled-border-color: #DC3545;
+    --bs-btn-focus-shadow-rgb: 220, 53, 69;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.18);
+}
+
+.form-check-input:checked {
+    background-color: #2975BB;
+    border-color: #2975BB;
+}
+
+.form-check-input:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.18);
+}
+
 /* === INTERACTIVE SIDEBAR === */
 .sidebar {
     width: 56px;
@@ -2490,8 +2638,9 @@ body {
         }
 
         /* Flexbox Viewport Sticky Overrides */
-        body.report-layout { margin: 0; overflow: hidden; height: 100vh; }
-        body.report-layout .main-content {
+        /* Wrapper div replaces the old <body class="report-layout">; it is the flex row now. */
+        div.report-layout { display: flex; flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; height: 100vh; }
+        div.report-layout .main-content {
             height: 100vh !important;
             display: flex !important;
             flex-direction: column !important;
@@ -2912,7 +3061,7 @@ body {
             flex-wrap: wrap;
         }
 
-body.report-layout .report-actions {
+div.report-layout .report-actions {
     flex-wrap: nowrap;
 }
 
@@ -3200,13 +3349,13 @@ body.report-layout .report-actions {
         }
 
         /* Flexbox Viewport Sticky Overrides */
-        body.report-layout {
+        div.report-layout {
             margin: 0;
             overflow: hidden;
             height: 100vh;
         }
 
-        body.report-layout .main-content {
+        div.report-layout .main-content {
             height: 100vh !important;
             display: flex !important;
             flex-direction: column !important;
@@ -3416,85 +3565,85 @@ body.report-layout .report-actions {
 }
 
 /* Keep report-table-wrap left margin for layout */
-body.report-layout .report-table-wrap {
+div.report-layout .report-table-wrap {
     margin: 0 40px !important;
 }
 
 /* Report tables: keep the identity columns aligned while horizontal scrolling. */
-body.report-layout .report-table {
+div.report-layout .report-table {
     --report-sticky-name-width: 240px;
     isolation: isolate;
 }
 
-body.report-layout .report-table-wrap {
+div.report-layout .report-table-wrap {
     isolation: isolate;
 }
 
-body.report-layout .report-table .col-name {
+div.report-layout .report-table .col-name {
     width: var(--report-sticky-name-width) !important;
     min-width: var(--report-sticky-name-width) !important;
     max-width: var(--report-sticky-name-width) !important;
 }
 
-body.report-layout .report-table .col-totaldays,
-body.report-layout .report-table .col-totalhour,
-body.report-layout .report-table .col-totalovertime {
+div.report-layout .report-table .col-totaldays,
+div.report-layout .report-table .col-totalhour,
+div.report-layout .report-table .col-totalovertime {
     z-index: 1 !important;
 }
 
-body.report-layout .report-table tbody .col-totaldays,
-body.report-layout .report-table tbody .col-totalhour,
-body.report-layout .report-table tbody .col-totalovertime {
+div.report-layout .report-table tbody .col-totaldays,
+div.report-layout .report-table tbody .col-totalhour,
+div.report-layout .report-table tbody .col-totalovertime {
     position: relative !important;
 }
 
-body.report-layout .report-table thead .col-totaldays,
-body.report-layout .report-table thead .col-totalhour,
-body.report-layout .report-table thead .col-totalovertime {
+div.report-layout .report-table thead .col-totaldays,
+div.report-layout .report-table thead .col-totalhour,
+div.report-layout .report-table thead .col-totalovertime {
     z-index: 40 !important;
 }
 
-body.report-layout .report-table thead .col-name.sticky-col {
+div.report-layout .report-table thead .col-name.sticky-col {
     left: 0 !important;
     z-index: 160 !important;
     background-clip: border-box !important;
 }
 
-body.report-layout .report-table tbody .col-name.sticky-col {
+div.report-layout .report-table tbody .col-name.sticky-col {
     left: 0 !important;
     z-index: 55 !important;
     background-clip: border-box !important;
 }
 
-body.report-layout .report-table-wrap.table-scrolled .report-table .col-name.sticky-col {
+div.report-layout .report-table-wrap.table-scrolled .report-table .col-name.sticky-col {
     box-shadow:
         inset -1px 0 0 var(--border-color),
         5px 0 14px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
-body.report-layout .report-table tbody td.day-col[data-date="2026-05-27"] {
+div.report-layout .report-table tbody td.day-col[data-date="2026-05-27"] {
     color: #8A94A6 !important;
     text-align: left !important;
 }
 
-body.report-layout .report-table tbody tr:nth-child(odd) td.day-col[data-date="2026-05-27"] {
+div.report-layout .report-table tbody tr:nth-child(odd) td.day-col[data-date="2026-05-27"] {
     background: #F8FAFC !important;
 }
 
-body.report-layout .report-table tbody tr:nth-child(even) td.day-col[data-date="2026-05-27"] {
+div.report-layout .report-table tbody tr:nth-child(even) td.day-col[data-date="2026-05-27"] {
     background: #F8FAFC !important;
 }
 
-body.report-layout .report-table tbody td.day-col[data-date="2026-05-27"] > * {
+div.report-layout .report-table tbody td.day-col[data-date="2026-05-27"] > * {
     display: none !important;
 }
 
-body.report-layout .report-table tbody td.day-col[data-date="2026-05-27"]::before {
+div.report-layout .report-table tbody td.day-col[data-date="2026-05-27"]::before {
     content: "";
 }
 
-body.report-layout .report-table tbody td.day-col[data-entry-source="manual"],
-body.report-layout .report-table tbody td.day-col.is-manual-entry {
+div.report-layout .report-table tbody td.day-col[data-entry-source="manual"],
+div.report-layout .report-table tbody td.day-col.is-manual-entry {
     background: #FFF5D6 !important;
     box-shadow: inset 3px 0 0 #F2B705 !important;
 }
@@ -3517,7 +3666,7 @@ body.report-layout .report-table tbody td.day-col.is-manual-entry {
     cursor: pointer;
 }
 
-body.report-layout .selectable-report-table tbody td.col-name {
+div.report-layout .selectable-report-table tbody td.col-name {
     padding-left: 44px !important;
     /* Top-aligned, not middle: the identity block is 69px for a one-line name
        and ~86px when the name wraps, so centring it made the first line start
@@ -3626,23 +3775,23 @@ body.report-layout .selectable-report-table tbody td.col-name {
     font-size: 13px;
 }
 
-body.report-layout .report-table tbody tr[hidden] {
+div.report-layout .report-table tbody tr[hidden] {
     display: none !important;
 }
 
-body.report-layout .selectable-report-table tbody tr {
+div.report-layout .selectable-report-table tbody tr {
     cursor: pointer;
 }
 
-body.report-layout .selectable-report-table tbody tr td.day-col {
+div.report-layout .selectable-report-table tbody tr td.day-col {
     cursor: default;
 }
 
-body.report-layout .selectable-report-table tbody tr.is-selected td {
+div.report-layout .selectable-report-table tbody tr.is-selected td {
     background: #EEF7FF !important;
 }
 
-body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sticky-col {
+div.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sticky-col {
     box-shadow: inset 4px 0 0 #2975BB !important;
 }
 
@@ -3946,7 +4095,7 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
     position: fixed;
     top: 80px;
     right: 24px;
-    z-index: 5000;
+    z-index: 10100; /* above Bootstrap modals (10050) */
     display: grid;
     gap: 12px;
     width: min(380px, calc(100vw - 32px));
@@ -4762,17 +4911,17 @@ body.report-layout .selectable-report-table tbody tr.is-selected td.col-name.sti
 }
 
 /* === No Log Cell === */
-body.report-layout .report-table tbody td.no-log-cell {
+div.report-layout .report-table tbody td.no-log-cell {
     background: #FFF8E7 !important;
     box-shadow: inset 3px 0 0 #F59E0B !important;
 }
 
-body.report-layout .report-table tbody td.no-log-cell:hover {
+div.report-layout .report-table tbody td.no-log-cell:hover {
     background: #FFF3CD !important;
 }
 
 /* Weekend off cells */
-body.report-layout .report-table tbody td.weekend-off-cell {
+div.report-layout .report-table tbody td.weekend-off-cell {
     background: #F8FAFC !important;
     color: #C0C8D4 !important;
 }
@@ -4796,7 +4945,7 @@ body.report-layout .report-table tbody td.weekend-off-cell {
     cursor: pointer;
 }
 
-body.report-layout .report-table tbody td.no-log-cell .day-cell-select {
+div.report-layout .report-table tbody td.no-log-cell .day-cell-select {
     accent-color: #D97706;
 }
 
@@ -4822,24 +4971,24 @@ body.report-layout .report-table tbody td.no-log-cell .day-cell-select {
 }
 
 /* Selected cell highlight */
-body.report-layout .report-table tbody td.day-col:has(.day-cell-select:checked) {
+div.report-layout .report-table tbody td.day-col:has(.day-cell-select:checked) {
     outline: 2px solid #2975BB !important;
     outline-offset: -2px;
     background: #EEF7FF !important;
 }
 
-body.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checked) {
+div.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checked) {
     outline-color: #D97706 !important;
     background: #FEF3C7 !important;
 }
 
 /* Latest batch result. This is a lightweight DOM marker, not database state. */
-body.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell) {
+div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell) {
     background: #F0F8FF !important;
     box-shadow: inset 3px 0 0 #2975BB !important;
 }
 
-body.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell):hover {
+div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell):hover {
     background: #E7F3FD !important;
 }
 
@@ -4863,17 +5012,17 @@ body.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell
 }
 
 /* Hide checkbox in filtered-out cells */
-body.report-layout .report-table tbody td.filtered-out-cell .day-cell-checkbox {
+div.report-layout .report-table tbody td.filtered-out-cell .day-cell-checkbox {
     display: none;
 }
 
 /* Filtered-out cells: hide content when filter doesn't match */
-body.report-layout .report-table tbody td.filtered-out-cell {
+div.report-layout .report-table tbody td.filtered-out-cell {
     background: #F9FAFB !important;
     box-shadow: none !important;
 }
 
-body.report-layout .report-table tbody td.filtered-out-cell > * {
+div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: none !important;
 }
 
@@ -5009,7 +5158,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
 
     html,
     body,
-    body.report-layout {
+    div.report-layout {
         width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
@@ -5030,17 +5179,17 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     html body .sidebar-overlay,
     html body .notification-region,
     html body #feriizNotificationRegion,
-    body.report-layout .sidebar,
-    body.report-layout .fixed-toolbar,
-    body.report-layout .fixed-bottom-bar,
-    body.report-layout .report-filter-indicator,
-    body.report-layout .modal-overlay,
-    body.report-layout .toast-container,
-    body.report-layout .report-table-wrap {
+    div.report-layout .sidebar,
+    div.report-layout .fixed-toolbar,
+    div.report-layout .fixed-bottom-bar,
+    div.report-layout .report-filter-indicator,
+    div.report-layout .modal-overlay,
+    div.report-layout .toast-container,
+    div.report-layout .report-table-wrap {
         display: none !important;
     }
 
-    body.report-layout .main-content {
+    div.report-layout .main-content {
         display: block !important;
         width: 100% !important;
         margin: 0 !important;
@@ -5520,6 +5669,8 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
    LOGIN PAGE
    ============================================ */
 .login-body {
+    flex: 1 1 auto;
+    width: 100%;
     position: relative;
     display: flex;
     align-items: center;
@@ -5831,18 +5982,203 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     text-decoration: underline;
 }
 
-/* === Logout Link === */
-.nav-logout {
-    margin-top: auto;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    color: #fff !important;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+/* === Workspace switcher (sidebar footer) ===
+   Replaces the old Logout link, which still had white text from the dark
+   sidebar era and showed up as a "ghost" button. Log out is in this menu. */
+.sidebar.is-pinned {
+    width: 200px;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.06);
 }
 
-.nav-logout:hover {
+.sidebar.is-pinned .nav-label {
     opacity: 1;
-    background: rgba(255,255,255,0.1);
+    visibility: visible;
+}
+
+.sidebar-footer {
+    flex-shrink: 0;
+    margin-top: 8px;
+    padding: 8px 8px 0;
+    border-top: 1px solid #EEF0F3;
+}
+
+.sidebar-footer .nav-label {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.workspace-switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 48px;
+    padding: 0 4px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.workspace-switch:hover,
+.workspace-switch[aria-expanded="true"],
+.workspace-switch.active {
+    background: #F2F2F2;
+}
+
+.workspace-switch:focus-visible,
+.workspace-menu-item:focus-visible,
+.workspace-menu-link:focus-visible {
+    outline: 2px solid #2975BB;
+    outline-offset: 1px;
+}
+
+.workspace-avatar {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #2975BB;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.workspace-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.workspace-caption {
+    font-size: 12px;
+    font-weight: 500;
+    color: #888;
+}
+
+.workspace-name {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-overflow: ellipsis;
+}
+
+.workspace-chevron {
+    font-size: 12px;
+    color: #999;
+}
+
+.workspace-menu {
+    position: fixed;
+    z-index: 1200;
+    width: 260px;
+    padding: 8px;
+    border: 1px solid #E5E8EC;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(16, 24, 40, 0.16);
+    font-family: 'Poppins', sans-serif;
+}
+
+.workspace-menu-title {
+    padding: 6px 10px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7480;
+}
+
+.workspace-menu-item,
+.workspace-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.workspace-menu-item {
+    padding: 8px 10px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.workspace-menu-item .workspace-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+.workspace-menu-item:hover {
+    background: #F2F6FB;
+}
+
+.workspace-menu-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workspace-menu-check {
+    font-size: 12px;
+    color: #2975BB;
+    visibility: hidden;
+}
+
+.workspace-menu-item[aria-checked="true"] .workspace-menu-check {
+    visibility: visible;
+}
+
+.workspace-menu-divider {
+    height: 1px;
+    margin: 6px 2px;
+    background: #EEF0F3;
+}
+
+.workspace-menu-link {
+    padding: 9px 10px;
+    font-weight: 500;
+    color: #3A4250;
+}
+
+.workspace-menu-link i {
+    width: 16px;
+    color: #6B7480;
+    text-align: center;
+}
+
+.workspace-menu-link:hover {
+    background: #F2F2F2;
+}
+
+.workspace-menu-logout,
+.workspace-menu-logout i {
+    color: #C0392B;
+}
+
+.workspace-menu-logout:hover {
+    background: #FDECEC;
 }
 
 /* Mobile elements hidden on desktop */
@@ -6133,17 +6469,17 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
         max-height: 90vh !important;
     }
 
-    .modal-header,
+    .modal-overlay .modal-header,
     .feriiz-u-034 {
         padding: 16px 20px 14px !important;
     }
 
-    .modal-body,
+    .modal-overlay .modal-body,
     .feriiz-u-037 {
         padding: 16px 20px !important;
     }
 
-    .modal-footer,
+    .modal-overlay .modal-footer,
     .feriiz-u-055 {
         padding: 12px 20px 16px !important;
     }
@@ -6271,8 +6607,9 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     /* --- Logout nav item visibility --- */
-    .nav-logout {
-        display: flex !important;
+    .sidebar.mobile-open .sidebar-footer .nav-label {
+        opacity: 1;
+        visibility: visible;
     }
 
     /* --- Version footer --- */
@@ -6336,7 +6673,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
    DASHBOARD (v3.6.0)
    A daily attendance board: one total bar for the selected day,
    one bar per project, then the occupation x project headcount
-   as a heatmap. All selectors are prefixed .dash- so the shared
+   as a plain table. All selectors are prefixed .dash- so the shared
    mobile block above never overrides them.
    ============================================ */
 .dash {
@@ -6537,7 +6874,7 @@ body.report-layout .report-table tbody td.filtered-out-cell > * {
     transition: clip-path 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-body.dash-ready .dash-bar {
+.dash.dash-ready .dash-bar {
     clip-path: inset(0 0 0 0);
 }
 
@@ -6674,27 +7011,33 @@ body.dash-ready .dash-bar {
     width: 120px;
 }
 
-.dash-status {
+/* Project status pill — shared by the Dashboard and the Projects table so a
+   status always reads the same: green Active, amber On Hold, grey Completed. */
+.status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
     font-size: 12px;
-    font-weight: 500;
-    color: var(--dash-text);
+    font-weight: 600;
+    line-height: 1.3;
     white-space: nowrap;
+    background: #EEF1F5;
+    color: #4A5568;
 }
 
-.dash-status::before {
+.status-pill::before {
     content: '';
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: #98A2B3;
+    background: currentColor;
 }
 
-.dash-status.is-active::before { background: #27AE60; }
-.dash-status.is-hold::before { background: #E67E22; }
-.dash-status.is-done::before { background: #98A2B3; }
+.status-pill--active { background: #E6F4EA; color: #1E7E34; }
+.status-pill--hold { background: #FFF1DD; color: #B25E09; }
+.status-pill--done { background: #EEF1F5; color: #4A5568; }
 
 .dash-showed {
     width: 110px;
@@ -6800,10 +7143,11 @@ body.dash-ready .dash-bar {
     color: var(--dash-ink);
 }
 
+/* Plain white cells: numbers carry the meaning, no colour scale. */
 .dash-matrix tbody td {
     font-weight: 500;
     color: var(--dash-ink);
-    background: rgba(41, 117, 187, calc(var(--heat, 0) * 0.38));
+    background: #fff;
 }
 
 .dash-matrix tbody td.is-zero {
@@ -6819,7 +7163,7 @@ body.dash-ready .dash-bar {
 .dash-matrix .dash-matrix-total {
     padding: 0 16px;
     border-left: 1px solid var(--dash-line);
-    background: #F8FAFC;
+    background: #fff;
     font-weight: 700;
     color: var(--dash-ink);
 }
@@ -6828,7 +7172,7 @@ body.dash-ready .dash-bar {
 .dash-matrix tfoot td {
     border-top: 1px solid var(--dash-line);
     border-bottom: none;
-    background: #F8FAFC;
+    background: #fff;
     font-weight: 700;
     color: var(--dash-ink);
 }
@@ -6931,11 +7275,11 @@ body.dash-ready .dash-bar {
     .dash-projects .dash-missing { grid-area: missing; }
 
     .dash-showed::after {
-        content: ' showed up';
+        content: ' present';
     }
 
     .dash-missing::after {
-        content: ' missing log';
+        content: ' incomplete';
         font-size: 13px;
         font-weight: 400;
         color: var(--dash-muted);
@@ -6945,4 +7289,726 @@ body.dash-ready .dash-bar {
     .dash-matrix .dash-matrix-occ {
         min-width: 140px;
     }
+}
+
+/* ============================================
+   REVISIONS v3.7.0
+   Bootstrap 5.3 components in Feriiz style, plus the October revisions
+   (workspaces, request attachments, activity timestamps, report back
+   button). Legacy custom modals keep .modal-overlay/.modal-card.
+   ============================================ */
+
+/* --- Bootstrap modals (.modal) --- */
+.modal {
+    --bs-modal-zindex: 10050;
+    --bs-modal-border-radius: 14px;
+    --bs-modal-border-color: transparent;
+    --bs-modal-box-shadow: 0 24px 64px rgba(16, 24, 40, 0.22);
+    --bs-modal-padding: 24px;
+}
+
+.modal-backdrop {
+    --bs-backdrop-zindex: 10040;
+    --bs-backdrop-opacity: 0.45;
+}
+
+/* Beat the unscoped legacy .modal-header/.modal-body/.modal-footer rules. */
+.modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid #EEF0F3;
+}
+
+.modal .modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1a1a1a;
+}
+
+.modal .modal-body {
+    padding: 20px 24px;
+}
+
+.modal .modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 24px;
+    border-top: 1px solid #EEF0F3;
+}
+
+.modal .modal-footer > * {
+    margin: 0;
+}
+
+/* --- Bootstrap form controls, Feriiz sizing --- */
+.form-label {
+    margin-bottom: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+}
+
+.form-control,
+.form-select {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #333;
+    border-color: #D9D9D9;
+    border-radius: 8px;
+}
+
+.form-select {
+    padding-right: 32px;
+    background-position: right 10px center;
+}
+
+.form-control::placeholder {
+    color: #aaa;
+}
+
+.form-text {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.input-group-text {
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7480;
+    background: #F7F9FB;
+    border-color: #D9D9D9;
+    border-radius: 8px;
+}
+
+.form-check-label {
+    font-size: 13px;
+    color: #333;
+}
+
+/* --- Activity timestamps --- */
+.activity-stamp {
+    white-space: nowrap;
+}
+
+/* --- Report: back button on the per-person page --- */
+.report-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #D9D9D9;
+    border-radius: 8px;
+    background: #fff;
+    color: #2975BB;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.report-back-btn:hover {
+    border-color: #2975BB;
+    background: #EBF3FA;
+}
+
+.report-back-btn:focus-visible {
+    outline: 2px solid #2975BB;
+    outline-offset: 2px;
+}
+
+/* --- Workspaces page --- */
+.workspace-page-note {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #6B7480;
+}
+
+/* --- Request attachments --- */
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 180px;
+    padding: 4px 10px;
+    border: 1px solid #D9E6F3;
+    border-radius: 999px;
+    background: #F4F8FC;
+    color: #2975BB;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.attachment-link span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attachment-link:hover {
+    border-color: #2975BB;
+    background: #EBF3FA;
+}
+
+.attachment-link:focus-visible {
+    outline: 2px solid #2975BB;
+    outline-offset: 2px;
+}
+
+.attachment-none {
+    color: #B4BCC7;
+}
+
+.attachment-heading {
+    min-width: 0;
+}
+
+.attachment-context {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.attachment-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.attachment-files[hidden] {
+    display: none;
+}
+
+.attachment-file {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #D9D9D9;
+    border-radius: 8px;
+    background: #fff;
+    color: #3A4250;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.attachment-file.active {
+    border-color: #2975BB;
+    background: #EBF3FA;
+    color: #2975BB;
+}
+
+.attachment-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #F2F4F7;
+}
+
+.attachment-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 62vh;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(16, 24, 40, 0.12);
+}
+
+.attachment-pdf {
+    width: 100%;
+    height: 62vh;
+    border: 0;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.attachment-noprev {
+    text-align: center;
+    color: #6B7480;
+}
+
+.attachment-noprev i {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 40px;
+}
+
+.attachment-size {
+    font-size: 12px;
+    color: #6B7480;
+}
+
+/* --- Report: Import XLSX modal --- */
+.import-intro {
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #3A4250;
+}
+
+.import-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 26px 16px;
+    border: 1.5px dashed #B9CCE0;
+    border-radius: 12px;
+    background: #F7FAFD;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.import-drop:hover,
+.import-drop.is-over {
+    border-color: #2975BB;
+    background: #EBF3FA;
+}
+
+.import-drop:focus-within {
+    outline: 2px solid #2975BB;
+    outline-offset: 2px;
+}
+
+.import-drop > i {
+    margin-bottom: 4px;
+    font-size: 28px;
+    color: #2975BB;
+}
+
+.import-drop-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.import-drop-title u {
+    color: #2975BB;
+    text-underline-offset: 3px;
+}
+
+.import-drop-hint {
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.import-chosen {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #D9E6F3;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.import-chosen[hidden],
+.import-error[hidden] {
+    display: none;
+}
+
+.import-chosen > i {
+    font-size: 22px;
+    color: #1E7E34;
+}
+
+.import-file-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.import-file-name {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.import-file-meta {
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.import-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #FDECEC;
+    color: #B42318;
+    font-size: 13px;
+}
+
+.import-template {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #2975BB;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.import-template:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* --- Report: overtime adjustments --- */
+.ot-adjust-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border: 1px dashed currentColor;
+    border-radius: 6px;
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.ot-adjust-chip.is-plus {
+    color: #1E7E34;
+}
+
+.ot-adjust-chip.is-minus {
+    color: #B42318;
+}
+
+.ot-adjust-chip:hover {
+    background: #F7F9FB;
+}
+
+.ot-adjust-chip:focus-visible {
+    outline: 2px solid #2975BB;
+    outline-offset: 1px;
+}
+
+.ot-summary,
+.ot-history-total {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.ot-summary > div,
+.ot-history-total > div {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #F7F9FB;
+}
+
+.ot-summary span,
+.ot-history-total span {
+    display: block;
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.ot-summary strong,
+.ot-history-total strong {
+    font-size: 16px;
+    color: #1a1a1a;
+}
+
+.ot-skipped {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #FFF8E7;
+    color: #8A5A00;
+    font-size: 13px;
+}
+
+.ot-skipped[hidden],
+#otFloorNote[hidden] {
+    display: none;
+}
+
+.ot-history-sub {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.ot-history-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ot-history-list li {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid #EEF0F3;
+}
+
+.ot-history-amount {
+    flex: none;
+    min-width: 56px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ot-history-amount.is-plus {
+    color: #1E7E34;
+}
+
+.ot-history-amount.is-minus {
+    color: #B42318;
+}
+
+.ot-history-note {
+    margin: 0;
+    font-size: 13px;
+    color: #1a1a1a;
+}
+
+.ot-history-meta {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.ot-adjust-chip.is-zero {
+    color: #6B7480;
+}
+
+/* --- Employee form (assets/js/employee-form.js): the original Activity form
+       design, plus field names, Rupiah rates and the reset link --- */
+#employeeFormOverlay {
+    z-index: 10050;                 /* above Manage Employees (9999) */
+    padding-top: clamp(24px, 3.5vh, 48px);
+    padding-bottom: clamp(24px, 3.5vh, 48px);
+}
+
+#employeeFormOverlay .modal-card {
+    max-height: calc(100vh - 96px);
+}
+
+.emp-field {
+    min-width: 0;
+}
+
+.emp-field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #555;
+}
+
+.emp-req {
+    color: #E74C3C;
+}
+
+.emp-form input:focus,
+.emp-form select:focus,
+.emp-form textarea:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.1);
+}
+
+.emp-form .feriiz-u-259[readonly] {
+    background: #F7F8FA;
+    color: #6B7480;
+}
+
+.emp-form .rate-input {
+    margin-bottom: 10px;
+}
+
+.emp-form .rate-input .rate-icon {
+    left: 12px;
+    font-size: 12px;
+}
+
+.emp-form .rate-input input {
+    display: block;
+    margin-bottom: 0;
+    padding-left: 36px;
+}
+
+.emp-password {
+    margin-bottom: 20px;
+}
+
+.emp-reset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #2975BB;
+    border-radius: 7px;
+    background: #fff;
+    color: #2975BB;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.emp-reset-btn:hover,
+.emp-copy-btn:hover {
+    background: #F0F6FC;
+}
+
+.emp-reset-row {
+    display: flex;
+    gap: 6px;
+}
+
+.emp-reset-btn[hidden],
+.emp-reset-row[hidden] {
+    display: none;
+}
+
+.emp-password .emp-hint {
+    margin-top: 0;
+}
+
+.emp-reset-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.emp-copy-btn {
+    flex: 0 0 36px;
+    border: 1px solid #D9D9D9;
+    border-radius: 7px;
+    background: #fff;
+    color: #2975BB;
+    cursor: pointer;
+}
+
+.emp-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #6B7480;
+}
+
+.emp-form .emp-invalid,
+.emp-form .emp-invalid:focus {
+    border-color: #E74C3C;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+}
+
+.emp-form-inline {
+    padding: 20px 28px 24px;
+    border: 1px solid #E5E8EC;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.emp-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Save stays in view when a form is taller than a short screen. */
+#projectModalFooter,
+#employeeFormOverlay .feriiz-u-266 {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: #fff;
+}
+
+#employeeFormOverlay .feriiz-u-266 {
+    margin-top: -12px;              /* sits in the body's bottom padding, so the card is no taller */
+    padding-top: 12px;
+    border-radius: 0 0 14px 14px;
+}
+
+@media (max-height: 860px) {
+    #employeeFormOverlay,
+    #projectModal {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    #employeeFormOverlay .modal-card {
+        max-height: calc(100vh - 32px);
+    }
+
+    #projectModal .modal-card {
+        max-height: calc(100vh - 32px) !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .emp-form .feriiz-u-257 {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .emp-form .feriiz-u-258,
+    .emp-form .feriiz-u-262 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .emp-form-inline {
+        padding: 16px;
+    }
+}
+
+/* --- Minutes shown inside the field ("60 m"), keeping the original input look --- */
+.unit-input {
+    position: relative;
+}
+
+.unit-input input {
+    width: 100%;
+    padding-right: 30px;
+}
+
+#projectModal .unit-input input {
+    padding-right: 24px !important;
+}
+
+.unit-input-suffix {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7480;
+    pointer-events: none;
+}
+
+#projectModal .project-tolerance-grid .unit-input + label {
+    margin-top: 14px;
 }

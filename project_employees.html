@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/data.js?v=3.6.1" defer></script>
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.1" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -122,6 +125,7 @@
                         <th class="col-activity-photos">Activity</th>
                         <th>Occupation</th>
                         <th>Pin</th>
+                        <th>First Activity</th>
                         <th>Last Activity</th>
                     </tr>
                 </thead>
@@ -144,18 +148,20 @@
                 project: null,
                 all: [],
                 filtered: [],
-                lastActivity: {},
+                firstActivity: {},   // employeeCode -> 'YYYY-MM-DD HH:mm:ss' (earliest log in this project)
+                lastActivity: {},    // employeeCode -> 'YYYY-MM-DD HH:mm:ss' (latest log in this project)
                 filters: { occupations: [], dateStart: '', dateEnd: '', showActivity: false },
                 page: 1,
                 perPage: 25
             };
 
-            function fmtJoinedShort(iso) {
-                if (!iso) return '-';
-                var d = new Date(iso);
-                if (isNaN(d)) return '-';
+            // 'YYYY-MM-DD HH:mm:ss' -> '30 Jun 2026, 17:02:11'
+            function fmtActivity(stamp) {
+                if (!stamp) return '-';
+                var p = stamp.split(' ');
+                var d = p[0].split('-').map(Number);
                 var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                return d.getDate().toString().padStart(2,'0') + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
+                return String(d[2]).padStart(2, '0') + ' ' + m[d[1] - 1] + ' ' + d[0] + (p[1] ? ', ' + p[1] : '');
             }
 
             function renderRow(emp) {
@@ -192,15 +198,54 @@
                     '<td class="col-activity-photos' + (showActivity ? ' col-activity-visible' : '') + '">' + activityContent + '</td>' +
                     '<td>' + emp.occupation + '</td>' +
                     '<td>' + emp.pin + '</td>' +
-                    '<td>' + fmtJoinedShort(state.lastActivity[emp.code]) + '</td>';
+                    '<td class="activity-stamp">' + fmtActivity(state.firstActivity[emp.code]) + '</td>' +
+                    '<td class="activity-stamp">' + fmtActivity(state.lastActivity[emp.code]) + '</td>';
                 tr.querySelector('img').addEventListener('error', function () {
                     if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
                 });
                 tr.querySelector('.edit-project-employee-btn').addEventListener('click', function () {
-                    openEmployeeDetailOverlay(emp);
+                    openProjectEmployeeForm(emp);
                 });
                 return tr;
             }
+
+            function copyFormValues(target, v) {
+                ['firstName', 'middleName', 'lastName', 'occupation', 'pin', 'phone', 'email', 'gender', 'birthDate', 'note', 'status', 'role',
+                 'workingDays', 'dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
+                    target[k] = v[k];
+                });
+                target.name = v.name;
+                target.workStart = v.startHour;
+                target.workEnd = v.endHour;
+                target.cutOff = v.cutOff;
+                return target;
+            }
+
+            // Edit and add both use the shared employee form (assets/js/employee-form.js).
+            function openProjectEmployeeForm(emp, prefillName) {
+                window.FeriizEmployeeForm.open({
+                    employee: emp,
+                    project: state.project,
+                    prefillName: prefillName,
+                    onSave: function (v, isNew) {
+                        if (isNew) {
+                            var added = copyFormValues({
+                                code: 'NEW' + Date.now().toString(36).toUpperCase(),
+                                projects: [state.project.code]
+                            }, v);
+                            state.all.unshift(added);
+                            var stat = document.querySelector('[data-stat="employees"]');
+                            if (stat) stat.textContent = state.all.length.toLocaleString('id-ID');
+                            applyFilter();
+                        } else {
+                            copyFormValues(emp, v);
+                            renderPage();
+                        }
+                    }
+                });
+            }
+            // Manage Employees ("+ Add New Employee") lives outside this closure.
+            window.addProjectEmployee = function (name) { openProjectEmployeeForm(null, name); };
 
             function renderPage() {
                 var tbody = document.getElementById('projectEmployeesTableBody');
@@ -255,7 +300,7 @@
                 state.filtered = state.all.filter(function (emp) {
                     if (occs.length && !occs.some(function (o) { return (emp.occupation || '').toLowerCase().indexOf(o) >= 0; })) return false;
                     if (q && (emp.name.toLowerCase().indexOf(q) < 0 && emp.code.toLowerCase().indexOf(q) < 0)) return false;
-                    var activityDate = state.lastActivity[emp.code] || '';
+                    var activityDate = (state.lastActivity[emp.code] || '').slice(0, 10);
                     if (state.filters.dateStart && (!activityDate || activityDate < state.filters.dateStart)) return false;
                     if (state.filters.dateEnd && (!activityDate || activityDate > state.filters.dateEnd)) return false;
                     return true;
@@ -290,8 +335,11 @@
                     });
                     data.attendance.forEach(function (record) {
                         if (record.projectCode !== state.project.code || (!record.inTime && !record.outTime)) return;
-                        var current = state.lastActivity[record.employeeCode];
-                        if (!current || record.date > current) state.lastActivity[record.employeeCode] = record.date;
+                        var code = record.employeeCode;
+                        var first = record.date + ' ' + (record.inTime || record.outTime);
+                        var last = record.date + ' ' + (record.outTime || record.inTime);
+                        if (!state.firstActivity[code] || first < state.firstActivity[code]) state.firstActivity[code] = first;
+                        if (!state.lastActivity[code] || last > state.lastActivity[code]) state.lastActivity[code] = last;
                     });
                     state.filtered = state.all.slice();
                     var occSet = new Set(state.all.map(function (e) { return e.occupation; }));
@@ -331,82 +379,9 @@
         })();
         </script>
 
-        <div class="feriiz-u-032">version : 3.6.1</div>
+        <div class="feriiz-u-032">version : 3.7.1</div>
     </main>
 
-    <!-- Employee Detail Overlay -->
-    <div class="modal-overlay" id="empDetailOverlay">
-        <div class="modal-card feriiz-u-252"
-           >
-            <div class="modal-header feriiz-u-253"
-               >
-                <h2 id="empDetailTitle" class="feriiz-u-254">Employee Detail</h2>
-                <button onclick="closeEmpDetailOverlay()" class="feriiz-u-255">&times;</button>
-            </div>
-            <div class="feriiz-u-256">
-                <div class="feriiz-u-257">
-                    <div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Personal Information</span>
-                        </div>
-                        <div class="feriiz-u-258">
-                            <input type="text" id="projectEmpFirstName" placeholder="First Name" class="feriiz-u-259">
-                            <input type="text" id="projectEmpLastName" placeholder="Last Name" class="feriiz-u-259">
-                            <input type="text" id="projectEmpOccupation" placeholder="Occupation" class="feriiz-u-259">
-                        </div>
-                        <div class="feriiz-u-258">
-                            <input type="text" id="projectEmpPin" placeholder="Pin" class="feriiz-u-259">
-                            <input type="text" placeholder="Date of Birth" class="feriiz-u-259">
-                            <select class="feriiz-u-260">
-                                <option>Male</option><option>Female</option>
-                            </select>
-                        </div>
-                        <div class="feriiz-u-224">
-                            <textarea placeholder="Note" class="feriiz-u-261"></textarea>
-                        </div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Working Time</span>
-                        </div>
-                        <div class="feriiz-u-262">
-                            <input type="text" placeholder="Start Hour" class="feriiz-u-259">
-                            <input type="text" placeholder="End Hour" class="feriiz-u-259">
-                            <input type="text" placeholder="Cut Off Hour" class="feriiz-u-259">
-                        </div>
-                        <div class="feriiz-u-048">
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Mon</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Tue</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Wed</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Thu</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Fri</label>
-                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sat</label>
-                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sun</label>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Account Configuration</span>
-                        </div>
-                        <select class="feriiz-u-263">
-                            <option>Employee</option><option>Admin</option>
-                        </select>
-                        <input type="email" id="projectEmpEmail" placeholder="Email" class="feriiz-u-264">
-                        <input type="text" placeholder="Reset Password" class="feriiz-u-265">
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Payment Rate</span>
-                        </div>
-                        <input type="text" placeholder="$ Hourly Rate" class="feriiz-u-264">
-                        <input type="text" placeholder="$ Hourly Overtime Rate" class="feriiz-u-264">
-                        <input type="text" placeholder="$ Client Rate" class="feriiz-u-264">
-                        <input type="text" placeholder="$ Client Overtime Rate" class="feriiz-u-264">
-                    </div>
-                </div>
-            </div>
-            <div class="feriiz-u-266">
-                <button class="btn btn-primary feriiz-u-056" onclick="saveProjectEmployeeDetail()"
-                   >Save Changes</button>
-            </div>
-        </div>
-    </div>
     <script>
         // Manage Employee Modal
         function openManageEmpModal() {
@@ -488,7 +463,7 @@
                             const searchText = searchInput.value.trim();
                             acDropdown.classList.remove('show');
                             searchInput.value = '';
-                            openAddEmployeeModal(searchText);
+                            window.addProjectEmployee(searchText);
                         });
                     }
                 });
@@ -509,48 +484,6 @@
             }
         });
 
-        // Employee Detail Overlay
-        function setProjectEmployeeField(id, value) {
-            const field = document.getElementById(id);
-            if (field) field.value = value || '';
-        }
-
-        function openEmployeeDetailOverlay(employee) {
-            const fullName = employee && employee.name ? employee.name.trim() : '';
-            const nameParts = fullName ? fullName.split(/\s+/) : [];
-            document.getElementById('empDetailTitle').textContent = 'Employee Detail';
-            setProjectEmployeeField('projectEmpFirstName', nameParts.shift() || '');
-            setProjectEmployeeField('projectEmpLastName', nameParts.join(' '));
-            setProjectEmployeeField('projectEmpOccupation', employee ? employee.occupation : '');
-            setProjectEmployeeField('projectEmpPin', employee ? employee.pin : '');
-            setProjectEmployeeField('projectEmpEmail', employee ? employee.email : '');
-            document.getElementById('empDetailOverlay').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeEmpDetailOverlay() {
-            document.getElementById('empDetailOverlay').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function saveProjectEmployeeDetail() {
-            const firstNameInput = document.getElementById('projectEmpFirstName');
-            const firstName = firstNameInput ? firstNameInput.value.trim() : '';
-            if (!firstName) {
-                if (firstNameInput) firstNameInput.focus();
-                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
-                return;
-            }
-            closeEmpDetailOverlay();
-            if (window.FeriizNotify) FeriizNotify.success(firstName + "'s project settings were updated.", 'Employee updated');
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            const overlay = document.getElementById('empDetailOverlay');
-            if (overlay) {
-                overlay.addEventListener('click', function (e) {
-                    if (e.target === this) closeEmpDetailOverlay();
-                });
-            }
-        });
     </script>
 
 
@@ -728,128 +661,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Add Employee Modal -->
-    <div class="modal-overlay" id="addEmployeeModal">
-        <div class="modal-card feriiz-u-299"
-           >
-            <div class="modal-header feriiz-u-300"
-               >
-                <h2 class="feriiz-u-254">Add Employee</h2>
-                <button class="modal-close feriiz-u-255" onclick="closeAddEmployeeModal()"
-                   >&times;</button>
-            </div>
-            <div class="modal-body feriiz-u-256">
-                <div class="feriiz-u-257">
-                    <div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Personal Information</span>
-                        </div>
-                        <div class="feriiz-u-258">
-                            <input type="text" id="addEmpFirstName" placeholder="First Name" class="feriiz-u-259">
-                            <input type="text" id="addEmpLastName" placeholder="Last Name" class="feriiz-u-259">
-                            <input type="text" placeholder="Occupation" class="feriiz-u-259">
-                        </div>
-                        <div class="feriiz-u-258">
-                            <input type="text" placeholder="Pin" class="feriiz-u-259">
-                            <input type="text" placeholder="Date of Birth" class="feriiz-u-259">
-                            <select class="feriiz-u-301">
-                                <option value="" disabled selected>Gender</option>
-                                <option class="feriiz-u-044">Male</option>
-                                <option class="feriiz-u-044">Female</option>
-                            </select>
-                        </div>
-                        <div class="feriiz-u-224">
-                            <textarea placeholder="Note" class="feriiz-u-261"></textarea>
-                        </div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Working Time</span>
-                        </div>
-                        <div class="feriiz-u-262">
-                            <input type="text" placeholder="Start Hour" class="feriiz-u-259">
-                            <input type="text" placeholder="End Hour" class="feriiz-u-259">
-                            <input type="text" placeholder="Cut Off Hour" class="feriiz-u-259">
-                        </div>
-                        <div class="feriiz-u-048">
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Mon</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Tue</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Wed</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Thu</label>
-                            <label class="feriiz-u-049"><input type="checkbox" checked class="feriiz-u-050"> Fri</label>
-                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sat</label>
-                            <label class="feriiz-u-051"><input type="checkbox" class="feriiz-u-050"> Sun</label>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Account Configuration</span>
-                        </div>
-                        <select class="feriiz-u-302">
-                            <option value="" disabled selected>Select Role</option>
-                            <option class="feriiz-u-044">Employee</option>
-                            <option class="feriiz-u-044">Admin</option>
-                        </select>
-                        <input type="email" placeholder="Email" class="feriiz-u-264">
-                        <input type="text" placeholder="Reset Password" class="feriiz-u-265">
-                        <div class="feriiz-u-039">
-                            <span class="feriiz-u-040">Payment Rate</span>
-                        </div>
-                        <input type="text" placeholder="$ Hourly Rate" class="feriiz-u-264">
-                        <input type="text" placeholder="$ Hourly Overtime Rate" class="feriiz-u-264">
-                        <input type="text" placeholder="$ Client Rate" class="feriiz-u-264">
-                        <input type="text" placeholder="$ Client Overtime Rate" class="feriiz-u-264">
-                    </div>
-                </div>
-            </div>
-            <div class="feriiz-u-266">
-                <button onclick="saveNewProjectEmployee()" class="feriiz-u-056">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Add Employee Modal open/close
-        function openAddEmployeeModal(searchName) {
-            document.getElementById('addEmployeeModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-            // Auto-fill name from search
-            const firstNameInput = document.getElementById('addEmpFirstName');
-            const lastNameInput = document.getElementById('addEmpLastName');
-            if (searchName && searchName.length > 0) {
-                const parts = searchName.split(/\s+/);
-                if (firstNameInput) firstNameInput.value = parts[0] || '';
-                if (lastNameInput) lastNameInput.value = parts.slice(1).join(' ') || '';
-            } else {
-                if (firstNameInput) firstNameInput.value = '';
-                if (lastNameInput) lastNameInput.value = '';
-            }
-        }
-        function closeAddEmployeeModal() {
-            document.getElementById('addEmployeeModal').classList.remove('show');
-            document.body.style.overflow = 'hidden'; // keep hidden since manage modal is still behind
-        }
-
-        function saveNewProjectEmployee() {
-            const firstNameInput = document.getElementById('addEmpFirstName');
-            const firstName = firstNameInput ? firstNameInput.value.trim() : '';
-            if (!firstName) {
-                if (firstNameInput) firstNameInput.focus();
-                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
-                return;
-            }
-            closeAddEmployeeModal();
-            if (window.FeriizNotify) FeriizNotify.success(firstName + ' was added to the employee list.', 'Employee added');
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            const addEmpModal = document.getElementById('addEmployeeModal');
-            if (addEmpModal) {
-                addEmpModal.addEventListener('click', function (e) {
-                    if (e.target === this) closeAddEmployeeModal();
-                });
-            }
-        });
-    </script>
-
 
     <script>
         // Manage Employee JS Logic

@@ -40,6 +40,18 @@
             submittedAt: date + 'T08:00:00+07:00', reason: ''
         };
     }
+    // Sample attachments (assets/attachments/, marked "CONTOH"). With the API,
+    // each request carries its own list: [{ name, url, type, size }].
+    function file(name, size) {
+        return { name: name, url: 'assets/attachments/' + name, type: 'image/svg+xml', size: size };
+    }
+    var ATTACHMENTS = {
+        'REQ-0001': [file('surat-sakit-sandy-santuy.svg', 1793)],
+        'REQ-0003': [file('surat-sakit-raden-maulana.svg', 1795)],
+        'REQ-0005': [file('surat-sakit-adam-ferial.svg', 1809), file('resep-obat-adam-ferial.svg', 1175)],
+        'REQ-0011': [file('surat-sakit-mauli-hidayat.svg', 1810)]
+    };
+
     var ANOMALI_REQUESTS = [
         req('REQ-0001', 'SAN79P3WFFK4MQM', 'ANM001', 'Sick Leave',   '2026-05-04', 'Accepted'),
         req('REQ-0002', 'STEPRQTY99',      'ANM001', 'Annual Leave', '2026-05-05', 'Accepted'),
@@ -60,6 +72,7 @@
         req('REQ-0017', 'IND693283053999', 'ANM001', 'Remote Work',  '2026-05-13', 'Accepted'),
         req('REQ-0018', 'APR8940K8VB44L8', 'DGH105', 'Sick Leave',   '2026-05-13', 'Accepted')
     ];
+    ANOMALI_REQUESTS.forEach(function (r) { r.attachments = ATTACHMENTS[r.id] || []; });
     var ANOMALI_HOLIDAYS = [
         { name: 'Hari Buruh Internasional', date: '2026-05-01', type: 'national' },
         { name: 'Kenaikan Isa Al Masih',    date: '2026-05-14', type: 'national' },

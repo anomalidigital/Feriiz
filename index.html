@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/data.js?v=3.6.1" defer></script>
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.1" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="dashboard">
@@ -79,8 +81,8 @@
             </div>
 
             <ul class="dash-legend" id="dashLegend">
-                <li><span class="dash-dot dash-dot--present"></span>Present <strong data-count="present">–</strong></li>
-                <li><span class="dash-dot dash-dot--missing"></span>Missing log <strong data-count="missing">–</strong></li>
+                <li><span class="dash-dot dash-dot--present"></span>Complete <strong data-count="present">–</strong></li>
+                <li><span class="dash-dot dash-dot--missing"></span>Incomplete <strong data-count="missing">–</strong></li>
                 <li><span class="dash-dot dash-dot--leave"></span>On leave <strong data-count="leave">–</strong></li>
                 <li><span class="dash-dot dash-dot--absent"></span>Absent <strong data-count="absent">–</strong></li>
             </ul>
@@ -92,8 +94,8 @@
                             <th scope="col">Project</th>
                             <th scope="col">Status</th>
                             <th scope="col">Attendance</th>
-                            <th scope="col" class="num">Showed up</th>
-                            <th scope="col" class="num">Missing log</th>
+                            <th scope="col" class="num">Present</th>
+                            <th scope="col" class="num">Incomplete</th>
                         </tr>
                     </thead>
                     <tbody id="dashProjectRows"></tbody>
@@ -119,7 +121,7 @@
             <p class="dash-footnote">Workers assigned to more than one project are counted once in each project.</p>
         </section>
 
-        <div class="feriiz-u-032">version : 3.6.1</div>
+        <div class="feriiz-u-032">version : 3.7.1</div>
     </main>
 
     <script>
@@ -131,8 +133,9 @@
         var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
                       'August', 'September', 'October', 'November', 'December'];
         var SEGMENTS = ['present', 'missing', 'leave', 'absent'];
-        var SEGMENT_LABELS = { present: 'present', missing: 'missing a log', leave: 'on leave', absent: 'absent' };
-        var STATUS_CLASS = { 'active': 'is-active', 'on hold': 'is-hold', 'completed': 'is-done' };
+        // Present (column/headline) = complete + incomplete: everyone who came in.
+        var SEGMENT_LABELS = { present: 'with a complete log', missing: 'with an incomplete log', leave: 'on leave', absent: 'absent' };
+        var STATUS_CLASS = { 'active': 'status-pill--active', 'on hold': 'status-pill--hold', 'completed': 'status-pill--done' };
 
         var state = {
             projects: [],
@@ -286,7 +289,7 @@
                     : (total.holiday > 0 ? 'Public holiday. ' : 'Weekend. ') + 'No one was scheduled to work.';
                 $('dashRate').textContent = '';
             } else {
-                $('dashHeadline').textContent = fmt(showedUp) + ' of ' + fmt(total.scheduled) + ' scheduled workers showed up';
+                $('dashHeadline').textContent = fmt(showedUp) + ' of ' + fmt(total.scheduled) + ' scheduled workers were present';
                 $('dashScope').textContent = scopeParts.join('. ') + '.';
                 $('dashRate').textContent = percent(showedUp, total.scheduled) + '% attendance';
             }
@@ -327,7 +330,7 @@
 
                 var statusCell = make('td', 'dash-status-cell');
                 var status = p.status || 'Active';
-                statusCell.appendChild(make('span', 'dash-status ' + (STATUS_CLASS[norm(status)] || ''), status));
+                statusCell.appendChild(make('span', 'status-pill ' + (STATUS_CLASS[norm(status)] || ''), status));
                 tr.appendChild(statusCell);
 
                 var barCell = make('td', 'dash-bar-cell');
@@ -431,7 +434,6 @@
                 tr.appendChild(th);
                 row.counts.forEach(function (n, i) {
                     var td = make('td', n === 0 ? 'is-zero' : '', n === 0 ? '–' : fmt(n));
-                    if (n > 0) td.style.setProperty('--heat', (n / model.max).toFixed(3));
                     td.title = row.occupation + ' at ' + projects[i].name + ': ' + fmt(n);
                     tr.appendChild(td);
                 });
@@ -598,7 +600,7 @@
                 bindControls();
                 render();
                 // One entrance moment: the attendance bars grow in once the data arrives.
-                window.requestAnimationFrame(function () { document.body.classList.add('dash-ready'); });
+                window.requestAnimationFrame(function () { document.querySelector('.dash').classList.add('dash-ready'); });
             });
         });
     })();

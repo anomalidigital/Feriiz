@@ -4,28 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feriiz - Partner</title>
+    <title>Feriiz - Workspaces</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="partner">
     <aside class="sidebar"></aside>
 
     <main class="main-content">
-        <div class="breadcrumb" aria-label="Breadcrumb">
-            <a href="my-account.html">My Account</a>
-            <span aria-hidden="true">&gt;</span>
-            <span>Partner</span>
-        </div>
-
         <div class="page-header">
-            <h1 class="page-title">Partner</h1>
+            <div>
+                <h1 class="page-title">Workspaces</h1>
+                <p class="workspace-page-note">A workspace is a partner company. Switch between them from the bottom of the sidebar.</p>
+            </div>
             <div class="page-actions">
                 <label class="partner-search" for="partnerSearch">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                    <input type="search" id="partnerSearch" placeholder="Search partner" autocomplete="off">
+                    <input type="search" id="partnerSearch" placeholder="Search workspace" autocomplete="off">
                 </label>
             </div>
         </div>
@@ -36,8 +35,8 @@
                     <i class="fa-solid fa-users" aria-hidden="true"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026" id="partnerCount" aria-label="1 partner">1</div>
-                    <div class="stat-label feriiz-u-165">Partners</div>
+                    <div class="stat-number feriiz-u-026" id="partnerCount" aria-label="1 workspace">1</div>
+                    <div class="stat-label feriiz-u-165">Workspaces</div>
                 </div>
             </div>
         </div>
@@ -50,6 +49,7 @@
                             <th class="partner-action-column" aria-label="Action"></th>
                             <th>ID</th>
                             <th>Name</th>
+                            <th>Current</th>
                             <th>Date Created</th>
                             <th>Date Last Updated</th>
                         </tr>
@@ -57,7 +57,7 @@
                     <tbody id="partnerTableBody"></tbody>
                 </table>
             </div>
-            <div class="partner-empty-state" id="partnerEmptyState" hidden>No partners match your search.</div>
+            <div class="partner-empty-state" id="partnerEmptyState" hidden>No workspace matches your search.</div>
             <div class="pagination">
                 <div class="pagination-info" id="partnerPaginationInfo">Showing 1 - 1 of 1 result</div>
                 <div class="pagination-buttons">
@@ -68,14 +68,14 @@
             </div>
         </div>
 
-        <div class="feriiz-u-032">version : 3.6.1</div>
+        <div class="feriiz-u-032">version : 3.7.1</div>
     </main>
 
     <div class="modal-overlay" id="partnerDetailModal" aria-hidden="true">
         <div class="modal-card" id="partnerDetailDialog" role="dialog" aria-modal="true"
             aria-labelledby="partnerDetailTitle" tabindex="-1">
             <div class="modal-header">
-                <h2 id="partnerDetailTitle">Partner Detail</h2>
+                <h2 id="partnerDetailTitle">Workspace Detail</h2>
                 <button type="button" class="modal-close" id="closePartnerDetail" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
@@ -105,17 +105,15 @@
     </div>
 
     <script>
-        (function () {
+        // Runs after the deferred app.js, which provides FeriizWorkspaces.
+        document.addEventListener('DOMContentLoaded', function () {
             'use strict';
 
-            var partners = [
-                {
-                    id: '1629712785796FJLXHTP',
-                    name: 'Arcon & Anomali',
-                    dateCreated: '06 September 2021 - 00:00',
-                    dateLastUpdated: '-'
-                }
-            ];
+            // One list for the page and the sidebar switcher (app.js).
+            var partners = window.FeriizWorkspaces.list().map(function (w) {
+                return { id: w.id, name: w.name, dateCreated: w.createdAt, dateLastUpdated: w.updatedAt };
+            });
+            var currentId = window.FeriizWorkspaces.current().id;
 
             var tableBody = document.getElementById('partnerTableBody');
             var searchInput = document.getElementById('partnerSearch');
@@ -147,6 +145,7 @@
                 var viewButton = document.createElement('button');
                 var idCell = document.createElement('td');
                 var nameCell = document.createElement('td');
+                var currentCell = document.createElement('td');
                 var createdCell = document.createElement('td');
                 var updatedCell = document.createElement('td');
 
@@ -162,12 +161,16 @@
                 idCell.textContent = partner.id;
                 nameCell.className = 'partner-name';
                 nameCell.textContent = partner.name;
+                currentCell.innerHTML = partner.id === currentId
+                    ? '<span class="status-pill status-pill--active">Current</span>'
+                    : '<span class="text-muted">-</span>';
                 createdCell.textContent = partner.dateCreated;
                 updatedCell.textContent = partner.dateLastUpdated;
 
                 row.appendChild(actionCell);
                 row.appendChild(idCell);
                 row.appendChild(nameCell);
+                row.appendChild(currentCell);
                 row.appendChild(createdCell);
                 row.appendChild(updatedCell);
 
@@ -193,7 +196,7 @@
                 });
 
                 countBadge.textContent = String(partners.length);
-                countBadge.setAttribute('aria-label', partners.length + (partners.length === 1 ? ' partner' : ' partners'));
+                countBadge.setAttribute('aria-label', partners.length + (partners.length === 1 ? ' workspace' : ' workspaces'));
                 emptyState.hidden = filtered.length !== 0;
                 paginationInfo.textContent = filtered.length
                     ? 'Showing 1 - ' + filtered.length + ' of ' + filtered.length + (filtered.length === 1 ? ' result' : ' results')
@@ -211,7 +214,7 @@
             });
 
             renderPartners();
-        })();
+        });
     </script>
 </body>
 

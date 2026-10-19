@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Employee Detail</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/data.js?v=3.6.1" defer></script>
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.1" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="employee-detail">
@@ -21,187 +24,60 @@
         <div class="breadcrumb">
             <a href="employees.html">Employees</a>
             <span>&gt;</span>
-            <span class="feriiz-u-057">Employee Detail</span>
+            <span class="feriiz-u-057" id="detailCrumb">Employee Detail</span>
         </div>
 
         <div class="page-header">
-            <h1 class="page-title">Employee Detail</h1>
+            <div>
+                <h1 class="page-title" id="detailTitle">Employee Detail</h1>
+                <p class="workspace-page-note" id="detailSub">Loading employee…</p>
+            </div>
         </div>
 
-        <div class="form-grid">
+        <!-- Same form as Employees and Project > Activity (assets/js/employee-form.js) -->
+        <div id="employeeDetailForm"></div>
 
-            <!-- Left Column -->
-            <div>
-                <!-- Personal Information -->
-                <div class="form-section">
-                    <div class="form-section-title">Personal Information</div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>First Name</label>
-                            <input type="text" placeholder="First Name" value="Erik">
-                        </div>
-                        <div class="form-group">
-                            <label>Last Name</label>
-                            <input type="text" placeholder="Last Name" value="">
-                        </div>
-                        <div class="form-group">
-                            <label>Occupation</label>
-                            <input type="text" placeholder="Occupation" value="Graphic Design">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Pin</label>
-                            <input type="text" placeholder="Pin" value="0032">
-                        </div>
-                        <div class="form-group">
-                            <label>Date of Birth</label>
-                            <input type="date" value="">
-                        </div>
-                        <div class="form-group">
-                            <label>Gender</label>
-                            <select>
-                                <option value="">Select Gender</option>
-                                <option value="male" selected>Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Note</label>
-                            <textarea placeholder="Add notes about this employee..."></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Working Time -->
-                <div class="form-section feriiz-u-089">
-                    <div class="form-section-title">Working Time</div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Start Hour</label>
-                            <input type="time" value="08:00">
-                        </div>
-                        <div class="form-group">
-                            <label>End Hour</label>
-                            <input type="time" value="17:00">
-                        </div>
-                        <div class="form-group">
-                            <label>Cut Off Hour</label>
-                            <input type="time" value="18:00">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Working Days</label>
-                            <div class="day-checks">
-                                <label class="day-check"><input type="checkbox" checked><span>Mon</span></label>
-                                <label class="day-check"><input type="checkbox" checked><span>Tue</span></label>
-                                <label class="day-check"><input type="checkbox" checked><span>Wed</span></label>
-                                <label class="day-check"><input type="checkbox" checked><span>Thu</span></label>
-                                <label class="day-check"><input type="checkbox" checked><span>Fri</span></label>
-                                <label class="day-check"><input type="checkbox"><span>Sat</span></label>
-                                <label class="day-check"><input type="checkbox"><span>Sun</span></label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div>
-                <!-- Account Configuration -->
-                <div class="form-section">
-                    <div class="form-section-title">Account Configuration</div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Role</label>
-                            <select>
-                                <option value="">Select Role</option>
-                                <option value="employee" selected>Employee</option>
-                                <option value="admin">Admin</option>
-                                <option value="manager">Manager</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" placeholder="Email" value="">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Reset Password</label>
-                            <input type="text" placeholder="Reset Password" class="feriiz-u-090">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Rate -->
-                <div class="form-section feriiz-u-089">
-                    <div class="form-section-title">Payment Rate</div>
-
-                    <div class="form-row feriiz-u-091">
-                        <div class="form-group">
-                            <label>Hourly Rate</label>
-                            <div class="rate-input">
-                                <span class="rate-icon">$</span>
-                                <input type="number" placeholder="0" value="">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Hourly Overtime Rate</label>
-                            <div class="rate-input">
-                                <span class="rate-icon">$</span>
-                                <input type="number" placeholder="0" value="">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Client Rate</label>
-                            <div class="rate-input">
-                                <span class="rate-icon">$</span>
-                                <input type="number" placeholder="0" value="">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Client Overtime Rate</label>
-                            <div class="rate-input">
-                                <span class="rate-icon">$</span>
-                                <input type="number" placeholder="0" value="">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Save Button -->
-                <button class="btn-save" type="button" onclick="saveEmployeeProfile()">Save Changes</button>
-            </div>
-
-        </div>
-
-        <div class="feriiz-u-092">version : 3.6.1</div>
+        <div class="feriiz-u-092">version : 3.7.1</div>
     </main>
     <script>
-        function saveEmployeeProfile() {
-            const firstNameInput = document.querySelector('input[placeholder="First Name"]');
-            const firstName = firstNameInput ? firstNameInput.value.trim() : '';
-            if (!firstName) {
-                if (firstNameInput) firstNameInput.focus();
-                if (window.FeriizNotify) FeriizNotify.warning('First name is required.', 'Employee not saved');
-                return;
-            }
-            if (window.FeriizNotify) FeriizNotify.success(firstName + "'s profile was updated.", 'Employee updated');
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.FERIIZ_DATA) return;
+            window.FERIIZ_DATA.ready.then(function (data) {
+                var code = new URLSearchParams(location.search).get('employee');
+                var emp = code ? data.findEmployeeByCode(code) : null;
+                var container = document.getElementById('employeeDetailForm');
+                if (!emp) {
+                    document.getElementById('detailSub').textContent = code
+                        ? 'No employee with code ' + code + '. Open one from the Employees list.'
+                        : 'Open an employee from the Employees list to see their details.';
+                    container.innerHTML = '<a class="btn btn-primary" href="employees.html">Go to Employees</a>';
+                    return;
+                }
+                var project = data.findProjectByCode((emp.projects || [])[0]);
+                function paintHeader() {
+                    document.getElementById('detailTitle').textContent = emp.name;
+                    document.getElementById('detailCrumb').textContent = emp.name;
+                    document.getElementById('detailSub').textContent = emp.code + (project ? ', ' + project.name : '');
+                    document.title = 'Feriiz - ' + emp.name;
+                }
+                paintHeader();
+                window.FeriizEmployeeForm.mount(container, {
+                    employee: emp,
+                    project: project,
+                    onSave: function (v) {
+                        ['firstName', 'middleName', 'lastName', 'occupation', 'pin', 'phone', 'email', 'gender', 'birthDate', 'note', 'status', 'role',
+                         'workingDays', 'dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
+                            emp[k] = v[k];
+                        });
+                        emp.name = v.name;
+                        emp.workStart = v.startHour;
+                        emp.workEnd = v.endHour;
+                        emp.cutOff = v.cutOff;
+                        paintHeader();
+                    }
+                });
+            });
+        });
     </script>
 </body>
 

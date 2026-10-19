@@ -64,11 +64,15 @@
     function rememberCell(cell) {
         var row = cell.closest('tr');
         if (!row) return;
-        cellOverrides[row.dataset.employeeCode + '|' + cell.dataset.date] = {
+        var key = row.dataset.employeeCode + '|' + cell.dataset.date;
+        var prev = cellOverrides[key] || {};
+        cellOverrides[key] = {
             inTime: cell.dataset.inTime || '',
             outTime: cell.dataset.outTime || '',
             inNote: cell.dataset.inNote || '',
-            outNote: cell.dataset.outNote || ''
+            outNote: cell.dataset.outNote || '',
+            otAdjust: prev.otAdjust || 0,     // minutes, sum of the ledger below
+            otLog: prev.otLog || []           // [{ minutes, note, at, by }], append-only
         };
     }
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
@@ -93,6 +97,59 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    /* =============================================
+       HOURS
+       Same rule as the attendance data: worked = log out - log in;
+       overtime = time after the project's end hour. A record keeps its own
+       numbers until one of its logs is changed here.
+       ============================================= */
+    function toSeconds(t) {
+        var p = String(t || '').split(':').map(Number);
+        return (p[0] || 0) * 3600 + (p[1] || 0) * 60 + (p[2] || 0);
+    }
+
+    function computeHours(inTime, outTime) {
+        if (!inTime || !outTime) return { work: 0, ot: 0 };
+        var i = toSeconds(inTime), o = toSeconds(outTime);
+        if (o <= i) return { work: 0, ot: 0 };
+        var end = toSeconds(((projectContext && projectContext.workEnd) || '17:00') + ':00');
+        return { work: (o - i) / 3600, ot: Math.max(0, o - Math.max(end, i)) / 3600 };
+    }
+
+    function cellHours(code, date, inTime, outTime) {
+        var rec = attendanceIndex[code + '|' + date];
+        if (rec && (rec.inTime || '') === inTime && (rec.outTime || '') === outTime) {
+            return { work: rec.workHours || 0, ot: rec.overtimeHours || 0 };
+        }
+        return computeHours(inTime, outTime);
+    }
+
+    function otAdjustFor(code, date) {
+        var o = cellOverrides[code + '|' + date];
+        return (o && o.otAdjust) || 0;
+    }
+
+    function otLogCountFor(code, date) {
+        var o = cellOverrides[code + '|' + date];
+        return (o && o.otLog && o.otLog.length) || 0;
+    }
+
+    // '+1h', '+1h 30m', '-45m'
+    function formatAdjust(minutes) {
+        if (!minutes) return '±0m';
+        var a = Math.abs(minutes), h = Math.floor(a / 60), m = a % 60;
+        return (minutes < 0 ? '−' : '+') + (h ? h + 'h' : '') + (h && m ? ' ' : '') + (m || !h ? m + 'm' : '');
+    }
+
+    // Stamp the numbers totals and print read from.
+    function setCellHours(cell, hours, adjust) {
+        var complete = Boolean(cell.dataset.inTime && cell.dataset.outTime);
+        cell.dataset.work = (hours.work || 0).toFixed(4);
+        cell.dataset.ot = (hours.ot || 0).toFixed(4);
+        cell.dataset.otAdjust = String(adjust || 0);
+        cell.dataset.otTotal = complete ? Math.max(0, (hours.ot || 0) + (adjust || 0) / 60).toFixed(4) : '0';
     }
 
     /* =============================================
@@ -125,10 +182,20 @@
 
         if (isEmpty) return '';
 
-        var hasWork = inTime && outTime;
-        var totalBadge = hasWork
-            ? '<span class="badge feriiz-u-135">9h</span><span class="badge feriiz-u-136">2h OT</span>'
-            : '<span class="badge feriiz-u-135">0h</span><span class="badge feriiz-u-136">0h OT</span>';
+        var hours = (opts && opts.hours) || computeHours(inTime, outTime);
+        var adjust = (opts && opts.otAdjust) || 0;
+        var ledger = (opts && opts.otLogCount) || 0;
+        var complete = Boolean(inTime && outTime);
+        var otTotal = complete ? Math.max(0, hours.ot + adjust / 60) : 0;
+        // The yellow badge always shows the total; the chip shows what was added or taken off.
+        // Shown while the day has any history, even when the changes cancel out.
+        var adjustChip = complete && (adjust || ledger)
+            ? '<button type="button" class="ot-adjust-chip ' + (adjust > 0 ? 'is-plus' : adjust < 0 ? 'is-minus' : 'is-zero') + '" ' +
+                'title="System ' + formatHour(hours.ot) + ', adjusted ' + formatAdjust(adjust) + '. Click for history." ' +
+                'aria-label="Overtime adjusted ' + formatAdjust(adjust) + ', show history">' + formatAdjust(adjust) + '</button>'
+            : '';
+        var totalBadge = '<span class="badge feriiz-u-135">' + formatHour(complete ? hours.work : 0) + '</span>' +
+            '<span class="badge feriiz-u-136">' + formatHour(otTotal) + ' OT</span>' + adjustChip;
 
         var renderedLines = Array.isArray(clockLines) ? clockLines : null;
 
@@ -204,11 +271,15 @@
             var inNote = src.inNote || '';
             var outNote = src.outNote || '';
             var issue = getMissingType(inTime, outTime);
+            var hours = cellHours(employee.code, date, inTime, outTime);
+            var adjust = otAdjustFor(employee.code, date);
+            var otTotal = inTime && outTime ? Math.max(0, hours.ot + adjust / 60) : 0;
 
             var missingAttr = issue ? ' data-missing="' + issue + '"' : '';
-            var dataAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"';
+            var dataAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"' +
+                ' data-work="' + hours.work.toFixed(4) + '" data-ot="' + hours.ot.toFixed(4) + '" data-ot-adjust="' + adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"';
             var cellClass = 'day-col feriiz-u-132' + (issue ? ' no-log-cell' : '');
-            var content = buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue });
+            var content = buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust, otLogCount: otLogCountFor(employee.code, date) });
 
             return '<td class="' + cellClass + '" data-date="' + date + '"' + missingAttr + dataAttrs + '>' +
                 checkbox + content + '</td>';
@@ -218,7 +289,8 @@
     function createEmployeeRow(employee, dates) {
         var empRateOT = projectContext ? projectContext.overtimeRate || 0 : 0;
         var cliRateOT = projectContext ? projectContext.clientOvertimeRate || 0 : 0;
-        return '<tr data-employee-code="' + escapeHTML(employee.code) + '" data-employee-name="' + escapeHTML(employee.name) + '">' +
+        return '<tr data-employee-code="' + escapeHTML(employee.code) + '" data-employee-name="' + escapeHTML(employee.name) + '"' +
+            ' data-daily-rate="' + (Number(employee.dailyRate) || 0) + '" data-client-daily-rate="' + (Number(employee.clientDailyRate) || 0) + '">' +
             '<td class="col-name sticky-col">' +
                 '<div class="report-identity-content">' +
                     '<div class="emp-code-cell">' + escapeHTML(employee.code) + '</div>' +
@@ -310,38 +382,40 @@
     /* =============================================
        TOTALS
        ============================================= */
-    function parseHourBadge(text) {
-        var m = String(text || '').match(/(\d+(?:\.\d+)?)/);
-        return m ? Number(m[1]) : 0;
-    }
-
     function formatHour(h) {
         if (!Number.isFinite(h) || h <= 0) return '0h';
         return Number.isInteger(h) ? h + 'h' : h.toFixed(2).replace(/\.?0+$/, '') + 'h';
     }
 
+    // Pay is per day (decided Oct 2026):
+    //   Total Rate          = Daily Rate x days with a log
+    //   Total Rate Overtime = Overtime Rate per hour x overtime hours (adjustments included)
+    // Client columns use the client rates the same way.
+    function setText(row, selector, text) {
+        var el = row.querySelector(selector);
+        if (el) el.textContent = text;
+    }
+
     function updateVisibleTotals(datesToShow) {
+        var otRate = (projectContext && Number(projectContext.overtimeRate)) || 0;
+        var clientOtRate = (projectContext && Number(projectContext.clientOvertimeRate)) || 0;
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-            var workDays = [];
+            var days = 0, totalWork = 0, totalOT = 0;
             row.querySelectorAll('td.day-col').forEach(function (cell) {
-                if (datesToShow.indexOf(cell.dataset.date) >= 0 && !cell.classList.contains('weekend-off-cell')) {
-                    workDays.push(cell);
-                }
+                if (datesToShow.indexOf(cell.dataset.date) < 0 || cell.classList.contains('weekend-off-cell')) return;
+                if (cell.dataset.inTime || cell.dataset.outTime) days++;
+                totalWork += Number(cell.dataset.work) || 0;
+                totalOT += Number(cell.dataset.otTotal) || 0;
             });
-            var totalWork = 0, totalOT = 0;
-            workDays.forEach(function (cell) {
-                cell.querySelectorAll('span').forEach(function (span) {
-                    var t = span.textContent.trim();
-                    if (t.indexOf('OT') >= 0) totalOT += parseHourBadge(t);
-                    else if (/h$/.test(t)) totalWork += parseHourBadge(t);
-                });
-            });
-            var d = row.querySelector('.col-totaldays');
-            var h = row.querySelector('.col-totalhour');
-            var o = row.querySelector('.col-totalovertime');
-            if (d) d.textContent = workDays.length + 'd';
-            if (h) h.textContent = formatHour(totalWork);
-            if (o) o.textContent = formatHour(totalOT);
+            var daily = Number(row.dataset.dailyRate) || 0;
+            var clientDaily = Number(row.dataset.clientDailyRate) || 0;
+            setText(row, '.col-totaldays', days + 'd');
+            setText(row, '.col-totalhour', formatHour(totalWork));
+            setText(row, '.col-totalovertime', formatHour(totalOT));
+            setText(row, '.col-emp-totalrate', formatIDR(days * daily));
+            setText(row, '.col-emp-totalovertime', formatIDR(Math.round(totalOT * otRate)));
+            setText(row, '.col-cli-totalrate', formatIDR(days * clientDaily));
+            setText(row, '.col-cli-totalovertime', formatIDR(Math.round(totalOT * clientOtRate)));
         });
     }
 
@@ -468,6 +542,13 @@
             deleteBtn.disabled = !hasLogs;
         }
 
+        var otBtn = document.querySelector('#batchUpdateDropdown button[data-action="overtime"]');
+        if (otBtn) {
+            var anyComplete = selected.some(isCompleteCell);
+            otBtn.disabled = !anyComplete;
+            otBtn.title = anyComplete ? '' : 'Select days that have both a log in and a log out';
+        }
+
         syncDayHeaderSelections();
     }
 
@@ -569,6 +650,11 @@
         // Close dropdown
         var dd = document.getElementById('batchUpdateDropdown');
         if (dd) dd.classList.remove('show');
+
+        if (action === 'overtime') {
+            openOvertimeModal();
+            return;
+        }
 
         // Delete actions go to confirmation modal
         if (action === 'delete') {
@@ -766,8 +852,12 @@
                 cell.classList.add('recently-updated-cell');
                 cell.classList.remove('cell-selected');
 
+                var addCode = cell.closest('tr').dataset.employeeCode;
+                var addHours = cellHours(addCode, cell.dataset.date, newIn, newOut);
+                var addAdjust = otAdjustFor(addCode, cell.dataset.date);
+                setCellHours(cell, addHours, addAdjust);
                 cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                    buildDayCellContent({ inTime: newIn, outTime: newOut, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
+                    buildDayCellContent({ inTime: newIn, outTime: newOut, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: addHours, otAdjust: addAdjust, otLogCount: otLogCountFor(addCode, cell.dataset.date) });
                 updated++;
             });
         } else if (activeAction.indexOf('delete') === 0) {
@@ -816,11 +906,15 @@
                 if (existIn) lines.push({ type: 'in', value: existIn, note: existInNote });
                 if (existOut) lines.push({ type: 'out', value: existOut, note: existOutNote });
 
+                var delCode = cell.closest('tr').dataset.employeeCode;
+                var delHours = cellHours(delCode, date, existIn, existOut);
+                var delAdjust = otAdjustFor(delCode, date);
+                setCellHours(cell, delHours, delAdjust);
                 if (backToDayOff) {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
                 } else {
                     cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                        buildDayCellContent({ inTime: existIn, outTime: existOut, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true });
+                        buildDayCellContent({ inTime: existIn, outTime: existOut, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: delHours, otAdjust: delAdjust, otLogCount: otLogCountFor(delCode, date) });
                 }
                 updated++;
             });
@@ -845,6 +939,247 @@
                 : updated + ' selected log entries were deleted on ' + dateSummary + '.';
             window.FeriizNotify.success(message, title);
         }
+    }
+
+    /* =============================================
+       UPDATE OVERTIME
+       Adds or subtracts overtime on the selected days. The system value is
+       never overwritten: each change is appended to the day's ledger, the
+       yellow badge shows the new total and a chip shows the adjustment.
+       Mistakes are corrected with another adjustment, not by editing.
+       Only days with both logs qualify; incomplete days are deselected.
+       ============================================= */
+    var overtimeModal = null;
+    var overtimeHistoryModal = null;
+
+    function isCompleteCell(cell) {
+        return Boolean(cell.dataset.inTime && cell.dataset.outTime) && !cell.classList.contains('weekend-off-cell');
+    }
+
+    function overtimeSign() {
+        var checked = overtimeModal.querySelector('input[name="otDirection"]:checked');
+        return checked && checked.value === 'subtract' ? -1 : 1;
+    }
+
+    function overtimeMinutes() {
+        var h = parseInt(overtimeModal.querySelector('#otHours').value, 10) || 0;
+        var m = parseInt(overtimeModal.querySelector('#otMinutes').value, 10) || 0;
+        return Math.max(0, h) * 60 + Math.min(Math.max(0, m), 59);
+    }
+
+    function refreshOvertimePreview() {
+        var sign = overtimeSign();
+        var minutes = overtimeMinutes();
+        var cells = getSelectedCells().filter(isCompleteCell);
+        var floored = 0;
+        if (sign < 0 && minutes) {
+            cells.forEach(function (cell) {
+                var current = (Number(cell.dataset.otTotal) || 0) * 60;
+                if (current < minutes) floored++;
+            });
+        }
+        var submit = overtimeModal.querySelector('#otSubmit');
+        submit.textContent = (sign > 0 ? 'Add ' : 'Subtract ') + (minutes ? formatAdjust(minutes).slice(1) : 'overtime') +
+            ' on ' + cells.length + (cells.length === 1 ? ' day' : ' days');
+        var floorNote = overtimeModal.querySelector('#otFloorNote');
+        floorNote.hidden = !floored;
+        floorNote.textContent = floored + (floored === 1 ? ' day has' : ' days have') +
+            ' less overtime than this and will stop at 0h.';
+    }
+
+    function buildOvertimeModal() {
+        var el = document.createElement('div');
+        el.className = 'modal fade';
+        el.id = 'overtimeModal';
+        el.tabIndex = -1;
+        el.setAttribute('aria-labelledby', 'overtimeModalTitle');
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<h2 class="modal-title" id="overtimeModalTitle">Update overtime</h2>' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="ot-summary">' +
+                            '<div><span>Days</span><strong id="otDays">0</strong></div>' +
+                            '<div><span>Employees</span><strong id="otEmployees">0</strong></div>' +
+                        '</div>' +
+                        '<p class="ot-skipped" id="otSkipped" hidden></p>' +
+                        '<div class="btn-group w-100 mb-3" role="group" aria-label="Add or subtract">' +
+                            '<input type="radio" class="btn-check" name="otDirection" id="otAdd" value="add" checked>' +
+                            '<label class="btn btn-outline-primary" for="otAdd"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add overtime</label>' +
+                            '<input type="radio" class="btn-check" name="otDirection" id="otSubtract" value="subtract">' +
+                            '<label class="btn btn-outline-primary" for="otSubtract"><i class="fa-solid fa-minus" aria-hidden="true"></i> Subtract overtime</label>' +
+                        '</div>' +
+                        '<label class="form-label" for="otHours">Amount per day</label>' +
+                        '<div class="row g-2 mb-1">' +
+                            '<div class="col-6"><div class="input-group">' +
+                                '<input type="number" class="form-control" id="otHours" min="0" max="12" step="1" value="1" aria-label="Hours">' +
+                                '<span class="input-group-text">hours</span></div></div>' +
+                            '<div class="col-6"><div class="input-group">' +
+                                '<input type="number" class="form-control" id="otMinutes" min="0" max="59" step="5" value="0" aria-label="Minutes">' +
+                                '<span class="input-group-text">minutes</span></div></div>' +
+                        '</div>' +
+                        '<p class="form-text mb-3" id="otFloorNote" hidden></p>' +
+                        '<label class="form-label" for="otReason">Reason</label>' +
+                        '<textarea class="form-control" id="otReason" rows="2" placeholder="For example: the concrete pour ran until 20:00, approved by the site manager"></textarea>' +
+                        '<div class="form-text">The recorded overtime is kept. This change is added on top and saved in each day\u2019s history; to fix a mistake, add another change.</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
+                        '<button type="button" class="btn btn-primary" id="otSubmit">Add overtime</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(el);
+        el.querySelectorAll('input[name="otDirection"], #otHours, #otMinutes').forEach(function (input) {
+            input.addEventListener('input', refreshOvertimePreview);
+            input.addEventListener('change', refreshOvertimePreview);
+        });
+        el.querySelector('#otSubmit').addEventListener('click', applyOvertimeUpdate);
+        return el;
+    }
+
+    function openOvertimeModal() {
+        var selected = getSelectedCells();
+        var eligible = selected.filter(isCompleteCell);
+        if (!eligible.length) {
+            if (window.FeriizNotify) FeriizNotify.warning('Select days that have both a log in and a log out.', 'No overtime to update');
+            return;
+        }
+        // Incomplete days cannot take overtime: drop them from the selection.
+        var skipped = selected.length - eligible.length;
+        selected.forEach(function (cell) {
+            if (!isCompleteCell(cell)) {
+                var cb = cell.querySelector('.day-cell-select');
+                if (cb) cb.checked = false;
+            }
+        });
+        updateCellSelectionUI();
+
+        if (!overtimeModal) overtimeModal = buildOvertimeModal();
+        var employees = new Set(eligible.map(function (c) { return c.closest('tr').dataset.employeeCode; }));
+        overtimeModal.querySelector('#otDays').textContent = eligible.length;
+        overtimeModal.querySelector('#otEmployees').textContent = employees.size;
+        var skippedNote = overtimeModal.querySelector('#otSkipped');
+        skippedNote.hidden = !skipped;
+        skippedNote.textContent = skipped + (skipped === 1 ? ' selected day was' : ' selected days were') +
+            ' left out because the log is incomplete. Fix the log first, then update its overtime.';
+        overtimeModal.querySelector('#otAdd').checked = true;
+        overtimeModal.querySelector('#otHours').value = 1;
+        overtimeModal.querySelector('#otMinutes').value = 0;
+        overtimeModal.querySelector('#otReason').value = '';
+        overtimeModal.querySelector('#otReason').classList.remove('is-invalid');
+        refreshOvertimePreview();
+        window.bootstrap.Modal.getOrCreateInstance(overtimeModal).show();
+    }
+
+    function applyOvertimeUpdate() {
+        var minutes = overtimeMinutes();
+        var reasonInput = overtimeModal.querySelector('#otReason');
+        var reason = reasonInput.value.trim();
+        if (!minutes) {
+            overtimeModal.querySelector('#otHours').focus();
+            if (window.FeriizNotify) FeriizNotify.warning('Enter how much overtime to add or subtract.', 'Overtime not updated');
+            return;
+        }
+        if (!reason) {
+            reasonInput.classList.add('is-invalid');
+            reasonInput.focus();
+            if (window.FeriizNotify) FeriizNotify.warning('Write the reason so the change can be checked later.', 'Reason required');
+            return;
+        }
+        var sign = overtimeSign();
+        var cells = getSelectedCells().filter(isCompleteCell);
+        var employees = new Set();
+        var at = new Date();
+        clearRecentUpdateMarkers();
+
+        cells.forEach(function (cell) {
+            var row = cell.closest('tr');
+            var code = row.dataset.employeeCode;
+            var key = code + '|' + cell.dataset.date;
+            rememberCell(cell);
+            var entry = cellOverrides[key];
+            var system = (Number(cell.dataset.ot) || 0) * 60;
+            var before = entry.otAdjust || 0;
+            // Never below 0h in total: a subtraction stops at what is there.
+            var change = sign > 0 ? minutes : -Math.min(minutes, Math.max(0, Math.round(system + before)));
+            if (!change) return;
+            entry.otAdjust = before + change;
+            entry.otLog = entry.otLog.concat([{ minutes: change, note: reason, at: at.toISOString(), by: 'Admin' }]);
+            employees.add(code);
+
+            var hours = { work: Number(cell.dataset.work) || 0, ot: Number(cell.dataset.ot) || 0 };
+            setCellHours(cell, hours, entry.otAdjust);
+            cell.classList.add('recently-updated-cell');
+            cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
+                buildDayCellContent({ inTime: cell.dataset.inTime, outTime: cell.dataset.outTime, inNote: cell.dataset.inNote, outNote: cell.dataset.outNote, issue: '', updated: true, hours: hours, otAdjust: entry.otAdjust, otLogCount: entry.otLog.length });
+        });
+
+        window.bootstrap.Modal.getInstance(overtimeModal).hide();
+        deselectAllCells();
+        applyReportFilters();
+        updateVisibleTotals(currentVisibleDates);
+        if (window.FeriizNotify) {
+            FeriizNotify.success('Overtime ' + formatAdjust(sign * minutes) + ' was applied to ' + cells.length +
+                (cells.length === 1 ? ' day' : ' days') + ' for ' + employees.size + (employees.size === 1 ? ' employee.' : ' employees.'),
+                sign > 0 ? 'Overtime added' : 'Overtime subtracted');
+        }
+    }
+
+    function openOvertimeHistory(cell) {
+        var row = cell.closest('tr');
+        var entry = cellOverrides[row.dataset.employeeCode + '|' + cell.dataset.date];
+        if (!entry || !entry.otLog.length) return;
+        if (!overtimeHistoryModal) {
+            overtimeHistoryModal = document.createElement('div');
+            overtimeHistoryModal.className = 'modal fade';
+            overtimeHistoryModal.id = 'overtimeHistoryModal';
+            overtimeHistoryModal.tabIndex = -1;
+            overtimeHistoryModal.setAttribute('aria-labelledby', 'otHistoryTitle');
+            overtimeHistoryModal.setAttribute('aria-hidden', 'true');
+            overtimeHistoryModal.innerHTML =
+                '<div class="modal-dialog modal-dialog-centered">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header">' +
+                            '<div><h2 class="modal-title" id="otHistoryTitle">Overtime history</h2>' +
+                            '<p class="ot-history-sub" id="otHistorySub"></p></div>' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                        '</div>' +
+                        '<div class="modal-body">' +
+                            '<div class="ot-history-total" id="otHistoryTotal"></div>' +
+                            '<ol class="ot-history-list" id="otHistoryList"></ol>' +
+                        '</div>' +
+                        '<div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button></div>' +
+                    '</div>' +
+                '</div>';
+            document.body.appendChild(overtimeHistoryModal);
+        }
+        var system = Number(cell.dataset.ot) || 0;
+        overtimeHistoryModal.querySelector('#otHistorySub').textContent =
+            row.dataset.employeeName + ', ' + formatLogNoteDate(cell.dataset.date);
+        overtimeHistoryModal.querySelector('#otHistoryTotal').innerHTML =
+            '<div><span>Recorded</span><strong>' + formatHour(system) + '</strong></div>' +
+            '<div><span>Adjusted</span><strong>' + formatAdjust(entry.otAdjust) + '</strong></div>' +
+            '<div><span>Total overtime</span><strong>' + formatHour(Number(cell.dataset.otTotal) || 0) + '</strong></div>';
+        var list = overtimeHistoryModal.querySelector('#otHistoryList');
+        list.innerHTML = '';
+        entry.otLog.forEach(function (log) {
+            var li = document.createElement('li');
+            var when = new Date(log.at);
+            li.innerHTML = '<span class="ot-history-amount ' + (log.minutes > 0 ? 'is-plus' : 'is-minus') + '"></span>' +
+                '<div><p class="ot-history-note"></p><p class="ot-history-meta"></p></div>';
+            li.querySelector('.ot-history-amount').textContent = formatAdjust(log.minutes);
+            li.querySelector('.ot-history-note').textContent = log.note;
+            li.querySelector('.ot-history-meta').textContent = log.by + ', ' +
+                when.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+                when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            list.appendChild(li);
+        });
+        window.bootstrap.Modal.getOrCreateInstance(overtimeHistoryModal).show();
     }
 
     /* =============================================
@@ -947,8 +1282,148 @@
     /* =============================================
        INIT
        ============================================= */
+    /* =============================================
+       IMPORT XLSX
+       Upload a timesheet to add logs in bulk. The file is checked here
+       (type, size, CSV row count); the server does the real import once
+       Feriiz is connected to the API.
+       ============================================= */
+    var IMPORT_TYPES = ['.xlsx', '.xls', '.csv'];
+    var IMPORT_MAX = 5 * 1024 * 1024;
+    var importModal = null;
+    var importFile = null;
+
+    function importSize(bytes) {
+        return bytes < 1024 * 1024 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+
+    function downloadTemplate() {
+        var rows = [
+            ['Employee Code', 'Date (YYYY-MM-DD)', 'Log In (HH:mm:ss)', 'Log Out (HH:mm:ss)', 'Note'],
+            [reportEmployees[0] ? reportEmployees[0].code : 'EMPLOYEECODE', reportToday, '08:00:00', '17:00:00', '']
+        ];
+        var csv = rows.map(function (r) {
+            return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\r\n');
+        var url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'feriiz-attendance-template.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function setImportFile(file) {
+        var error = importModal.querySelector('#importError');
+        var chosen = importModal.querySelector('#importChosen');
+        var submit = importModal.querySelector('#importSubmit');
+        error.hidden = true;
+        importFile = null;
+        submit.disabled = true;
+        chosen.hidden = true;
+        if (!file) return;
+        var ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+        if (IMPORT_TYPES.indexOf(ext) < 0) {
+            error.textContent = file.name + ' is not a spreadsheet. Choose an .xlsx, .xls or .csv file.';
+            error.hidden = false;
+            return;
+        }
+        if (file.size > IMPORT_MAX) {
+            error.textContent = file.name + ' is ' + importSize(file.size) + '. The limit is 5 MB.';
+            error.hidden = false;
+            return;
+        }
+        importFile = file;
+        chosen.hidden = false;
+        chosen.querySelector('.import-file-name').textContent = file.name;
+        chosen.querySelector('.import-file-meta').textContent = importSize(file.size);
+        submit.disabled = false;
+        if (ext === '.csv') {
+            file.text().then(function (text) {
+                var rows = text.split(/\r?\n/).filter(function (l) { return l.trim(); }).length - 1;
+                chosen.querySelector('.import-file-meta').textContent = importSize(file.size) + ', ' + Math.max(rows, 0) + ' rows';
+            });
+        }
+    }
+
+    function buildImportModal() {
+        var el = document.createElement('div');
+        el.className = 'modal fade';
+        el.id = 'importModal';
+        el.tabIndex = -1;
+        el.setAttribute('aria-labelledby', 'importModalTitle');
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<h2 class="modal-title" id="importModalTitle">Import attendance</h2>' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<p class="import-intro">Add log in and log out times for many employees at once from a spreadsheet. ' +
+                            'Use the Feriiz template so every column is read correctly.</p>' +
+                        '<label class="import-drop" for="importInput">' +
+                            '<i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>' +
+                            '<span class="import-drop-title">Drag a file here or <u>choose a file</u></span>' +
+                            '<span class="import-drop-hint">.xlsx, .xls or .csv, up to 5 MB</span>' +
+                            '<input type="file" id="importInput" class="visually-hidden" accept="' + IMPORT_TYPES.join(',') + '">' +
+                        '</label>' +
+                        '<div class="import-chosen" id="importChosen" hidden>' +
+                            '<i class="fa-solid fa-file-excel" aria-hidden="true"></i>' +
+                            '<div class="import-file-text"><div class="import-file-name"></div><div class="import-file-meta"></div></div>' +
+                            '<button type="button" class="btn-close" id="importClear" aria-label="Remove file"></button>' +
+                        '</div>' +
+                        '<div class="import-error" id="importError" role="alert" hidden></div>' +
+                        '<button type="button" class="import-template" id="importTemplate">' +
+                            '<i class="fa-solid fa-download" aria-hidden="true"></i> Download template (.csv)</button>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
+                        '<button type="button" class="btn btn-primary" id="importSubmit" disabled>Import file</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(el);
+
+        var input = el.querySelector('#importInput');
+        var drop = el.querySelector('.import-drop');
+        input.addEventListener('change', function () { setImportFile(input.files[0]); });
+        ['dragenter', 'dragover'].forEach(function (t) {
+            drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('is-over'); });
+        });
+        ['dragleave', 'drop'].forEach(function (t) {
+            drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('is-over'); });
+        });
+        drop.addEventListener('drop', function (e) { setImportFile(e.dataTransfer.files[0]); });
+        el.querySelector('#importClear').addEventListener('click', function () { input.value = ''; setImportFile(null); });
+        el.querySelector('#importTemplate').addEventListener('click', downloadTemplate);
+        el.querySelector('#importSubmit').addEventListener('click', function () {
+            if (!importFile) return;
+            var name = importFile.name;
+            window.bootstrap.Modal.getInstance(el).hide();
+            if (window.FeriizNotify) {
+                FeriizNotify.info(name + ' was uploaded. Its logs will be added once Feriiz is connected to the server.', 'Import received');
+            }
+        });
+        el.addEventListener('hidden.bs.modal', function () { input.value = ''; setImportFile(null); });
+        return el;
+    }
+
+    function initImport() {
+        var btn = document.getElementById('reportImportBtn');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            if (!importModal) importModal = buildImportModal();
+            window.bootstrap.Modal.getOrCreateInstance(importModal).show();
+        });
+    }
+
     function init() {
         initPeriodPresets();
+        initImport();
         resetDateDraft();
         showDays(datesInRange());
 
@@ -1016,6 +1491,13 @@
                 if (e.target.classList.contains('day-cell-select')) {
                     updateCellSelectionUI();
                 }
+            });
+            tbody.addEventListener('click', function (e) {
+                var chip = e.target.closest('.ot-adjust-chip');
+                if (!chip) return;
+                e.preventDefault();
+                e.stopPropagation();
+                openOvertimeHistory(chip.closest('td.day-col'));
             });
             tbody.addEventListener('click', function (e) {
                 var noteButton = e.target.closest('.report-log-note-btn');
@@ -1171,8 +1653,22 @@
                 FeriizNotify.warning(who + ' is not assigned to ' + projectContext.name + '.', 'No report to show');
             }
         }
+        var reportHref = 'project_report.html?project=' + encodeURIComponent(projectContext.code);
         var reportLink = document.getElementById('reportBackLink');
-        if (reportLink) reportLink.href = 'project_report.html?project=' + encodeURIComponent(projectContext.code);
+        if (reportLink) reportLink.href = reportHref;
+        // Back: return to wherever the person came from (Activity or the project
+        // report); opened directly, fall back to the project report.
+        var backBtn = document.getElementById('reportBackBtn');
+        if (backBtn) {
+            backBtn.href = reportHref;
+            backBtn.addEventListener('click', function (e) {
+                var fromHere = document.referrer && document.referrer.indexOf(location.origin + '/') === 0;
+                if (fromHere && window.history.length > 1) {
+                    e.preventDefault();
+                    window.history.back();
+                }
+            });
+        }
         // Build attendance index for just this project's dates
         attendanceIndex = {};
         var relevant = new Set(reportEmployees.map(function (e) { return e.code; }));

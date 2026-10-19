@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595 842" width="595" height="842" font-family="Poppins, Arial, sans-serif">
+  <rect width="595" height="842" fill="#ffffff"/>
+  <rect x="0" y="0" width="595" height="8" fill="#2975BB"/>
+  <text x="297.5" y="430" text-anchor="middle" font-size="120" font-weight="700" fill="#2975BB" fill-opacity="0.06" transform="rotate(-30 297.5 430)">CONTOH</text>
+  <text x="60" y="80" font-size="20" font-weight="700" fill="#1a1a1a">Klinik Sehat Sentosa</text>
+  <text x="60" y="102" font-size="11" fill="#6B7480">Sample document for the Feriiz prototype — not a real medical record</text>
+  <line x1="60" y1="122" x2="535" y2="122" stroke="#D9D9D9"/>
+  <text x="297.5" y="170" text-anchor="middle" font-size="18" font-weight="700" fill="#1a1a1a">SURAT KETERANGAN SAKIT</text>
+  <text x="60" y="230" font-size="13" fill="#333">Yang bertanda tangan di bawah ini menerangkan bahwa:</text>
+  <text x="80" y="270" font-size="13" fill="#6B7480">Nama</text><text x="200" y="270" font-size="13" fill="#1a1a1a">: Raden Maulana</text>
+  <text x="80" y="296" font-size="13" fill="#6B7480">Kode karyawan</text><text x="200" y="296" font-size="13" fill="#1a1a1a">: RADVBYR5171FSC6</text>
+  <text x="80" y="322" font-size="13" fill="#6B7480">Tanggal periksa</text><text x="200" y="322" font-size="13" fill="#1a1a1a">: Selasa, 05 Mei 2026</text>
+  <text x="60" y="370" font-size="13" fill="#333">Perlu beristirahat selama 1 (satu) hari, pada tanggal 05 Mei 2026.</text>
+  <text x="380" y="520" font-size="13" fill="#333">Dokter pemeriksa,</text>
+  <path d="M385 580 C 410 550, 430 600, 455 570 S 495 585, 510 565" fill="none" stroke="#2975BB" stroke-width="2"/>
+  <text x="380" y="620" font-size="13" font-weight="600" fill="#1a1a1a">dr. Contoh Pratama</text>
+</svg>

@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.6.1">
-    <script src="assets/js/data.js?v=3.6.1" defer></script>
-    <script src="assets/js/app.js?v=3.6.1" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.1" defer></script>
+    <script src="assets/js/app.js?v=3.7.1" defer></script>
 </head>
 
 <body data-page="projects">
@@ -19,7 +21,7 @@
         <div class="page-header">
             <h1 class="page-title">Projects</h1>
             <div class="page-actions">
-                <button class="btn btn-primary" onclick="openProjectModal('project', 'Add Project')">
+                <button class="btn btn-primary" type="button" id="addProjectBtn">
                     <i class="fa-solid fa-plus"></i>
                     Add Project
                 </button>
@@ -59,7 +61,6 @@
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
                         <th>Status</th>
-                        <th>Date Created</th>
                         <th>First Activity</th>
                         <th>Last Activity</th>
                         <th>Employee</th>
@@ -76,7 +77,7 @@
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.6.1</div>
+        <div class="feriiz-u-032">version : 3.7.1</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -100,13 +101,13 @@
                             Project Info</h3>
                         <div class="feriiz-u-198">
                             <div>
-                                <label class="feriiz-u-199">Project
+                                <label class="feriiz-u-199" for="projNameInput">Project
                                     Name</label>
                                 <input type="text" id="projNameInput" class="input feriiz-u-200" value="Anomali" placeholder="Project Name"
                                    >
                             </div>
                             <div>
-                                <label class="feriiz-u-199">Project
+                                <label class="feriiz-u-199" for="projCodeInput">Project
                                     Code</label>
                                 <input type="text" id="projCodeInput" class="input feriiz-u-200" value="ANM001" placeholder="Project Code"
                                    >
@@ -114,16 +115,16 @@
                         </div>
                         <div class="feriiz-u-198">
                             <div>
-                                <label class="feriiz-u-199">Type</label>
-                                <select class="select feriiz-u-201"
+                                <label class="feriiz-u-199" for="projTypeInput">Type</label>
+                                <select id="projTypeInput" class="select feriiz-u-201"
                                    >
                                     <option>Attendance</option>
                                     <option>Vision</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="feriiz-u-199">Description</label>
-                                <input type="text" class="input feriiz-u-200" value="Attendance" placeholder="Description"
+                                <label class="feriiz-u-199" for="projDescInput">Description</label>
+                                <input type="text" id="projDescInput" class="input feriiz-u-200" value="Attendance" placeholder="Description"
                                    >
                             </div>
                         </div>
@@ -135,9 +136,12 @@
                             <h3 class="feriiz-u-202">
                                 Working Time</h3>
                             <div class="project-working-hour-grid">
-                                <input type="text" placeholder="Start Hour" aria-label="Start hour">
-                                <input type="text" placeholder="End Hour" aria-label="End hour">
-                                <input type="text" placeholder="Cut Off Hour" aria-label="Cut off hour">
+                                <div><label class="feriiz-u-203" for="projStartHour">Start Hour</label>
+                                    <input type="text" id="projStartHour" placeholder="08:00"></div>
+                                <div><label class="feriiz-u-203" for="projEndHour">End Hour</label>
+                                    <input type="text" id="projEndHour" placeholder="17:00"></div>
+                                <div><label class="feriiz-u-203" for="projCutOffHour">Cut Off Hour</label>
+                                    <input type="text" id="projCutOffHour" placeholder="23:59"></div>
                             </div>
                         </div>
 
@@ -149,12 +153,12 @@
                                 <div class="project-overtime-table" id="projectOvertimeDefault"
                                     aria-label="Default overtime setting">
                                     <div class="project-overtime-head">Overtime</div>
-                                    <div class="project-overtime-head">Start</div>
-                                    <div class="project-overtime-head">End</div>
+                                    <div class="project-overtime-head">Before Start</div>
+                                    <div class="project-overtime-head">After End</div>
                                     <div class="project-overtime-head">Total</div>
                                     <div class="project-overtime-day">Daily Default</div>
-                                    <input type="text" value="0" inputmode="numeric" aria-label="Daily default start overtime minutes">
-                                    <input type="text" value="0" inputmode="numeric" aria-label="Daily default end overtime minutes">
+                                    <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Daily default start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                    <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Daily default end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                     <div class="project-overtime-total">0h</div>
                                 </div>
 
@@ -167,36 +171,36 @@
                                 <div class="project-overtime-daily" id="projectOvertimeDaily" hidden>
                                     <div class="project-overtime-table" aria-label="Daily overtime setting">
                                         <div class="project-overtime-head">Overtime</div>
-                                        <div class="project-overtime-head">Start</div>
-                                        <div class="project-overtime-head">End</div>
+                                        <div class="project-overtime-head">Before Start</div>
+                                        <div class="project-overtime-head">After End</div>
                                         <div class="project-overtime-head">Total</div>
                                         <div class="project-overtime-day">Mon</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Monday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Monday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Monday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Monday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Tue</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Tuesday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Tuesday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Tuesday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Tuesday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Wed</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Wednesday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Wednesday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Wednesday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Wednesday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Thu</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Thursday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Thursday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Thursday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Thursday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Fri</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Friday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Friday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Friday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Friday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Sat</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Saturday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Saturday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Saturday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Saturday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                         <div class="project-overtime-day">Sun</div>
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Sunday start overtime minutes">
-                                        <input type="text" value="0" inputmode="numeric" aria-label="Sunday end overtime minutes">
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Sunday start overtime minutes"><span class="unit-input-suffix">m</span></div>
+                                        <div class="unit-input"><input type="text" value="0" inputmode="numeric" aria-label="Sunday end overtime minutes"><span class="unit-input-suffix">m</span></div>
                                         <div class="project-overtime-total">0h</div>
                                     </div>
                                 </div>
@@ -213,44 +217,20 @@
                             Check In/Out Tolerance</h3>
                         <div class="project-tolerance-grid">
                             <div>
-                                <label class="feriiz-u-203">Check In
+                                <label class="feriiz-u-203" for="tolCheckInBefore">Check In
                                     Before</label>
-                                <input type="text" placeholder="Check In Before" class="feriiz-u-204">
-                                <label class="feriiz-u-203">Check In
+                                <div class="unit-input"><input type="text" id="tolCheckInBefore" value="0" inputmode="numeric" class="feriiz-u-205"><span class="unit-input-suffix">m</span></div>
+                                <label class="feriiz-u-203" for="tolCheckInAfter">Check In
                                     After</label>
-                                <input type="text" value="0" class="feriiz-u-205">
+                                <div class="unit-input"><input type="text" id="tolCheckInAfter" value="0" inputmode="numeric" class="feriiz-u-205"><span class="unit-input-suffix">m</span></div>
                             </div>
                             <div>
-                                <label class="feriiz-u-203">Check Out
+                                <label class="feriiz-u-203" for="tolCheckOutBefore">Check Out
                                     Before</label>
-                                <input type="text" value="0" class="feriiz-u-205">
-                                <label class="feriiz-u-203">Check Out
+                                <div class="unit-input"><input type="text" id="tolCheckOutBefore" value="0" inputmode="numeric" class="feriiz-u-205"><span class="unit-input-suffix">m</span></div>
+                                <label class="feriiz-u-203" for="tolCheckOutAfter">Check Out
                                     After</label>
-                                <input type="text" placeholder="Check Out After" class="feriiz-u-204">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Overtime Tolerance -->
-                    <div class="feriiz-u-177">
-                        <h3 class="feriiz-u-202">
-                            Overtime Tolerance</h3>
-                        <div class="project-tolerance-grid">
-                            <div>
-                                <label class="feriiz-u-203">Check In
-                                    Before</label>
-                                <input type="text" placeholder="Check In Before" class="feriiz-u-204">
-                                <label class="feriiz-u-203">Check In
-                                    After</label>
-                                <input type="text" value="0" class="feriiz-u-205">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-203">Check Out
-                                    Before</label>
-                                <input type="text" value="0" class="feriiz-u-205">
-                                <label class="feriiz-u-203">Check Out
-                                    After</label>
-                                <input type="text" placeholder="Check Out After" class="feriiz-u-204">
+                                <div class="unit-input"><input type="text" id="tolCheckOutAfter" value="0" inputmode="numeric" class="feriiz-u-205"><span class="unit-input-suffix">m</span></div>
                             </div>
                         </div>
                     </div>
@@ -264,14 +244,14 @@
                         <div id="projectPenaltyConfig" class="project-penalty-config" hidden>
                             <div class="feriiz-u-198">
                                 <div>
-                                    <label class="feriiz-u-203">Forgot
+                                    <label class="feriiz-u-203" for="penaltyForgot">Forgot
                                         Check In/Out</label>
-                                    <input type="text" placeholder="Forgot Check In/Out" class="feriiz-u-204">
+                                    <input type="text" id="penaltyForgot" placeholder="Forgot Check In/Out" class="feriiz-u-204">
                                 </div>
                                 <div>
-                                    <label class="feriiz-u-203">Early/Late
+                                    <label class="feriiz-u-203" for="penaltyLate">Early/Late
                                         Check In/Out</label>
-                                    <input type="text" placeholder="Early/Late Check In/Out" class="feriiz-u-204">
+                                    <input type="text" id="penaltyLate" placeholder="Early/Late Check In/Out" class="feriiz-u-204">
                                 </div>
                             </div>
                             <div class="feriiz-u-206">
@@ -300,7 +280,9 @@
     </div>
 
     <script>
-        function openProjectModal(defaultTab, title) {
+        var editingProject = null;
+
+        function openProjectModal(project) {
             const modal = document.getElementById('projectModal');
             const titleEl = document.getElementById('projectModalTitle');
             const pName = document.getElementById('projNameInput');
@@ -309,29 +291,25 @@
             const pAdvLeft = document.getElementById('projectLeftAdvanced');
             const footer = document.getElementById('projectModalFooter');
 
-            const isAddProject = title === 'Add Project';
+            const isAddProject = !project;
             titleEl.textContent = isAddProject ? 'Add Project' : 'Project Detail';
 
-            if (isAddProject) {
-                pName.value = '';
-                if (pCode) pCode.value = '';
-            } else {
-                pName.value = 'Anomali';
-                if (pCode) pCode.value = 'ANM001';
+            editingProject = project || null;
+            pName.value = project ? project.name : '';
+            if (pCode) {
+                pCode.value = project ? project.code : '';
+                pCode.readOnly = !!project;   // the code links attendance and reports
             }
+            document.getElementById('projTypeInput').value = (project && project.type) || 'Attendance';
+            document.getElementById('projStartHour').value = (project && project.workStart) || '';
+            document.getElementById('projEndHour').value = (project && project.workEnd) || '';
+            document.getElementById('projCutOffHour').value = (project && project.cutOff) || '';
             if (pAdvContent) pAdvContent.style.display = '';
             if (pAdvLeft) pAdvLeft.style.display = '';
             if (footer) footer.style.display = 'flex';
             resetProjectPenaltyConfig();
             resetProjectOvertimeRules();
 
-            if (!isAddProject) {
-                const checkbox = document.getElementById('projectCustomizeOvertime');
-                if (checkbox) {
-                    checkbox.checked = true;
-                    toggleProjectOvertimeCustomize(true);
-                }
-            }
 
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -398,8 +376,8 @@
             document.querySelectorAll('#projectModal .project-overtime-table').forEach(table => {
                 const cells = Array.from(table.children);
                 for (let index = 4; index < cells.length; index += 4) {
-                    const startInput = cells[index + 1];
-                    const endInput = cells[index + 2];
+                    const startInput = cells[index + 1] && (cells[index + 1].querySelector('input') || cells[index + 1]);
+                    const endInput = cells[index + 2] && (cells[index + 2].querySelector('input') || cells[index + 2]);
                     const totalCell = cells[index + 3];
 
                     if (!startInput || !endInput || !totalCell) continue;
@@ -440,6 +418,22 @@
                 return;
             }
 
+            if (isNew && projectList.some(function (p) { return p.code === code; })) {
+                if (codeInput) codeInput.focus();
+                if (window.FeriizNotify) FeriizNotify.warning(code + ' is already used by another project.', 'Project not saved');
+                return;
+            }
+            // Kept in memory until the API saves projects.
+            var target = isNew ? { code: code, status: 'Active', employeeCount: 0, createdAt: new Date().toISOString() } : editingProject;
+            if (target) {
+                target.name = name;
+                target.type = document.getElementById('projTypeInput').value;
+                target.workStart = document.getElementById('projStartHour').value || target.workStart;
+                target.workEnd = document.getElementById('projEndHour').value || target.workEnd;
+                target.cutOff = document.getElementById('projCutOffHour').value || target.cutOff;
+                if (isNew) projectList.unshift(target);
+                refreshProjects();
+            }
             closeProjectModal();
             if (window.FeriizNotify) {
                 FeriizNotify.success(name + (isNew ? ' was added successfully.' : ' was updated successfully.'), isNew ? 'Project added' : 'Project updated');
@@ -452,236 +446,20 @@
     </script>
 
 
-    <!-- Employee Detail Modal Overlay -->
-    <div class="modal-overlay" id="employeeDetailModal">
-        <div class="modal-card feriiz-u-192"
-           >
-            <div class="modal-header feriiz-u-193"
-               >
-                <h2 id="employeeDetailTitle" class="feriiz-u-194">Add Employee</h2>
-                <button class="modal-close feriiz-u-195" onclick="closeEmployeeDetailModal()"
-                   >&times;</button>
-            </div>
-
-            <div class="modal-body feriiz-u-196">
-
-                <!-- LEFT COLUMN -->
-                <div>
-                    <!-- Employee Info -->
-                    <div class="feriiz-u-177">
-                        <h3 class="feriiz-u-197">
-                            Employee Info</h3>
-                        <div class="feriiz-u-212">
-                            <div>
-                                <label class="feriiz-u-199">First
-                                    Name</label>
-                                <input type="text" id="empFirstNameInput" placeholder="First Name" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Last
-                                    Name</label>
-                                <input type="text" placeholder="Last Name" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Code</label>
-                                <input type="text" placeholder="Code" class="feriiz-u-200">
-                            </div>
-                        </div>
-                        <div class="feriiz-u-213">
-                            <div>
-                                <label class="feriiz-u-199">Occupation</label>
-                                <input type="text" placeholder="Occupation" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Pin</label>
-                                <input type="text" placeholder="Pin" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Mobile</label>
-                                <input type="text" placeholder="Mobile" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Gender</label>
-                                <select class="feriiz-u-214">
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ADVANCED SECTION -->
-                    <div id="empLeftAdvanced">
-                        <!-- Working Period -->
-                        <div class="feriiz-u-177">
-                            <h3 class="feriiz-u-202">
-                                Working Period</h3>
-                            <div class="feriiz-u-215">
-                                <div>
-                                    <label class="feriiz-u-203">Start
-                                        Date</label>
-                                    <input type="text" placeholder="Start Date" class="feriiz-u-216">
-                                </div>
-                                <div>
-                                    <label class="feriiz-u-203">End
-                                        Date</label>
-                                    <input type="text" placeholder="End Date" class="feriiz-u-216">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Working Time -->
-                        <div class="feriiz-u-177">
-                            <h3 class="feriiz-u-202">
-                                Working Time</h3>
-                            <div class="feriiz-u-217">
-                                <div>
-                                    <label class="feriiz-u-203">Start
-                                        Time</label>
-                                    <div class="feriiz-u-218">
-                                        <input type="text" placeholder="HH" class="feriiz-u-219">
-                                        <span>:</span>
-                                        <input type="text" placeholder="MM" class="feriiz-u-219">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="feriiz-u-203">End
-                                        Time</label>
-                                    <div class="feriiz-u-218">
-                                        <input type="text" placeholder="HH" class="feriiz-u-219">
-                                        <span>:</span>
-                                        <input type="text" placeholder="MM" class="feriiz-u-219">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="feriiz-u-203">Cut
-                                        Off</label>
-                                    <div class="feriiz-u-218">
-                                        <input type="text" placeholder="HH" class="feriiz-u-219">
-                                        <span class="feriiz-u-220">:</span>
-                                        <input type="text" placeholder="MM" class="feriiz-u-219">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Working Day -->
-                        <div class="feriiz-u-177">
-                            <h3 class="feriiz-u-202">
-                                Working Day</h3>
-                            <div class="feriiz-u-221">
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Mon</label>
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Tue</label>
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Wed</label>
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Thu</label>
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Fri</label>
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Sat</label>
-                                <label class="feriiz-u-222"><input
-                                        type="checkbox" class="feriiz-u-208">Sun</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIGHT COLUMN -->
-                <div>
-                    <!-- Employee Contacts -->
-                    <div class="feriiz-u-177">
-                        <h3 class="feriiz-u-197">
-                            Account Configurations</h3>
-                        <div class="feriiz-u-198">
-                            <div>
-                                <label class="feriiz-u-199">Email</label>
-                                <input type="email" placeholder="Email" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Company</label>
-                                <input type="text" placeholder="Company" class="feriiz-u-200">
-                            </div>
-                        </div>
-                        <div class="feriiz-u-198">
-                            <div>
-                                <label class="feriiz-u-199">Mailing
-                                    Name</label>
-                                <input type="text" placeholder="Mailing Name" class="feriiz-u-200">
-                            </div>
-                            <div>
-                                <label class="feriiz-u-199">Date
-                                    of Birth</label>
-                                <input type="text" placeholder="Date of Birth" class="feriiz-u-223">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ADVANCED SECTION -->
-                    <div id="empRightAdvanced">
-                        <div class="feriiz-u-177">
-                            <h3 class="feriiz-u-202">
-                                Payment Rates</h3>
-                            <!-- Payment Employee -->
-                            <div class="feriiz-u-224">
-                                <label class="feriiz-u-203">Employee
-                                    Rate / Hour</label>
-                                <input type="text" placeholder="Employee Rate / Hour" class="feriiz-u-225">
-                            </div>
-                            <div class="feriiz-u-224">
-                                <label class="feriiz-u-203">Employee
-                                    Rate Overtime</label>
-                                <input type="text" placeholder="Employee Rate Overtime" class="feriiz-u-225">
-                            </div>
-                            <!-- Payment Client -->
-                            <div class="feriiz-u-224">
-                                <label class="feriiz-u-203">Client Rate
-                                    / Hour</label>
-                                <input type="text" placeholder="Client Rate / Hour" class="feriiz-u-225">
-                            </div>
-                            <div class="feriiz-u-224">
-                                <label class="feriiz-u-203">Client Rate
-                                    Overtime</label>
-                                <input type="text" placeholder="Client Rate Overtime" class="feriiz-u-225">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="empModalFooter" class="feriiz-u-226">
-                <button class="btn btn-outline feriiz-u-210" onclick="closeEmployeeDetailModal()"
-                   >Cancel</button>
-                <button class="btn btn-primary feriiz-u-211" onclick="closeEmployeeDetailModal()"
-                   >Save
-                    Changes</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        function openEmployeeDetailModal(isNew) {
-            const title = document.getElementById('employeeDetailTitle');
-            if (title) {
-                if (isNew) title.textContent = 'Add Employee';
-                else title.textContent = 'Erik';
-            }
+        var projectList = [];
 
-            const eName = document.getElementById('empFirstNameInput');
-            if (eName) {
-                if (isNew) eName.value = '';
-                else eName.value = 'Erik';
-                eName.dispatchEvent(new Event('input'));
-            }
-            document.getElementById('employeeDetailModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeEmployeeDetailModal() {
-            document.getElementById('employeeDetailModal').classList.remove('show');
-            document.body.style.overflow = '';
+        function refreshProjects() {
+            var active = projectList.filter(function (p) { return (p.status || 'Active') === 'Active'; }).length;
+            var setStat = function (key, value) {
+                var el = document.querySelector('[data-stat="' + key + '"]');
+                if (el) el.textContent = value;
+            };
+            setStat('projects', projectList.length);
+            setStat('projects-active', active);
+            var info = document.querySelector('[data-pagination-info]');
+            if (info) info.textContent = 'Showing 1 - ' + projectList.length + ' of ' + projectList.length + ' results';
+            renderProjectsTable(projectList);
         }
 
         function formatProjectDate(iso) {
@@ -699,6 +477,13 @@
             return day + ' ' + month + ' ' + yr + ', ' + h12 + ':' + mm + am;
         }
 
+        // Same pill as the Dashboard: green Active, amber On Hold, grey Completed.
+        function statusPill(status) {
+            var label = status || 'Active';
+            var mod = { 'active': 'active', 'on hold': 'hold', 'completed': 'done' }[label.toLowerCase()] || 'done';
+            return '<span class="status-pill status-pill--' + mod + '">' + label + '</span>';
+        }
+
         function renderProjectsTable(projects) {
             const tbody = document.getElementById('projectsTableBody');
             tbody.innerHTML = '';
@@ -714,16 +499,16 @@
                         '</div>' +
                     '</td>' +
                     '<td><div class="feriiz-u-188">' + p.name + '</div><div class="feriiz-u-189">' + p.code + '</div></td>' +
-                    '<td><span class="feriiz-u-102">' + (p.status || 'Active') + '</span></td>' +
-                    '<td>' + formatProjectDate(p.createdAt) + '</td>' +
-                    '<td>' + formatProjectDate(p.startedAt) + '</td>' +
+                    '<td>' + statusPill(p.status) + '</td>' +
+                    // No activity yet -> fall back to when the project was created.
+                    '<td>' + formatProjectDate(p.startedAt || p.createdAt) + '</td>' +
                     '<td>' + formatProjectDate(p.lastActivityAt) + '</td>' +
                     '<td class="feriiz-u-190">' + (p.employeeCount || 0) + '</td>';
                 const editBtn = tr.querySelector('a[title="Edit"]');
                 editBtn.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    openProjectModal('project', p.name);
+                    openProjectModal(p);
                 });
                 tr.addEventListener('click', function (event) {
                     if (event.target.closest('a, button, input, select, textarea')) return;
@@ -734,27 +519,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const modalOverlay = document.getElementById('employeeDetailModal');
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', function (e) {
-                    if (e.target === this) closeEmployeeDetailModal();
-                });
-            }
+            document.getElementById('addProjectBtn').addEventListener('click', () => openProjectModal(null));
 
             if (!window.FERIIZ_DATA) return;
             window.FERIIZ_DATA.ready.then(data => {
-                const projects = data.projects.slice();
-                const total = projects.length;
-                const active = projects.filter(p => (p.status || 'Active') === 'Active').length;
-                const setStat = (key, value) => {
-                    const el = document.querySelector('[data-stat="' + key + '"]');
-                    if (el) el.textContent = value;
-                };
-                setStat('projects', total);
-                setStat('projects-active', active);
-                const info = document.querySelector('[data-pagination-info]');
-                if (info) info.textContent = 'Showing 1 - ' + total + ' of ' + total + ' results';
-                renderProjectsTable(projects);
+                projectList = data.projects;
+                refreshProjects();
             });
         });
     </script>

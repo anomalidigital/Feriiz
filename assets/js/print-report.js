@@ -656,7 +656,8 @@
             originalTitle = document.title;
         }
         document.title = identifier;
-        document.body.classList.add('report-printing');
+        var layout = document.querySelector('.report-layout');
+        if (layout) layout.classList.add('report-printing');
 
         document.querySelectorAll('.filter-dropdown.show, #downloadDropdown.show, #batchUpdateDropdown.show')
             .forEach(function (dd) { dd.classList.remove('show'); });
@@ -669,7 +670,8 @@
             document.title = originalTitle;
             originalTitle = '';
         }
-        document.body.classList.remove('report-printing');
+        var layout = document.querySelector('.report-layout');
+        if (layout) layout.classList.remove('report-printing');
 
         if (printButton) {
             printButton.disabled = false;

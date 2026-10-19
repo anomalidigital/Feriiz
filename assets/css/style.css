@@ -7299,7 +7299,10 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
    ============================================ */
 
 /* --- Bootstrap modals (.modal) --- */
+/* Bootstrap fills modals, fields and checkboxes with --bs-body-bg, which is
+   the grey page colour here; they stay white like the rest of Feriiz. */
 .modal {
+    --bs-modal-bg: #fff;
     --bs-modal-zindex: 10050;
     --bs-modal-border-radius: 14px;
     --bs-modal-border-color: transparent;
@@ -7358,6 +7361,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 
 .form-control,
 .form-select {
+    background-color: #fff;
     padding: 8px 12px;
     font-size: 13px;
     color: #333;
@@ -7368,6 +7372,10 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 .form-select {
     padding-right: 32px;
     background-position: right 10px center;
+}
+
+.form-check-input {
+    --bs-form-check-bg: #fff;
 }
 
 .form-control::placeholder {
@@ -7982,6 +7990,19 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     .emp-form-inline {
         padding: 16px;
     }
+}
+
+/* --- Project > Closing (project_closing.html) --- */
+.data-table tbody td.closing-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: #6B7480;
+}
+
+.closing-context {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #6B7480;
 }
 
 /* --- Minutes shown inside the field ("60 m"), keeping the original input look --- */

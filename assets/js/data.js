@@ -81,6 +81,19 @@
         { name: 'Hari Raya Waisak',         date: '2026-05-31', type: 'national' }
     ];
 
+    // Sample closings: the same rows dev.feriiz.com shows for a project (Oct 2026).
+    // With the API each closing lists its own people; here the next few
+    // employees of the project stand in for them. What "Others" means is still
+    // being confirmed; on dev they are extra people in the details with no status.
+    var SAMPLE_CLOSINGS = [
+        { id: 'CLS-0006', closedAt: '2026-10-01T15:55:00+07:00', employees: 0, others: 1, note: '' },
+        { id: 'CLS-0005', closedAt: '2026-10-01T15:55:00+07:00', employees: 0, others: 1, note: '' },
+        { id: 'CLS-0004', closedAt: '2026-08-27T14:00:00+07:00', employees: 2, others: 1, note: 'Percobaan' },
+        { id: 'CLS-0003', closedAt: '2026-08-27T13:53:00+07:00', employees: 3, others: 1, note: 'Tambahan' },
+        { id: 'CLS-0002', closedAt: '2026-08-27T13:49:00+07:00', employees: 3, others: 1, note: 'Tambahan hari ini' },
+        { id: 'CLS-0001', closedAt: '2026-08-27T13:49:00+07:00', employees: 5, others: 1, note: '' }
+    ];
+
     var API = {
         meta: null,
         occupations: [],
@@ -93,6 +106,26 @@
         _projByCode: {},
         findEmployeeByCode: function (code) { return this._empByCode[code] || null; },
         findProjectByCode: function (code) { return this._projByCode[code] || null; },
+        // Newest first: [{ id, projectCode, closedAt, note, employees: [person], others: [person] }],
+        // person = { name, code, occupation, status, clockIn, clockOut }.
+        closingsForProject: function (projectCode) {
+            var team = this.employees.filter(function (e) { return (e.projects || []).indexOf(projectCode) >= 0; });
+            var next = 0;
+            function person(e, status) {
+                return { name: e.name, code: e.code, occupation: e.occupation || '', status: status, clockIn: '', clockOut: '' };
+            }
+            return SAMPLE_CLOSINGS.map(function (c, i) {
+                var people = team.slice(next, next + c.employees);
+                next += c.employees;
+                var others = [];
+                for (var k = 0; k < c.others; k++) others.push(ANOMALI_EMPLOYEES[(3 + i + k) % ANOMALI_EMPLOYEES.length]);
+                return {
+                    id: c.id, projectCode: projectCode, closedAt: c.closedAt, note: c.note,
+                    employees: people.map(function (e) { return person(e, 'manual'); }),
+                    others: others.map(function (e) { return person(e, ''); })
+                };
+            });
+        },
         initialsAvatar: function (name) { return buildInitialsAvatar(name); },
         avatarSrc: function (employee) {
             // Real full filename (Anomali team) first, then kebab photo, then initials.

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Closing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.2">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.2" defer></script>
+    <script src="assets/js/app.js?v=3.7.2" defer></script>
+</head>
+
+<body data-page="project-closing">
+
+    <!-- Sidebar -->
+    <aside class="sidebar"></aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb feriiz-u-150">
+                    <a href="projects.html">Projects</a>
+                    <span>&gt;</span>
+                    <a href="project_employees.html" id="closingProjectLink" data-project-name>Project</a>
+                    <span>&gt;</span>
+                    <span class="feriiz-u-057">Closing</span>
+                </div>
+                <h1 class="page-title">Closing</h1>
+            </div>
+            <div class="page-actions">
+                <!-- Same filter dropdown as Activity and Requests -->
+                <div class="feriiz-u-014">
+                    <button class="btn btn-outline filter-toggle-btn" title="Filter" aria-label="Filter closings">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <div class="filter-dropdown feriiz-u-015">
+                        <div class="feriiz-u-016">Filter Closing</div>
+                        <label for="closingFrom">Date Range</label>
+                        <div class="feriiz-u-095">
+                            <input type="date" id="closingFrom" class="input filter-date feriiz-u-004" aria-label="Closed from">
+                            <span class="feriiz-u-005">-</span>
+                            <input type="date" id="closingTo" class="input filter-date feriiz-u-004" aria-label="Closed until">
+                        </div>
+                        <div class="feriiz-u-018">
+                            <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
+                            <button class="btn btn-primary filter-apply-btn feriiz-u-019">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Closing Table -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Closed At</th>
+                        <th>Employees</th>
+                        <th>Others</th>
+                        <th>Note</th>
+                        <th>Employee Details</th>
+                    </tr>
+                </thead>
+                <tbody id="closingTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="feriiz-u-032">version : 3.7.2</div>
+    </main>
+
+    <script>
+        (function () {
+            var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var state = { project: null, all: [], from: '', to: '' };
+            var modal = null;
+
+            function esc(v) {
+                return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // "2026-08-27T14:00:00+07:00" -> "27 Aug 2026, 14:00" (time as recorded, like dev.feriiz.com)
+            function fmtClosedAt(iso) {
+                var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso || '');
+                if (!m) return '-';
+                return m[3] + ' ' + MONTHS[Number(m[2]) - 1] + ' ' + m[1] + ', ' + m[4] + ':' + m[5];
+            }
+
+            function render() {
+                var rows = state.all.filter(function (c) {
+                    var day = c.closedAt.slice(0, 10);
+                    return (!state.from || day >= state.from) && (!state.to || day <= state.to);
+                });
+                var tbody = document.getElementById('closingTableBody');
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="closing-empty">' +
+                        (state.from || state.to ? 'No closing in this date range.' : 'This project has no closing yet.') + '</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows.map(function (c) {
+                    return '<tr>' +
+                        '<td>' + fmtClosedAt(c.closedAt) + '</td>' +
+                        '<td>' + c.employees.length + '</td>' +
+                        '<td>' + c.others.length + '</td>' +
+                        '<td>' + (c.note ? esc(c.note) : '—') + '</td>' +
+                        '<td><button class="btn btn-outline" type="button" data-closing="' + esc(c.id) + '">' +
+                            '<i class="fa-solid fa-users" aria-hidden="true"></i> View Details</button></td>' +
+                    '</tr>';
+                }).join('');
+            }
+
+            function buildModal() {
+                var el = document.createElement('div');
+                el.className = 'modal fade';
+                el.id = 'closingDetailsModal';
+                el.tabIndex = -1;
+                el.setAttribute('aria-labelledby', 'closingDetailsTitle');
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML =
+                    '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
+                        '<div class="modal-content">' +
+                            '<div class="modal-header">' +
+                                '<div>' +
+                                    '<h2 class="modal-title" id="closingDetailsTitle">Employee Details</h2>' +
+                                    '<p class="closing-context" id="closingDetailsContext"></p>' +
+                                '</div>' +
+                                '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                            '</div>' +
+                            '<div class="modal-body">' +
+                                '<div class="table-container">' +
+                                    '<table class="data-table">' +
+                                        '<thead><tr><th>Name</th><th>Occupation</th><th>Status</th><th>Clock In</th><th>Clock Out</th></tr></thead>' +
+                                        '<tbody id="closingDetailsRows"></tbody>' +
+                                    '</table>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                                '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                document.body.appendChild(el);
+                return el;
+            }
+
+            function dash(v) { return v ? esc(v) : '\u2014'; }
+
+            // Same table as dev.feriiz.com: the "others" first, then the employees.
+            function openDetails(c) {
+                if (!modal) modal = buildModal();
+                modal.querySelector('#closingDetailsContext').textContent = fmtClosedAt(c.closedAt);
+                var people = c.others.concat(c.employees);
+                modal.querySelector('#closingDetailsRows').innerHTML = people.length ? people.map(function (p) {
+                    return '<tr>' +
+                        '<td>' + esc(p.name) + '</td>' +
+                        '<td>' + esc(p.occupation || 'No Occupation') + '</td>' +
+                        '<td>' + dash(p.status) + '</td>' +
+                        '<td>' + dash(p.clockIn) + '</td>' +
+                        '<td>' + dash(p.clockOut) + '</td>' +
+                    '</tr>';
+                }).join('') : '<tr><td colspan="5" class="closing-empty">No one in this closing.</td></tr>';
+                window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                if (!window.FERIIZ_DATA) return;
+                var code = new URLSearchParams(location.search).get('project');
+                window.FERIIZ_DATA.ready.then(function (data) {
+                    state.project = (code && data.findProjectByCode(code)) || data.projects[0];
+                    if (!state.project) return;
+                    var link = document.getElementById('closingProjectLink');
+                    link.textContent = state.project.name;
+                    link.href = 'project_employees.html?project=' + encodeURIComponent(state.project.code);
+                    document.title = 'Feriiz - ' + state.project.name + ' - Closing';
+                    state.all = data.closingsForProject(state.project.code);
+                    render();
+                });
+
+                var fromInput = document.getElementById('closingFrom');
+                var toInput = document.getElementById('closingTo');
+                // The table changes only on Apply (same as every other filter).
+                document.querySelector('.filter-apply-btn').addEventListener('click', function () {
+                    var from = fromInput.value;
+                    var to = toInput.value;
+                    if (from && to && to < from) {
+                        fromInput.value = to;
+                        toInput.value = from;
+                        from = fromInput.value;
+                        to = toInput.value;
+                    }
+                    state.from = from;
+                    state.to = to;
+                    render();
+                });
+                document.querySelector('.filter-clear-btn').addEventListener('click', function () {
+                    fromInput.value = '';
+                    toInput.value = '';
+                    state.from = '';
+                    state.to = '';
+                    render();
+                });
+                document.getElementById('closingTableBody').addEventListener('click', function (e) {
+                    var btn = e.target.closest('[data-closing]');
+                    if (!btn) return;
+                    var c = state.all.filter(function (x) { return x.id === btn.getAttribute('data-closing'); })[0];
+                    if (c) openDetails(c);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

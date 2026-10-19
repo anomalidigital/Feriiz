@@ -393,6 +393,7 @@ function feriizLogout() {
         'project-report':            { main: 'projects-group', sub: 'report' },
         'project-calendar':          { main: 'calendar' },
         'project-requests':          { main: 'projects-group', sub: 'requests' },
+        'project-closing':           { main: 'projects-group', sub: 'closing' },
         'employee-detail':           { main: 'employees' },
         'employee-attendance':       { main: 'employees' },
         'employee-projects':         { main: 'employees' },
@@ -437,6 +438,9 @@ function feriizLogout() {
                         '</a>' +
                         '<a href="employee_request.html' + projQuery + '"' + cls(cfg.sub === 'requests') + '>' +
                             '<i class="fa-solid fa-clipboard-list"></i><span class="nav-label">Requests</span>' +
+                        '</a>' +
+                        '<a href="project_closing.html' + projQuery + '"' + cls(cfg.sub === 'closing') + '>' +
+                            '<i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Closing</span>' +
                         '</a>' +
                     '</div>' +
                 '</div>' +

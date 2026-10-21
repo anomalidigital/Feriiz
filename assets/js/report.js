@@ -942,8 +942,8 @@
     }
 
     /* =============================================
-       UPDATE OVERTIME
-       Adds or subtracts overtime on the selected days. The system value is
+       ADD OVERTIME (named like Add Log in Batch Update)
+       Adds overtime on the selected days. The system value is
        never overwritten: each change is appended to the day's ledger, the
        yellow badge shows the new total and a chip shows the adjustment.
        Mistakes are corrected with another adjustment, not by editing.
@@ -956,11 +956,6 @@
         return Boolean(cell.dataset.inTime && cell.dataset.outTime) && !cell.classList.contains('weekend-off-cell');
     }
 
-    function overtimeSign() {
-        var checked = overtimeModal.querySelector('input[name="otDirection"]:checked');
-        return checked && checked.value === 'subtract' ? -1 : 1;
-    }
-
     function overtimeMinutes() {
         var h = parseInt(overtimeModal.querySelector('#otHours').value, 10) || 0;
         var m = parseInt(overtimeModal.querySelector('#otMinutes').value, 10) || 0;
@@ -968,23 +963,10 @@
     }
 
     function refreshOvertimePreview() {
-        var sign = overtimeSign();
         var minutes = overtimeMinutes();
         var cells = getSelectedCells().filter(isCompleteCell);
-        var floored = 0;
-        if (sign < 0 && minutes) {
-            cells.forEach(function (cell) {
-                var current = (Number(cell.dataset.otTotal) || 0) * 60;
-                if (current < minutes) floored++;
-            });
-        }
-        var submit = overtimeModal.querySelector('#otSubmit');
-        submit.textContent = (sign > 0 ? 'Add ' : 'Subtract ') + (minutes ? formatAdjust(minutes).slice(1) : 'overtime') +
+        overtimeModal.querySelector('#otSubmit').textContent = 'Add ' + (minutes ? formatAdjust(minutes).slice(1) : 'overtime') +
             ' on ' + cells.length + (cells.length === 1 ? ' day' : ' days');
-        var floorNote = overtimeModal.querySelector('#otFloorNote');
-        floorNote.hidden = !floored;
-        floorNote.textContent = floored + (floored === 1 ? ' day has' : ' days have') +
-            ' less overtime than this and will stop at 0h.';
     }
 
     function buildOvertimeModal() {
@@ -998,7 +980,7 @@
             '<div class="modal-dialog modal-dialog-centered">' +
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
-                        '<h2 class="modal-title" id="overtimeModalTitle">Update overtime</h2>' +
+                        '<h2 class="modal-title" id="overtimeModalTitle">Add Overtime</h2>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                     '</div>' +
                     '<div class="modal-body">' +
@@ -1007,12 +989,6 @@
                             '<div><span>Employees</span><strong id="otEmployees">0</strong></div>' +
                         '</div>' +
                         '<p class="ot-skipped" id="otSkipped" hidden></p>' +
-                        '<div class="btn-group w-100 mb-3" role="group" aria-label="Add or subtract">' +
-                            '<input type="radio" class="btn-check" name="otDirection" id="otAdd" value="add" checked>' +
-                            '<label class="btn btn-outline-primary" for="otAdd"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add overtime</label>' +
-                            '<input type="radio" class="btn-check" name="otDirection" id="otSubtract" value="subtract">' +
-                            '<label class="btn btn-outline-primary" for="otSubtract"><i class="fa-solid fa-minus" aria-hidden="true"></i> Subtract overtime</label>' +
-                        '</div>' +
                         '<label class="form-label" for="otHours">Amount per day</label>' +
                         '<div class="row g-2 mb-1">' +
                             '<div class="col-6"><div class="input-group">' +
@@ -1022,10 +998,10 @@
                                 '<input type="number" class="form-control" id="otMinutes" min="0" max="59" step="5" value="0" aria-label="Minutes">' +
                                 '<span class="input-group-text">minutes</span></div></div>' +
                         '</div>' +
-                        '<p class="form-text mb-3" id="otFloorNote" hidden></p>' +
+                        '<div class="mb-3"></div>' +
                         '<label class="form-label" for="otReason">Reason</label>' +
                         '<textarea class="form-control" id="otReason" rows="2" placeholder="For example: the concrete pour ran until 20:00, approved by the site manager"></textarea>' +
-                        '<div class="form-text">The recorded overtime is kept. This change is added on top and saved in each day\u2019s history; to fix a mistake, add another change.</div>' +
+                        '<div class="form-text">The recorded overtime is kept. This is added on top and saved in each day\u2019s history.</div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
@@ -1034,7 +1010,7 @@
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
-        el.querySelectorAll('input[name="otDirection"], #otHours, #otMinutes').forEach(function (input) {
+        el.querySelectorAll('#otHours, #otMinutes').forEach(function (input) {
             input.addEventListener('input', refreshOvertimePreview);
             input.addEventListener('change', refreshOvertimePreview);
         });
@@ -1046,7 +1022,7 @@
         var selected = getSelectedCells();
         var eligible = selected.filter(isCompleteCell);
         if (!eligible.length) {
-            if (window.FeriizNotify) FeriizNotify.warning('Select days that have both a log in and a log out.', 'No overtime to update');
+            if (window.FeriizNotify) FeriizNotify.warning('Select days that have both a log in and a log out.', 'No overtime to add');
             return;
         }
         // Incomplete days cannot take overtime: drop them from the selection.
@@ -1066,8 +1042,7 @@
         var skippedNote = overtimeModal.querySelector('#otSkipped');
         skippedNote.hidden = !skipped;
         skippedNote.textContent = skipped + (skipped === 1 ? ' selected day was' : ' selected days were') +
-            ' left out because the log is incomplete. Fix the log first, then update its overtime.';
-        overtimeModal.querySelector('#otAdd').checked = true;
+            ' left out because the log is incomplete. Fix the log first, then add its overtime.';
         overtimeModal.querySelector('#otHours').value = 1;
         overtimeModal.querySelector('#otMinutes').value = 0;
         overtimeModal.querySelector('#otReason').value = '';
@@ -1082,7 +1057,7 @@
         var reason = reasonInput.value.trim();
         if (!minutes) {
             overtimeModal.querySelector('#otHours').focus();
-            if (window.FeriizNotify) FeriizNotify.warning('Enter how much overtime to add or subtract.', 'Overtime not updated');
+            if (window.FeriizNotify) FeriizNotify.warning('Enter how much overtime to add.', 'Overtime not added');
             return;
         }
         if (!reason) {
@@ -1091,7 +1066,6 @@
             if (window.FeriizNotify) FeriizNotify.warning('Write the reason so the change can be checked later.', 'Reason required');
             return;
         }
-        var sign = overtimeSign();
         var cells = getSelectedCells().filter(isCompleteCell);
         var employees = new Set();
         var at = new Date();
@@ -1103,13 +1077,8 @@
             var key = code + '|' + cell.dataset.date;
             rememberCell(cell);
             var entry = cellOverrides[key];
-            var system = (Number(cell.dataset.ot) || 0) * 60;
-            var before = entry.otAdjust || 0;
-            // Never below 0h in total: a subtraction stops at what is there.
-            var change = sign > 0 ? minutes : -Math.min(minutes, Math.max(0, Math.round(system + before)));
-            if (!change) return;
-            entry.otAdjust = before + change;
-            entry.otLog = entry.otLog.concat([{ minutes: change, note: reason, at: at.toISOString(), by: 'Admin' }]);
+            entry.otAdjust = (entry.otAdjust || 0) + minutes;
+            entry.otLog = entry.otLog.concat([{ minutes: minutes, note: reason, at: at.toISOString(), by: 'Admin' }]);
             employees.add(code);
 
             var hours = { work: Number(cell.dataset.work) || 0, ot: Number(cell.dataset.ot) || 0 };
@@ -1124,9 +1093,9 @@
         applyReportFilters();
         updateVisibleTotals(currentVisibleDates);
         if (window.FeriizNotify) {
-            FeriizNotify.success('Overtime ' + formatAdjust(sign * minutes) + ' was applied to ' + cells.length +
+            FeriizNotify.success('Overtime ' + formatAdjust(minutes) + ' was added to ' + cells.length +
                 (cells.length === 1 ? ' day' : ' days') + ' for ' + employees.size + (employees.size === 1 ? ' employee.' : ' employees.'),
-                sign > 0 ? 'Overtime added' : 'Overtime subtracted');
+                'Overtime added');
         }
     }
 

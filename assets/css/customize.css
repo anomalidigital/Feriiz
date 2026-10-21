@@ -1,0 +1,260 @@
+/* ============================================
+   FERIIZ: Bootstrap customization
+   Loaded after bootstrap.min.css and before style.css.
+   Only Bootstrap itself is changed here: its variables, its element
+   baseline (Reboot) and its classes (.btn, .modal, .form-control...).
+   Feriiz's own classes live in style.css.
+   ============================================ */
+
+/* === Bootstrap 5.3 compatibility (v3.7.0) ===
+   Bootstrap is loaded before this file. Its Reboot restyles bare elements
+   (line-height, heading/paragraph/list margins, link colour, table header
+   alignment...). These pages were laid out on a zero-margin reset, so the
+   element defaults below put that baseline back. Bootstrap components are
+   class-based (.form-control, .modal, .input-group, .row/.col...) and keep their
+   own styling; Feriiz colours reach them through Bootstrap's CSS variables. */
+:root {
+    scroll-behavior: auto;
+    --bs-body-font-family: 'Poppins', sans-serif;
+    --bs-body-color: #333;
+    --bs-body-color-rgb: 51, 51, 51;
+    --bs-body-bg: #F2F2F2;
+    --bs-body-bg-rgb: 242, 242, 242;
+    --bs-primary: #2975BB;
+    --bs-primary-rgb: 41, 117, 187;
+    --bs-primary-text-emphasis: #10304d;
+    --bs-primary-bg-subtle: #EBF3FA;
+    --bs-primary-border-subtle: #a9c8e4;
+    --bs-link-color: #2975BB;
+    --bs-link-color-rgb: 41, 117, 187;
+    --bs-link-hover-color: #1e5a91;
+    --bs-link-hover-color-rgb: 30, 90, 145;
+    --bs-border-color: #D9D9D9;
+    --bs-border-radius: 7px;
+    --bs-focus-ring-color: rgba(41, 117, 187, 0.25);
+}
+
+body {
+    line-height: normal;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, blockquote, figure, pre, address {
+    margin: 0;
+}
+
+ul, ol {
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    line-height: normal;
+    color: inherit;
+}
+
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+h4 { font-size: 1em; }
+h5 { font-size: 0.83em; }
+h6 { font-size: 0.67em; }
+
+/* Browsers centre table headers by default; Reboot left-aligns them. */
+th {
+    text-align: center;
+}
+
+/* Form controls: keep the browser's 13.33px / normal line-height that unsized
+   controls were designed with (Reboot makes them inherit). Bootstrap's own
+   .form-control/.form-select/.btn set their sizes by class and are unaffected. */
+button, input, optgroup, select, textarea {
+    font-size: 13.333333px;
+    line-height: normal;
+}
+
+.form-check-input {
+    font-size: inherit;
+}
+
+/* Reboot middle-aligns images; the login logo was laid out on the baseline. */
+img, svg {
+    vertical-align: baseline;
+}
+
+/* Our status/hour badges inherit their line-height from the cell (Bootstrap forces 1). */
+.badge {
+    line-height: inherit;
+}
+
+/* Feriiz palette for Bootstrap buttons and form controls. */
+.btn {
+    --bs-btn-font-family: 'Poppins', sans-serif;
+    --bs-btn-line-height: normal;
+    --bs-btn-active-border-color: transparent;
+}
+
+.btn-primary {
+    --bs-btn-bg: #2975BB;
+    --bs-btn-border-color: #2975BB;
+    --bs-btn-hover-bg: #1e5a91;
+    --bs-btn-hover-border-color: #1e5a91;
+    --bs-btn-active-bg: #1a4f80;
+    --bs-btn-active-border-color: #1a4f80;
+    --bs-btn-disabled-bg: #2975BB;
+    --bs-btn-disabled-border-color: #2975BB;
+    --bs-btn-focus-shadow-rgb: 41, 117, 187;
+}
+
+.btn-outline {
+    --bs-btn-hover-bg: #F2F2F2;
+    --bs-btn-active-bg: #EBF3FA;
+    --bs-btn-disabled-color: #666;
+    --bs-btn-disabled-bg: #fff;
+    --bs-btn-disabled-border-color: #D9D9D9;
+    --bs-btn-focus-shadow-rgb: 41, 117, 187;
+}
+
+/* Bootstrap outline variants need their border back (legacy .btn sets border: none). */
+.btn[class*="btn-outline-"] {
+    border: 1px solid var(--bs-btn-border-color);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #2975BB;
+    --bs-btn-border-color: #2975BB;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #2975BB;
+    --bs-btn-hover-border-color: #2975BB;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #2975BB;
+    --bs-btn-active-border-color: #2975BB;
+    --bs-btn-focus-shadow-rgb: 41, 117, 187;
+}
+
+.btn-danger {
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #DC3545;
+    --bs-btn-disabled-border-color: #DC3545;
+    --bs-btn-focus-shadow-rgb: 220, 53, 69;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.18);
+}
+
+.form-check-input:checked {
+    background-color: #2975BB;
+    border-color: #2975BB;
+}
+
+.form-check-input:focus {
+    border-color: #2975BB;
+    box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.18);
+}
+
+/* --- Bootstrap modals (.modal) --- */
+/* Bootstrap fills modals, fields and checkboxes with --bs-body-bg, which is
+   the grey page colour here; they stay white like the rest of Feriiz. */
+.modal {
+    --bs-modal-bg: #fff;
+    --bs-modal-zindex: 10050;
+    --bs-modal-border-radius: 14px;
+    --bs-modal-border-color: transparent;
+    --bs-modal-box-shadow: 0 24px 64px rgba(16, 24, 40, 0.22);
+    --bs-modal-padding: 24px;
+}
+
+.modal-backdrop {
+    --bs-backdrop-zindex: 10040;
+    --bs-backdrop-opacity: 0.45;
+}
+
+/* Beat the unscoped legacy .modal-header/.modal-body/.modal-footer rules. */
+.modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid #EEF0F3;
+}
+
+.modal .modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1a1a1a;
+}
+
+.modal .modal-body {
+    padding: 20px 24px;
+}
+
+.modal .modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 24px;
+    border-top: 1px solid #EEF0F3;
+}
+
+.modal .modal-footer > * {
+    margin: 0;
+}
+
+/* --- Bootstrap form controls, Feriiz sizing --- */
+.form-label {
+    margin-bottom: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+}
+
+.form-control,
+.form-select {
+    background-color: #fff;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #333;
+    border-color: #D9D9D9;
+    border-radius: 8px;
+}
+
+.form-select {
+    padding-right: 32px;
+    background-position: right 10px center;
+}
+
+.form-check-input {
+    --bs-form-check-bg: #fff;
+}
+
+.form-control::placeholder {
+    color: #aaa;
+}
+
+.form-text {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6B7480;
+}
+
+.input-group-text {
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7480;
+    background: #F7F9FB;
+    border-color: #D9D9D9;
+    border-radius: 8px;
+}
+
+.form-check-label {
+    font-size: 13px;
+    color: #333;
+}

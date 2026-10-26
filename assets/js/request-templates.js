@@ -10,8 +10,7 @@
    Prototype only: everything is kept in this browser (localStorage) so the
    Templates page and the Report see the same data. The API replaces this.
 
-   FeriizTemplates.list({ archived }), get(id), save(template)
-   FeriizTemplates.historyFor(id), usage(id)
+   FeriizTemplates.all(), get(id), save(template)
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.transportOf(code), setTransport(code, { livesOnSite, perDay })
    FeriizTemplates.openAssign(context)   assign dialog used by the Report
@@ -30,15 +29,15 @@
         { id: 'holiday', label: 'Holiday', icon: 'fa-calendar-day' },
         { id: 'extra', label: 'Extra', icon: 'fa-circle-plus' }
     ];
-    var UNITS = { day: 'Per day', once: 'One time' };
+    var UNITS = { day: 'Daily', once: 'One time' };
 
     // Sample templates, mirroring the examples named in the meeting.
     var DEFAULT_TEMPLATES = [
-        { id: 'TPL-001', name: 'Uang Makan 20rb', category: 'meal', amount: 20000, unit: 'day', active: true, note: '' },
-        { id: 'TPL-002', name: 'Uang Makan 30rb', category: 'meal', amount: 30000, unit: 'day', active: true, note: '' },
-        { id: 'TPL-003', name: 'Transport Standar', category: 'transport', amount: 15000, unit: 'day', active: true,
+        { id: 'TPL-001', name: 'Uang Makan 20rb', category: 'meal', amount: 20000, unit: 'day', note: '' },
+        { id: 'TPL-002', name: 'Uang Makan 30rb', category: 'meal', amount: 30000, unit: 'day', note: '' },
+        { id: 'TPL-003', name: 'Transport Standar', category: 'transport', amount: 15000, unit: 'day',
           note: 'Only for workers who do not live on site.' },
-        { id: 'TPL-004', name: 'Insentif Tanggal Merah 2026', category: 'holiday', amount: 50000, unit: 'once', active: true, note: '',
+        { id: 'TPL-004', name: 'Insentif Tanggal Merah 2026', category: 'holiday', amount: 50000, unit: 'once', note: '',
           dates: [
               { date: '2026-05-01', name: 'Hari Buruh' },
               { date: '2026-05-14', name: 'Kenaikan Isa Al Masih' },
@@ -46,19 +45,8 @@
               { date: '2026-05-31', name: 'Hari Raya Waisak' },
               { date: '2026-06-01', name: 'Hari Lahir Pancasila' },
               { date: '2026-08-17', name: 'HUT RI' }
-          ] },
-        { id: 'TPL-005', name: 'Insentif Tanggal Merah 2025', category: 'holiday', amount: 25000, unit: 'once', active: false, note: '',
-          dates: [{ date: '2025-08-17', name: 'HUT RI' }, { date: '2025-12-25', name: 'Hari Natal' }] }
+          ] }
     ];
-
-    // Last year's incentive, so a template's history is not empty in the demo.
-    var DEFAULT_ASSIGNED = [
-        ['ADA27B1B2E650H0X', 'Adam Ferial'], ['APR8940K8VB44L8', 'Apriyanto Apriyanto'], ['BILFBY9N8YJ1YDN', 'Baldyas Satrio'],
-        ['IFAT8WJ2DM', 'Ifan Faizal Adnan'], ['IND693283053999', 'Indra Naftali']
-    ].map(function (p, i) {
-        return { id: 'ASG-00' + (i + 1), templateId: 'TPL-005', projectCode: 'ANM001', employeeCode: p[0], employeeName: p[1],
-                 date: '2025-08-17', amount: 25000, note: 'HUT RI ke-80', at: '2025-08-18T09:00:00+07:00', by: 'Admin' };
-    });
 
     function clone(v) { return JSON.parse(JSON.stringify(v)); }
 
@@ -77,8 +65,9 @@
         try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* kept for this page only */ }
     }
 
-    var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES);
-    var assigned = load(KEY_ASSIGNED, DEFAULT_ASSIGNED);
+    // Archiving was dropped (2026-10-26); templates archived before that are left out.
+    var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false; });
+    var assigned = load(KEY_ASSIGNED, []);
     var transport = load(KEY_TRANSPORT, {});
 
     function esc(v) {
@@ -111,19 +100,6 @@
         }
         store(KEY_TEMPLATES, templates);
         return existing || t;
-    }
-
-    function historyFor(id) {
-        return assigned.filter(function (a) { return a.templateId === id; })
-            .sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
-    }
-
-    function usage(id) {
-        var rows = historyFor(id);
-        var people = {};
-        var total = 0;
-        rows.forEach(function (a) { people[a.employeeCode] = true; total += a.amount; });
-        return { count: rows.length, people: Object.keys(people).length, total: total, last: rows.length ? rows[0].date : '' };
     }
 
     // { total, items: [{ templateId, name, category, count, amount }], notes: [] } for the given days.
@@ -402,15 +378,14 @@
 
     function openAssign(context) {
         ctx = context;
-        var active = templates.filter(function (t) { return t.active; });
-        if (!active.length) {
-            if (window.FeriizNotify) window.FeriizNotify.warning('Make a template on the Request Templates page first.', 'No active template');
+        if (!templates.length) {
+            if (window.FeriizNotify) window.FeriizNotify.warning('Make a template on the Request Templates page first.', 'No template');
             return;
         }
         if (!modal) modal = buildModal();
         modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + fmtDate(ctx.dates[0]) + ' – ' + fmtDate(ctx.dates[ctx.dates.length - 1]);
         modal.querySelector('#assignTemplateSelect').innerHTML = CATEGORIES.map(function (c) {
-            var inCat = active.filter(function (t) { return t.category === c.id; });
+            var inCat = templates.filter(function (t) { return t.category === c.id; });
             if (!inCat.length) return '';
             return '<optgroup label="' + c.label + '">' + inCat.map(function (t) {
                 return '<option value="' + t.id + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + (t.unit === 'day' ? ' / day' : '') + '</option>';
@@ -441,14 +416,9 @@
         chip: chip,
         rupiah: rupiah,
         fmtDate: fmtDate,
-        list: function (opts) {
-            return templates.filter(function (t) { return (opts && opts.archived) || t.active; });
-        },
         all: function () { return templates.slice(); },
         get: get,
         save: save,
-        historyFor: historyFor,
-        usage: usage,
         additionalFor: additionalFor,
         transportOf: transportOf,
         setTransport: setTransport,

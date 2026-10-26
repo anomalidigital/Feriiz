@@ -7,12 +7,12 @@
     <title>Feriiz - Request Templates</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.6">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.6">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.8">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.8">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.6" defer></script>
-    <script src="assets/js/app.js?v=3.7.6" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.6" defer></script>
+    <script src="assets/js/data.js?v=3.7.8" defer></script>
+    <script src="assets/js/app.js?v=3.7.8" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.8" defer></script>
 </head>
 
 <body data-page="request-templates">
@@ -37,12 +37,6 @@
                         <select id="tplFilterCategory" class="select">
                             <option value="">All categories</option>
                         </select>
-                        <label for="tplFilterStatus">Status</label>
-                        <select id="tplFilterStatus" class="select">
-                            <option value="active">Active</option>
-                            <option value="archived">Archived</option>
-                            <option value="">All</option>
-                        </select>
                         <div class="feriiz-u-018">
                             <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
                             <button class="btn btn-primary filter-apply-btn feriiz-u-019">Apply</button>
@@ -60,23 +54,6 @@
             </div>
         </div>
 
-        <div class="stat-cards feriiz-u-023">
-            <div class="stat-card feriiz-u-187">
-                <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-layer-group"></i></div>
-                <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026" data-stat="active">0</div>
-                    <div class="stat-label feriiz-u-165">Active Templates</div>
-                </div>
-            </div>
-            <div class="stat-card feriiz-u-187">
-                <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-user-check"></i></div>
-                <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-026" data-stat="assigned">0</div>
-                    <div class="stat-label feriiz-u-027">Times Assigned</div>
-                </div>
-            </div>
-        </div>
-
         <div class="table-container">
             <table class="data-table">
                 <thead>
@@ -86,14 +63,12 @@
                         <th>Category</th>
                         <th>Amount</th>
                         <th>Unit</th>
-                        <th>Used</th>
-                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="tplTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.6</div>
+        <div class="feriiz-u-032">version : 3.7.8</div>
     </main>
 
     <!-- Add / edit template -->
@@ -122,8 +97,14 @@
                     </div>
                     <span class="form-label d-block mt-3">Counted</span>
                     <div class="tpl-unit" role="radiogroup" aria-label="Counted">
-                        <label class="tpl-check"><input type="radio" class="form-check-input" name="tplUnit" value="day" checked> Per day <small>(each day the person works)</small></label>
-                        <label class="tpl-check"><input type="radio" class="form-check-input" name="tplUnit" value="once"> One time <small>(one chosen date)</small></label>
+                        <div class="tpl-unit-option">
+                            <label class="tpl-check"><input type="radio" class="form-check-input" name="tplUnit" value="day" checked> Daily</label>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Counted for each day in the range you assign. Example: meal or transport money." aria-label="About Daily"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="tpl-unit-option">
+                            <label class="tpl-check"><input type="radio" class="form-check-input" name="tplUnit" value="once"> One time</label>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Counted once, on the date you assign. Example: holiday incentive." aria-label="About One time"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                        </div>
                     </div>
                     <div id="tplDatesBlock" hidden>
                         <span class="form-label d-block mt-3">Dates</span>
@@ -133,7 +114,6 @@
                     </div>
                     <label class="form-label mt-3" for="tplNote">Note <span class="tpl-optional">(Optional)</span></label>
                     <input type="text" class="form-control" id="tplNote" placeholder="Who gets it, or when" autocomplete="off">
-                    <label class="tpl-check mt-3"><input type="checkbox" class="form-check-input" id="tplActive" checked> Active <small>(archived templates stay in history but cannot be assigned)</small></label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>
@@ -143,37 +123,9 @@
         </div>
     </div>
 
-    <!-- Who received a template -->
-    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <h2 class="modal-title" id="historyModalTitle">History</h2>
-                        <p class="tpl-subtitle" id="historyModalSummary"></p>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>Date</th><th>Employee</th><th>Project</th><th>Amount</th><th>Note</th><th>Assigned</th></tr>
-                            </thead>
-                            <tbody id="historyRows"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         (function () {
-            var state = { filters: { category: '', status: 'active' }, data: null };
+            var state = { filters: { category: '' } };
             var editing = null;
 
             function esc(v) {
@@ -187,33 +139,24 @@
                 var q = document.getElementById('tplSearch').value.trim().toLowerCase();
                 var rows = T().all().filter(function (t) {
                     if (state.filters.category && t.category !== state.filters.category) return false;
-                    if (state.filters.status === 'active' && !t.active) return false;
-                    if (state.filters.status === 'archived' && t.active) return false;
                     return !q || (t.name + ' ' + (t.note || '')).toLowerCase().indexOf(q) >= 0;
                 });
                 var tbody = document.getElementById('tplTableBody');
                 if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="tpl-empty">No template matches. Change the filter or add a template.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="tpl-empty">No template matches. Change the filter or add a template.</td></tr>';
                 } else {
                     tbody.innerHTML = rows.map(function (t) {
-                        var u = T().usage(t.id);
                         return '<tr>' +
                             '<td><div class="action-cell">' +
                                 '<a href="#" class="btn-icon" title="Edit" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
-                                '<a href="#" class="btn-icon" title="History" data-history="' + esc(t.id) + '"><i class="fa-solid fa-clock-rotate-left"></i></a>' +
                             '</div></td>' +
                             '<td><div class="feriiz-u-188">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
                             '<td>' + T().chip(t.category) + '</td>' +
                             '<td class="tpl-amount">' + T().rupiah(t.amount) + '</td>' +
                             '<td>' + esc(T().UNITS[t.unit] || '-') + (t.unit === 'once' && t.dates && t.dates.length ? '<div class="tpl-sub">' + t.dates.length + ' dates</div>' : '') + '</td>' +
-                            '<td>' + (u.count ? u.people + (u.people === 1 ? ' person' : ' people') + '<div class="tpl-sub">Last ' + T().fmtDate(u.last) + '</div>' : '<span class="tpl-muted">Not used yet</span>') + '</td>' +
-                            '<td><span class="status-pill status-pill--' + (t.active ? 'active' : 'done') + '">' + (t.active ? 'Active' : 'Archived') + '</span></td>' +
                         '</tr>';
                     }).join('');
                 }
-                var all = T().all();
-                document.querySelector('[data-stat="active"]').textContent = all.filter(function (t) { return t.active; }).length;
-                document.querySelector('[data-stat="assigned"]').textContent = all.reduce(function (n, t) { return n + T().usage(t.id).count; }, 0).toLocaleString('id-ID');
             }
 
             /* ---------- add / edit ---------- */
@@ -239,7 +182,6 @@
                 document.querySelector('input[name="tplUnit"][value="' + (t ? t.unit : 'day') + '"]').checked = true;
                 document.getElementById('tplDates').innerHTML = ((t && t.dates) || []).map(dateRow).join('');
                 document.getElementById('tplNote').value = t ? (t.note || '') : '';
-                document.getElementById('tplActive').checked = t ? !!t.active : true;
                 document.querySelectorAll('#templateForm .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
                 syncUnitBlock();
                 window.bootstrap.Modal.getOrCreateInstance(document.getElementById('templateModal')).show();
@@ -269,42 +211,21 @@
                     amount: value,
                     unit: unit,
                     dates: dates,
-                    note: document.getElementById('tplNote').value.trim(),
-                    active: document.getElementById('tplActive').checked
+                    note: document.getElementById('tplNote').value.trim()
                 });
                 window.bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
                 render();
                 if (window.FeriizNotify) FeriizNotify.success(saved.name + (editing ? ' was updated.' : ' was added.'), editing ? 'Template updated' : 'Template added');
             }
 
-            /* ---------- history ---------- */
-            function openHistory(t) {
-                var rows = T().historyFor(t.id);
-                var u = T().usage(t.id);
-                document.getElementById('historyModalTitle').textContent = t.name;
-                document.getElementById('historyModalSummary').textContent = u.count
-                    ? u.people + (u.people === 1 ? ' person' : ' people') + ' · given ' + u.count + (u.count === 1 ? ' time' : ' times') + ' · ' + T().rupiah(u.total) + ' in total'
-                    : 'Not given to anyone yet.';
-                document.getElementById('historyRows').innerHTML = rows.length ? rows.map(function (a) {
-                    var p = state.data && state.data.findProjectByCode(a.projectCode);
-                    return '<tr>' +
-                        '<td class="tpl-nowrap">' + T().fmtDate(a.date) + '</td>' +
-                        '<td><div class="feriiz-u-188">' + esc(a.employeeName) + '</div><div class="feriiz-u-189">' + esc(a.employeeCode) + '</div></td>' +
-                        '<td>' + esc(p ? p.name : a.projectCode) + '</td>' +
-                        '<td class="tpl-amount">' + T().rupiah(a.amount) + '</td>' +
-                        '<td>' + (a.note ? esc(a.note) : '—') + '</td>' +
-                        '<td class="tpl-nowrap">' + T().fmtDate(a.at) + '<div class="tpl-sub">' + esc(a.by || '') + '</div></td>' +
-                    '</tr>';
-                }).join('') : '<tr><td colspan="6" class="tpl-empty">Assign this template from a project Report to see who received it.</td></tr>';
-                window.bootstrap.Modal.getOrCreateInstance(document.getElementById('historyModal')).show();
-            }
-
             document.addEventListener('DOMContentLoaded', function () {
                 var cats = T().CATEGORIES.map(function (c) { return '<option value="' + c.id + '">' + c.label + '</option>'; }).join('');
                 document.getElementById('tplCategory').innerHTML = cats;
                 document.getElementById('tplFilterCategory').insertAdjacentHTML('beforeend', cats);
+                document.querySelectorAll('#templateForm [data-bs-toggle="tooltip"]').forEach(function (el) {
+                    new window.bootstrap.Tooltip(el);
+                });
                 render();
-                if (window.FERIIZ_DATA) window.FERIIZ_DATA.ready.then(function (data) { state.data = data; });
 
                 document.getElementById('addTemplateBtn').addEventListener('click', function () { openForm(null); });
                 document.getElementById('templateForm').addEventListener('submit', saveForm);
@@ -331,9 +252,7 @@
                 });
                 document.getElementById('tplTableBody').addEventListener('click', function (e) {
                     var edit = e.target.closest('[data-edit]');
-                    var hist = e.target.closest('[data-history]');
                     if (edit) { e.preventDefault(); openForm(T().get(edit.dataset.edit)); }
-                    if (hist) { e.preventDefault(); openHistory(T().get(hist.dataset.history)); }
                 });
                 var timer;
                 document.getElementById('tplSearch').addEventListener('input', function () {
@@ -343,13 +262,11 @@
                 // Filters change the table only on Apply.
                 document.querySelector('.filter-apply-btn').addEventListener('click', function () {
                     state.filters.category = document.getElementById('tplFilterCategory').value;
-                    state.filters.status = document.getElementById('tplFilterStatus').value;
                     render();
                 });
                 document.querySelector('.filter-clear-btn').addEventListener('click', function () {
                     document.getElementById('tplFilterCategory').value = '';
-                    document.getElementById('tplFilterStatus').value = 'active';
-                    state.filters = { category: '', status: 'active' };
+                    state.filters = { category: '' };
                     render();
                 });
             });

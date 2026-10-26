@@ -7786,16 +7786,11 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     color: #6B7480;
 }
 
-.tpl-nowrap {
-    white-space: nowrap;
-}
-
 .tpl-amount {
     font-weight: 600;
     white-space: nowrap;
 }
 
-.tpl-muted,
 .tpl-optional {
     color: #8A94A3;
     font-weight: 400;
@@ -7827,13 +7822,32 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     margin-top: 2px;
 }
 
-.tpl-check small {
-    color: #6B7480;
-}
-
 .tpl-unit {
     display: grid;
     gap: 8px;
+}
+
+.tpl-unit-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* "?" next to an option; its explanation is a Bootstrap tooltip. */
+.tpl-help {
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 14px;
+    line-height: 1;
+    color: #8A94A3;
+    cursor: help;
+}
+
+.tpl-help:hover,
+.tpl-help:focus-visible {
+    color: #2975BB;
 }
 
 .tpl-dates {

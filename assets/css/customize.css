@@ -138,8 +138,10 @@ img, svg {
     --bs-btn-focus-shadow-rgb: 220, 53, 69;
 }
 
+/* Focused fields stay white too (Bootstrap uses the grey --bs-body-bg). */
 .form-control:focus,
 .form-select:focus {
+    background-color: #fff;
     border-color: #2975BB;
     box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.18);
 }
@@ -257,4 +259,18 @@ img, svg {
 .form-check-label {
     font-size: 13px;
     color: #333;
+}
+
+/* --- Bootstrap tooltips --- */
+.tooltip {
+    --bs-tooltip-zindex: 10060; /* above .modal (10050) */
+    --bs-tooltip-max-width: 240px;
+    --bs-tooltip-padding-x: 10px;
+    --bs-tooltip-padding-y: 6px;
+    --bs-tooltip-font-size: 12px;
+    --bs-tooltip-color: #fff;
+    --bs-tooltip-bg: #1a1a1a;
+    --bs-tooltip-border-radius: 6px;
+    --bs-tooltip-opacity: 1;
+    font-family: 'Poppins', sans-serif;
 }

@@ -291,6 +291,17 @@
             };
         }
 
+        // Demo data: only the 12 Anomali people have requests. Anyone else shows Adam
+        // Ferial's requests as an example, placed in this project, until the API has real ones.
+        var SAMPLE_EMPLOYEE = 'ADA27B1B2E650H0X';
+        function requestsOf(data, emp, project) {
+            var mine = data.requests.filter(function (r) { return r.employeeCode === emp.code; });
+            if (mine.length) return mine;
+            return data.requests.filter(function (r) { return r.employeeCode === SAMPLE_EMPLOYEE; }).map(function (r) {
+                return Object.assign({}, r, { employeeCode: emp.code, projectCode: project ? project.code : r.projectCode });
+            });
+        }
+
         function paintHeader(emp, project) {
             var projectQuery = project ? '?project=' + encodeURIComponent(project.code) : '';
             document.getElementById('crumbProject').textContent = project ? project.name : 'Project';
@@ -325,7 +336,7 @@
                     return;
                 }
                 window.personalRequestContext = { employee: emp, project: project };
-                state.all = data.requests.filter(function (r) { return r.employeeCode === emp.code; })
+                state.all = requestsOf(data, emp, project)
                     .sort(function (a, b) { return (b.submittedAt || '').localeCompare(a.submittedAt || ''); });
                 applyFilter();
 

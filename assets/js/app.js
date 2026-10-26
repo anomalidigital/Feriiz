@@ -385,6 +385,7 @@ function feriizLogout() {
         'dashboard':                 { main: 'dashboard' },
         'projects':                  { main: 'projects-flat' },
         'employees':                 { main: 'employees' },
+        'request-templates':         { main: 'templates' },
         'calendar':                  { main: 'calendar' },
         'my-account':                { main: 'my-account' },
         'partner':                   { main: 'workspaces' },
@@ -446,6 +447,10 @@ function feriizLogout() {
                 '</div>' +
                 '<a href="employees.html"' + cls(cfg.main === 'employees') + '>' +
                     '<i class="fa-solid fa-users"></i><span class="nav-label">Employees</span>' +
+                '</a>' +
+                // Templates work for every project, so they live outside the project menu.
+                '<a href="request_templates.html"' + cls(cfg.main === 'templates') + '>' +
+                    '<i class="fa-solid fa-layer-group"></i><span class="nav-label">Request Templates</span>' +
                 '</a>' +
                 '<a href="calendar.html"' + cls(cfg.main === 'calendar') + '>' +
                     '<i class="fa-regular fa-calendar"></i><span class="nav-label">Calendar</span>' +

@@ -106,7 +106,8 @@
 
     function getFilterSummary() {
         var values = [];
-        var appliedChips = Array.from(document.querySelectorAll('#filterIndicatorChips .filter-indicator-chip'))
+        // The date range is printed as "Period" already.
+        var appliedChips = Array.from(document.querySelectorAll('#filterIndicatorChips .filter-indicator-chip:not(.filter-indicator-chip--range)'))
             .map(function (chip) {
                 var clone = chip.cloneNode(true);
                 clone.querySelectorAll('button').forEach(function (btn) { btn.remove(); });
@@ -205,7 +206,7 @@
     function sanitizeTextCell(td) {
         if (!td) return '-';
         var clone = td.cloneNode(true);
-        clone.querySelectorAll('button, input, select, .day-cell-checkbox, .cell-updated-badge, .note-icon').forEach(function (el) {
+        clone.querySelectorAll('button, input, select, .day-cell-checkbox, .cell-updated-badge, .note-icon, .screen-only').forEach(function (el) {
             el.remove();
         });
         var text = clone.textContent.trim();

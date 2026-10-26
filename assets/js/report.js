@@ -45,6 +45,8 @@
     var reportEmployees = [];
     // Fast lookup for attendance records keyed by employeeCode + '|' + date
     var attendanceIndex = {};
+    // Last day with a log per employee in this project (Assign Template sorts by it).
+    var lastActiveByCode = {};
     // Logs added or deleted with Batch Update in this visit, keyed like attendanceIndex.
     // Presentation-only (never sent anywhere) but survives a change of date range.
     var cellOverrides = {};
@@ -78,8 +80,31 @@
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
         missingTypes: [],
-        occupations: []
+        occupations: [],
+        occupationLabels: [],
+        range: null            // { start, end } chosen in the filter; null = the default week
     };
+
+    function appliedRange() {
+        return appliedReportFilters.range || defaultRange();
+    }
+
+    // The range typed in the filter (both empty = the default week).
+    function draftRange() {
+        var di = document.querySelectorAll('.filter-date');
+        var s = di[0] ? di[0].value : '';
+        var e = di[1] ? di[1].value : '';
+        if (!s && !e) return defaultRange();
+        if (s && e && s > e) { var t = s; s = e; e = t; }
+        return { start: s || e, end: e || s };
+    }
+
+    function selectedOccupationLabels() {
+        var select = document.querySelector('.filter-occ');
+        if (!select) return [];
+        return Array.prototype.filter.call(select.options, function (o) { return o.selected && !/^all\b/i.test(o.textContent.trim()); })
+            .map(function (o) { return o.textContent.trim(); });
+    }
 
     function formatIDR(n) {
         if (!n && n !== 0) return 'IDR0';
@@ -286,6 +311,50 @@
         }).join('');
     }
 
+    // Additional = request templates given to this person on the visible days
+    // (meal, transport, holiday incentive...). Total for print, lines per template on screen.
+    function additionalCells(employeeCode, dates) {
+        var add = window.FeriizTemplates && projectContext
+            ? window.FeriizTemplates.additionalFor(employeeCode, projectContext.code, dates) : { total: 0, items: [], notes: [] };
+        if (!add.items.length) {
+            return '<td class="col-additional-amount"></td><td class="col-additional-note"></td>';
+        }
+        var lines = add.items.map(function (it) {
+            return '<div class="add-line"><span>' + escapeHTML(it.name) + (it.count > 1 ? ' \u00d7' + it.count : '') + '</span>' +
+                '<span>' + formatIDR(it.amount) + '</span></div>';
+        }).join('');
+        return '<td class="col-additional-amount"><div class="add-total">' + formatIDR(add.total) + '</div>' +
+                '<div class="add-lines screen-only">' + lines + '</div></td>' +
+            '<td class="col-additional-note">' + escapeHTML(add.notes.join('; ')) + '</td>';
+    }
+
+    function refreshAdditional() {
+        document.querySelectorAll('.report-table tbody tr[data-employee-code]').forEach(function (row) {
+            var holder = document.createElement('tbody');
+            holder.innerHTML = '<tr>' + additionalCells(row.dataset.employeeCode, currentVisibleDates) + '</tr>';
+            var fresh = holder.querySelectorAll('td');
+            var amount = row.querySelector('.col-additional-amount');
+            var note = row.querySelector('.col-additional-note');
+            if (amount) amount.innerHTML = fresh[0].innerHTML;
+            if (note) note.innerHTML = fresh[1].innerHTML;
+        });
+        updateFieldsVisibility();
+    }
+
+    // Assign a request template from the toolbar: pick people and days in the dialog.
+    function openTemplateAssign() {
+        if (!window.FeriizTemplates || !projectContext) return;
+        window.FeriizTemplates.openAssign({
+            project: { code: projectContext.code, name: projectContext.name },
+            people: reportEmployees.map(function (e) {
+                return { code: e.code, name: e.name, occupation: e.occupation, lastActive: lastActiveByCode[e.code] || '' };
+            }),
+            dates: currentVisibleDates.slice(),
+            today: reportToday,
+            onDone: refreshAdditional
+        });
+    }
+
     function createEmployeeRow(employee, dates) {
         var empRateOT = projectContext ? projectContext.overtimeRate || 0 : 0;
         var cliRateOT = projectContext ? projectContext.clientOvertimeRate || 0 : 0;
@@ -313,8 +382,7 @@
             '<td class="col-cli-rateovertime rate-cell">' + formatIDR(cliRateOT) + '</td>' +
             '<td class="col-cli-totalrate rate-cell">' + formatIDR(0) + '</td>' +
             '<td class="col-cli-totalovertime rate-cell">' + formatIDR(0) + '</td>' +
-            '<td class="col-additional-amount"></td>' +
-            '<td class="col-additional-note"></td>' +
+            additionalCells(employee.code, dates) +
             createDayCells(employee, dates) +
         '</tr>';
     }
@@ -571,35 +639,48 @@
         });
     }
 
+    function shortDate(iso) {
+        var d = fromISO(iso);
+        return String(d.getDate()).padStart(2, '0') + ' ' + MONTH_NAMES[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
+    }
+
+    // Always shows the date range in use (as the live Feriiz does), then any other
+    // filter with an x to remove it.
     function updateFilterIndicator() {
         var bar = document.getElementById('reportFilterIndicator');
         var chips = document.getElementById('filterIndicatorChips');
-        var types = getSelectedMissingTypes();
-
         if (!bar || !chips) return;
 
-        if (types.length === 0) {
-            bar.style.display = 'none';
-            return;
+        var range = appliedRange();
+        var html = '<span class="filter-indicator-chip filter-indicator-chip--range">Date Range: ' + shortDate(range.start) + ' - ' + shortDate(range.end) + '</span>';
+        if (appliedReportFilters.occupations.length) {
+            var occ = appliedReportFilters.occupationLabels.length ? appliedReportFilters.occupationLabels : appliedReportFilters.occupations;
+            html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(occ.join(', ')) +
+                '<button class="filter-chip-close" data-filter-type="occupation" aria-label="Remove the occupation filter">&times;</button></span>';
         }
-
-        bar.style.display = '';
         var labels = { 'in': 'Log In', 'out': 'Log Out' };
-        chips.innerHTML = types.map(function (t) {
-            return '<span class="filter-indicator-chip">' + (labels[t] || t) +
-                '<button class="filter-chip-close" data-filter-type="' + t + '">&times;</button></span>';
-        }).join('');
+        getSelectedMissingTypes().forEach(function (t) {
+            html += '<span class="filter-indicator-chip">' + (labels[t] || t) +
+                '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + (labels[t] || t) + ' filter">&times;</button></span>';
+        });
+        bar.style.display = '';
+        chips.innerHTML = html;
 
-        // Bind close buttons
         chips.querySelectorAll('.filter-chip-close').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var type = btn.dataset.filterType;
-                document.querySelectorAll('.filter-missing').forEach(function (cb) {
-                    if (cb.value === type) cb.checked = false;
-                });
-                appliedReportFilters.missingTypes = appliedReportFilters.missingTypes.filter(function (item) {
-                    return item !== type;
-                });
+                if (type === 'occupation') {
+                    if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
+                    appliedReportFilters.occupations = [];
+                    appliedReportFilters.occupationLabels = [];
+                } else {
+                    document.querySelectorAll('.filter-missing').forEach(function (cb) {
+                        if (cb.value === type) cb.checked = false;
+                    });
+                    appliedReportFilters.missingTypes = appliedReportFilters.missingTypes.filter(function (item) {
+                        return item !== type;
+                    });
+                }
                 applyReportFilters();
             });
         });
@@ -655,6 +736,7 @@
             openOvertimeModal();
             return;
         }
+
 
         // Delete actions go to confirmation modal
         if (action === 'delete') {
@@ -1224,6 +1306,10 @@
             else return; // Custom: leave the dates as typed
             di[0].value = s; di[1].value = e;
         });
+        // Typing a date by hand turns the period into Custom (as in the old Feriiz).
+        di.forEach(function (input) {
+            input.addEventListener('input', function () { ps.value = 'custom'; });
+        });
     }
 
     // The date fields show the range in use, so "This Week" is visible as real dates.
@@ -1393,8 +1479,11 @@
     function init() {
         initPeriodPresets();
         initImport();
+        var templateBtn = document.getElementById('reportTemplateBtn');
+        if (templateBtn) templateBtn.addEventListener('click', openTemplateAssign);
         resetDateDraft();
         showDays(datesInRange());
+        updateFilterIndicator();
 
         // Apply filter
         var applyBtn = document.querySelector('.filter-apply-btn');
@@ -1404,6 +1493,8 @@
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
+                appliedReportFilters.occupationLabels = selectedOccupationLabels();
+                appliedReportFilters.range = draftRange();
                 showDays(datesFromDraft());
                 applyReportFilters();
             });
@@ -1418,6 +1509,8 @@
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                 appliedReportFilters.missingTypes = [];
                 appliedReportFilters.occupations = [];
+                appliedReportFilters.occupationLabels = [];
+                appliedReportFilters.range = null;
                 deselectAllCells();
                 showDays(datesInRange());
                 applyReportFilters();
@@ -1645,6 +1738,9 @@
             var a = data.attendance[i];
             if (relevant.has(a.employeeCode) && a.projectCode === projectContext.code) {
                 attendanceIndex[a.employeeCode + '|' + a.date] = a;
+                if ((a.inTime || a.outTime) && (!lastActiveByCode[a.employeeCode] || a.date > lastActiveByCode[a.employeeCode])) {
+                    lastActiveByCode[a.employeeCode] = a.date;
+                }
             }
         }
         var bc = document.querySelector('[data-project-name]');

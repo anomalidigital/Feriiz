@@ -7229,6 +7229,24 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     color: #B4BCC7;
 }
 
+/* Requests: the name opens that person's own Request page */
+.request-table a.employee-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.request-table a.employee-link:hover .employee-name,
+.request-table a.employee-link:focus-visible .employee-name {
+    color: #2975BB;
+    text-decoration: underline;
+}
+
+.data-table tbody td.request-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: #6B7480;
+}
+
 .attachment-heading {
     min-width: 0;
 }
@@ -7307,11 +7325,6 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: block;
     margin-bottom: 8px;
     font-size: 40px;
-}
-
-.attachment-size {
-    font-size: 12px;
-    color: #6B7480;
 }
 
 /* --- Report: Import XLSX modal --- */

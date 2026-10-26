@@ -6,34 +6,35 @@
     <title>Feriiz - Employee Request History</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.8">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.8">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.8" defer></script>
-    <script src="assets/js/app.js?v=3.7.8" defer></script>
+    <script src="assets/js/data.js?v=3.7.9" defer></script>
+    <script src="assets/js/app.js?v=3.7.9" defer></script>
 </head>
 <body data-page="employee-personal-request">
     <aside class="sidebar"></aside>
     <main class="main-content">
+        <!-- Same page as the project's Requests, narrowed to one employee (?project=&employee=) -->
         <div class="breadcrumb">
             <a href="projects.html">Projects</a>
             <span>&gt;</span>
-            <a href="project_employees.html">Anomali</a>
+            <a href="project_employees.html" id="crumbProject">Project</a>
             <span>&gt;</span>
-            <a href="employee_request.html">Request</a>
+            <a href="employee_request.html" id="crumbRequests">Request</a>
             <span>&gt;</span>
-            <span class="feriiz-u-057">Adam Ferial</span>
+            <span class="feriiz-u-057" id="crumbEmployee">Employee</span>
         </div>
         <div class="page-header">
             <div class="feriiz-u-058">
-                <a href="project_employees.html" class="feriiz-u-059">
+                <a href="project_employees.html" class="feriiz-u-059" id="backLink" aria-label="Back">
                     <i class="fa-solid fa-chevron-left feriiz-u-060"></i>
                 </a>
                 <div class="feriiz-u-061">
-                    <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" class="feriiz-u-062">
+                    <img src="" alt="" class="feriiz-u-062" id="employeeAvatar" hidden>
                     <div>
-                        <h1 class="page-title feriiz-u-063">Adam Ferial</h1>
-                        <div class="feriiz-u-093">ADA27B1B2E650H0X</div>
+                        <h1 class="page-title feriiz-u-063" id="employeeName">Employee</h1>
+                        <div class="feriiz-u-093" id="employeeCode"></div>
                     </div>
                 </div>
             </div>
@@ -48,15 +49,29 @@
                             <span class="feriiz-u-005">-</span>
                             <input type="date" class="input filter-date feriiz-u-004">
                         </div>
-                        <label>Request</label>
+                        <label>Type</label>
                         <select class="input filter-type feriiz-u-094">
-                            <option value="">-- All Request --</option>
-                            <option value="annual leave">Annual Leave</option><option value="sick leave">Sick Leave</option><option value="permit">Permit</option><option value="others">Others</option>
+                            <option value="">-- All Types --</option>
+                            <option value="annual_leave">Annual Leave</option>
+                            <option value="public_holiday">Public Holiday</option>
+                            <option value="time_in_lieu">Time in lieu</option>
+                            <option value="long_service_leave">Long Service Leave</option>
+                            <option value="national_leave">National Leave</option>
+                            <option value="sick_leave">Sick Leave</option>
+                            <option value="unpaid_leave">Unpaid Leave</option>
+                            <option value="marriage_leave">Marriage Leave</option>
+                            <option value="remote_work">Remote Work</option>
+                            <option value="meal">Meal</option>
+                            <option value="medical_claim">Medical Claim</option>
+                            <option value="others">Others</option>
+                            <option value="transport">Transport</option>
                         </select>
                         <label>Status</label>
                         <select class="input filter-status feriiz-u-096">
                             <option value="">-- All Status --</option>
-                            <option value="pending">Pending</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+                            <option value="pending">Pending</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
                         </select>
                         <div class="feriiz-u-018">
                             <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
@@ -64,20 +79,24 @@
                         </div>
                     </div>
                 </div>
+                <button class="btn btn-primary" type="button" onclick="openAddRequestModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Request
+                </button>
                 <div class="feriiz-u-020">
                     <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
-                    <input type="text" placeholder="Search request..." class="feriiz-u-068">
+                    <input type="text" placeholder="Search request..." class="feriiz-u-068" id="requestSearch">
                 </div>
             </div>
         </div>
         <div class="stat-cards feriiz-u-023">
             <div class="stat-card feriiz-u-098">
                 <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-clock"></i></div>
-                <div class="stat-card-info"><div class="stat-number feriiz-u-099">1</div><div class="stat-label feriiz-u-027">Pending</div></div>
+                <div class="stat-card-info"><div class="stat-number feriiz-u-099">0</div><div class="stat-label feriiz-u-027">Pending</div></div>
             </div>
             <div class="stat-card feriiz-u-072">
                 <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-check"></i></div>
-                <div class="stat-card-info"><div class="stat-number feriiz-u-099">2</div><div class="stat-label feriiz-u-027">Accepted</div></div>
+                <div class="stat-card-info"><div class="stat-number feriiz-u-099">0</div><div class="stat-label feriiz-u-027">Accepted</div></div>
             </div>
             <div class="stat-card feriiz-u-071">
                 <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-xmark"></i></div>
@@ -85,106 +104,469 @@
             </div>
         </div>
         <div class="table-container">
-            <table class="data-table">
+            <table class="data-table request-table">
                 <thead>
                     <tr>
-                        <th>Employee Name</th><th>Project Name</th><th>Start Date</th><th>End Date</th><th>Remark</th><th>Request</th><th>Status</th><th>Approval</th>
+                        <th class="feriiz-u-028"></th>
+                        <th>Type</th>
+                        <th>Project</th>
+                        <th>Date Request</th>
+                        <th>Date Range</th>
+                        <th>Approval</th>
+                        <th>Attachment</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td><div class="employee-cell"><img class="employee-avatar feriiz-u-100" src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt=""><div><div class="employee-name">Adam Ferial</div><div class="employee-code feriiz-u-031">ADA27B1B2E650H0X</div></div></div></td>
-                        <td>Anomali</td><td>10 Mar 2026</td><td>12 Mar 2026</td><td>Family event</td><td>Annual Leave</td>
-                        <td><span class="feriiz-u-101">Pending</span></td>
-                        <td>Ifan Faizal Adnan</td>
-                    </tr>
-                    <tr>
-                        <td><div class="employee-cell"><img class="employee-avatar feriiz-u-100" src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt=""><div><div class="employee-name">Adam Ferial</div><div class="employee-code feriiz-u-031">ADA27B1B2E650H0X</div></div></div></td>
-                        <td>Anomali</td><td>01 Feb 2026</td><td>02 Feb 2026</td><td>Flu</td><td>Sick Leave</td>
-                        <td><span class="feriiz-u-102">Accepted</span></td>
-                        <td>Ifan Faizal Adnan</td>
-                    </tr>
-                    <tr>
-                        <td><div class="employee-cell"><img class="employee-avatar feriiz-u-100" src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt=""><div><div class="employee-name">Adam Ferial</div><div class="employee-code feriiz-u-031">ADA27B1B2E650H0X</div></div></div></td>
-                        <td>Anomali</td><td>20 Jan 2026</td><td>20 Jan 2026</td><td>Personal matter</td><td>Permit</td>
-                        <td><span class="feriiz-u-102">Accepted</span></td>
-                        <td>Judith Anastalio</td>
-                    </tr>
-                </tbody>
+                <tbody id="requestsTableBody"></tbody>
             </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info" id="reqPaginationInfo">Showing 0 results</div>
+                <div class="pagination-buttons" id="reqPaginationButtons"></div>
+            </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.8</div>
+        <div class="feriiz-u-032">version : 3.7.9</div>
     </main>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleBtn = document.querySelector('.filter-toggle-btn');
-            const dropdown = document.querySelector('.filter-dropdown');
-            const applyBtn = document.querySelector('.filter-apply-btn');
-            const clearBtn = document.querySelector('.filter-clear-btn');
-            const typeSelect = document.querySelector('.filter-type');
-            const statusSelect = document.querySelector('.filter-status');
-            const tableRows = document.querySelectorAll('.data-table tbody tr');
+    (function () {
+        var params = new URLSearchParams(location.search);
+        var state = {
+            employee: null,
+            all: [],
+            filtered: [],
+            filters: { type: '', status: '', dateStart: '', dateEnd: '' },
+            page: 1,
+            perPage: 25
+        };
 
-            if (toggleBtn && dropdown) {
-                toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); });
-                document.addEventListener('click', (e) => { if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) dropdown.classList.remove('show'); });
-                dropdown.addEventListener('click', (e) => { e.stopPropagation(); });
+        function esc(v) {
+            return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function fmtDay(iso) {
+            if (!iso) return '-';
+            var d = new Date(iso);
+            if (isNaN(d)) return '-';
+            var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return days[d.getDay()] + ', ' + d.getDate().toString().padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        function statusBadgeClass(s) {
+            var norm = (s || '').toLowerCase();
+            if (norm === 'accepted') return 'badge badge-accepted';
+            if (norm === 'rejected') return 'badge badge-rejected';
+            return 'badge badge-pending';
+        }
+
+        function projectName(code) {
+            var p = window.FERIIZ_DATA.findProjectByCode(code);
+            return p ? p.name : (code || '-');
+        }
+
+        function renderRow(req) {
+            var emp = state.employee;
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td><div class="action-cell"><button class="btn-icon" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button></div></td>' +
+                '<td>' + esc(req.type) + '</td>' +
+                '<td>' + esc(projectName(req.projectCode)) + '</td>' +
+                '<td>' + fmtDay(req.submittedAt || req.dateStart) + '</td>' +
+                '<td>' + fmtDay(req.dateStart) + (req.dateEnd && req.dateEnd !== req.dateStart ? ' – ' + fmtDay(req.dateEnd) : '') + '</td>' +
+                '<td>' + esc(req.pic || '-') + '</td>' +
+                '<td class="attachment-cell"></td>' +
+                '<td><span class="' + statusBadgeClass(req.status) + '">' + esc(req.status) + '</span></td>';
+            tr.querySelector('.attachment-cell').appendChild(attachmentLink(req));
+            tr.querySelector('.btn-icon').addEventListener('click', function () {
+                openModal(emp.name, req.type, fmtDay(req.submittedAt || req.dateStart),
+                    fmtDay(req.dateStart) + (req.dateEnd && req.dateEnd !== req.dateStart ? ' – ' + fmtDay(req.dateEnd) : ''), req.status, req);
+            });
+            return tr;
+        }
+
+        /* ---------- Attachments (same viewer as the project's Requests) ---------- */
+        window.requestAttachmentLink = function (req) { return attachmentLink(req); };
+        // One button per row: the file name for one file, "N files" for more.
+        function attachmentLink(req) {
+            var files = req.attachments || [];
+            if (!files.length) {
+                var none = document.createElement('span');
+                none.className = 'attachment-none';
+                none.textContent = '–';
+                none.setAttribute('aria-label', 'No attachment');
+                return none;
             }
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'attachment-link';
+            btn.title = files.map(function (f) { return f.name; }).join(', ');
+            btn.innerHTML = '<i class="fa-solid fa-paperclip" aria-hidden="true"></i><span></span>';
+            btn.querySelector('span').textContent = files.length === 1 ? files[0].name : files.length + ' files';
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                window.FeriizAttachments.open(files, req.type + ' from ' + state.employee.name + ', ' + fmtDay(req.dateStart));
+            });
+            return btn;
+        }
 
-            const applyFilter = () => {
-                const typeVal = typeSelect.value.toLowerCase();
-                const statusVal = statusSelect.value.toLowerCase();
-                const dateInputs = document.querySelectorAll('.filter-date');
-                const startDateStr = dateInputs[0].value;
-                const endDateStr = dateInputs[1].value;
-                
-                let startFilter = null;
-                let endFilter = null;
-                if (startDateStr) startFilter = new Date(startDateStr).getTime();
-                if (endDateStr) endFilter = new Date(endDateStr).getTime();
+        function renderPage() {
+            var tbody = document.getElementById('requestsTableBody');
+            tbody.innerHTML = '';
+            var start = (state.page - 1) * state.perPage;
+            var end = Math.min(start + state.perPage, state.filtered.length);
+            for (var i = start; i < end; i++) tbody.appendChild(renderRow(state.filtered[i]));
+            if (!state.filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="8" class="request-empty">' +
+                    (state.all.length ? 'No requests match your filter.' : esc(state.employee.name) + ' has no requests yet.') + '</td></tr>';
+            }
+            document.getElementById('reqPaginationInfo').textContent = state.filtered.length === 0
+                ? 'Showing 0 results'
+                : 'Showing ' + (start + 1) + ' - ' + end + ' of ' + state.filtered.length + ' results';
+            renderPagination();
+        }
 
-                tableRows.forEach(row => {
-                    const startDateCell = row.querySelector('td:nth-child(3)');
-                    const typeCell = row.querySelector('td:nth-child(6)');
-                    const statusCell = row.querySelector('td:nth-child(7)');
-                    if (!typeCell || !statusCell || !startDateCell) return;
+        function renderPagination() {
+            var total = Math.ceil(state.filtered.length / state.perPage) || 1;
+            var cur = state.page;
+            var box = document.getElementById('reqPaginationButtons');
+            box.innerHTML = '';
+            var prev = document.createElement('button');
+            prev.textContent = '< Previous'; prev.disabled = cur === 1;
+            prev.addEventListener('click', function () { if (cur > 1) { state.page--; renderPage(); } });
+            box.appendChild(prev);
+            for (var n = 1; n <= total; n++) {
+                (function (n) {
+                    var a = document.createElement('a');
+                    a.href = '#'; a.textContent = n;
+                    if (n === cur) { a.className = 'active'; a.setAttribute('aria-current', 'page'); }
+                    a.addEventListener('click', function (e) { e.preventDefault(); state.page = n; renderPage(); });
+                    box.appendChild(a);
+                })(n);
+            }
+            var next = document.createElement('a');
+            next.href = '#'; next.textContent = 'Next >';
+            if (cur === total) next.style.display = 'none';
+            next.addEventListener('click', function (e) { e.preventDefault(); if (cur < total) { state.page++; renderPage(); } });
+            box.appendChild(next);
+        }
 
-                    const typeText = typeCell.textContent.toLowerCase();
-                    const statusText = statusCell.textContent.toLowerCase();
-                    const rowDateStr = startDateCell.textContent.trim();
-                    let rowDateTime = null;
-                    if (rowDateStr && rowDateStr !== '-') {
-                        rowDateTime = new Date(rowDateStr).getTime();
-                    }
+        function updateStatCards() {
+            var counts = { Pending: 0, Accepted: 0, Rejected: 0 };
+            state.filtered.forEach(function (r) { if (counts[r.status] !== undefined) counts[r.status]++; });
+            var cards = document.querySelectorAll('.stat-card');
+            if (cards[0]) cards[0].querySelector('.stat-number').textContent = counts.Pending;
+            if (cards[1]) cards[1].querySelector('.stat-number').textContent = counts.Accepted;
+            if (cards[2]) cards[2].querySelector('.stat-number').textContent = counts.Rejected;
+        }
 
-                    let matchType = (typeVal === '' || typeText.includes(typeVal));
-                    let matchStatus = (statusVal === '' || statusText.includes(statusVal));
-                    let matchDate = true;
-                    
-                    if (rowDateTime) {
-                        if (startFilter && rowDateTime < startFilter) matchDate = false;
-                        if (endFilter && rowDateTime > endFilter + 86400000) matchDate = false;
-                    } else if (startFilter || endFilter) {
-                        matchDate = false;
-                    }
+        function applyFilter() {
+            var q = document.getElementById('requestSearch').value.trim().toLowerCase();
+            var f = state.filters;
+            state.filtered = state.all.filter(function (r) {
+                if (f.type && r.type.toLowerCase().replace(/\s+/g, '_') !== f.type) return false;
+                if (f.status && r.status.toLowerCase() !== f.status) return false;
+                var requestStart = r.dateStart || '';
+                var requestEnd = r.dateEnd || requestStart;
+                if (f.dateStart && requestEnd < f.dateStart) return false;
+                if (f.dateEnd && requestStart > f.dateEnd) return false;
+                if (q && (r.type + ' ' + projectName(r.projectCode) + ' ' + (r.pic || '')).toLowerCase().indexOf(q) < 0) return false;
+                return true;
+            });
+            state.page = 1;
+            renderPage();
+            updateStatCards();
+        }
 
-                    if (matchType && matchStatus && matchDate) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-                dropdown.classList.remove('show');
+        // Filters change the table only on Apply.
+        function commitRequestFilterDraft() {
+            var dates = document.querySelectorAll('.filter-date');
+            state.filters = {
+                type: document.querySelector('.filter-type').value.toLowerCase(),
+                status: document.querySelector('.filter-status').value.toLowerCase(),
+                dateStart: dates[0] ? dates[0].value : '',
+                dateEnd: dates[1] ? dates[1].value : ''
             };
+        }
 
-            if (applyBtn) applyBtn.addEventListener('click', applyFilter);
+        function paintHeader(emp, project) {
+            var projectQuery = project ? '?project=' + encodeURIComponent(project.code) : '';
+            document.getElementById('crumbProject').textContent = project ? project.name : 'Project';
+            document.getElementById('crumbProject').href = 'project_employees.html' + projectQuery;
+            document.getElementById('crumbRequests').href = 'employee_request.html' + projectQuery;
+            document.getElementById('backLink').href = 'project_employees.html' + projectQuery;
+            document.getElementById('crumbEmployee').textContent = emp ? emp.name : 'Employee';
+            document.getElementById('employeeName').textContent = emp ? emp.name : 'Employee not found';
+            document.getElementById('employeeCode').textContent = emp ? emp.code : '';
+            if (emp) {
+                var img = document.getElementById('employeeAvatar');
+                img.src = window.FERIIZ_DATA.avatarSrc(emp);
+                img.addEventListener('error', function () {
+                    var fallback = window.FERIIZ_DATA.initialsAvatar(emp.name);
+                    if (this.src !== fallback) this.src = fallback;
+                });
+                img.hidden = false;
+                document.title = 'Feriiz - ' + emp.name + ' - Request';
+            }
+        }
 
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    typeSelect.selectedIndex = 0;
-                    statusSelect.selectedIndex = 0;
-                    document.querySelectorAll('.filter-date').forEach(input => input.value = '');
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.FERIIZ_DATA) return;
+            window.FERIIZ_DATA.ready.then(function (data) {
+                var project = data.findProjectByCode(params.get('project'));
+                var emp = data.findEmployeeByCode(params.get('employee'));
+                state.employee = emp;
+                paintHeader(emp, project);
+                if (!emp) {
+                    document.getElementById('requestsTableBody').innerHTML =
+                        '<tr><td colspan="8" class="request-empty">Open an employee from the project\'s Activity list or from Requests.</td></tr>';
+                    return;
+                }
+                window.personalRequestContext = { employee: emp, project: project };
+                state.all = data.requests.filter(function (r) { return r.employeeCode === emp.code; })
+                    .sort(function (a, b) { return (b.submittedAt || '').localeCompare(a.submittedAt || ''); });
+                applyFilter();
+
+                document.querySelector('.filter-apply-btn').addEventListener('click', function () {
+                    commitRequestFilterDraft();
                     applyFilter();
+                });
+                document.querySelector('.filter-clear-btn').addEventListener('click', function () {
+                    document.querySelector('.filter-type').value = '';
+                    document.querySelector('.filter-status').value = '';
+                    document.querySelectorAll('.filter-date').forEach(function (input) { input.value = ''; });
+                    document.getElementById('requestSearch').value = '';
+                    state.filters = { type: '', status: '', dateStart: '', dateEnd: '' };
+                    applyFilter();
+                });
+                var timer;
+                document.getElementById('requestSearch').addEventListener('input', function () {
+                    clearTimeout(timer); timer = setTimeout(applyFilter, 200);
+                });
+            });
+        });
+    })();
+    </script>
+
+    <!-- Approval Modal Overlay (same as the project's Requests) -->
+    <div class="modal-overlay" id="approvalModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modalTitle">Approval</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="modal-field">
+                        <label>Status</label>
+                        <select class="select feriiz-u-153" id="modalStatus">
+                            <option>Pending</option>
+                            <option>Accepted</option>
+                            <option>Rejected</option>
+                        </select>
+                    </div>
+                    <div class="modal-field">
+                        <label>Remark</label>
+                        <input type="text" class="input feriiz-u-153" placeholder="Remark">
+                    </div>
+                    <div class="modal-field">
+                        <label>Amount</label>
+                        <input type="number" class="input feriiz-u-153" value="1">
+                    </div>
+                    <div class="modal-field">
+                        <label>Note To Sender</label>
+                        <input type="text" id="modalNoteInput" class="input feriiz-u-153" placeholder="Note To Sender">
+                    </div>
+                </div>
+                <div id="modalNotificationWrapper" class="feriiz-u-154">
+                    <label class="feriiz-u-155">
+                        <input type="checkbox" checked class="feriiz-u-050">
+                        Send Notification
+                    </label>
+                </div>
+                <div class="modal-divider"></div>
+                <div class="modal-info-grid">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Request</span>
+                        <span class="modal-info-value" id="modalRequest">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Date Request</span>
+                        <span class="modal-info-value" id="modalDateRequest">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Date</span>
+                        <span class="modal-info-value" id="modalDate">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Attachment</span>
+                        <span class="modal-info-value feriiz-u-156" id="modalAttachment">–</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger feriiz-u-157" onclick="deleteRequest()">Delete</button>
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRequestChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    <!-- Add Request Modal Overlay: employee and project are this page's -->
+    <div class="modal-overlay" id="addRequestModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="addRequestTitle">Request</h2>
+                <button class="modal-close" onclick="closeAddRequestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="modal-field">
+                        <label>Employee Name</label>
+                        <input type="text" id="addReqEmployee" class="input feriiz-u-158" placeholder="Employee Name" readonly>
+                    </div>
+                    <div class="modal-field">
+                        <label>Project Name</label>
+                        <input type="text" id="addReqProject" class="input feriiz-u-158" placeholder="Project Name" readonly>
+                    </div>
+                    <div class="modal-field">
+                        <label>Start Date</label>
+                        <input type="date" class="input feriiz-u-158">
+                    </div>
+                    <div class="modal-field">
+                        <label>End Date</label>
+                        <input type="date" class="input feriiz-u-158">
+                    </div>
+                </div>
+                <div class="feriiz-u-159">
+                    <div class="modal-grid">
+                        <div class="modal-field">
+                            <label>Remark</label>
+                            <input type="text" class="input feriiz-u-158" placeholder="Give a note">
+                        </div>
+                        <div class="modal-field">
+                            <label>Request</label>
+                            <select class="select feriiz-u-153">
+                                <option>Annual Leave</option>
+                                <option>Public Holiday</option>
+                                <option>Time In Lieu</option>
+                                <option>Long Service Leave</option>
+                                <option>National Leave</option>
+                                <option>Sick Leave</option>
+                                <option>Unpaid Leave</option>
+                                <option>Marriage Leave</option>
+                                <option>Remote Work</option>
+                                <option>Meal</option>
+                                <option>Medical Claim</option>
+                                <option>Others</option>
+                                <option>Transport</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Status</label>
+                            <select class="select feriiz-u-153">
+                                <option>Pending</option>
+                                <option>Accepted</option>
+                                <option>Rejected</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Approval</label>
+                            <select class="select feriiz-u-153">
+                                <option>Ifan Faizal Adnan</option>
+                                <option>Judith Anastalio</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Attachment</label>
+                            <input type="file" class="input feriiz-u-160">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer feriiz-u-161" id="addReqFooter">
+                <button class="btn btn-outline feriiz-u-162" onclick="closeAddRequestModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewRequest()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(name, type, dateReq, dateRange, status, req) {
+            document.getElementById('modalTitle').textContent = 'Approval ' + name;
+            var attachmentSlot = document.getElementById('modalAttachment');
+            attachmentSlot.innerHTML = '';
+            attachmentSlot.appendChild(req ? window.requestAttachmentLink(req) : document.createTextNode('–'));
+            document.getElementById('modalRequest').textContent = type || '-';
+            document.getElementById('modalDateRequest').textContent = dateReq || '-';
+            document.getElementById('modalDate').textContent = dateRange || '-';
+            var sel = document.getElementById('modalStatus');
+            for (var i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].text === status) { sel.selectedIndex = i; break; }
+            }
+            document.getElementById('approvalModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('approvalModal').classList.remove('show');
+            document.body.style.overflow = '';
+            var noteInput = document.getElementById('modalNoteInput');
+            var notifWrapper = document.getElementById('modalNotificationWrapper');
+            if (noteInput && notifWrapper) {
+                noteInput.value = '';
+                notifWrapper.style.display = 'none';
+            }
+        }
+
+        function saveRequestChanges() {
+            var employee = document.getElementById('modalTitle').textContent.replace(/^Approval\s+/, '') || 'Employee';
+            closeModal();
+            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was updated.', 'Request updated');
+        }
+
+        function deleteRequest() {
+            var employee = document.getElementById('modalTitle').textContent.replace(/^Approval\s+/, '') || 'Employee';
+            closeModal();
+            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was deleted.', 'Request deleted');
+        }
+
+        document.getElementById('approvalModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        function openAddRequestModal() {
+            var ctx = window.personalRequestContext;
+            if (!ctx) return;
+            document.getElementById('addReqEmployee').value = ctx.employee.name;
+            document.getElementById('addReqProject').value = ctx.project ? ctx.project.name : '';
+            document.getElementById('addRequestModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddRequestModal() {
+            document.getElementById('addRequestModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function saveNewRequest() {
+            var employee = document.getElementById('addReqEmployee').value.trim() || 'the employee';
+            closeAddRequestModal();
+            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was added.', 'Request added');
+        }
+
+        document.getElementById('addRequestModal').addEventListener('click', function (e) {
+            if (e.target === this) closeAddRequestModal();
+        });
+
+        // The notification checkbox appears once there is a note to send.
+        document.addEventListener('DOMContentLoaded', function () {
+            var modalNoteInput = document.getElementById('modalNoteInput');
+            var modalNotificationWrapper = document.getElementById('modalNotificationWrapper');
+            if (modalNoteInput && modalNotificationWrapper) {
+                modalNoteInput.addEventListener('input', function () {
+                    modalNotificationWrapper.style.display = this.value.trim() !== '' ? 'block' : 'none';
                 });
             }
         });

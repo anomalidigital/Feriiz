@@ -7,11 +7,11 @@
     <title>Feriiz - Request</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.8">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.8">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.8" defer></script>
-    <script src="assets/js/app.js?v=3.7.8" defer></script>
+    <script src="assets/js/data.js?v=3.7.9" defer></script>
+    <script src="assets/js/app.js?v=3.7.9" defer></script>
 </head>
 
 <body data-page="project-requests">
@@ -196,10 +196,12 @@
             var tr = document.createElement('tr');
             tr.innerHTML =
                 '<td><div class="action-cell"><button class="btn-icon" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button></div></td>' +
-                '<td><div class="employee-cell">' +
+                // The name opens this person's own Request page.
+                '<td><a class="employee-cell employee-link" href="employee_personal_request.html?project=' + encodeURIComponent(req.projectCode || '') +
+                    '&employee=' + encodeURIComponent(emp.code) + '">' +
                     '<img class="employee-avatar" src="' + avatar + '" alt="" data-fallback="' + fallback + '">' +
                     '<div><div class="employee-name">' + emp.name + '</div><div class="employee-code">' + emp.code + '</div></div>' +
-                '</div></td>' +
+                '</a></td>' +
                 '<td>' + req.type + '</td>' +
                 '<td>' + fmtDay(req.submittedAt || req.dateStart) + '</td>' +
                 '<td>' + fmtDay(req.dateStart) + (req.dateEnd && req.dateEnd !== req.dateStart ? ' – ' + fmtDay(req.dateEnd) : '') + '</td>' +

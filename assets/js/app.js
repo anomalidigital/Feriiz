@@ -270,18 +270,12 @@ function feriizLogout() {
 
 /* === Attachment viewer ===
    FeriizAttachments.open(files, context) shows request attachments in a
-   Bootstrap modal: preview for images and PDFs, plus Open and Download.
+   Bootstrap modal: preview for images and PDFs (no size, Open or Download
+   buttons; Baldy removed them 2026-10-26).
    files: [{ name, url, type, size }]. The modal is created on first use. */
 (function () {
     var modal = null;
     var files = [];
-
-    function sizeLabel(bytes) {
-        if (!bytes && bytes !== 0) return '';
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-    }
 
     function build() {
         var el = document.createElement('div');
@@ -304,13 +298,6 @@ function feriizLogout() {
                         '<div class="attachment-files" id="attachmentFiles" role="tablist" aria-label="Files"></div>' +
                         '<div class="attachment-stage" id="attachmentStage"></div>' +
                     '</div>' +
-                    '<div class="modal-footer">' +
-                        '<span class="attachment-size me-auto" id="attachmentSize"></span>' +
-                        '<a class="btn btn-outline" id="attachmentOpen" target="_blank" rel="noopener">' +
-                            '<i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open in new tab</a>' +
-                        '<a class="btn btn-primary" id="attachmentDownload" download>' +
-                            '<i class="fa-solid fa-download" aria-hidden="true"></i> Download</a>' +
-                    '</div>' +
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
@@ -321,11 +308,6 @@ function feriizLogout() {
         var f = files[index];
         if (!f) return;
         modal.querySelector('#attachmentModalTitle').textContent = f.name;
-        modal.querySelector('#attachmentSize').textContent = sizeLabel(f.size);
-        modal.querySelector('#attachmentOpen').href = f.url;
-        var dl = modal.querySelector('#attachmentDownload');
-        dl.href = f.url;
-        dl.setAttribute('download', f.name);
         modal.querySelectorAll('.attachment-file').forEach(function (b, i) {
             b.classList.toggle('active', i === index);
             b.setAttribute('aria-selected', i === index ? 'true' : 'false');
@@ -348,7 +330,7 @@ function feriizLogout() {
             stage.appendChild(frame);
         } else {
             stage.innerHTML = '<div class="attachment-noprev"><i class="fa-regular fa-file" aria-hidden="true"></i>' +
-                '<p>No preview for this file type. Use Download to open it.</p></div>';
+                '<p>No preview for this file type.</p></div>';
         }
     }
 

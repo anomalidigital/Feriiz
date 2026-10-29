@@ -34,9 +34,8 @@
     --feriiz-import: #8E44AD;    /* Report days from an import, white text */
     --feriiz-import-soft: #F4ECF8;   /* the Import half of a split day; --feriiz-import text on it is 5:1 */
 
-    /* Days a request was given: the day chips in the request list, and the Report
-       day cells that light up while pointing at an amount. Green, so it never looks
-       like the blue of selected cells (2026-10-29). */
+    /* Days a request was given: the day chips in the request list. Green like the
+       request chips in the Report days (2026-10-29). */
     --feriiz-request-day: #E9F7EF;
     --feriiz-request-day-ink: #1E7B45;   /* text on --feriiz-request-day, 4.8:1 */
 
@@ -4908,7 +4907,7 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
    count the import. */
 .report-table thead th.day-split-col,
 .report-table tbody td.day-split-cell {
-    min-width: 420px;
+    min-width: 440px;
 }
 
 .day-split-labels {
@@ -5022,6 +5021,55 @@ div.report-layout .report-table tbody td.day-split-cell {
 
 .cell-import-tag i {
     font-size: 10px;
+}
+
+/* What a day was given with Assign Request: the template's initials ("UM") at the end
+   of the badge row, the same height as the badges, so the day does not grow
+   (2026-10-29). Several requests wrap only when the cell is too narrow. */
+.report-table td.day-col .feriiz-u-134 {
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+/* The Import half never has chips: its badges stay on one line. */
+.report-table td.day-col .day-half--import .feriiz-u-134 {
+    flex-wrap: nowrap;
+}
+
+.req-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--feriiz-success);
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.req-chip:hover,
+.req-chip:focus-visible {
+    filter: brightness(0.9);
+}
+
+.req-chip:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 1px;
+}
+
+/* A day off with a request (a red-date incentive): the chip on the grey cell, level
+   with the badges of the days next to it. */
+div.report-layout .report-table tbody td.weekend-off-cell:has(.req-chip) {
+    vertical-align: top !important;
+}
+
+.day-half.is-empty .feriiz-u-133 {
+    margin: 0 8px 0 0;
 }
 
 /* An accepted request on a day without logs replaces "log incomplete" (backlog A1,
@@ -8406,11 +8454,6 @@ div.report-layout .report-search-input {
     white-space: nowrap;
 }
 
-/* Transport popup in the Report (2026-10-28): a skipped day stays listed, greyed. */
-.data-table tr.transport-skipped td {
-    color: var(--feriiz-neutral);
-}
-
 @media (max-width: 760px) {
     .tpl-people-tools {
         width: 100%;
@@ -8494,67 +8537,6 @@ div.report-layout .report-table .log-placeholder {
 div.report-layout .report-table thead th.col-cli-add,
 div.report-layout .report-table thead th.col-cli-addtotal {
     min-width: 92px;
-}
-
-/* A request amount: the amount (dotted underline = it opens something) and, under it,
-   how many days it is for. The days line stays black like the rest of the table. */
-.add-cell-btn {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    color: inherit;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-.add-cell-amount {
-    text-decoration: underline dotted;
-    text-underline-offset: 3px;
-}
-
-.add-cell-days {
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.4;
-}
-
-.add-cell-btn:hover,
-.add-cell-btn:focus-visible {
-    color: #2975BB;
-}
-
-.add-cell-btn:hover .add-cell-amount,
-.add-cell-btn:focus-visible .add-cell-amount {
-    text-decoration-style: solid;
-}
-
-/* A request column's title opens everyone who has it. */
-.add-head-btn {
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    color: inherit;
-    text-decoration: underline dotted;
-    text-underline-offset: 3px;
-    cursor: pointer;
-}
-
-.add-head-btn:hover,
-.add-head-btn:focus-visible {
-    color: #2975BB;
-    text-decoration-style: solid;
-}
-
-/* While pointing at an amount, the days it is for light up in that row. Nothing is
-   added to the day cells otherwise, and nothing is printed (Arcon, 2026-10-29). */
-div.report-layout .report-table tbody td.day-col.request-day-on {
-    background: var(--feriiz-request-day) !important;
-    box-shadow: inset 0 0 0 2px var(--feriiz-success) !important;
 }
 
 /* Column list: the request-template columns under Client get their own small heading. */

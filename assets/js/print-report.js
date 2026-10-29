@@ -436,12 +436,10 @@
             return sanitizeTextCell(el);
         }
 
-        // On screen a template amount is a button (it opens the details), which sanitizeTextCell drops.
-        // Only the amount is printed, not the "2 days" line under it.
+        // Transport, the request templates and Total Additional: plain amounts.
         function addVal(tr, col) {
             var el = tr.querySelector(col.sel);
-            var amount = el ? (el.querySelector('.add-cell-amount') || el) : null;
-            var text = amount ? amount.textContent.trim() : '';
+            var text = el ? el.textContent.trim() : '';
             return text ? escapeHTML(text) : '-';
         }
 
@@ -464,12 +462,16 @@
                 return { period: '-', overtime: '-' };
             }
 
+            // A day off work for an accepted request (sick, leave...) prints the request's name.
+            if (dayTd.dataset.request) return { period: dayTd.dataset.request, overtime: '-' };
+
             var period = '-';
             var overtime = '-';
 
             // A split day (System | Import) prints the import, which is what the totals count.
+            // Only the hour and overtime badges are read, not the request chips.
             var scope = dayTd.querySelector('.day-half--import:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
-            var badges = Array.from(scope.querySelectorAll('.badge, .feriiz-u-135, .feriiz-u-136'))
+            var badges = Array.from(scope.querySelectorAll('.feriiz-u-135, .feriiz-u-136'))
                 .map(function (b) { return b.textContent.trim(); });
 
             badges.forEach(function (b) {

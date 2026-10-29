@@ -19,7 +19,10 @@
      page (2026-10-26).
    - Every assignment is one person on one day (Feriiz team, 27-10-2026):
      Batch Update > Assign Request gives a template to exactly the selected
-     days. The team does not want the requests listed inside the day cells.
+     days. A day shows what it was given as small chips with the template's
+     initials ("UM"), in the row of hour badges so the day keeps its height.
+     A full line per request (v3.7.19) was too big; the chips are what the team
+     asked for later (Baldy 29-10-2026: "keliatan di daily, jangan terlalu besar").
 
    Prototype only: everything is kept in this browser (localStorage) so the
    Templates page and the Report see the same data. The API replaces this.
@@ -27,7 +30,7 @@
    FeriizTemplates.all(), get(id), findByName(name), save(template)
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
-   FeriizTemplates.datesFor(employeeCode, projectCode, templateId, dates)   the days one person has it
+   FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
    FeriizTemplates.openAssign(context)   Assign Request in the Report (people + days, or context.cells)
    FeriizTemplates.openDetail(context)   everyone who has one request on the days shown; remove the ticked ones
    ============================================================ */
@@ -151,17 +154,31 @@
         return cols;
     }
 
-    // One person's assignments of one template on these days, by date.
-    function assignmentsFor(employeeCode, projectCode, templateId, dates) {
-        var inRange = {};
-        (dates || []).forEach(function (d) { inRange[d] = true; });
-        return assigned.filter(function (a) {
-            return a.employeeCode === employeeCode && a.projectCode === projectCode && a.templateId === templateId && inRange[a.date];
-        }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    // The chip text in a Report day: "Uang Makan" -> "UM", "Insentif Tanggal Merah 2026" -> "ITM",
+    // one word -> its first three letters. The full name and amount are in the chip's tooltip.
+    function shortName(name) {
+        var words = String(name || '').trim().split(/\s+/).filter(function (w) { return /^[a-z]/i.test(w); });
+        if (words.length === 1) return words[0].charAt(0).toUpperCase() + words[0].slice(1, 3).toLowerCase();
+        return words.map(function (w) { return w.charAt(0).toUpperCase(); }).join('').slice(0, 3) || '?';
     }
 
-    function datesFor(employeeCode, projectCode, templateId, dates) {
-        return assignmentsFor(employeeCode, projectCode, templateId, dates).map(function (a) { return a.date; });
+    // { 'CODE|YYYY-MM-DD': [{ templateId, name, short, amount, note }] } for one project on these days,
+    // in the order of the Report's columns (oldest template first).
+    function dayIndex(projectCode, dates) {
+        var inRange = {};
+        var out = {};
+        (dates || []).forEach(function (d) { inRange[d] = true; });
+        assigned.forEach(function (a) {
+            if (a.projectCode !== projectCode || !inRange[a.date]) return;
+            var t = get(a.templateId) || { name: 'Template' };
+            var key = a.employeeCode + '|' + a.date;
+            (out[key] || (out[key] = [])).push({ templateId: a.templateId, name: t.name, short: shortName(t.name), amount: a.amount, note: a.note,
+                                                 order: t.createdAt || '' });
+        });
+        Object.keys(out).forEach(function (key) {
+            out[key].sort(function (a, b) { return a.order.localeCompare(b.order); });
+        });
+        return out;
     }
 
     function removeAssignments(ids) {
@@ -595,11 +612,11 @@
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
-    /* ---------- Who has a request (Report: click an amount, or the column title) ----------
+    /* ---------- Who has a request (Report: click a request chip in a day) ----------
        context = {
          project: { code, name }, templateId, dates: [visible ISO dates],
          people: [{ code, name, occupation }],
-         focusCode: the person whose amount was clicked (ticked and listed first), '' from the title,
+         focusCode: the person whose chip was clicked (ticked and listed first), or '' for nobody,
          onDone: function ()
        }
        One list of everyone who has the request on the days shown, with their days and amount
@@ -877,7 +894,7 @@
         save: save,
         additionalFor: additionalFor,
         usedIn: usedIn,
-        datesFor: datesFor,
+        dayIndex: dayIndex,
         openAssign: openAssign,
         openDetail: openDetail
     };

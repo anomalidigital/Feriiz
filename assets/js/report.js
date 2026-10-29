@@ -452,19 +452,46 @@
 
     var EMPTY_LOG_ATTRS = ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""';
 
+    /* Request chips: what a day was given with Assign Request (Uang Makan...), as the
+       template's initials in the row of hour badges, so the day keeps its height
+       (Baldy 29-10-2026: "keliatan di daily, jangan terlalu besar"). A chip opens
+       everyone who has that request. Print leaves them out. */
+    var requestDayIndex = {};   // FeriizTemplates.dayIndex for the days on screen
+
+    function requestDayChips(code, date) {
+        var items = requestDayIndex[code + '|' + date];
+        if (!items || !items.length) return '';
+        return items.map(function (it) {
+            var tip = it.name + ' · ' + formatIDR(it.amount) + (it.note ? ' · ' + it.note : '') + '. Click to see who has it.';
+            return '<button type="button" class="req-chip" data-template="' + escapeHTML(it.templateId) + '" title="' + escapeHTML(tip) + '"' +
+                ' aria-label="' + escapeHTML(it.name + ', ' + formatIDR(it.amount)) + '">' + escapeHTML(it.short) + '</button>';
+        }).join('');
+    }
+
+    // The chips go at the end of the badge row; a day without badges (a day off) gets a row for them.
+    function withRequestChips(content, code, date) {
+        var chips = requestDayChips(code, date);
+        if (!chips) return content;
+        var group = '<div class="feriiz-u-134">';
+        var start = content.indexOf(group);
+        if (start < 0) return '<div class="feriiz-u-133">' + group + chips + '</div></div>' + content;
+        var end = content.indexOf('</div>', start + group.length);
+        return content.slice(0, end) + chips + content.slice(end);
+    }
+
     // What the system shows for one day: the cell's class and data, and what goes inside.
     // noteAttrs lets the left half of a split day open its own log notes.
     function systemCell(employee, date) {
         var override = cellOverrides[employee.code + '|' + date];
         if (dayOffFor(employee.code, date) && !(override && (override.inTime || override.outTime))) {
-            return { cls: 'weekend-off-cell', attrs: EMPTY_LOG_ATTRS, content: '', off: true };
+            return { cls: 'weekend-off-cell', attrs: EMPTY_LOG_ATTRS, content: withRequestChips('', employee.code, date), off: true };
         }
         var src = override || attendanceFor(employee.code, date) || {};
         var inTime = src.inTime || '';
         var outTime = src.outTime || '';
         var request = !inTime && !outTime ? requestFor(employee.code, date) : null;
         if (request) {
-            return { cls: 'request-day-cell', content: requestChipHTML(request),
+            return { cls: 'request-day-cell', content: withRequestChips(requestChipHTML(request), employee.code, date),
                      attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-adjust="0" data-ot-total="0"' };
         }
         var inNote = src.inNote || '';
@@ -479,22 +506,25 @@
             attrs: (issue ? ' data-missing="' + issue + '"' : '') + logAttrs +
                 ' data-work="' + hours.work.toFixed(4) + '" data-ot="' + hours.ot.toFixed(4) + '" data-ot-adjust="' + adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logAttrs,
-            content: buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust,
-                                           otLogCount: otLogCountFor(employee.code, date), importNote: importNote(employee.code, date) })
+            content: withRequestChips(buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust,
+                                                            otLogCount: otLogCountFor(employee.code, date), importNote: importNote(employee.code, date) }), employee.code, date)
         };
     }
 
     // The left half of a split day: the system as it always looks, yellow when a log is missing.
+    // A day off keeps its request chips (a red-date incentive).
     function systemHalfHTML(sys) {
-        if (sys.off) return '<div class="day-half day-half--system is-empty"><span class="day-half-empty">Day off</span></div>';
+        if (sys.off) return '<div class="day-half day-half--system is-empty">' + (sys.content || '') + '<span class="day-half-empty">Day off</span></div>';
         return '<div class="day-half day-half--system' + (sys.cls === 'no-log-cell' ? ' is-incomplete' : '') + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
     }
 
     var NO_IMPORT_HALF = '<div class="day-half day-half--import is-empty"><span class="day-half-empty">Not in the import</span></div>';
 
-    // After Add Log, Delete Log or Add Overtime: a day in a System | Import column keeps its two halves.
+    // After Add Log, Delete Log or Add Overtime: the day keeps its request chips, and a day
+    // in a System | Import column keeps its two halves.
     function setCellContent(cell, content) {
         var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+        content = withRequestChips(content, cell.closest('tr').dataset.employeeCode, cell.dataset.date);
         if (!cell.classList.contains('day-split-cell') || cell.classList.contains('weekend-off-cell')) {
             cell.innerHTML = checkbox + content;
             return;
@@ -524,10 +554,12 @@
        TRANSPORT (Arcon MoM 20-10-2026, built 28-10-2026)
        Every day someone worked pays the Transport / Day from their employee data,
        without anyone assigning it: a day with a log, or an imported Daily 1. A day can
-       be skipped (no transport that day, e.g. they came on the project truck) from the
-       Transport popup or Batch Update > Transport, and paid again the same way.
+       be skipped (no transport that day, e.g. they came on the project truck) with
+       Batch Update > Transport on the selected days, and paid again the same way.
        It is the first of the Client group's additional columns and counts in
-       Total Additional. Skips are kept in this browser until the API exists.
+       Total Additional; like every summary column it shows only the total, since
+       changes are made from the days (Baldy, 29-10-2026). Skips are kept in this
+       browser until the API exists.
        ============================================= */
     var TRANSPORT_COL = 'transport';
     var TRANSPORT_SKIP_KEY = 'feriiz_transport_skips_v1';
@@ -578,107 +610,14 @@
     // The Transport cell and Total Additional of one row, from its paid days.
     function paintTransport(row, rate, paid, skipped) {
         var total = rate * paid;
-        var btn = row.querySelector('td.col-cli-add[data-template="' + TRANSPORT_COL + '"] .add-cell-btn');
-        if (btn) {
-            // Empty when there is nothing to show, so print leaves it blank too.
-            btn.hidden = !paid && !skipped;
-            btn.innerHTML = btn.hidden ? '' : addCellContent(formatIDR(total), paid);
-            btn.title = paid + (paid === 1 ? ' day' : ' days') + ' × ' + formatIDR(rate) +
-                (skipped ? ', ' + skipped + ' skipped' : '') + '. Click for the days.';
-        }
+        var cell = row.querySelector('td.col-cli-add[data-template="' + TRANSPORT_COL + '"]');
+        // Empty when there is nothing to show, so print leaves it blank too.
+        if (cell) cell.textContent = rate && (paid || skipped) ? formatIDR(total) : '';
         var sum = row.querySelector('td.col-cli-addtotal');
         if (sum) {
             var all = (Number(sum.dataset.requests) || 0) + total;
             sum.textContent = all ? formatIDR(all) : '';
         }
-    }
-
-    // One person's worked days in the range, each paid or skipped, where a day is skipped or paid again.
-    var transportModal = null;
-    var transportRow = null;
-
-    function buildTransportModal() {
-        var el = document.createElement('div');
-        el.className = 'modal fade';
-        el.id = 'transportDetailModal';
-        el.tabIndex = -1;
-        el.setAttribute('aria-labelledby', 'transportDetailTitle');
-        el.setAttribute('aria-hidden', 'true');
-        el.innerHTML =
-            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
-                '<div class="modal-content">' +
-                    '<div class="modal-header">' +
-                        '<div>' +
-                            '<h2 class="modal-title" id="transportDetailTitle">Transport</h2>' +
-                            '<p class="tpl-subtitle" id="transportDetailContext"></p>' +
-                        '</div>' +
-                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
-                    '</div>' +
-                    '<div class="modal-body">' +
-                        '<div class="table-container">' +
-                            '<table class="data-table">' +
-                                '<thead><tr><th>Date</th><th>Transport</th><th>Note</th><th class="feriiz-u-028"></th></tr></thead>' +
-                                '<tbody id="transportDetailRows"></tbody>' +
-                            '</table>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="modal-footer">' +
-                        '<span class="tpl-summary me-auto" id="transportDetailTotal"></span>' +
-                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>' +
-                    '</div>' +
-                '</div>' +
-            '</div>';
-        document.body.appendChild(el);
-        el.querySelector('#transportDetailRows').addEventListener('click', function (e) {
-            var btn = e.target.closest('[data-transport-date]');
-            if (!btn || !transportRow) return;
-            var skip = btn.dataset.skip === '1';
-            setTransportSkip([{ code: transportRow.dataset.employeeCode, date: btn.dataset.transportDate }], skip, '');
-            renderTransportDetail();
-            if (window.FeriizNotify) {
-                var when = shortDate(btn.dataset.transportDate);
-                FeriizNotify.success(skip ? 'No transport for ' + transportRow.dataset.employeeName + ' on ' + when + '.'
-                    : 'Transport is paid again for ' + transportRow.dataset.employeeName + ' on ' + when + '.', skip ? 'Transport skipped' : 'Transport paid again');
-            }
-        });
-        return el;
-    }
-
-    function renderTransportDetail() {
-        var row = transportRow;
-        var code = row.dataset.employeeCode;
-        var rate = Number(row.dataset.transportRate) || 0;
-        var skips = projectSkips();
-        var days = [];
-        row.querySelectorAll('td.day-col').forEach(function (cell) {
-            if (currentVisibleDates.indexOf(cell.dataset.date) < 0 || !workedCell(cell)) return;
-            days.push({ date: cell.dataset.date, skip: skips[code + '|' + cell.dataset.date] || null });
-        });
-        var skipped = days.filter(function (d) { return d.skip; }).length;
-        var paid = days.length - skipped;
-        transportModal.querySelector('#transportDetailContext').textContent =
-            row.dataset.employeeName + ' · ' + projectContext.name + ' · ' + formatIDR(rate) + ' a day, from the employee data';
-        transportModal.querySelector('#transportDetailRows').innerHTML = days.length ? days.map(function (d) {
-            var when = DAY_NAMES[fromISO(d.date).getDay()] + ', ' + shortDate(d.date);
-            var label = d.skip ? 'Pay transport again on ' + when : 'No transport on ' + when;
-            return '<tr' + (d.skip ? ' class="transport-skipped"' : '') + '>' +
-                '<td class="tpl-nowrap">' + when + '</td>' +
-                '<td class="tpl-amount">' + (d.skip ? 'Skipped' : formatIDR(rate)) + '</td>' +
-                '<td>' + (d.skip && d.skip.note ? escapeHTML(d.skip.note) : '–') + '</td>' +
-                '<td><div class="action-cell"><button type="button" class="btn-icon" data-transport-date="' + d.date + '" data-skip="' + (d.skip ? '0' : '1') + '"' +
-                    ' title="' + (d.skip ? 'Pay transport again' : 'No transport this day') + '" aria-label="' + escapeHTML(label) + '">' +
-                    '<i class="fa-solid ' + (d.skip ? 'fa-rotate-left' : 'fa-ban') + '" aria-hidden="true"></i></button></div></td>' +
-            '</tr>';
-        }).join('') : '<tr><td colspan="4" class="tpl-empty">No day with a log in this period.</td></tr>';
-        transportModal.querySelector('#transportDetailTotal').textContent = paid + (paid === 1 ? ' day' : ' days') + ' · ' +
-            formatIDR(rate * paid) + (skipped ? ' · ' + skipped + ' skipped' : '');
-    }
-
-    function openTransportDetail(row) {
-        transportRow = row;
-        if (!transportModal) transportModal = buildTransportModal();
-        renderTransportDetail();
-        window.bootstrap.Modal.getOrCreateInstance(transportModal).show();
     }
 
     // Batch Update > Transport: take transport off the selected days, or pay it again.
@@ -766,7 +705,9 @@
     // Additional columns at the end of the Client group: Transport first (when anyone here has
     // a Transport / Day), then one column per request template given on the visible days,
     // shown only when someone here has it (whiteboard 20-10-2026). With two or more,
-    // "Total Additional" adds them up (meeting 1:59, 2:01).
+    // "Total Additional" adds them up (meeting 1:59, 2:01). They show only totals and
+    // cannot be clicked: requests are opened and removed from the chips in the days
+    // (Baldy, 29-10-2026: "di tabel ya total nya aja").
     var addColumns = [];
 
     function computeAddColumns(dates) {
@@ -778,13 +719,6 @@
 
     function hasAddTotal() { return addColumns.length > 1; }
 
-    // The amount, and under it how many days it is for (screen only; print shows the amount).
-    // Arcon wants nothing extra in the day cells, so the count lives here (Baldy 29-10-2026).
-    function addCellContent(amountText, days) {
-        return '<span class="add-cell-amount">' + amountText + '</span>' +
-            '<span class="add-cell-days">' + days + (days === 1 ? ' day' : ' days') + '</span>';
-    }
-
     function addColumnCells(employeeCode, dates) {
         if (!addColumns.length) return '';
         var add = window.FeriizTemplates ? window.FeriizTemplates.additionalFor(employeeCode, projectContext.code, dates) : { total: 0, items: [] };
@@ -794,16 +728,8 @@
             var it = byId[col.id];
             var attrs = ' class="col-cli-add rate-cell" data-template="' + escapeHTML(col.id) + '"';
             // Transport is painted by updateVisibleTotals, from the days on screen.
-            if (col.id === TRANSPORT_COL) {
-                var rate = transportRateOf(window.FERIIZ_DATA ? window.FERIIZ_DATA.findEmployeeByCode(employeeCode) : null);
-                return '<td' + attrs + '>' + (rate ? '<button type="button" class="add-cell-btn" hidden></button>' : '') + '</td>';
-            }
-            if (!it) return '<td' + attrs + '></td>';
-            var tip = it.count + (it.count === 1 ? ' day' : ' days') + (it.notes.length ? ': ' + it.notes.join('; ') : '') +
-                '. Click to see who has it, and to remove it.';
-            // The amount opens everyone who has this request, this person ticked.
-            return '<td' + attrs + '><button type="button" class="add-cell-btn" title="' + escapeHTML(tip) + '">' +
-                addCellContent(formatIDR(it.amount), it.count) + '</button></td>';
+            if (col.id === TRANSPORT_COL) return '<td' + attrs + '></td>';
+            return '<td' + attrs + '>' + (it ? formatIDR(it.amount) : '') + '</td>';
         }).join('');
         // Total Additional = these requests + Transport, which updateVisibleTotals adds.
         if (hasAddTotal()) cells += '<td class="col-cli-addtotal rate-cell" data-requests="' + add.total + '">' + (add.total ? formatIDR(add.total) : '') + '</td>';
@@ -815,11 +741,8 @@
         document.querySelectorAll('.report-table thead th.col-cli-add, .report-table thead th.col-cli-addtotal').forEach(function (th) { th.remove(); });
         var anchor = document.querySelector('.report-table thead th.col-cli-totalovertime');
         if (anchor) {
-            // A request column's title opens everyone who has it (Transport has no such list).
             anchor.insertAdjacentHTML('afterend', addColumns.map(function (col) {
-                var title = col.id === TRANSPORT_COL ? escapeHTML(col.name)
-                    : '<button type="button" class="add-head-btn" title="Who has ' + escapeHTML(col.name) + ', on which days">' + escapeHTML(col.name) + '</button>';
-                return '<th class="col-cli-add" data-template="' + escapeHTML(col.id) + '">' + title + '</th>';
+                return '<th class="col-cli-add" data-template="' + escapeHTML(col.id) + '">' + escapeHTML(col.name) + '</th>';
             }).join('') + (hasAddTotal() ? '<th class="col-cli-addtotal">Total Additional</th>' : ''));
         }
         var list = document.getElementById('colClientAdditional');
@@ -857,16 +780,10 @@
         syncMasterState('colClient');
     }
 
-    function refreshAddColumns() {
-        computeAddColumns(currentVisibleDates);
-        renderAddColumnHeaders();
-        document.querySelectorAll('.report-table tbody tr[data-employee-code]').forEach(function (row) {
-            row.querySelectorAll('td.col-cli-add, td.col-cli-addtotal').forEach(function (td) { td.remove(); });
-            var anchor = row.querySelector('td.col-cli-totalovertime');
-            if (anchor) anchor.insertAdjacentHTML('afterend', addColumnCells(row.dataset.employeeCode, currentVisibleDates));
-        });
-        updateFieldsVisibility();
-        updateVisibleTotals(currentVisibleDates);
+    // After an Assign or a Remove: the request columns and the day chips both change.
+    function refreshRequests() {
+        showDays(currentVisibleDates.slice(), true);
+        applyReportFilters();
     }
 
     // Did the person come in that day: a log, or an imported Daily 1 while imports are shown.
@@ -890,13 +807,13 @@
             dates: currentVisibleDates.slice(),
             today: reportToday,
             onDone: function () {
-                refreshAddColumns();
+                refreshRequests();
                 deselectAllCells();
             }
         });
     }
 
-    // Everyone who has one request on the days shown; focusCode = the row whose amount was clicked.
+    // Everyone who has one request on the days shown; focusCode = the row whose day chip was clicked.
     function openRequestList(templateId, focusCode) {
         if (!window.FeriizTemplates || !projectContext) return;
         window.FeriizTemplates.openDetail({
@@ -905,30 +822,7 @@
             dates: currentVisibleDates.slice(),
             people: reportEmployees.map(function (e) { return { code: e.code, name: e.name, occupation: e.occupation }; }),
             focusCode: focusCode || '',
-            onDone: refreshAddColumns
-        });
-    }
-
-    // Pointing at an amount lights up the days it is for in that row, and nothing else:
-    // the day cells keep only the logs, as Arcon asked (Baldy 29-10-2026).
-    function requestDaysOf(row, templateId) {
-        if (templateId === TRANSPORT_COL) {
-            var skips = projectSkips();
-            var code = row.dataset.employeeCode;
-            return Array.prototype.filter.call(row.querySelectorAll('td.day-col'), function (cell) {
-                return currentVisibleDates.indexOf(cell.dataset.date) >= 0 && workedCell(cell) && !skips[code + '|' + cell.dataset.date];
-            }).map(function (cell) { return cell.dataset.date; });
-        }
-        return window.FeriizTemplates ? window.FeriizTemplates.datesFor(row.dataset.employeeCode, projectContext.code, templateId, currentVisibleDates) : [];
-    }
-
-    function markRequestDays(button, on) {
-        var row = button.closest('tr');
-        row.querySelectorAll('td.request-day-on').forEach(function (cell) { cell.classList.remove('request-day-on'); });
-        if (!on) return;
-        requestDaysOf(row, button.closest('td').dataset.template).forEach(function (date) {
-            var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
-            if (cell) cell.classList.add('request-day-on');
+            onDone: refreshRequests
         });
     }
 
@@ -943,7 +837,7 @@
             }),
             dates: currentVisibleDates.slice(),
             today: reportToday,
-            onDone: refreshAddColumns
+            onDone: refreshRequests
         });
     }
 
@@ -1020,6 +914,7 @@
         var tbody = document.getElementById('reportTableBody');
         if (!tbody) return;
         computeSplitDates(dates);
+        requestDayIndex = window.FeriizTemplates && projectContext ? window.FeriizTemplates.dayIndex(projectContext.code, dates) : {};
         renderDayHeaders(dates);
         computeAddColumns(dates);
         renderAddColumnHeaders();
@@ -2485,31 +2380,14 @@
         initImport();
         var templateBtn = document.getElementById('reportTemplateBtn');
         if (templateBtn) templateBtn.addEventListener('click', openTemplateAssign);
+        // A request chip in a day opens everyone who has that request; the summary columns only show totals.
         var reportBody = document.getElementById('reportTableBody');
-        if (reportBody) {
-            reportBody.addEventListener('click', function (e) {
-                var addBtn = e.target.closest('.add-cell-btn');
-                if (!addBtn) return;
-                if (addBtn.closest('td').dataset.template === TRANSPORT_COL) openTransportDetail(addBtn.closest('tr'));
-                else openRequestList(addBtn.closest('td').dataset.template, addBtn.closest('tr').dataset.employeeCode);
-            });
-            ['mouseover', 'focusin'].forEach(function (type) {
-                reportBody.addEventListener(type, function (e) {
-                    var addBtn = e.target.closest('.add-cell-btn');
-                    if (addBtn) markRequestDays(addBtn, true);
-                });
-            });
-            ['mouseout', 'focusout'].forEach(function (type) {
-                reportBody.addEventListener(type, function (e) {
-                    var addBtn = e.target.closest('.add-cell-btn');
-                    if (addBtn && !addBtn.contains(e.relatedTarget)) markRequestDays(addBtn, false);
-                });
-            });
-        }
-        var reportHead = document.querySelector('.report-table thead');
-        if (reportHead) reportHead.addEventListener('click', function (e) {
-            var headBtn = e.target.closest('.add-head-btn');
-            if (headBtn) openRequestList(headBtn.closest('th').dataset.template, '');
+        if (reportBody) reportBody.addEventListener('click', function (e) {
+            var chip = e.target.closest('.req-chip');
+            if (!chip) return;
+            e.preventDefault();
+            e.stopPropagation();
+            openRequestList(chip.dataset.template, chip.closest('tr').dataset.employeeCode);
         });
         syncDataFilter();
         resetDateDraft();

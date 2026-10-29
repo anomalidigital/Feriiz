@@ -45,6 +45,8 @@
     var reportEmployees = [];
     // Fast lookup for attendance records keyed by employeeCode + '|' + date
     var attendanceIndex = {};
+    // Accepted requests (sick, leave, remote, permission) keyed the same way.
+    var requestIndex = {};
     // Last day with a log per employee in this project (Assign Template sorts by it).
     var lastActiveByCode = {};
     // Logs added or deleted with Batch Update in this visit, keyed like attendanceIndex.
@@ -82,7 +84,8 @@
         missingTypes: [],
         occupations: [],
         occupationLabels: [],
-        range: null            // { start, end } chosen in the filter; null = the default week
+        range: null,           // { start, end } chosen in the filter; null = the default week
+        original: false        // Show original data: the system's logs instead of an import
     };
 
     function appliedRange() {
@@ -178,6 +181,151 @@
     }
 
     /* =============================================
+       IMPORTED LOG (Import XLSX > Import Log)
+       An import replaces what the Report counts for its days: Daily (1 = paid day,
+       0 = not) and Overtime hours, plus the rates in the file (Feriiz team, 27-10-2026).
+       A day column with an import is split in two (Baldy, 30-10-2026): the system on
+       the left, as always, and the import on the right, shown like a normal day with
+       the file's Time Start / Time End as log in / log out and its Overtime. Filter >
+       Show original data shows only the system again. Prototype only: kept in this
+       browser until the API exists.
+       ============================================= */
+    var IMPORT_KEY = 'feriiz_report_imports_v1';
+    var RATE_LABELS = { daily: 'Daily Rate', ot: 'Rate Overtime', clientDaily: 'Client Daily Rate', clientOt: 'Client Rate Overtime' };
+    var importStore = {};
+    try { importStore = JSON.parse(localStorage.getItem(IMPORT_KEY) || '{}') || {}; } catch (e) { importStore = {}; }
+
+    function projectImports() {
+        var code = projectContext ? projectContext.code : '';
+        return importStore[code] || (importStore[code] = { cells: {}, rates: {} });
+    }
+
+    function saveImports() {
+        try { localStorage.setItem(IMPORT_KEY, JSON.stringify(importStore)); } catch (e) { /* kept for this page only */ }
+    }
+
+    function hasImports() {
+        var p = projectImports();
+        return Object.keys(p.cells).length > 0 || Object.keys(p.rates).length > 0;
+    }
+
+    function showImported() { return !appliedReportFilters.original; }
+
+    function storedImport(code, date) { return projectImports().cells[code + '|' + date] || null; }
+
+    // The imported day the Report shows, or null (none, or Show original data is on).
+    function importedDay(code, date) { return showImported() ? storedImport(code, date) : null; }
+
+
+    // What the system says for one day, Add Log and Add Overtime included.
+    function systemDay(code, date) {
+        var rec = attendanceFor(code, date);
+        var override = cellOverrides[code + '|' + date];
+        var dayOff = rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
+        if (dayOff && !(override && (override.inTime || override.outTime))) return { daily: 0, ot: 0 };
+        var src = override || rec || {};
+        var inTime = src.inTime || '', outTime = src.outTime || '';
+        var hours = cellHours(code, date, inTime, outTime);
+        var ot = inTime && outTime ? Math.max(0, hours.ot + otAdjustFor(code, date) / 60) : 0;
+        return { daily: inTime || outTime ? 1 : 0, ot: Math.round(ot * 100) / 100 };
+    }
+
+    // "Daily 1 · OT 1.47h", in the words of the Excel columns.
+    function dayText(d) { return 'Daily ' + d.daily + ' · OT ' + formatHour(d.ot); }
+
+    function stampText(iso) {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return shortDate(toISO(d)) + ', ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    // The rates a row is paid with: the imported ones while they are shown, else the system's.
+    function ratesFor(employee, anyView) {
+        var r = {
+            daily: Number(employee.dailyRate) || 0,
+            ot: projectContext ? Number(projectContext.overtimeRate) || 0 : 0,
+            clientDaily: Number(employee.clientDailyRate) || 0,
+            clientOt: projectContext ? Number(projectContext.clientOvertimeRate) || 0 : 0
+        };
+        var imp = anyView || showImported() ? projectImports().rates[employee.code] : null;
+        if (imp) Object.keys(r).forEach(function (k) { if (imp[k] != null) r[k] = imp[k]; });
+        return r;
+    }
+
+    // The working day an imported day shows: the file's Time Start / Time End / Period for
+    // the person, else their own hours, else the project's (imports from before 30-10-2026
+    // kept only Daily and Overtime).
+    function importHours(employee, imp) {
+        var start = imp.start || ((employee.workStart || (projectContext && projectContext.workStart) || '08:00') + ':00');
+        var end = imp.end || ((employee.workEnd || (projectContext && projectContext.workEnd) || '17:00') + ':00');
+        var period = imp.period != null ? imp.period : Math.max(0, (toSeconds(end) - toSeconds(start)) / 3600);
+        return { start: start, end: end, period: period };
+    }
+
+    function dayOffFor(code, date) {
+        var rec = attendanceFor(code, date);
+        return rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
+    }
+
+    // An imported day is shown unless it is a day off the file also says nobody worked.
+    function showsImport(code, date, imp) {
+        return Boolean(imp) && !(dayOffFor(code, date) && !imp.daily && !imp.ot);
+    }
+
+    // { 'YYYY-MM-DD': true } for the days on screen that are split into System | Import.
+    var splitDates = {};
+
+    function computeSplitDates(dates) {
+        splitDates = {};
+        if (!showImported()) return;
+        var cells = projectImports().cells;
+        var inReport = {};
+        reportEmployees.forEach(function (e) { inReport[e.code] = true; });
+        Object.keys(cells).forEach(function (key) {
+            var parts = key.split('|');
+            if (inReport[parts[0]] && dates.indexOf(parts[1]) >= 0 && showsImport(parts[0], parts[1], cells[key])) splitDates[parts[1]] = true;
+        });
+    }
+
+    // The right half of a split day: the file's numbers shown like a normal day, and
+    // "Changed" when they differ from the system on the left.
+    function importHalfHTML(employee, date, imp) {
+        var hours = importHours(employee, imp);
+        var work = imp.daily ? hours.period : 0;
+        var changed = differs(systemDay(employee.code, date), imp);
+        var title = 'Imported from ' + imp.file + ' on ' + stampText(imp.at) + '.';
+        return '<div class="day-half day-half--import" title="' + escapeHTML(title) + '">' +
+            '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
+                '<span class="badge feriiz-u-135">' + formatHour(work) + '</span>' +
+                '<span class="badge feriiz-u-136">' + formatHour(imp.ot) + ' OT</span>' +
+            '</div>' + (changed ? '<span class="cell-import-changed">Changed</span>' : '') + '</div>' +
+            '<div class="feriiz-u-140">' +
+                (imp.daily ? buildClockLine('in', hours.start) + buildClockLine('out', hours.end)
+                    : '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>' +
+                      '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>') +
+            '</div></div>';
+    }
+
+    // A day from an import: the totals count the file's numbers, the cell shows both sides.
+    function importedCellHTML(employee, date, imp, sys, checkbox) {
+        var work = imp.daily ? importHours(employee, imp).period : 0;
+        return '<td class="day-col feriiz-u-132 imported-cell day-split-cell" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
+            ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""' +
+            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-adjust="0" data-ot-total="' + imp.ot.toFixed(4) + '">' +
+            checkbox + '<div class="day-split">' + systemHalfHTML(sys) + importHalfHTML(employee, date, imp) + '</div></td>';
+    }
+
+    function differs(a, b) { return a.daily !== b.daily || Math.abs(a.ot - b.ot) >= 0.01; }
+
+    // In original view a day the import changed gets a small tag with the imported numbers
+    // (days it left the same get none, so the tags show what the import changed).
+    function importNote(code, date) {
+        if (showImported()) return '';
+        var imp = storedImport(code, date);
+        return imp && differs(imp, systemDay(code, date)) ? 'Imported: ' + dayText(imp) : '';
+    }
+
+    /* =============================================
        CELL RENDERING
        ============================================= */
     function buildClockLine(type, value, options) {
@@ -229,7 +377,10 @@
             var updateBadge = isUpdated
                 ? '<span class="cell-updated-badge"><i class="fa-solid fa-check"></i>Updated</span>'
                 : '';
-            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + updateBadge + '</div>';
+            var importTag = opts && opts.importNote
+                ? '<span class="cell-import-tag" title="' + escapeHTML(opts.importNote) + '"><i class="fa-solid fa-file-import" aria-hidden="true"></i>Import</span>'
+                : '';
+            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + (updateBadge || importTag) + '</div>';
         }
 
         if (renderedLines) {
@@ -278,88 +429,530 @@
         return '';
     }
 
+    function requestFor(code, date) { return requestIndex[code + '|' + date] || null; }
+
+    // Same categories and colours as the Calendar.
+    function requestCategory(type) {
+        var t = String(type || '').toLowerCase();
+        if (t.indexOf('sick') >= 0) return 'sick';
+        if (t.indexOf('remote') >= 0) return 'work';
+        if (t.indexOf('leave') >= 0 || t.indexOf('permission') >= 0) return 'leave';
+        return 'other';
+    }
+
+    // A day without logs covered by an accepted request shows the request instead of
+    // "log incomplete" (backlog A1, 28-10-2026). It is not a missing log, so the Log In /
+    // Log Out filter skips it, and it still counts as no day worked.
+    function requestChipHTML(req) {
+        var title = req.type + ' (' + req.id + '), accepted' + (req.reason ? ': ' + req.reason : '');
+        return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
+            '<span class="badge cell-request-chip cat-' + requestCategory(req.type) + '-bg" title="' + escapeHTML(title) + '">' + escapeHTML(req.type) + '</span>' +
+        '</div></div>';
+    }
+
+    var EMPTY_LOG_ATTRS = ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""';
+
+    // What the system shows for one day: the cell's class and data, and what goes inside.
+    // noteAttrs lets the left half of a split day open its own log notes.
+    function systemCell(employee, date) {
+        var override = cellOverrides[employee.code + '|' + date];
+        if (dayOffFor(employee.code, date) && !(override && (override.inTime || override.outTime))) {
+            return { cls: 'weekend-off-cell', attrs: EMPTY_LOG_ATTRS, content: '', off: true };
+        }
+        var src = override || attendanceFor(employee.code, date) || {};
+        var inTime = src.inTime || '';
+        var outTime = src.outTime || '';
+        var request = !inTime && !outTime ? requestFor(employee.code, date) : null;
+        if (request) {
+            return { cls: 'request-day-cell', content: requestChipHTML(request),
+                     attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-adjust="0" data-ot-total="0"' };
+        }
+        var inNote = src.inNote || '';
+        var outNote = src.outNote || '';
+        var issue = getMissingType(inTime, outTime);
+        var hours = cellHours(employee.code, date, inTime, outTime);
+        var adjust = otAdjustFor(employee.code, date);
+        var otTotal = inTime && outTime ? Math.max(0, hours.ot + adjust / 60) : 0;
+        var logAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"';
+        return {
+            cls: issue ? 'no-log-cell' : '',
+            attrs: (issue ? ' data-missing="' + issue + '"' : '') + logAttrs +
+                ' data-work="' + hours.work.toFixed(4) + '" data-ot="' + hours.ot.toFixed(4) + '" data-ot-adjust="' + adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"',
+            noteAttrs: ' data-date="' + date + '"' + logAttrs,
+            content: buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust,
+                                           otLogCount: otLogCountFor(employee.code, date), importNote: importNote(employee.code, date) })
+        };
+    }
+
+    // The left half of a split day: the system as it always looks, yellow when a log is missing.
+    function systemHalfHTML(sys) {
+        if (sys.off) return '<div class="day-half day-half--system is-empty"><span class="day-half-empty">Day off</span></div>';
+        return '<div class="day-half day-half--system' + (sys.cls === 'no-log-cell' ? ' is-incomplete' : '') + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
+    }
+
+    var NO_IMPORT_HALF = '<div class="day-half day-half--import is-empty"><span class="day-half-empty">Not in the import</span></div>';
+
+    // After Add Log, Delete Log or Add Overtime: a day in a System | Import column keeps its two halves.
+    function setCellContent(cell, content) {
+        var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+        if (!cell.classList.contains('day-split-cell') || cell.classList.contains('weekend-off-cell')) {
+            cell.innerHTML = checkbox + content;
+            return;
+        }
+        var d = cell.dataset;
+        var noteAttrs = ' data-date="' + d.date + '" data-in-time="' + escapeHTML(d.inTime || '') + '" data-out-time="' + escapeHTML(d.outTime || '') + '"' +
+            ' data-in-note="' + escapeHTML(d.inNote || '') + '" data-out-note="' + escapeHTML(d.outNote || '') + '"';
+        cell.innerHTML = checkbox + '<div class="day-split">' +
+            systemHalfHTML({ cls: cell.classList.contains('no-log-cell') ? 'no-log-cell' : '', noteAttrs: noteAttrs, content: content }) +
+            NO_IMPORT_HALF + '</div>';
+    }
+
     function createDayCells(employee, dates) {
         return dates.map(function (date) {
-            var rec = attendanceFor(employee.code, date);
-            var override = cellOverrides[employee.code + '|' + date];
             var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
-            var dayOff = rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
+            var sys = systemCell(employee, date);
+            var imported = importedDay(employee.code, date);
+            if (showsImport(employee.code, date, imported)) return importedCellHTML(employee, date, imported, sys, checkbox);
+            // A day of a split column without an import for this person: the system, and an empty right half.
+            var split = splitDates[date] && !sys.off;
+            return '<td class="day-col feriiz-u-132' + (sys.cls ? ' ' + sys.cls : '') + (split ? ' day-split-cell' : '') + '" data-date="' + date + '"' + sys.attrs + '>' +
+                checkbox + (split ? '<div class="day-split">' + systemHalfHTML(sys) + NO_IMPORT_HALF + '</div>' : sys.content) + '</td>';
+        }).join('');
+    }
 
-            if (dayOff && !(override && (override.inTime || override.outTime))) {
-                return '<td class="day-col feriiz-u-132 weekend-off-cell" data-date="' + date + '" data-in-time="" data-out-time="" data-in-note="" data-out-note="">' +
-                    checkbox + '</td>';
+    /* =============================================
+       TRANSPORT (Arcon MoM 20-10-2026, built 28-10-2026)
+       Every day someone worked pays the Transport / Day from their employee data,
+       without anyone assigning it: a day with a log, or an imported Daily 1. A day can
+       be skipped (no transport that day, e.g. they came on the project truck) from the
+       Transport popup or Batch Update > Transport, and paid again the same way.
+       It is the first of the Client group's additional columns and counts in
+       Total Additional. Skips are kept in this browser until the API exists.
+       ============================================= */
+    var TRANSPORT_COL = 'transport';
+    var TRANSPORT_SKIP_KEY = 'feriiz_transport_skips_v1';
+    var transportSkips = {};
+    try { transportSkips = JSON.parse(localStorage.getItem(TRANSPORT_SKIP_KEY) || '{}') || {}; } catch (e) { transportSkips = {}; }
+
+    // { 'CODE|YYYY-MM-DD': { note, at } } for this project
+    function projectSkips() {
+        var code = projectContext ? projectContext.code : '';
+        return transportSkips[code] || (transportSkips[code] = {});
+    }
+
+    function saveSkips() {
+        try { localStorage.setItem(TRANSPORT_SKIP_KEY, JSON.stringify(transportSkips)); } catch (e) { /* kept for this page only */ }
+    }
+
+    function transportRateOf(employee) {
+        return employee && window.FERIIZ_DATA && window.FERIIZ_DATA.transportOf ? window.FERIIZ_DATA.transportOf(employee) : 0;
+    }
+
+    // A worked day, by the same rule as Total Days.
+    function workedCell(cell) {
+        if (cell.classList.contains('weekend-off-cell')) return false;
+        if (cell.dataset.imported) return Number(cell.dataset.daily) > 0;
+        return Boolean(cell.dataset.inTime || cell.dataset.outTime);
+    }
+
+    // items = [{ code, date }]; skip true takes transport off those days, false pays it again.
+    function setTransportSkip(items, skip, note) {
+        var skips = projectSkips();
+        var at = new Date().toISOString();
+        var changed = 0;
+        items.forEach(function (it) {
+            var key = it.code + '|' + it.date;
+            if (skip && !skips[key]) {
+                skips[key] = { note: note || '', at: at };
+                changed++;
+            } else if (!skip && skips[key]) {
+                delete skips[key];
+                changed++;
             }
-
-            var src = override || rec || {};
-            var inTime = src.inTime || '';
-            var outTime = src.outTime || '';
-            var inNote = src.inNote || '';
-            var outNote = src.outNote || '';
-            var issue = getMissingType(inTime, outTime);
-            var hours = cellHours(employee.code, date, inTime, outTime);
-            var adjust = otAdjustFor(employee.code, date);
-            var otTotal = inTime && outTime ? Math.max(0, hours.ot + adjust / 60) : 0;
-
-            var missingAttr = issue ? ' data-missing="' + issue + '"' : '';
-            var dataAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"' +
-                ' data-work="' + hours.work.toFixed(4) + '" data-ot="' + hours.ot.toFixed(4) + '" data-ot-adjust="' + adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"';
-            var cellClass = 'day-col feriiz-u-132' + (issue ? ' no-log-cell' : '');
-            var content = buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust, otLogCount: otLogCountFor(employee.code, date) });
-
-            return '<td class="' + cellClass + '" data-date="' + date + '"' + missingAttr + dataAttrs + '>' +
-                checkbox + content + '</td>';
-        }).join('');
+        });
+        if (changed) saveSkips();
+        updateVisibleTotals(currentVisibleDates);
+        return changed;
     }
 
-    // Additional = request templates given to this person on the visible days
-    // (meal, transport, holiday incentive...). Total for print, lines per template on screen.
-    function additionalCells(employeeCode, dates) {
-        var add = window.FeriizTemplates && projectContext
-            ? window.FeriizTemplates.additionalFor(employeeCode, projectContext.code, dates) : { total: 0, items: [], notes: [] };
-        if (!add.items.length) {
-            return '<td class="col-additional-amount"></td><td class="col-additional-note"></td>';
+    // The Transport cell and Total Additional of one row, from its paid days.
+    function paintTransport(row, rate, paid, skipped) {
+        var total = rate * paid;
+        var btn = row.querySelector('td.col-cli-add[data-template="' + TRANSPORT_COL + '"] .add-cell-btn');
+        if (btn) {
+            // Empty when there is nothing to show, so print leaves it blank too.
+            btn.hidden = !paid && !skipped;
+            btn.innerHTML = btn.hidden ? '' : addCellContent(formatIDR(total), paid);
+            btn.title = paid + (paid === 1 ? ' day' : ' days') + ' × ' + formatIDR(rate) +
+                (skipped ? ', ' + skipped + ' skipped' : '') + '. Click for the days.';
         }
-        var lines = add.items.map(function (it) {
-            return '<div class="add-line"><span>' + escapeHTML(it.name) + (it.count > 1 ? ' \u00d7' + it.count : '') + '</span>' +
-                '<span>' + formatIDR(it.amount) + '</span></div>';
-        }).join('');
-        return '<td class="col-additional-amount"><div class="add-total">' + formatIDR(add.total) + '</div>' +
-                '<div class="add-lines screen-only">' + lines + '</div></td>' +
-            '<td class="col-additional-note">' + escapeHTML(add.notes.join('; ')) + '</td>';
+        var sum = row.querySelector('td.col-cli-addtotal');
+        if (sum) {
+            var all = (Number(sum.dataset.requests) || 0) + total;
+            sum.textContent = all ? formatIDR(all) : '';
+        }
     }
 
-    function refreshAdditional() {
+    // One person's worked days in the range, each paid or skipped, where a day is skipped or paid again.
+    var transportModal = null;
+    var transportRow = null;
+
+    function buildTransportModal() {
+        var el = document.createElement('div');
+        el.className = 'modal fade';
+        el.id = 'transportDetailModal';
+        el.tabIndex = -1;
+        el.setAttribute('aria-labelledby', 'transportDetailTitle');
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML =
+            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<div>' +
+                            '<h2 class="modal-title" id="transportDetailTitle">Transport</h2>' +
+                            '<p class="tpl-subtitle" id="transportDetailContext"></p>' +
+                        '</div>' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="table-container">' +
+                            '<table class="data-table">' +
+                                '<thead><tr><th>Date</th><th>Transport</th><th>Note</th><th class="feriiz-u-028"></th></tr></thead>' +
+                                '<tbody id="transportDetailRows"></tbody>' +
+                            '</table>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<span class="tpl-summary me-auto" id="transportDetailTotal"></span>' +
+                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(el);
+        el.querySelector('#transportDetailRows').addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-transport-date]');
+            if (!btn || !transportRow) return;
+            var skip = btn.dataset.skip === '1';
+            setTransportSkip([{ code: transportRow.dataset.employeeCode, date: btn.dataset.transportDate }], skip, '');
+            renderTransportDetail();
+            if (window.FeriizNotify) {
+                var when = shortDate(btn.dataset.transportDate);
+                FeriizNotify.success(skip ? 'No transport for ' + transportRow.dataset.employeeName + ' on ' + when + '.'
+                    : 'Transport is paid again for ' + transportRow.dataset.employeeName + ' on ' + when + '.', skip ? 'Transport skipped' : 'Transport paid again');
+            }
+        });
+        return el;
+    }
+
+    function renderTransportDetail() {
+        var row = transportRow;
+        var code = row.dataset.employeeCode;
+        var rate = Number(row.dataset.transportRate) || 0;
+        var skips = projectSkips();
+        var days = [];
+        row.querySelectorAll('td.day-col').forEach(function (cell) {
+            if (currentVisibleDates.indexOf(cell.dataset.date) < 0 || !workedCell(cell)) return;
+            days.push({ date: cell.dataset.date, skip: skips[code + '|' + cell.dataset.date] || null });
+        });
+        var skipped = days.filter(function (d) { return d.skip; }).length;
+        var paid = days.length - skipped;
+        transportModal.querySelector('#transportDetailContext').textContent =
+            row.dataset.employeeName + ' · ' + projectContext.name + ' · ' + formatIDR(rate) + ' a day, from the employee data';
+        transportModal.querySelector('#transportDetailRows').innerHTML = days.length ? days.map(function (d) {
+            var when = DAY_NAMES[fromISO(d.date).getDay()] + ', ' + shortDate(d.date);
+            var label = d.skip ? 'Pay transport again on ' + when : 'No transport on ' + when;
+            return '<tr' + (d.skip ? ' class="transport-skipped"' : '') + '>' +
+                '<td class="tpl-nowrap">' + when + '</td>' +
+                '<td class="tpl-amount">' + (d.skip ? 'Skipped' : formatIDR(rate)) + '</td>' +
+                '<td>' + (d.skip && d.skip.note ? escapeHTML(d.skip.note) : '–') + '</td>' +
+                '<td><div class="action-cell"><button type="button" class="btn-icon" data-transport-date="' + d.date + '" data-skip="' + (d.skip ? '0' : '1') + '"' +
+                    ' title="' + (d.skip ? 'Pay transport again' : 'No transport this day') + '" aria-label="' + escapeHTML(label) + '">' +
+                    '<i class="fa-solid ' + (d.skip ? 'fa-rotate-left' : 'fa-ban') + '" aria-hidden="true"></i></button></div></td>' +
+            '</tr>';
+        }).join('') : '<tr><td colspan="4" class="tpl-empty">No day with a log in this period.</td></tr>';
+        transportModal.querySelector('#transportDetailTotal').textContent = paid + (paid === 1 ? ' day' : ' days') + ' · ' +
+            formatIDR(rate * paid) + (skipped ? ' · ' + skipped + ' skipped' : '');
+    }
+
+    function openTransportDetail(row) {
+        transportRow = row;
+        if (!transportModal) transportModal = buildTransportModal();
+        renderTransportDetail();
+        window.bootstrap.Modal.getOrCreateInstance(transportModal).show();
+    }
+
+    // Batch Update > Transport: take transport off the selected days, or pay it again.
+    var transportBatchModal = null;
+    var transportBatchCells = [];
+
+    function buildTransportBatchModal() {
+        var el = document.createElement('div');
+        el.className = 'modal fade';
+        el.id = 'transportBatchModal';
+        el.tabIndex = -1;
+        el.setAttribute('aria-labelledby', 'transportBatchTitle');
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<div>' +
+                            '<h2 class="modal-title" id="transportBatchTitle">Transport</h2>' +
+                            '<p class="tpl-subtitle" id="transportBatchContext"></p>' +
+                        '</div>' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="form-check mb-2">' +
+                            '<input class="form-check-input" type="radio" name="transportBatchMode" id="transportBatchSkip" value="skip" checked>' +
+                            '<label class="form-check-label" for="transportBatchSkip">No transport on these days</label>' +
+                        '</div>' +
+                        '<div class="form-check mb-3">' +
+                            '<input class="form-check-input" type="radio" name="transportBatchMode" id="transportBatchPay" value="pay">' +
+                            '<label class="form-check-label" for="transportBatchPay">Pay transport again on these days</label>' +
+                        '</div>' +
+                        '<label class="form-label" for="transportBatchNote">Note</label>' +
+                        '<input type="text" class="form-control" id="transportBatchNote" placeholder="For example: came on the project truck">' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
+                        '<button type="button" class="btn btn-primary" id="transportBatchApply">Apply</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(el);
+        el.querySelectorAll('input[name="transportBatchMode"]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                el.querySelector('#transportBatchNote').disabled = el.querySelector('#transportBatchPay').checked;
+            });
+        });
+        el.querySelector('#transportBatchApply').addEventListener('click', function () {
+            var skip = el.querySelector('#transportBatchSkip').checked;
+            var eligible = [];
+            transportBatchCells.forEach(function (cell) {
+                var row = cell.closest('tr');
+                if (Number(row.dataset.transportRate) > 0 && workedCell(cell)) eligible.push({ code: row.dataset.employeeCode, date: cell.dataset.date });
+            });
+            var left = transportBatchCells.length - eligible.length;
+            var changed = setTransportSkip(eligible, skip, el.querySelector('#transportBatchNote').value.trim());
+            window.bootstrap.Modal.getInstance(el).hide();
+            deselectAllCells();
+            if (!window.FeriizNotify) return;
+            var leftText = left ? ' ' + left + (left === 1 ? ' day was' : ' days were') + ' left out: no log that day, or no Transport / Day.' : '';
+            if (!changed) {
+                FeriizNotify.info((skip ? 'These days already had no transport.' : 'These days already had transport.') + leftText, 'Nothing changed');
+                return;
+            }
+            FeriizNotify.success((skip ? 'Transport was taken off ' : 'Transport is paid again on ') + changed + (changed === 1 ? ' day.' : ' days.') + leftText,
+                skip ? 'Transport skipped' : 'Transport paid again');
+        });
+        return el;
+    }
+
+    function openTransportBatch(cells) {
+        transportBatchCells = cells;
+        if (!transportBatchModal) transportBatchModal = buildTransportBatchModal();
+        var people = {};
+        cells.forEach(function (cell) { people[cell.closest('tr').dataset.employeeCode] = true; });
+        var count = Object.keys(people).length;
+        transportBatchModal.querySelector('#transportBatchContext').textContent = cells.length + (cells.length === 1 ? ' day' : ' days') +
+            ' selected for ' + count + (count === 1 ? ' person' : ' people');
+        transportBatchModal.querySelector('#transportBatchSkip').checked = true;
+        transportBatchModal.querySelector('#transportBatchNote').value = '';
+        transportBatchModal.querySelector('#transportBatchNote').disabled = false;
+        window.bootstrap.Modal.getOrCreateInstance(transportBatchModal).show();
+    }
+
+    // Additional columns at the end of the Client group: Transport first (when anyone here has
+    // a Transport / Day), then one column per request template given on the visible days,
+    // shown only when someone here has it (whiteboard 20-10-2026). With two or more,
+    // "Total Additional" adds them up (meeting 1:59, 2:01).
+    var addColumns = [];
+
+    function computeAddColumns(dates) {
+        var templates = window.FeriizTemplates && projectContext
+            ? window.FeriizTemplates.usedIn(projectContext.code, reportEmployees.map(function (e) { return e.code; }), dates) : [];
+        var transport = reportEmployees.some(function (e) { return transportRateOf(e) > 0; });
+        addColumns = (transport ? [{ id: TRANSPORT_COL, name: 'Transport' }] : []).concat(templates);
+    }
+
+    function hasAddTotal() { return addColumns.length > 1; }
+
+    // The amount, and under it how many days it is for (screen only; print shows the amount).
+    // Arcon wants nothing extra in the day cells, so the count lives here (Baldy 29-10-2026).
+    function addCellContent(amountText, days) {
+        return '<span class="add-cell-amount">' + amountText + '</span>' +
+            '<span class="add-cell-days">' + days + (days === 1 ? ' day' : ' days') + '</span>';
+    }
+
+    function addColumnCells(employeeCode, dates) {
+        if (!addColumns.length) return '';
+        var add = window.FeriizTemplates ? window.FeriizTemplates.additionalFor(employeeCode, projectContext.code, dates) : { total: 0, items: [] };
+        var byId = {};
+        add.items.forEach(function (it) { byId[it.templateId] = it; });
+        var cells = addColumns.map(function (col) {
+            var it = byId[col.id];
+            var attrs = ' class="col-cli-add rate-cell" data-template="' + escapeHTML(col.id) + '"';
+            // Transport is painted by updateVisibleTotals, from the days on screen.
+            if (col.id === TRANSPORT_COL) {
+                var rate = transportRateOf(window.FERIIZ_DATA ? window.FERIIZ_DATA.findEmployeeByCode(employeeCode) : null);
+                return '<td' + attrs + '>' + (rate ? '<button type="button" class="add-cell-btn" hidden></button>' : '') + '</td>';
+            }
+            if (!it) return '<td' + attrs + '></td>';
+            var tip = it.count + (it.count === 1 ? ' day' : ' days') + (it.notes.length ? ': ' + it.notes.join('; ') : '') +
+                '. Click to see who has it, and to remove it.';
+            // The amount opens everyone who has this request, this person ticked.
+            return '<td' + attrs + '><button type="button" class="add-cell-btn" title="' + escapeHTML(tip) + '">' +
+                addCellContent(formatIDR(it.amount), it.count) + '</button></td>';
+        }).join('');
+        // Total Additional = these requests + Transport, which updateVisibleTotals adds.
+        if (hasAddTotal()) cells += '<td class="col-cli-addtotal rate-cell" data-requests="' + add.total + '">' + (add.total ? formatIDR(add.total) : '') + '</td>';
+        return cells;
+    }
+
+    // Header cells for the template columns (and Total Additional), with a checkbox each in the column list.
+    function renderAddColumnHeaders() {
+        document.querySelectorAll('.report-table thead th.col-cli-add, .report-table thead th.col-cli-addtotal').forEach(function (th) { th.remove(); });
+        var anchor = document.querySelector('.report-table thead th.col-cli-totalovertime');
+        if (anchor) {
+            // A request column's title opens everyone who has it (Transport has no such list).
+            anchor.insertAdjacentHTML('afterend', addColumns.map(function (col) {
+                var title = col.id === TRANSPORT_COL ? escapeHTML(col.name)
+                    : '<button type="button" class="add-head-btn" title="Who has ' + escapeHTML(col.name) + ', on which days">' + escapeHTML(col.name) + '</button>';
+                return '<th class="col-cli-add" data-template="' + escapeHTML(col.id) + '">' + title + '</th>';
+            }).join('') + (hasAddTotal() ? '<th class="col-cli-addtotal">Total Additional</th>' : ''));
+        }
+        var list = document.getElementById('colClientAdditional');
+        if (!list) return;
+        var wasOn = {};
+        list.querySelectorAll('input').forEach(function (cb) { wasOn[cb.id] = cb.checked; });
+        Object.keys(colMap).forEach(function (id) { if (id.indexOf('colCliAdd') === 0) delete colMap[id]; });
+        var slaves = masterGroups.colClient;
+        for (var i = slaves.length - 1; i >= 0; i--) {
+            if (slaves[i].indexOf('colCliAdd') === 0) slaves.splice(i, 1);
+        }
+        var items = addColumns.map(function (col) {
+            return { id: 'colCliAdd-' + col.id, label: col.name, cols: ['.col-cli-add[data-template="' + col.id + '"]'], request: col.id !== TRANSPORT_COL };
+        });
+        if (hasAddTotal()) items.push({ id: 'colCliAddTotal', label: 'Total Additional', cols: ['.col-cli-addtotal'], request: true });
+        // New columns start visible, so an assignment shows right away. Transport sits
+        // above the "Requests" sub-heading: it is not a request.
+        var headed = false;
+        list.innerHTML = items.map(function (it) {
+            colMap[it.id] = it.cols;
+            slaves.push(it.id);
+            var heading = it.request && !headed ? '<div class="col-picker-sub">Requests</div>' : '';
+            if (it.request) headed = true;
+            return heading + '<div class="feriiz-u-119">' +
+                '<input type="checkbox" id="' + escapeHTML(it.id) + '" class="feriiz-u-120"' + (wasOn[it.id] === false ? '' : ' checked') + '>' +
+                '<label for="' + escapeHTML(it.id) + '" class="feriiz-u-121">' + escapeHTML(it.label) + '</label>' +
+            '</div>';
+        }).join('');
+        list.querySelectorAll('input').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                syncMasterState('colClient');
+                updateFieldsVisibility();
+            });
+        });
+        syncMasterState('colClient');
+    }
+
+    function refreshAddColumns() {
+        computeAddColumns(currentVisibleDates);
+        renderAddColumnHeaders();
         document.querySelectorAll('.report-table tbody tr[data-employee-code]').forEach(function (row) {
-            var holder = document.createElement('tbody');
-            holder.innerHTML = '<tr>' + additionalCells(row.dataset.employeeCode, currentVisibleDates) + '</tr>';
-            var fresh = holder.querySelectorAll('td');
-            var amount = row.querySelector('.col-additional-amount');
-            var note = row.querySelector('.col-additional-note');
-            if (amount) amount.innerHTML = fresh[0].innerHTML;
-            if (note) note.innerHTML = fresh[1].innerHTML;
+            row.querySelectorAll('td.col-cli-add, td.col-cli-addtotal').forEach(function (td) { td.remove(); });
+            var anchor = row.querySelector('td.col-cli-totalovertime');
+            if (anchor) anchor.insertAdjacentHTML('afterend', addColumnCells(row.dataset.employeeCode, currentVisibleDates));
         });
         updateFieldsVisibility();
+        updateVisibleTotals(currentVisibleDates);
     }
 
-    // Assign a request template from the toolbar: pick people and days in the dialog.
+    // Did the person come in that day: a log, or an imported Daily 1 while imports are shown.
+    // Assign Request gives Daily templates only on these days.
+    function workedOn(code, date) {
+        var imported = importedDay(code, date);
+        return imported ? imported.daily > 0 : systemDay(code, date).daily > 0;
+    }
+
+    // Batch Update > Assign Request: the template goes to exactly the selected days.
+    function openCellAssign(cells) {
+        if (!window.FeriizTemplates || !projectContext) return;
+        window.FeriizTemplates.openAssign({
+            workedOn: workedOn,
+            project: { code: projectContext.code, name: projectContext.name },
+            cells: cells.map(function (cell) {
+                var row = cell.closest('tr');
+                return { code: row.dataset.employeeCode, name: row.dataset.employeeName, date: cell.dataset.date };
+            }),
+            people: [],
+            dates: currentVisibleDates.slice(),
+            today: reportToday,
+            onDone: function () {
+                refreshAddColumns();
+                deselectAllCells();
+            }
+        });
+    }
+
+    // Everyone who has one request on the days shown; focusCode = the row whose amount was clicked.
+    function openRequestList(templateId, focusCode) {
+        if (!window.FeriizTemplates || !projectContext) return;
+        window.FeriizTemplates.openDetail({
+            project: { code: projectContext.code, name: projectContext.name },
+            templateId: templateId,
+            dates: currentVisibleDates.slice(),
+            people: reportEmployees.map(function (e) { return { code: e.code, name: e.name, occupation: e.occupation }; }),
+            focusCode: focusCode || '',
+            onDone: refreshAddColumns
+        });
+    }
+
+    // Pointing at an amount lights up the days it is for in that row, and nothing else:
+    // the day cells keep only the logs, as Arcon asked (Baldy 29-10-2026).
+    function requestDaysOf(row, templateId) {
+        if (templateId === TRANSPORT_COL) {
+            var skips = projectSkips();
+            var code = row.dataset.employeeCode;
+            return Array.prototype.filter.call(row.querySelectorAll('td.day-col'), function (cell) {
+                return currentVisibleDates.indexOf(cell.dataset.date) >= 0 && workedCell(cell) && !skips[code + '|' + cell.dataset.date];
+            }).map(function (cell) { return cell.dataset.date; });
+        }
+        return window.FeriizTemplates ? window.FeriizTemplates.datesFor(row.dataset.employeeCode, projectContext.code, templateId, currentVisibleDates) : [];
+    }
+
+    function markRequestDays(button, on) {
+        var row = button.closest('tr');
+        row.querySelectorAll('td.request-day-on').forEach(function (cell) { cell.classList.remove('request-day-on'); });
+        if (!on) return;
+        requestDaysOf(row, button.closest('td').dataset.template).forEach(function (date) {
+            var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
+            if (cell) cell.classList.add('request-day-on');
+        });
+    }
+
+    // Assign Request from the toolbar: pick people and days in the dialog.
     function openTemplateAssign() {
         if (!window.FeriizTemplates || !projectContext) return;
         window.FeriizTemplates.openAssign({
+            workedOn: workedOn,
             project: { code: projectContext.code, name: projectContext.name },
             people: reportEmployees.map(function (e) {
                 return { code: e.code, name: e.name, occupation: e.occupation, lastActive: lastActiveByCode[e.code] || '' };
             }),
             dates: currentVisibleDates.slice(),
             today: reportToday,
-            onDone: refreshAdditional
+            onDone: refreshAddColumns
         });
     }
 
     function createEmployeeRow(employee, dates) {
-        var empRateOT = projectContext ? projectContext.overtimeRate || 0 : 0;
-        var cliRateOT = projectContext ? projectContext.clientOvertimeRate || 0 : 0;
+        var rates = ratesFor(employee);
         return '<tr data-employee-code="' + escapeHTML(employee.code) + '" data-employee-name="' + escapeHTML(employee.name) + '"' +
-            ' data-daily-rate="' + (Number(employee.dailyRate) || 0) + '" data-client-daily-rate="' + (Number(employee.clientDailyRate) || 0) + '">' +
+            ' data-daily-rate="' + rates.daily + '" data-client-daily-rate="' + rates.clientDaily + '"' +
+            ' data-ot-rate="' + rates.ot + '" data-client-ot-rate="' + rates.clientOt + '"' +
+            ' data-transport-rate="' + transportRateOf(employee) + '">' +
             '<td class="col-name sticky-col">' +
                 '<div class="report-identity-content">' +
                     '<div class="emp-code-cell">' + escapeHTML(employee.code) + '</div>' +
@@ -374,15 +967,15 @@
             '<td class="col-totaldays">0d</td>' +
             '<td class="col-totalhour">0h</td>' +
             '<td class="col-totalovertime">0h</td>' +
-            '<td class="col-emp-dailyrate rate-cell">' + formatIDR(employee.dailyRate) + '</td>' +
-            '<td class="col-emp-rateovertime rate-cell">' + formatIDR(empRateOT) + '</td>' +
+            '<td class="col-emp-dailyrate rate-cell">' + formatIDR(rates.daily) + '</td>' +
+            '<td class="col-emp-rateovertime rate-cell">' + formatIDR(rates.ot) + '</td>' +
             '<td class="col-emp-totalrate rate-cell">' + formatIDR(0) + '</td>' +
             '<td class="col-emp-totalovertime rate-cell">' + formatIDR(0) + '</td>' +
-            '<td class="col-cli-dailyrate rate-cell">' + formatIDR(employee.clientDailyRate) + '</td>' +
-            '<td class="col-cli-rateovertime rate-cell">' + formatIDR(cliRateOT) + '</td>' +
+            '<td class="col-cli-dailyrate rate-cell">' + formatIDR(rates.clientDaily) + '</td>' +
+            '<td class="col-cli-rateovertime rate-cell">' + formatIDR(rates.clientOt) + '</td>' +
             '<td class="col-cli-totalrate rate-cell">' + formatIDR(0) + '</td>' +
             '<td class="col-cli-totalovertime rate-cell">' + formatIDR(0) + '</td>' +
-            additionalCells(employee.code, dates) +
+            addColumnCells(employee.code, dates) +
             createDayCells(employee, dates) +
         '</tr>';
     }
@@ -411,12 +1004,14 @@
             groupRow.appendChild(th);
         });
 
+        // A day with an import gets "System | Import" over its two halves.
         dates.forEach(function (date) {
             var th = document.createElement('th');
-            th.className = 'day-col feriiz-u-130';
+            th.className = 'day-col feriiz-u-130' + (splitDates[date] ? ' day-split-col' : '');
             th.dataset.date = date;
             th.innerHTML = '<span>' + DAY_NAMES[fromISO(date).getDay()] + ' ' + fromISO(date).getDate() + '</span>' +
-                '<input type="checkbox" class="day-header-select" data-date="' + date + '" aria-label="Select every log on ' + date + '">';
+                '<input type="checkbox" class="day-header-select" data-date="' + date + '" aria-label="Select every log on ' + date + '">' +
+                (splitDates[date] ? '<div class="day-split-labels"><b>System</b><b><i class="fa-solid fa-file-import" aria-hidden="true"></i>Import</b></div>' : '');
             dayRow.appendChild(th);
         });
     }
@@ -424,7 +1019,10 @@
     function renderTable(dates) {
         var tbody = document.getElementById('reportTableBody');
         if (!tbody) return;
+        computeSplitDates(dates);
         renderDayHeaders(dates);
+        computeAddColumns(dates);
+        renderAddColumnHeaders();
         tbody.innerHTML = reportEmployees.map(function (emp) {
             return createEmployeeRow(emp, dates);
         }).join('');
@@ -435,12 +1033,13 @@
        ============================================= */
     var currentVisibleDates = [];
 
-    // Re-render only when the set of days actually changes; selection is reset.
-    function showDays(datesToShow) {
+    // Re-render only when the set of days actually changes (or the data shown does,
+    // force); selection is reset.
+    function showDays(datesToShow, force) {
         var same = datesToShow.length === currentVisibleDates.length &&
             datesToShow.every(function (d, i) { return d === currentVisibleDates[i]; });
         currentVisibleDates = datesToShow.slice();
-        if (!same || !document.querySelector('#reportTableBody tr')) {
+        if (force || !same || !document.querySelector('#reportTableBody tr')) {
             renderTable(currentVisibleDates);
             updateFieldsVisibility();
         }
@@ -464,17 +1063,27 @@
         if (el) el.textContent = text;
     }
 
+    // An imported day counts its Daily (1 or 0) instead of "has a log". Transport is paid
+    // on the same days, minus the skipped ones.
     function updateVisibleTotals(datesToShow) {
-        var otRate = (projectContext && Number(projectContext.overtimeRate)) || 0;
-        var clientOtRate = (projectContext && Number(projectContext.clientOvertimeRate)) || 0;
+        var skips = projectSkips();
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-            var days = 0, totalWork = 0, totalOT = 0;
+            var otRate = Number(row.dataset.otRate) || 0;
+            var clientOtRate = Number(row.dataset.clientOtRate) || 0;
+            var transportRate = Number(row.dataset.transportRate) || 0;
+            var days = 0, totalWork = 0, totalOT = 0, paid = 0, skipped = 0;
             row.querySelectorAll('td.day-col').forEach(function (cell) {
                 if (datesToShow.indexOf(cell.dataset.date) < 0 || cell.classList.contains('weekend-off-cell')) return;
-                if (cell.dataset.inTime || cell.dataset.outTime) days++;
+                if (cell.dataset.imported) days += Number(cell.dataset.daily) || 0;
+                else if (cell.dataset.inTime || cell.dataset.outTime) days++;
+                if (transportRate && workedCell(cell)) {
+                    if (skips[row.dataset.employeeCode + '|' + cell.dataset.date]) skipped++;
+                    else paid++;
+                }
                 totalWork += Number(cell.dataset.work) || 0;
                 totalOT += Number(cell.dataset.otTotal) || 0;
             });
+            paintTransport(row, transportRate, paid, skipped);
             var daily = Number(row.dataset.dailyRate) || 0;
             var clientDaily = Number(row.dataset.clientDailyRate) || 0;
             setText(row, '.col-totaldays', days + 'd');
@@ -530,11 +1139,12 @@
         return ((row.querySelector('.col-name') || {}).textContent || '').toLowerCase().indexOf(q) >= 0;
     }
 
+    // Exact match: "Surveyor" must not also pick "Quantity Surveyor".
     function rowMatchesOccupation(row) {
         var sel = appliedReportFilters.occupations;
         if (sel.length === 0) return true;
-        var occ = ((row.querySelector('.emp-occupation-cell') || {}).textContent || '').toLowerCase();
-        return sel.some(function (s) { return occ.indexOf(s) >= 0; });
+        var occ = ((row.querySelector('.emp-occupation-cell') || {}).textContent || '').trim().toLowerCase();
+        return sel.indexOf(occ) >= 0;
     }
 
     function applyReportFilters() {
@@ -663,13 +1273,22 @@
             html += '<span class="filter-indicator-chip">' + (labels[t] || t) +
                 '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + (labels[t] || t) + ' filter">&times;</button></span>';
         });
+        if (appliedReportFilters.original) {
+            html += '<span class="filter-indicator-chip">Original data' +
+                '<button class="filter-chip-close" data-filter-type="original" aria-label="Show the imported data again">&times;</button></span>';
+        }
         bar.style.display = '';
         chips.innerHTML = html;
 
         chips.querySelectorAll('.filter-chip-close').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var type = btn.dataset.filterType;
-                if (type === 'occupation') {
+                if (type === 'original') {
+                    appliedReportFilters.original = false;
+                    var originalBox = document.getElementById('filterOriginal');
+                    if (originalBox) originalBox.checked = false;
+                    showDays(currentVisibleDates.slice(), true);
+                } else if (type === 'occupation') {
                     if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                     appliedReportFilters.occupations = [];
                     appliedReportFilters.occupationLabels = [];
@@ -712,7 +1331,10 @@
             btn.classList.toggle('active', btn.dataset.logType === type);
         });
         if (label) label.textContent = type === 'in' ? 'Set Log In Time' : 'Set Log Out Time';
-        if (input) input.value = type === 'in' ? '07:00:00' : '17:00:00';
+        // Starts at the project's working hours (meeting 1:28); the admin can still change it.
+        var start = ((projectContext && projectContext.workStart) || '08:00') + ':00';
+        var end = ((projectContext && projectContext.workEnd) || '17:00') + ':00';
+        if (input) input.value = type === 'in' ? start : end;
     }
 
     function getActiveLogType() {
@@ -731,6 +1353,36 @@
         // Close dropdown
         var dd = document.getElementById('batchUpdateDropdown');
         if (dd) dd.classList.remove('show');
+
+        if (action === 'assign') {
+            openCellAssign(selected);
+            return;
+        }
+
+        // Imported days are worked days too, so Transport takes them as they are.
+        if (action === 'transport') {
+            openTransportBatch(selected);
+            return;
+        }
+
+        // An imported day shows the file's numbers; its system logs are changed in original view.
+        if (showImported()) {
+            var imported = selected.filter(function (cell) { return cell.dataset.imported === '1'; });
+            if (imported.length) {
+                imported.forEach(function (cell) {
+                    var cb = cell.querySelector('.day-cell-select');
+                    if (cb) cb.checked = false;
+                });
+                updateCellSelectionUI();
+                selected = getSelectedCells();
+                if (!selected.length) {
+                    if (window.FeriizNotify) FeriizNotify.warning('These days come from an import. To change their system logs, turn on Filter > Show original data.', 'Imported days');
+                    return;
+                }
+                if (window.FeriizNotify) FeriizNotify.info(imported.length + (imported.length === 1 ? ' imported day was' : ' imported days were') +
+                    ' left out. Only days with system logs are changed.', 'Imported days skipped');
+            }
+        }
 
         if (action === 'overtime') {
             openOvertimeModal();
@@ -928,7 +1580,8 @@
                 }
 
                 if (newIn || newOut) {
-                    cell.classList.remove('weekend-off-cell');
+                    cell.classList.remove('weekend-off-cell', 'request-day-cell');
+                    cell.removeAttribute('data-request');
                 }
 
                 cell.classList.add('recently-updated-cell');
@@ -938,8 +1591,7 @@
                 var addHours = cellHours(addCode, cell.dataset.date, newIn, newOut);
                 var addAdjust = otAdjustFor(addCode, cell.dataset.date);
                 setCellHours(cell, addHours, addAdjust);
-                cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                    buildDayCellContent({ inTime: newIn, outTime: newOut, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: addHours, otAdjust: addAdjust, otLogCount: otLogCountFor(addCode, cell.dataset.date) });
+                setCellContent(cell, buildDayCellContent({ inTime: newIn, outTime: newOut, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: addHours, otAdjust: addAdjust, otLogCount: otLogCountFor(addCode, cell.dataset.date) }));
                 updated++;
             });
         } else if (activeAction.indexOf('delete') === 0) {
@@ -969,9 +1621,11 @@
                 cell.dataset.outNote = existOutNote;
                 rememberCell(cell);
 
-                // An emptied day off goes back to grey; an emptied work day is missing both logs.
+                // An emptied day off goes back to grey, an emptied day with an accepted request
+                // shows the request again, and an emptied work day is missing both logs.
                 var backToDayOff = !existIn && !existOut && isOffCell(cell.closest('tr').dataset.employeeCode, date);
-                var issue = backToDayOff ? '' : getMissingType(existIn, existOut);
+                var backToRequest = !existIn && !existOut && !backToDayOff ? requestFor(cell.closest('tr').dataset.employeeCode, date) : null;
+                var issue = backToDayOff || backToRequest ? '' : getMissingType(existIn, existOut);
                 if (issue) {
                     cell.dataset.missing = issue;
                     cell.classList.add('no-log-cell');
@@ -979,6 +1633,10 @@
                     cell.removeAttribute('data-missing');
                     cell.classList.remove('no-log-cell');
                     if (backToDayOff) cell.classList.add('weekend-off-cell');
+                    if (backToRequest) {
+                        cell.classList.add('request-day-cell');
+                        cell.dataset.request = backToRequest.type;
+                    }
                 }
 
                 cell.classList.add('recently-updated-cell');
@@ -993,10 +1651,11 @@
                 var delAdjust = otAdjustFor(delCode, date);
                 setCellHours(cell, delHours, delAdjust);
                 if (backToDayOff) {
-                    cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
+                    setCellContent(cell, '');
+                } else if (backToRequest) {
+                    setCellContent(cell, requestChipHTML(backToRequest));
                 } else {
-                    cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                        buildDayCellContent({ inTime: existIn, outTime: existOut, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: delHours, otAdjust: delAdjust, otLogCount: otLogCountFor(delCode, date) });
+                    setCellContent(cell, buildDayCellContent({ inTime: existIn, outTime: existOut, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: delHours, otAdjust: delAdjust, otLogCount: otLogCountFor(delCode, date) }));
                 }
                 updated++;
             });
@@ -1166,8 +1825,7 @@
             var hours = { work: Number(cell.dataset.work) || 0, ot: Number(cell.dataset.ot) || 0 };
             setCellHours(cell, hours, entry.otAdjust);
             cell.classList.add('recently-updated-cell');
-            cell.innerHTML = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>' +
-                buildDayCellContent({ inTime: cell.dataset.inTime, outTime: cell.dataset.outTime, inNote: cell.dataset.inNote, outNote: cell.dataset.outNote, issue: '', updated: true, hours: hours, otAdjust: entry.otAdjust, otLogCount: entry.otLog.length });
+            setCellContent(cell, buildDayCellContent({ inTime: cell.dataset.inTime, outTime: cell.dataset.outTime, inNote: cell.dataset.inNote, outNote: cell.dataset.outNote, issue: '', updated: true, hours: hours, otAdjust: entry.otAdjust, otLogCount: entry.otLog.length }));
         });
 
         window.bootstrap.Modal.getInstance(overtimeModal).hide();
@@ -1255,9 +1913,18 @@
     var groupHeaders = {
         grpTimePeriod: ['.col-inouthour', '.col-activehour'],
         grpEmployee: ['.col-emp-dailyrate', '.col-emp-rateovertime', '.col-emp-totalrate', '.col-emp-totalovertime'],
-        grpClient: ['.col-cli-dailyrate', '.col-cli-rateovertime', '.col-cli-totalrate', '.col-cli-totalovertime'],
-        grpAdditional: ['.col-additional-amount', '.col-additional-note']
+        grpClient: ['.col-cli-dailyrate', '.col-cli-rateovertime', '.col-cli-totalrate', '.col-cli-totalovertime', '.col-cli-add', '.col-cli-addtotal']
     };
+
+    // Ticked, unticked or partly ticked, from the columns under it.
+    function syncMasterState(mId) {
+        var mCb = document.getElementById(mId);
+        if (!mCb) return;
+        var slaves = masterGroups[mId].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        var on = slaves.filter(function (cb) { return cb.checked; }).length;
+        mCb.checked = slaves.length > 0 && on === slaves.length;
+        mCb.indeterminate = on > 0 && on < slaves.length;
+    }
 
     function updateFieldsVisibility() {
         Object.keys(colMap).forEach(function (id) {
@@ -1339,68 +2006,374 @@
        ============================================= */
     /* =============================================
        IMPORT XLSX
-       Upload a timesheet to add logs in bulk. The file is checked here
-       (type, size, CSV row count); the server does the real import once
-       Feriiz is connected to the API.
+       One menu with the two steps of the live Feriiz:
+       - Download Log: the period as an Excel to fill in, one row per person with
+         Daily (1 or 0) and Overtime (hours) under every date, then the rates.
+       - Import Log: upload that file. Its numbers replace what the Report counts
+         for those days (Feriiz team, 27-10-2026); each of those days shows the
+         system on the left and the import on the right (Baldy, 30-10-2026). The
+         preview shows what changes before anything is replaced.
+       The Excel library (SheetJS) loads the first time it is needed.
        ============================================= */
-    var IMPORT_TYPES = ['.xlsx', '.xls', '.csv'];
+    var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    var IMPORT_TYPES = ['.xlsx', '.xls'];
     var IMPORT_MAX = 5 * 1024 * 1024;
+    var IMPORT_LIST_MAX = 200;   // rows listed in the preview; the counts cover everything
+    var xlsxLoading = null;
     var importModal = null;
-    var importFile = null;
+    var importPlan = null;
+
+    function loadXLSX() {
+        if (window.XLSX) return Promise.resolve(window.XLSX);
+        if (!xlsxLoading) {
+            xlsxLoading = new Promise(function (resolve, reject) {
+                var s = document.createElement('script');
+                s.src = XLSX_URL;
+                s.onload = function () { if (window.XLSX) resolve(window.XLSX); else reject(new Error('XLSX missing')); };
+                s.onerror = function () { xlsxLoading = null; s.remove(); reject(new Error('XLSX failed to load')); };
+                document.head.appendChild(s);
+            });
+        }
+        return xlsxLoading;
+    }
 
     function importSize(bytes) {
         return bytes < 1024 * 1024 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / 1024 / 1024).toFixed(1) + ' MB';
     }
 
-    function downloadTemplate() {
-        var rows = [
-            ['Employee Code', 'Date (YYYY-MM-DD)', 'Log In (HH:mm:ss)', 'Log Out (HH:mm:ss)', 'Note'],
-            [reportEmployees[0] ? reportEmployees[0].code : 'EMPLOYEECODE', reportToday, '08:00:00', '17:00:00', '']
-        ];
-        var csv = rows.map(function (r) {
-            return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
-        }).join('\r\n');
-        var url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'feriiz-attendance-template.csv';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+    // 2026-10-26 -> "26/10/2026", the date titles of the live Feriiz file.
+    function slashDate(iso) { var p = iso.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+
+    // "261026_261027_MENARA-KUNINGAN-PHASE-2_FOR_IMPORT.xlsx", named like the live Feriiz file.
+    function logFileName(dates) {
+        function yymmdd(iso) { return iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10); }
+        var name = String((projectContext && projectContext.name) || 'Report').toUpperCase().trim()
+            .replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '-');
+        return yymmdd(dates[0]) + '_' + yymmdd(dates[dates.length - 1]) + '_' + name + '_FOR_IMPORT.xlsx';
     }
 
-    function setImportFile(file) {
-        var error = importModal.querySelector('#importError');
-        var chosen = importModal.querySelector('#importChosen');
+    // The same file as the old Feriiz export (checked cell by cell against its
+    // 261026_261029 file, 29-10-2026): one plain "Sheet1" with no widths or styles, every
+    // person in the project (search and filters do not matter) sorted by first name,
+    // empty cells left empty. The days hold what the table shows now (imported days
+    // included), so the file imports back unchanged.
+    function downloadLog() {
+        var dates = currentVisibleDates.slice();
+        var rows = Array.prototype.slice.call(document.querySelectorAll('.report-table tbody tr[data-employee-code]'));
+        if (!dates.length || !rows.length) {
+            if (window.FeriizNotify) FeriizNotify.warning('This project has nobody in the Report for these days.', 'Nothing to download');
+            return;
+        }
+        loadXLSX().then(function (XLSX) {
+            var byCode = {};
+            reportEmployees.forEach(function (e) { byCode[e.code] = e; });
+            var people = rows.map(function (row) {
+                var emp = byCode[row.dataset.employeeCode] || {};
+                var first = emp.firstName || String(emp.name || row.dataset.employeeName || '').trim().split(/\s+/)[0];
+                return { row: row, emp: emp, first: first };
+            }).sort(function (a, b) {
+                return a.first.localeCompare(b.first, undefined, { sensitivity: 'base' }) ||
+                    String(a.emp.name || '').localeCompare(String(b.emp.name || ''), undefined, { sensitivity: 'base' });
+            });
+            var head = ['No', 'Code', 'Pin', 'First Name', 'Occupation', 'Time Start', 'Time End', 'Period'];
+            var sub = [null, null, null, null, null, null, null, null];
+            dates.forEach(function (d) { head.push(slashDate(d), slashDate(d)); sub.push('Daily', 'Overtime'); });
+            // Titles exactly as in the old Feriiz file ("Employe" included), so the two files match.
+            head.push('Employee', 'Employe Overtime', 'Client', 'Client Overtime');
+            sub.push('Rate Daily', 'Rate Overtime', 'Rate Daily', 'Rate Overtime');
+            var aoa = [head, sub];
+            people.forEach(function (p, i) {
+                var emp = p.emp;
+                var row = p.row;
+                // A person's own working hours (employee form), else the project's.
+                var start = (emp.workStart || (projectContext && projectContext.workStart) || '08:00') + ':00';
+                var end = (emp.workEnd || (projectContext && projectContext.workEnd) || '17:00') + ':00';
+                var hours = Math.max(0, toSeconds(end) - toSeconds(start)) / 3600;
+                var line = [i + 1, row.dataset.employeeCode, emp.pin ? String(emp.pin) : null, p.first,
+                            emp.occupation || null, start, end, round2(hours)];
+                dates.forEach(function (d) {
+                    var cell = row.querySelector('td.day-col[data-date="' + d + '"]');
+                    var daily = 0;
+                    if (cell && cell.dataset.imported) daily = Number(cell.dataset.daily) || 0;
+                    else if (cell && !cell.classList.contains('weekend-off-cell') && (cell.dataset.inTime || cell.dataset.outTime)) daily = 1;
+                    line.push(daily, round2(cell ? cell.dataset.otTotal : 0));
+                });
+                line.push(Number(row.dataset.dailyRate) || 0, Number(row.dataset.otRate) || 0,
+                          Number(row.dataset.clientDailyRate) || 0, Number(row.dataset.clientOtRate) || 0);
+                aoa.push(line);
+            });
+            var ws = XLSX.utils.aoa_to_sheet(aoa);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            var name = logFileName(dates);
+            XLSX.writeFile(wb, name);
+            if (window.FeriizNotify) {
+                FeriizNotify.success('Fill in Daily (1 or 0) and Overtime (hours) for each day, then upload it with Import Log.', name + ' downloaded');
+            }
+        }).catch(function () {
+            if (window.FeriizNotify) FeriizNotify.error('The Excel tool could not be loaded. Check the internet connection and try again.', 'Download failed');
+        });
+    }
+
+    /* ---------- Reading an uploaded file ---------- */
+    function headKey(v) { return String(v == null ? '' : v).toLowerCase().replace(/[^a-z]/g, ''); }
+
+    // A column title as a date: "26/10/2026", "2026-10-26", or an Excel date number.
+    function headDate(v) {
+        if (typeof v === 'number' && v > 20000 && v < 80000) {
+            return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10);
+        }
+        var s = String(v == null ? '' : v).trim();
+        var m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+        if (m) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+        return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+    }
+
+    // null = left empty, NaN = not a number. "1,5" counts as 1.5.
+    function cellNumber(v) {
+        if (v === '' || v == null) return null;
+        if (typeof v === 'number') return v;
+        var s = String(v).trim().replace(/\s/g, '').replace(',', '.');
+        if (!s) return null;
+        var n = Number(s);
+        return Number.isFinite(n) ? n : NaN;
+    }
+
+    // "08:00:00" from "8:00", "08:00:00", or an Excel time (a fraction of a day); '' otherwise.
+    function clockText(v) {
+        if (typeof v === 'number' && v >= 0 && v < 1) {
+            var s = Math.round(v * 86400);
+            return [Math.floor(s / 3600), Math.floor(s % 3600 / 60), s % 60].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
+        }
+        var m = String(v == null ? '' : v).trim().match(/^(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?$/);
+        if (!m || Number(m[1]) > 23 || Number(m[2]) > 59 || Number(m[3] || 0) > 59) return '';
+        return m[1].padStart(2, '0') + ':' + m[2] + ':' + (m[3] || '00');
+    }
+
+    // Rates may be typed as "150.000".
+    function rateNumber(v) {
+        if (typeof v === 'string' && /^\d{1,3}(\.\d{3})+$/.test(v.trim())) v = v.trim().replace(/\./g, '');
+        return cellNumber(v);
+    }
+
+    // The Download Log layout: titles in row 1, "Daily" / "Overtime" under each date in row 2.
+    function readLogSheet(aoa) {
+        var head = aoa[0] || [], sub = aoa[1] || [];
+        var col = { code: -1, pin: -1, name: -1, start: -1, end: -1, period: -1 }, days = [], rates = {};
+        head.forEach(function (h, i) {
+            var k = headKey(h), s = headKey(sub[i]), date = headDate(h);
+            if (k === 'code') col.code = i;
+            else if (k === 'pin') col.pin = i;
+            else if (k === 'firstname' || k === 'name') col.name = i;
+            else if (k === 'timestart') col.start = i;
+            else if (k === 'timeend') col.end = i;
+            else if (k === 'period') col.period = i;
+            else if (date && (s === 'daily' || s === 'overtime')) {
+                var day = days.filter(function (x) { return x.date === date; })[0];
+                if (!day) days.push(day = { date: date, daily: -1, ot: -1 });
+                if (s === 'daily') day.daily = i; else day.ot = i;
+            }
+            else if (k === 'employee') rates.daily = i;
+            else if (k === 'employeovertime' || k === 'employeeovertime') rates.ot = i;
+            else if (k === 'client') rates.clientDaily = i;
+            else if (k === 'clientovertime') rates.clientOt = i;
+        });
+        return { col: col, days: days.filter(function (d) { return d.daily >= 0; }), rates: rates, rows: aoa.slice(2) };
+    }
+
+    // What the import would do, compared with what the Report uses now (an earlier import, else the system).
+    function buildImportPlan(sheet, fileName) {
+        var plan = { file: fileName, dates: [], people: 0, cells: [], rates: [], changed: [], rateChanges: [], same: 0, problems: [] };
+        if (sheet.col.code < 0 || !sheet.days.length) { plan.fatal = true; return plan; }
+        plan.dates = sheet.days.map(function (d) { return d.date; }).sort();
+        var byCode = {}, byPin = {};
+        reportEmployees.forEach(function (e) {
+            byCode[String(e.code).toUpperCase()] = e;
+            if (e.pin) byPin[String(e.pin)] = e;
+        });
+        var stored = projectImports();
+        sheet.rows.forEach(function (r, idx) {
+            var line = idx + 3;   // the row number in Excel
+            var code = String(r[sheet.col.code] == null ? '' : r[sheet.col.code]).trim();
+            var pin = sheet.col.pin >= 0 ? String(r[sheet.col.pin] == null ? '' : r[sheet.col.pin]).trim() : '';
+            if (!code && !pin) return;
+            var who = (sheet.col.name >= 0 && r[sheet.col.name] ? String(r[sheet.col.name]) + ' · ' : '') + (code || 'Pin ' + pin);
+            var emp = byCode[code.toUpperCase()] || (pin && byPin[pin]);
+            if (!emp) { plan.problems.push({ line: line, who: who, why: 'Not in this report' }); return; }
+            plan.people++;
+            // The person's working day in the file: shown as log in / log out on imported days.
+            var start = sheet.col.start >= 0 ? clockText(r[sheet.col.start]) : '';
+            var end = sheet.col.end >= 0 ? clockText(r[sheet.col.end]) : '';
+            var period = sheet.col.period >= 0 ? cellNumber(r[sheet.col.period]) : null;
+            if (!(period > 0 && period <= 24)) period = null;
+            sheet.days.forEach(function (d) {
+                var daily = cellNumber(r[d.daily]);
+                var ot = d.ot >= 0 ? cellNumber(r[d.ot]) : null;
+                if (daily === null && ot === null) return;   // left empty: that day stays as it is
+                var on = ' on ' + shortDate(d.date);
+                if (daily !== 0 && daily !== 1) { plan.problems.push({ line: line, who: emp.name, why: 'Daily' + on + ' must be 1 or 0' }); return; }
+                if (ot === null) ot = 0;
+                if (!(ot >= 0 && ot <= 24)) { plan.problems.push({ line: line, who: emp.name, why: 'Overtime' + on + ' must be hours between 0 and 24' }); return; }
+                var key = emp.code + '|' + d.date;
+                var prev = stored.cells[key];
+                var now = prev ? { daily: prev.daily, ot: prev.ot } : systemDay(emp.code, d.date);
+                var next = { daily: daily, ot: round2(ot) };
+                plan.cells.push({ key: key, daily: next.daily, ot: next.ot, start: start, end: end, period: period });
+                if (differs(now, next)) plan.changed.push({ name: emp.name, date: d.date, now: now, next: next });
+                else plan.same++;
+            });
+            var rate = {}, bad = false;
+            Object.keys(sheet.rates).forEach(function (k) {
+                var v = rateNumber(r[sheet.rates[k]]);
+                if (v === null) return;
+                if (!(v >= 0)) { bad = true; return; }
+                rate[k] = Math.round(v);
+            });
+            if (bad) plan.problems.push({ line: line, who: emp.name, why: 'A rate is not a number, so the rates were left as they are' });
+            else if (Object.keys(rate).length) {
+                var was = ratesFor(emp, true);
+                var diff = Object.keys(rate).filter(function (k) { return rate[k] !== was[k]; });
+                plan.rates.push({ code: emp.code, rate: rate });
+                diff.forEach(function (k) { plan.rateChanges.push({ name: emp.name, label: RATE_LABELS[k], from: was[k], to: rate[k] }); });
+            }
+        });
+        return plan;
+    }
+
+    function commitImport(plan) {
+        var stored = projectImports();
+        var at = new Date().toISOString();
+        plan.cells.forEach(function (c) {
+            stored.cells[c.key] = { daily: c.daily, ot: c.ot, start: c.start, end: c.end, period: c.period, file: plan.file, at: at };
+        });
+        plan.rates.forEach(function (r) {
+            var merged = stored.rates[r.code] || {};
+            Object.keys(r.rate).forEach(function (k) { merged[k] = r.rate[k]; });
+            merged.file = plan.file;
+            merged.at = at;
+            stored.rates[r.code] = merged;
+        });
+        saveImports();
+        syncDataFilter();
+        deselectAllCells();
+        showDays(currentVisibleDates.slice(), true);
+        applyReportFilters();
+    }
+
+    // "Show original data" is offered once the project has an import.
+    function syncDataFilter() {
+        var block = document.getElementById('reportDataFilter');
+        if (!block) return;
+        block.hidden = !hasImports();
+        if (window.bootstrap && window.bootstrap.Tooltip) {
+            block.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) { window.bootstrap.Tooltip.getOrCreateInstance(el); });
+        }
+    }
+
+    /* ---------- The Import Log dialog: choose → reading → preview ---------- */
+    function importStep(step) {
+        importModal.querySelector('#importStepChoose').hidden = step !== 'choose';
+        importModal.querySelector('#importStepLoading').hidden = step !== 'loading';
+        importModal.querySelector('#importStepPreview').hidden = step !== 'preview';
+        importModal.querySelector('#importBack').hidden = step !== 'preview';
+        var count = step === 'preview' && importPlan ? importPlan.cells.length : 0;
         var submit = importModal.querySelector('#importSubmit');
-        error.hidden = true;
-        importFile = null;
-        submit.disabled = true;
-        chosen.hidden = true;
-        if (!file) return;
+        submit.disabled = !count;
+        submit.textContent = count ? 'Import ' + count + (count === 1 ? ' day' : ' days') : 'Import';
+    }
+
+    function importError(message) {
+        var box = importModal.querySelector('#importError');
+        box.textContent = message || '';
+        box.hidden = !message;
+    }
+
+    function previewTable(heads, rows) {
+        return '<div class="import-table-wrap"><table class="data-table import-table"><thead><tr>' +
+            heads.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+            rows.slice(0, IMPORT_LIST_MAX).join('') + '</tbody></table></div>' +
+            (rows.length > IMPORT_LIST_MAX ? '<p class="form-text">And ' + (rows.length - IMPORT_LIST_MAX) + ' more.</p>' : '');
+    }
+
+    function renderImportPreview(plan) {
+        var first = plan.dates[0], last = plan.dates[plan.dates.length - 1];
+        var html = '<div class="import-chosen">' +
+                '<i class="fa-solid fa-file-excel" aria-hidden="true"></i>' +
+                '<div class="import-file-text"><div class="import-file-name">' + escapeHTML(plan.file) + '</div>' +
+                '<div class="import-file-meta">' + shortDate(first) + (last !== first ? ' – ' + shortDate(last) : '') + ' · ' +
+                    plan.people + (plan.people === 1 ? ' person' : ' people') + '</div></div>' +
+            '</div>' +
+            '<div class="import-counts">' +
+                '<span class="import-count' + (plan.changed.length ? ' is-changed' : '') + '"><strong>' + plan.changed.length + '</strong> changed</span>' +
+                '<span class="import-count"><strong>' + plan.same + '</strong> same as now</span>' +
+                (plan.rateChanges.length ? '<span class="import-count is-changed"><strong>' + plan.rateChanges.length + '</strong> rate ' +
+                    (plan.rateChanges.length === 1 ? 'change' : 'changes') + '</span>' : '') +
+                (plan.problems.length ? '<span class="import-count is-problem"><strong>' + plan.problems.length + '</strong> not imported</span>' : '') +
+            '</div>';
+        if (!plan.cells.length) {
+            html += '<div class="import-empty">Nothing in this file can be imported. ' +
+                (plan.problems.length ? 'See why below.' : 'Every Daily and Overtime cell is empty.') + '</div>';
+        }
+        if (plan.changed.length) {
+            html += '<h3 class="import-section-title">Changes</h3>' + previewTable(['Name', 'Date', 'Now', 'After import'], plan.changed.map(function (c) {
+                return '<tr><td>' + escapeHTML(c.name) + '</td><td class="tpl-nowrap">' + shortDate(c.date) + '</td>' +
+                    '<td>' + escapeHTML(dayText(c.now)) + '</td><td class="import-new">' + escapeHTML(dayText(c.next)) + '</td></tr>';
+            }));
+        }
+        if (plan.rateChanges.length) {
+            html += '<h3 class="import-section-title">Rates</h3>' + previewTable(['Name', 'Rate', 'Now', 'After import'], plan.rateChanges.map(function (c) {
+                return '<tr><td>' + escapeHTML(c.name) + '</td><td>' + c.label + '</td><td>' + formatIDR(c.from) + '</td><td class="import-new">' + formatIDR(c.to) + '</td></tr>';
+            }));
+        }
+        if (plan.problems.length) {
+            html += '<h3 class="import-section-title">Not imported</h3>' + previewTable(['Row', 'Who', 'Why'], plan.problems.map(function (p) {
+                return '<tr><td>' + p.line + '</td><td>' + escapeHTML(p.who) + '</td><td>' + escapeHTML(p.why) + '</td></tr>';
+            }));
+        }
+        if (plan.cells.length) {
+            html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
+                'The system data is not deleted: each imported day shows System on the left and Import on the right.</p>';
+        }
+        importModal.querySelector('#importStepPreview').innerHTML = html;
+    }
+
+    function readImportFile(file) {
+        importError('');
+        importPlan = null;
+        if (!file) { importStep('choose'); return; }
         var ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
         if (IMPORT_TYPES.indexOf(ext) < 0) {
-            error.textContent = file.name + ' is not a spreadsheet. Choose an .xlsx, .xls or .csv file.';
-            error.hidden = false;
+            importStep('choose');
+            importError(file.name + ' is not an Excel file. Upload the .xlsx you got from Download Log.');
             return;
         }
         if (file.size > IMPORT_MAX) {
-            error.textContent = file.name + ' is ' + importSize(file.size) + '. The limit is 5 MB.';
-            error.hidden = false;
+            importStep('choose');
+            importError(file.name + ' is ' + importSize(file.size) + '. The limit is 5 MB.');
             return;
         }
-        importFile = file;
-        chosen.hidden = false;
-        chosen.querySelector('.import-file-name').textContent = file.name;
-        chosen.querySelector('.import-file-meta').textContent = importSize(file.size);
-        submit.disabled = false;
-        if (ext === '.csv') {
-            file.text().then(function (text) {
-                var rows = text.split(/\r?\n/).filter(function (l) { return l.trim(); }).length - 1;
-                chosen.querySelector('.import-file-meta').textContent = importSize(file.size) + ', ' + Math.max(rows, 0) + ' rows';
-            });
-        }
+        importModal.querySelector('#importLoadingName').textContent = file.name;
+        importStep('loading');
+        Promise.all([loadXLSX(), file.arrayBuffer()]).then(function (res) {
+            var XLSX = res[0];
+            var wb = XLSX.read(res[1], { type: 'array' });
+            var aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+            var plan = buildImportPlan(readLogSheet(aoa), file.name);
+            if (plan.fatal) {
+                importStep('choose');
+                importError(file.name + ' does not look like a Feriiz log: it has no Code column or no Daily/Overtime dates. ' +
+                    'Get the right file with Download Log, fill it in, and upload that one.');
+                return;
+            }
+            importPlan = plan;
+            renderImportPreview(plan);
+            importStep('preview');
+        }).catch(function () {
+            importStep('choose');
+            importError(file.name + ' could not be read. Save it again as .xlsx, or check the internet connection (the Excel tool loads online).');
+        });
     }
 
     function buildImportModal() {
@@ -1411,33 +2384,37 @@
         el.setAttribute('aria-labelledby', 'importModalTitle');
         el.setAttribute('aria-hidden', 'true');
         el.innerHTML =
-            '<div class="modal-dialog modal-dialog-centered">' +
+            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
-                        '<h2 class="modal-title" id="importModalTitle">Import attendance</h2>' +
+                        '<div>' +
+                            '<h2 class="modal-title" id="importModalTitle">Import Log</h2>' +
+                            '<p class="tpl-subtitle" id="importContext"></p>' +
+                        '</div>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                     '</div>' +
                     '<div class="modal-body">' +
-                        '<p class="import-intro">Add log in and log out times for many employees at once from a spreadsheet. ' +
-                            'Use the Feriiz template so every column is read correctly.</p>' +
-                        '<label class="import-drop" for="importInput">' +
-                            '<i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>' +
-                            '<span class="import-drop-title">Drag a file here or <u>choose a file</u></span>' +
-                            '<span class="import-drop-hint">.xlsx, .xls or .csv, up to 5 MB</span>' +
-                            '<input type="file" id="importInput" class="visually-hidden" accept="' + IMPORT_TYPES.join(',') + '">' +
-                        '</label>' +
-                        '<div class="import-chosen" id="importChosen" hidden>' +
-                            '<i class="fa-solid fa-file-excel" aria-hidden="true"></i>' +
-                            '<div class="import-file-text"><div class="import-file-name"></div><div class="import-file-meta"></div></div>' +
-                            '<button type="button" class="btn-close" id="importClear" aria-label="Remove file"></button>' +
+                        '<div id="importStepChoose">' +
+                            '<p class="import-intro">Upload the Excel from <strong>Download Log</strong> after filling in Daily (1 or 0) and Overtime (hours). ' +
+                                'Its numbers replace what the Report counts for those days. The system\'s own logs are kept and shown next to them.</p>' +
+                            '<label class="import-drop" for="importInput">' +
+                                '<i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>' +
+                                '<span class="import-drop-title">Drag the file here or <u>choose a file</u></span>' +
+                                '<span class="import-drop-hint">.xlsx or .xls, up to 5 MB</span>' +
+                                '<input type="file" id="importInput" class="visually-hidden" accept="' + IMPORT_TYPES.join(',') + '">' +
+                            '</label>' +
+                            '<div class="import-error" id="importError" role="alert" hidden></div>' +
                         '</div>' +
-                        '<div class="import-error" id="importError" role="alert" hidden></div>' +
-                        '<button type="button" class="import-template" id="importTemplate">' +
-                            '<i class="fa-solid fa-download" aria-hidden="true"></i> Download template (.csv)</button>' +
+                        '<div class="import-loading" id="importStepLoading" role="status" hidden>' +
+                            '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>' +
+                            '<span>Reading <span id="importLoadingName"></span>…</span>' +
+                        '</div>' +
+                        '<div id="importStepPreview" hidden></div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
+                        '<button type="button" class="btn btn-outline me-auto" id="importBack" hidden>Choose another file</button>' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
-                        '<button type="button" class="btn btn-primary" id="importSubmit" disabled>Import file</button>' +
+                        '<button type="button" class="btn btn-primary" id="importSubmit" disabled>Import</button>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -1445,34 +2422,61 @@
 
         var input = el.querySelector('#importInput');
         var drop = el.querySelector('.import-drop');
-        input.addEventListener('change', function () { setImportFile(input.files[0]); });
+        input.addEventListener('change', function () { readImportFile(input.files[0]); });
         ['dragenter', 'dragover'].forEach(function (t) {
             drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('is-over'); });
         });
         ['dragleave', 'drop'].forEach(function (t) {
             drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('is-over'); });
         });
-        drop.addEventListener('drop', function (e) { setImportFile(e.dataTransfer.files[0]); });
-        el.querySelector('#importClear').addEventListener('click', function () { input.value = ''; setImportFile(null); });
-        el.querySelector('#importTemplate').addEventListener('click', downloadTemplate);
+        drop.addEventListener('drop', function (e) { readImportFile(e.dataTransfer.files[0]); });
+        el.querySelector('#importBack').addEventListener('click', function () { input.value = ''; readImportFile(null); });
         el.querySelector('#importSubmit').addEventListener('click', function () {
-            if (!importFile) return;
-            var name = importFile.name;
+            var plan = importPlan;
+            if (!plan || !plan.cells.length) return;
             window.bootstrap.Modal.getInstance(el).hide();
+            commitImport(plan);
             if (window.FeriizNotify) {
-                FeriizNotify.info(name + ' was uploaded. Its logs will be added once Feriiz is connected to the server.', 'Import received');
+                FeriizNotify.success(plan.cells.length + (plan.cells.length === 1 ? ' day' : ' days') + ' for ' + plan.people + (plan.people === 1 ? ' person' : ' people') +
+                    ' now show System and Import side by side (' + plan.changed.length + ' changed). The totals count the import.', 'Log imported');
             }
         });
-        el.addEventListener('hidden.bs.modal', function () { input.value = ''; setImportFile(null); });
+        el.addEventListener('hidden.bs.modal', function () { input.value = ''; readImportFile(null); });
         return el;
+    }
+
+    function openImportLog() {
+        if (!importModal) importModal = buildImportModal();
+        importModal.querySelector('#importContext').textContent = projectContext ? projectContext.name : '';
+        readImportFile(null);
+        window.bootstrap.Modal.getOrCreateInstance(importModal).show();
+        loadXLSX().catch(function () { /* reported when the file is read */ });
     }
 
     function initImport() {
         var btn = document.getElementById('reportImportBtn');
-        if (!btn) return;
-        btn.addEventListener('click', function () {
-            if (!importModal) importModal = buildImportModal();
-            window.bootstrap.Modal.getOrCreateInstance(importModal).show();
+        var menu = document.getElementById('reportImportDropdown');
+        if (!btn || !menu) return;
+        function setOpen(open) {
+            menu.classList.toggle('show', open);
+            btn.setAttribute('aria-expanded', String(open));
+        }
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setOpen(!menu.classList.contains('show'));
+        });
+        document.addEventListener('click', function (e) {
+            if (menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) setOpen(false);
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && menu.classList.contains('show')) { setOpen(false); btn.focus(); }
+        });
+        menu.addEventListener('click', function (e) {
+            var item = e.target.closest('[data-import]');
+            if (!item) return;
+            setOpen(false);
+            if (item.dataset.import === 'download') downloadLog();
+            else openImportLog();
         });
     }
 
@@ -1481,6 +2485,33 @@
         initImport();
         var templateBtn = document.getElementById('reportTemplateBtn');
         if (templateBtn) templateBtn.addEventListener('click', openTemplateAssign);
+        var reportBody = document.getElementById('reportTableBody');
+        if (reportBody) {
+            reportBody.addEventListener('click', function (e) {
+                var addBtn = e.target.closest('.add-cell-btn');
+                if (!addBtn) return;
+                if (addBtn.closest('td').dataset.template === TRANSPORT_COL) openTransportDetail(addBtn.closest('tr'));
+                else openRequestList(addBtn.closest('td').dataset.template, addBtn.closest('tr').dataset.employeeCode);
+            });
+            ['mouseover', 'focusin'].forEach(function (type) {
+                reportBody.addEventListener(type, function (e) {
+                    var addBtn = e.target.closest('.add-cell-btn');
+                    if (addBtn) markRequestDays(addBtn, true);
+                });
+            });
+            ['mouseout', 'focusout'].forEach(function (type) {
+                reportBody.addEventListener(type, function (e) {
+                    var addBtn = e.target.closest('.add-cell-btn');
+                    if (addBtn && !addBtn.contains(e.relatedTarget)) markRequestDays(addBtn, false);
+                });
+            });
+        }
+        var reportHead = document.querySelector('.report-table thead');
+        if (reportHead) reportHead.addEventListener('click', function (e) {
+            var headBtn = e.target.closest('.add-head-btn');
+            if (headBtn) openRequestList(headBtn.closest('th').dataset.template, '');
+        });
+        syncDataFilter();
         resetDateDraft();
         showDays(datesInRange());
         updateFilterIndicator();
@@ -1489,13 +2520,16 @@
         var applyBtn = document.querySelector('.filter-apply-btn');
         if (applyBtn) {
             applyBtn.addEventListener('click', function () {
+                var wasOriginal = appliedReportFilters.original;
+                var originalBox = document.getElementById('filterOriginal');
                 appliedReportFilters.missingTypes = getDraftMissingTypes();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
                 appliedReportFilters.occupationLabels = selectedOccupationLabels();
                 appliedReportFilters.range = draftRange();
-                showDays(datesFromDraft());
+                appliedReportFilters.original = Boolean(originalBox && originalBox.checked && hasImports());
+                showDays(datesFromDraft(), wasOriginal !== appliedReportFilters.original);
                 applyReportFilters();
             });
         }
@@ -1504,15 +2538,19 @@
         var clearBtn = document.querySelector('.filter-clear-btn');
         if (clearBtn) {
             clearBtn.addEventListener('click', function () {
+                var wasOriginal = appliedReportFilters.original;
+                var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
                 document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
+                if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                 appliedReportFilters.missingTypes = [];
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];
                 appliedReportFilters.range = null;
+                appliedReportFilters.original = false;
                 deselectAllCells();
-                showDays(datesInRange());
+                showDays(datesInRange(), wasOriginal);
                 applyReportFilters();
             });
         }
@@ -1566,7 +2604,8 @@
                 if (!noteButton) return;
                 e.preventDefault();
                 e.stopPropagation();
-                openLogNote(noteButton.closest('td.day-col'), noteButton.dataset.logType);
+                // The left half of a split day carries the system's own notes.
+                openLogNote(noteButton.closest('[data-in-note]'), noteButton.dataset.logType);
             });
         }
 
@@ -1637,13 +2676,7 @@
             });
             slaves.forEach(function (id) {
                 var cb = document.getElementById(id);
-                if (!cb) return;
-                cb.addEventListener('change', function () {
-                    var allOn = slaves.every(function (sid) { return document.getElementById(sid).checked; });
-                    var someOn = slaves.some(function (sid) { return document.getElementById(sid).checked; });
-                    mCb.checked = allOn;
-                    mCb.indeterminate = someOn && !allOn;
-                });
+                if (cb) cb.addEventListener('change', function () { syncMasterState(mId); });
             });
         });
         Object.keys(colMap).forEach(function (id) {
@@ -1743,6 +2776,14 @@
                 }
             }
         }
+        // A request covers the person, whichever project it was filed under.
+        requestIndex = {};
+        (data.generatedRequests || []).forEach(function (r) {
+            if (r.status !== 'Accepted' || !relevant.has(r.employeeCode) || !r.dateStart) return;
+            for (var d = r.dateStart; d <= (r.dateEnd || r.dateStart); d = addDays(d, 1)) {
+                requestIndex[r.employeeCode + '|' + d] = r;
+            }
+        });
         var bc = document.querySelector('[data-project-name]');
         if (bc) {
             bc.textContent = projectContext.name;

@@ -20,11 +20,25 @@
     --feriiz-primary-soft: #EBF3FA;
     --feriiz-primary-dark: #166DBA;
 
-    /* Status */
-    --feriiz-success: #27AE60;
-    --feriiz-warning: #E67E22;
-    --feriiz-danger: #E74C3C;
-    --feriiz-info: #2980B9;
+    /* Status: solid fills with white text, the colours of the Request summary
+       cards. Admins found the pale tints hard to see; the darker set that
+       replaced them was too heavy (2026-10-27). */
+    --feriiz-success: #27AE60;   /* Active, Accepted */
+    --feriiz-warning: #E67E22;   /* Pending, On Hold */
+    --feriiz-danger: #E74C3C;    /* Rejected, Absent */
+    --feriiz-info: #2980B9;      /* Hours, Updated, Leave */
+    --feriiz-neutral: #7F8C8D;   /* Completed */
+    --feriiz-overtime: #F1C40F;  /* Overtime badge, dark text */
+    --feriiz-flag: #FEEFB9;      /* incomplete log cell */
+    --feriiz-flag-bar: #F39C12;
+    --feriiz-import: #8E44AD;    /* Report days from an import, white text */
+    --feriiz-import-soft: #F4ECF8;   /* the Import half of a split day; --feriiz-import text on it is 5:1 */
+
+    /* Days a request was given: the day chips in the request list, and the Report
+       day cells that light up while pointing at an amount. Green, so it never looks
+       like the blue of selected cells (2026-10-29). */
+    --feriiz-request-day: #E9F7EF;
+    --feriiz-request-day-ink: #1E7B45;   /* text on --feriiz-request-day, 4.8:1 */
 
     /* Surfaces */
     --feriiz-bg: #F2F2F2;
@@ -565,23 +579,23 @@ body {
 }
 
 .badge-pending {
-    background: #E67E22;
+    background: var(--feriiz-warning);
     color: #fff;
 }
 
 .badge-accepted,
 .badge-approved {
-    background: #27AE60;
+    background: var(--feriiz-success);
     color: #fff;
 }
 
 .badge-rejected {
-    background: #E74C3C;
+    background: var(--feriiz-danger);
     color: #fff;
 }
 
 .badge-active {
-    background: #27AE60;
+    background: var(--feriiz-success);
     color: #fff;
 }
 
@@ -2047,14 +2061,12 @@ body {
         .cal-count-badge { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600; color:#fff; margin-bottom:3px; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
         .cal-count-badge:hover { transform:scale(1.03); box-shadow:0 2px 8px rgba(0,0,0,0.12); }
         .cal-count-badge .badge-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-        .cat-work-bg { background:rgba(39,174,96,0.12); color:#1e8449; }
-        .cat-work-bg .badge-dot { background:#27AE60; }
-        .cat-leave-bg { background:rgba(41,128,185,0.12); color:#1a6da5; }
-        .cat-leave-bg .badge-dot { background:#2980B9; }
-        .cat-sick-bg { background:rgba(231,76,60,0.12); color:#c0392b; }
-        .cat-sick-bg .badge-dot { background:#E74C3C; }
-        .cat-other-bg { background:rgba(230,126,34,0.12); color:#d35400; }
-        .cat-other-bg .badge-dot { background:#E67E22; }
+        /* Solid like the other statuses (they were 12% tints, 2026-10-27); the dot takes the text colour. */
+        .cat-work-bg { background:var(--feriiz-success); color:#fff; }
+        .cat-leave-bg { background:var(--feriiz-info); color:#fff; }
+        .cat-sick-bg { background:var(--feriiz-danger); color:#fff; }
+        .cat-other-bg { background:var(--feriiz-warning); color:#fff; }
+        .cat-work-bg .badge-dot, .cat-leave-bg .badge-dot, .cat-sick-bg .badge-dot, .cat-other-bg .badge-dot { background:currentColor; }
         .cal-holiday-bar { padding:3px 8px; border-radius:4px; background:#E67E22; color:#fff; font-size:12px; font-weight:500; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
         .cal-holiday-bar:hover { transform:translateY(-1px); box-shadow:0 2px 8px rgba(230,126,34,0.22); }
         .cal-holiday-bar.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
@@ -3420,9 +3432,10 @@ div.report-layout .report-actions {
     box-shadow: 5px 0 14px -4px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Keep report-table-wrap left margin for layout */
+/* The table runs edge to edge, as on dev.feriiz.com v0.0.46 (Baldy, 2026-10-29);
+   the toolbar, filter bar and bottom bar keep their 40px sides. */
 div.report-layout .report-table-wrap {
-    margin: 0 40px !important;
+    margin: 0 !important;
 }
 
 /* Report tables: keep the identity columns aligned while horizontal scrolling. */
@@ -4354,16 +4367,16 @@ div.report-layout .selectable-report-table tbody tr.is-selected td.col-name.stic
 .feriiz-u-132 { min-width:200px; position:relative; }
 .feriiz-u-133 { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .feriiz-u-134 { display:flex; gap:6px; }
-.feriiz-u-135 { background:#eef2f6; color:#166DBA; font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
-.feriiz-u-136 { background:#fff3cd; color:#856404; font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
+.feriiz-u-135 { background:var(--feriiz-info); color:#fff; font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
+.feriiz-u-136 { background:var(--feriiz-overtime); color:var(--feriiz-text); font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
 .feriiz-u-137 { display:flex; gap:4px; }
 .feriiz-u-138 { padding:4px 8px; font-size:12px; border-radius:6px; }
 .feriiz-u-139 { padding:4px 8px; font-size:12px; border-radius:6px; color:#166DBA; border-color:#166DBA; }
 .feriiz-u-140 { display:flex; flex-direction:column; gap:6px; }
 .feriiz-u-141 { display:flex; justify-content:space-between; align-items:center; background:#f4f6f8; padding:6px 10px; border-radius:6px; font-size:13px; color:#333; font-weight:500; }
-.feriiz-u-142 { color:#27ae60; margin-right:6px; }
+.feriiz-u-142 { color:var(--feriiz-success); margin-right:6px; }
 .feriiz-u-143 { cursor:pointer; color:#999; }
-.feriiz-u-144 { color:#e74c3c; margin-right:6px; }
+.feriiz-u-144 { color:var(--feriiz-danger); margin-right:6px; }
 .feriiz-u-145 { display:flex; align-items:center; gap:8px; }
 .feriiz-u-146 { padding:6px 12px; font-size:12px; border-radius:6px; color:#666; }
 .feriiz-u-147 { padding:6px 12px; font-size:12px; border-radius:6px; background:#166DBA; color:#fff; border:none; }
@@ -4751,29 +4764,29 @@ div.report-layout .selectable-report-table tbody tr.is-selected td.col-name.stic
 }
 
 .request-table .badge-pending {
-    background: #FFF1BF;
-    color: #8A6500;
+    background: var(--feriiz-warning);
+    color: #fff;
 }
 
 .request-table .badge-accepted,
 .request-table .badge-approved {
-    background: #E8F8EF;
-    color: #0B8B48;
+    background: var(--feriiz-success);
+    color: #fff;
 }
 
 .request-table .badge-rejected {
-    background: #FDECEC;
-    color: #B42318;
+    background: var(--feriiz-danger);
+    color: #fff;
 }
 
 /* === No Log Cell === */
 div.report-layout .report-table tbody td.no-log-cell {
-    background: #FFF8E7 !important;
-    box-shadow: inset 3px 0 0 #F59E0B !important;
+    background: var(--feriiz-flag) !important;
+    box-shadow: inset 4px 0 0 var(--feriiz-flag-bar) !important;
 }
 
 div.report-layout .report-table tbody td.no-log-cell:hover {
-    background: #FFF3CD !important;
+    background: #FDE68A !important;
 }
 
 /* Weekend off cells */
@@ -4802,7 +4815,7 @@ div.report-layout .report-table tbody td.weekend-off-cell {
 }
 
 div.report-layout .report-table tbody td.no-log-cell .day-cell-select {
-    accent-color: #D97706;
+    accent-color: var(--feriiz-flag-bar);
 }
 
 /* Day column header: label left, select-all checkbox right */
@@ -4834,18 +4847,18 @@ div.report-layout .report-table tbody td.day-col:has(.day-cell-select:checked) {
 }
 
 div.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checked) {
-    outline-color: #D97706 !important;
-    background: #FEF3C7 !important;
+    outline-color: var(--feriiz-flag-bar) !important;
+    background: #FDE68A !important;
 }
 
 /* Latest batch result. This is a lightweight DOM marker, not database state. */
 div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell) {
-    background: #F0F8FF !important;
-    box-shadow: inset 3px 0 0 #2975BB !important;
+    background: #DBEAFE !important;
+    box-shadow: inset 4px 0 0 var(--feriiz-info) !important;
 }
 
 div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell):hover {
-    background: #E7F3FD !important;
+    background: #BFDBFE !important;
 }
 
 .cell-updated-badge {
@@ -4855,8 +4868,8 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     margin-right: 24px;
     padding: 4px 7px;
     border-radius: 999px;
-    background: #E2F2FF;
-    color: #166DBA;
+    background: var(--feriiz-info);
+    color: #fff;
     font-size: 12px;
     font-weight: 700;
     line-height: 1;
@@ -4865,6 +4878,160 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
 
 .cell-updated-badge i {
     font-size: 8px;
+}
+
+/* Imported days (Import XLSX > Import Log): the file's numbers replace the system's,
+   which stay and come back with Filter > Show original data (2026-10-27). */
+.cell-import-line > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cell-import-line i {
+    color: var(--feriiz-import);
+}
+
+.cell-import-changed {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--feriiz-import);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* A day with an import is split in two (2026-10-30): System on the left, as always,
+   Import on the right, shown like a normal day on a light purple ground. The totals
+   count the import. */
+.report-table thead th.day-split-col,
+.report-table tbody td.day-split-cell {
+    min-width: 420px;
+}
+
+.day-split-labels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-bottom: 8px;
+    line-height: 1.5;   /* the day header row is 42px high */
+}
+
+.day-split-labels b {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #F4F6F8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.day-split-labels b:last-child {
+    background: var(--feriiz-import-soft);
+    color: var(--feriiz-import) !important;
+}
+
+.day-split-labels i {
+    font-size: 11px;
+}
+
+/* The header checkbox stays on the date's line, above the two labels. */
+.report-table thead th.day-split-col .day-header-select {
+    top: 12px;
+    transform: none;
+}
+
+.day-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+}
+
+.day-half {
+    min-width: 0;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.day-half--import {
+    background: var(--feriiz-import-soft);
+}
+
+.day-half--import .feriiz-u-141 {
+    background: #fff;
+}
+
+/* Room for the cell's checkbox, top right. */
+.day-half--import .feriiz-u-133 {
+    padding-right: 20px;
+}
+
+.day-half--system.is-incomplete {
+    background: var(--feriiz-flag);
+    box-shadow: inset 4px 0 0 var(--feriiz-flag-bar);
+}
+
+.day-half.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 96px;
+}
+
+/* Nobody's import for this person on this day: an outline, not the purple ground. */
+.day-half--import.is-empty {
+    border: 1px dashed var(--feriiz-border);
+    background: transparent;
+}
+
+.day-half-empty {
+    font-size: 12px;
+    color: #6B7480 !important;
+}
+
+/* In a split column only the System half turns yellow for a missing log. */
+div.report-layout .report-table tbody td.day-split-cell.no-log-cell,
+div.report-layout .report-table tbody td.day-split-cell.no-log-cell:hover {
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+div.report-layout .report-table tbody td.day-split-cell {
+    padding: 10px !important;
+}
+
+/* Original view: this day has an import (its numbers are in the tooltip) */
+.cell-import-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 24px;
+    padding: 2px 7px;
+    border: 1px solid var(--feriiz-import);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--feriiz-import);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cell-import-tag i {
+    font-size: 10px;
+}
+
+/* An accepted request on a day without logs replaces "log incomplete" (backlog A1,
+   2026-10-28). The colour comes from the Calendar category class (cat-*-bg). */
+.cell-request-chip {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 /* Hide checkbox in filtered-out cells */
@@ -4944,7 +5111,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 
 /* Empty log placeholder row */
 .log-empty-row {
-    opacity: 0.3;
+    opacity: 0.55;
 }
 
 .log-placeholder {
@@ -5303,15 +5470,9 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     /* money — right aligned so the digits line up down the column */
     .report-unified-table td.td-rate,
     .report-unified-table td.td-payment,
-    .report-unified-table td.td-add-amt,
     .report-unified-table td.td-subtotal {
         text-align: left !important;
         font-variant-numeric: tabular-nums !important;
-    }
-
-    .report-unified-table td.td-add-note {
-        text-align: left !important;
-        padding-left: 1.2mm !important;
     }
 
     .report-unified-table td.td-subtotal {
@@ -6540,8 +6701,8 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     --dash-track: #EEF1F5;
     --dash-present: #2975BB;
     --dash-missing: #F59E0B;
-    --dash-leave: #9AA8BE;
-    --dash-absent: #E5484D;
+    --dash-leave: var(--feriiz-neutral);
+    --dash-absent: var(--feriiz-danger);
 }
 
 /* --- Header --- */
@@ -6879,8 +7040,8 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-weight: 600;
     line-height: 1.3;
     white-space: nowrap;
-    background: #EEF1F5;
-    color: #4A5568;
+    background: var(--feriiz-neutral);
+    color: #fff;
 }
 
 .status-pill::before {
@@ -6891,9 +7052,9 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     background: currentColor;
 }
 
-.status-pill--active { background: #E6F4EA; color: #1E7E34; }
-.status-pill--hold { background: #FFF1DD; color: #B25E09; }
-.status-pill--done { background: #EEF1F5; color: #4A5568; }
+.status-pill--active { background: var(--feriiz-success); color: #fff; }
+.status-pill--hold { background: var(--feriiz-warning); color: #fff; }
+.status-pill--done { background: var(--feriiz-neutral); color: #fff; }
 
 .dash-showed {
     width: 110px;
@@ -7431,24 +7592,185 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-size: 13px;
 }
 
-.import-template {
-    display: inline-flex;
+/* Import Log: reading and the preview before anything is replaced */
+.import-loading {
+    display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 14px;
-    padding: 0;
-    border: none;
-    background: none;
-    color: #2975BB;
-    font-family: 'Poppins', sans-serif;
+    justify-content: center;
+    gap: 10px;
+    padding: 32px 0;
+    color: #475467;
     font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
 }
 
-.import-template:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+.import-loading[hidden] {
+    display: none;
+}
+
+.import-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 4px;
+}
+
+.import-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #F2F4F7;
+    color: #344054;
+    font-size: 12px;
+}
+
+.import-count.is-changed {
+    background: var(--feriiz-import);
+    color: #fff;
+}
+
+.import-count.is-problem {
+    background: var(--feriiz-danger);
+    color: #fff;
+}
+
+.import-section-title {
+    margin: 16px 0 8px;
+    color: #1a1a1a;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.import-table-wrap {
+    max-height: 240px;
+    overflow: auto;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: 8px;
+}
+
+.import-table {
+    margin: 0;
+}
+
+.import-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
+}
+
+.import-new {
+    color: var(--feriiz-import);
+    font-weight: 600;
+}
+
+.import-empty {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #FDECEC;
+    color: #B42318;
+    font-size: 13px;
+}
+
+.import-keep {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0 0;
+    color: #475467;
+    font-size: 12px;
+}
+
+.import-keep i {
+    color: var(--feriiz-success);
+}
+
+/* Report toolbar: when Batch Update joins it, the buttons keep one line; the search
+   box narrows first, then the project name in the breadcrumb. */
+div.report-layout .fixed-toolbar > div:first-child {
+    flex: 0 1 auto;
+    min-width: 150px;
+    overflow: hidden;
+}
+
+div.report-layout .fixed-toolbar .breadcrumb {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+div.report-layout .fixed-toolbar .breadcrumb > * {
+    flex-shrink: 0;
+}
+
+div.report-layout .fixed-toolbar .breadcrumb > #reportProjectLink {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.report-layout .report-actions {
+    gap: 8px;
+}
+
+@media (min-width: 1200px) {
+    div.report-layout .report-actions {
+        flex-wrap: nowrap;
+    }
+}
+
+div.report-layout .report-actions .btn-action {
+    white-space: nowrap;
+}
+
+div.report-layout .report-bulk-summary {
+    padding: 0 4px;
+}
+
+div.report-layout .report-search-wrap {
+    flex: 0 1 220px;
+    min-width: 140px;
+}
+
+div.report-layout .report-search-input {
+    width: 100%;
+}
+
+/* Import XLSX menu (Download Log / Import Log), built like the Export menu */
+.report-import-menu {
+    display: none;
+}
+
+.report-import-menu.show {
+    display: block;
+}
+
+.report-import-menu .feriiz-u-129 {
+    width: 100%;
+    border: 0;
+    background: none;
+    font-family: 'Poppins', sans-serif;
+    text-align: left;
+}
+
+.report-import-menu .feriiz-u-129:hover,
+.report-import-menu .feriiz-u-129:focus-visible {
+    background: #f5f8fc;
+    outline: none;
+}
+
+/* Filter > Data: "Show original data" and its "?" */
+.report-data-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.report-data-option .missing-filter-option {
+    flex: 1;
 }
 
 /* --- Report: overtime adjustments --- */
@@ -7467,15 +7789,19 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .ot-adjust-chip.is-plus {
-    color: #1E7E34;
+    border-style: solid;
+    background: var(--feriiz-success);
+    color: #fff;
 }
 
 .ot-adjust-chip.is-minus {
-    color: #B42318;
+    border-style: solid;
+    background: var(--feriiz-danger);
+    color: #fff;
 }
 
 .ot-adjust-chip:hover {
-    background: #F7F9FB;
+    filter: brightness(0.92);   /* works on the white and the solid chips */
 }
 
 .ot-adjust-chip:focus-visible {
@@ -7777,22 +8103,6 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     color: #6B7480;
 }
 
-.tpl-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.tpl-chip--meal { color: #9A4A06; background: #FEF0DB; }
-.tpl-chip--transport { color: #1E5A91; background: #E3EFFA; }
-.tpl-chip--holiday { color: #B42318; background: #FDE7E5; }
-.tpl-chip--extra { color: #5B3CC4; background: #EEE9FC; }
-
 .tpl-sub {
     margin-top: 2px;
     font-size: 12px;
@@ -7835,6 +8145,11 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     margin-top: 2px;
 }
 
+.tpl-check small {
+    color: #6B7480;
+}
+
+/* Template form: Daily / One time, each with a "?" whose explanation is a Bootstrap tooltip */
 .tpl-unit {
     display: grid;
     gap: 8px;
@@ -7846,7 +8161,6 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     gap: 6px;
 }
 
-/* "?" next to an option; its explanation is a Bootstrap tooltip. */
 .tpl-help {
     display: inline-flex;
     padding: 0;
@@ -7863,6 +8177,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     color: #2975BB;
 }
 
+/* One-time templates: the dates (red dates) they are for */
 .tpl-dates {
     display: grid;
     gap: 8px;
@@ -7872,6 +8187,13 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: grid;
     grid-template-columns: 160px 1fr 38px;
     gap: 8px;
+}
+
+/* Assign Request: a one-time template's dates inside the report period */
+.tpl-when-dates {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 8px 16px;
 }
 
 .tpl-when {
@@ -7896,18 +8218,40 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     width: 200px;
 }
 
+/* Occupation filter in Assign Request (2026-10-29) */
+.tpl-people-tools .form-select {
+    width: 180px;
+}
+
+/* People list: Assign Request and the request list share it (2026-10-29).
+   A sticky head row ticks everyone shown; each row says what that person gets or has. */
+.tpl-people-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
 .tpl-people {
     max-height: 260px;
+    margin-top: 8px;
     overflow-y: auto;
-    border: 1px solid #E5E8EC;
+    border: 1px solid var(--feriiz-border-soft);
     border-radius: 8px;
 }
 
-.tpl-person {
+.tpl-people--tall {
+    max-height: min(420px, 55vh);
+}
+
+.tpl-person,
+.tpl-list-head {
     display: grid;
-    grid-template-columns: 18px 1fr auto;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding: 8px 12px;
     border-bottom: 1px solid #F2F2F2;
     cursor: pointer;
@@ -7917,31 +8261,134 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     border-bottom: 0;
 }
 
-.tpl-person[hidden] {
+.tpl-person:hover {
+    background: #F8FAFC;
+}
+
+.tpl-person[hidden],
+.tpl-list-head[hidden],
+.tpl-people-head[hidden] {
     display: none;
 }
 
+.tpl-list-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom-color: var(--feriiz-border-soft);
+    background: #F8F9FB;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7480;
+}
+
 .tpl-person-name {
+    min-width: 0;
+    overflow: hidden;
     font-size: 13px;
     font-weight: 600;
     color: #1a1a1a;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .tpl-person-name small {
+    display: block;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 400;
+    color: #6B7480;
+    text-overflow: ellipsis;
+}
+
+/* Assign Request: "2 days · Rp 50.000", "Did not come in", "Already has it" */
+.tpl-person-meta {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+
+.tpl-person-meta.is-idle {
+    color: #B42318;
+    font-weight: 400;
+}
+
+.tpl-person-meta.is-muted {
+    color: #6B7480;
+    font-weight: 400;
+}
+
+/* Request list: name | days | amount */
+.tpl-person--holder {
+    grid-template-columns: 18px minmax(0, 1fr) minmax(0, 252px) 112px;
+}
+
+.tpl-person-days {
+    min-width: 0;
+}
+
+.tpl-person-days small {
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    font-size: 12px;
+    color: #6B7480;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tpl-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tpl-day {
+    padding: 2px 8px;
+    border-radius: var(--feriiz-radius-pill);
+    background: var(--feriiz-request-day);
+    color: var(--feriiz-request-day-ink);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tpl-days-text {
+    font-size: 12px;
+    color: #1a1a1a;
+}
+
+.tpl-person-amount {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tpl-person-amount small {
     display: block;
     font-size: 12px;
     font-weight: 400;
     color: #6B7480;
 }
 
-.tpl-person-last {
+.tpl-list-head .tpl-person-amount {
     font-size: 12px;
     color: #6B7480;
-    white-space: nowrap;
 }
 
-.tpl-person-last.is-idle {
-    color: #B42318;
+.tpl-list-empty {
+    margin: 0;
+    padding: 32px 16px;
+    font-size: 13px;
+    color: #6B7480;
+    text-align: center;
+}
+
+.tpl-list-empty[hidden] {
+    display: none;
 }
 
 .tpl-summary {
@@ -7950,40 +8397,41 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     color: #1a1a1a;
 }
 
-/* Report: Additional = total, then one line per template (screen only) */
-.add-total {
-    font-weight: 700;
+/* Remove asks once, in the footer: the summary turns into the question. */
+.tpl-summary.is-danger {
+    color: #B42318;
+}
+
+.tpl-nowrap {
     white-space: nowrap;
 }
 
-.add-lines {
-    margin-top: 4px;
-    display: grid;
-    gap: 2px;
-}
-
-.add-line {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 12px;
-    color: #6B7480;
-    white-space: nowrap;
-}
-
-/* Employee form: Transport / Day sits in a 3-column row, without the stacked-field gap */
-.emp-form .feriiz-u-258 .rate-input {
-    margin-bottom: 0;
-}
-
-.emp-form .rate-input input:disabled {
-    background: #F7F8FA;
-    cursor: not-allowed;
+/* Transport popup in the Report (2026-10-28): a skipped day stays listed, greyed. */
+.data-table tr.transport-skipped td {
+    color: var(--feriiz-neutral);
 }
 
 @media (max-width: 760px) {
-    .tpl-people-tools .form-control {
+    .tpl-people-tools {
         width: 100%;
+    }
+
+    .tpl-people-tools .form-control,
+    .tpl-people-tools .form-select {
+        width: 100%;
+    }
+
+    .tpl-person--holder {
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+    }
+
+    .tpl-person--holder .tpl-person-days {
+        grid-column: 2 / -1;
+        grid-row: 2;
+    }
+
+    .tpl-list-head-days {
+        display: none;
     }
 
     .tpl-date-row {
@@ -8011,9 +8459,7 @@ div.report-layout .report-table .col-totaldays,
 div.report-layout .report-table .col-totalhour,
 div.report-layout .report-table .col-totalovertime,
 div.report-layout .report-table [class*="col-emp-"],
-div.report-layout .report-table [class*="col-cli-"],
-div.report-layout .report-table .col-additional-amount,
-div.report-layout .report-table .col-additional-note {
+div.report-layout .report-table [class*="col-cli-"] {
     width: 1px !important;
 }
 
@@ -8041,9 +8487,84 @@ div.report-layout .report-table .report-identity-content .emp-name-cell,
 div.report-layout .report-table .report-identity-content .emp-occupation-cell,
 div.report-layout .report-table .report-identity-content .emp-pin-cell,
 div.report-layout .report-table .feriiz-u-141,
-div.report-layout .report-table .log-placeholder,
-div.report-layout .report-table .add-line {
+div.report-layout .report-table .log-placeholder {
     color: #000 !important;
+}
+
+div.report-layout .report-table thead th.col-cli-add,
+div.report-layout .report-table thead th.col-cli-addtotal {
+    min-width: 92px;
+}
+
+/* A request amount: the amount (dotted underline = it opens something) and, under it,
+   how many days it is for. The days line stays black like the rest of the table. */
+.add-cell-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.add-cell-amount {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+}
+
+.add-cell-days {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.add-cell-btn:hover,
+.add-cell-btn:focus-visible {
+    color: #2975BB;
+}
+
+.add-cell-btn:hover .add-cell-amount,
+.add-cell-btn:focus-visible .add-cell-amount {
+    text-decoration-style: solid;
+}
+
+/* A request column's title opens everyone who has it. */
+.add-head-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.add-head-btn:hover,
+.add-head-btn:focus-visible {
+    color: #2975BB;
+    text-decoration-style: solid;
+}
+
+/* While pointing at an amount, the days it is for light up in that row. Nothing is
+   added to the day cells otherwise, and nothing is printed (Arcon, 2026-10-29). */
+div.report-layout .report-table tbody td.day-col.request-day-on {
+    background: var(--feriiz-request-day) !important;
+    box-shadow: inset 0 0 0 2px var(--feriiz-success) !important;
+}
+
+/* Column list: the request-template columns under Client get their own small heading. */
+.col-picker-sub {
+    padding: 8px 14px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8A94A3;
 }
 
 /* --- Minutes shown inside the field ("60 m"), keeping the original input look --- */

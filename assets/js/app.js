@@ -736,193 +736,259 @@ function feriizLogout() {
     }, true);
 })();
 
+/* === Employee attendance ===
+   Projects > Activity > Attendance (?project=&employee=) and Employees > Attendance
+   (?employee=, every project). Built from FERIIZ_DATA for that person; it used to be
+   Adam Ferial's May written into the page (backlog A2, 2026-10-28).
+   - Time Period: the project's working hours on its working days.
+   - Attendance: log in, log out and the time between them.
+   - Period: the shortfall against the working hours; a missing log counts the whole day.
+   - A day without logs covered by an accepted request counts as the full working hours
+     and shows the request with its reason, as the old Feriiz report did.
+   - Project page: a day the person was logged at another project says where, and
+     counts for neither.
+   Like the Report, "today" is held at the dataset's last day. */
 (function () {
-    const reportRows = [
-        { date: 'Friday, 01 May 2026', request: 'Hari Buruh Internasional / Pekerja', muted: true },
-        { date: 'Saturday, 02 May 2026', muted: true },
-        { date: 'Sunday, 03 May 2026', muted: true },
-        { date: 'Monday, 04 May 2026', scheduled: true, attendance: ['09:32:31', '18:37:10', '09:04:39'] },
-        { date: 'Tuesday, 05 May 2026', scheduled: true, attendance: ['09:20:54', '18:04:02', '08:43:08'], absent: '-00:16:52' },
-        {
-            date: 'Wednesday, 06 May 2026',
-            scheduled: true,
-            attendance: ['-', '-', '09:00:00'],
-            request: 'Sick Leave',
-            note: 'Pagi bu, hari ini saya izin tidak dapat hadir ke kantor dikarenakan saat bangun tidur kepala saya terasa sempoyongan, mual dan badan terasa sakit semua, adapun pekerjaan kemarin akan saya kerjakan. Semoga Ibu dapat memahami dan mengerti kondisi saya saat ini. Terimakasih.',
-            requestRow: true
-        },
-        { date: 'Thursday, 07 May 2026', scheduled: true, attendance: ['08:59:52', '20:29:39', '11:29:47'] },
-        { date: 'Friday, 08 May 2026', scheduled: true, attendance: ['10:03:10', '18:05:11', '08:02:01'], absent: '-00:57:59' },
-        { date: 'Saturday, 09 May 2026', muted: true },
-        { date: 'Sunday, 10 May 2026', muted: true },
-        { date: 'Monday, 11 May 2026', scheduled: true, attendance: ['09:29:34', '18:28:53', '08:59:19'], absent: '-00:00:41' },
-        { date: 'Tuesday, 12 May 2026', scheduled: true, attendance: ['09:22:52', '18:48:05', '09:25:13'] },
-        { date: 'Wednesday, 13 May 2026', scheduled: true, attendance: ['09:21:04', '17:55:41', '08:34:37'], absent: '-00:25:23' },
-        { date: 'Thursday, 14 May 2026', request: 'Kenaikan Isa Al Masih', muted: true },
-        { date: 'Friday, 15 May 2026', request: 'Cuti Bersama Kenaikan Isa Al Masih', muted: true },
-        { date: 'Saturday, 16 May 2026', muted: true },
-        { date: 'Sunday, 17 May 2026', muted: true },
-        { date: 'Monday, 18 May 2026', scheduled: true, attendance: ['09:18:24', '18:32:01', '09:13:37'] },
-        {
-            date: 'Tuesday, 19 May 2026',
-            scheduled: true,
-            attendance: ['-', '-', '09:00:00'],
-            request: 'Annual Leave',
-            note: 'Pagi Bu, hari ini saya cuti mendadak dikarenakan istri saya sedang sakit dan membutuhkan pendampingan saya. Adapun pekerjaan yang kemarin belum diselesaikan. Akan saya selesaikan. Terimakasih.',
-            requestRow: true
-        },
-        { date: 'Wednesday, 20 May 2026', scheduled: true, attendance: ['09:50:16', '17:54:57', '08:04:41'], absent: '-00:55:19' },
-        { date: 'Thursday, 21 May 2026', scheduled: true, attendance: ['09:16:13', '18:06:30', '08:50:17'], absent: '-00:09:43' },
-        { date: 'Friday, 22 May 2026', scheduled: true, attendance: ['09:24:59', '-', '-'], absent: '-09:00:00' },
-        { date: 'Saturday, 23 May 2026', muted: true },
-        { date: 'Sunday, 24 May 2026', muted: true },
-        { date: 'Monday, 25 May 2026', scheduled: true, attendance: ['-', '-', '-'], absent: '-09:00:00' },
-        { date: 'Tuesday, 26 May 2026', scheduled: true, attendance: ['-', '-', '-'], absent: '-09:00:00' },
-        { date: 'Wednesday, 27 May 2026', request: 'Idul Adha (Lebaran Haji) (belum pasti)', muted: true },
-        { date: 'Thursday, 28 May 2026', request: 'Idul Adha (Lebaran Haji)', muted: true },
-        { date: 'Friday, 29 May 2026', scheduled: true, attendance: ['-', '-', '-'], absent: '-09:00:00' },
-        { date: 'Saturday, 30 May 2026', muted: true },
-        { date: 'Sunday, 31 May 2026', request: 'Hari Raya Waisak (belum pasti)', muted: true }
-    ];
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+        'August', 'September', 'October', 'November', 'December'];
+
+    const ctx = {
+        data: null,
+        employee: null,
+        project: null,      // the project page's project; null = every project
+        home: null,         // working hours for a day without a record
+        records: {},        // date -> the person's attendance record
+        requests: {},       // date -> accepted request
+        holidays: {},       // date -> holiday name
+        first: '',
+        today: ''
+    };
+    const appliedAttendanceFilters = { dateStart: '', dateEnd: '' };
+
+    const pad2 = n => String(n).padStart(2, '0');
+    const toISO = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+
+    function fromISO(iso) {
+        const p = iso.split('-').map(Number);
+        return new Date(p[0], p[1] - 1, p[2]);
+    }
+
+    function addDays(iso, n) {
+        const d = fromISO(iso);
+        d.setDate(d.getDate() + n);
+        return toISO(d);
+    }
+
+    function toSeconds(t) {
+        const p = String(t || '').split(':').map(Number);
+        return (p[0] || 0) * 3600 + (p[1] || 0) * 60 + (p[2] || 0);
+    }
+
+    // 09:00:00, or -00:20:15 for a shortfall
+    function clock(seconds) {
+        const s = Math.round(Math.abs(seconds));
+        return (seconds < 0 ? '-' : '') + pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s % 3600 / 60)) + ':' + pad2(s % 60);
+    }
+
+    // 108:27, the stat cards' hours and minutes
+    function hoursMinutes(seconds) {
+        const m = Math.round(Math.abs(seconds) / 60);
+        return Math.floor(m / 60) + ':' + pad2(m % 60);
+    }
+
+    function longDate(iso) {
+        const d = fromISO(iso);
+        return DAY_NAMES[d.getDay()] + ', ' + pad2(d.getDate()) + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    function escapeHTML(value) {
+        return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
     function cell(value, className) {
-        return `<td class="${className || 'feriiz-u-073'}">${value || '-'}</td>`;
+        return `<td class="${className || 'feriiz-u-073'}">${value ? escapeHTML(value) : '-'}</td>`;
     }
 
-    function scheduleCells(row) {
-        if (!row.scheduled) {
-            return ['-', '-', '-'].map(value => cell(value, 'feriiz-u-079')).join('');
+    const blank = () => cell('', 'feriiz-u-079');
+
+    // One table row and what it adds to the totals (seconds).
+    function dayRow(date) {
+        const rec = ctx.records[date] || null;
+        const req = ctx.requests[date] || null;
+        const project = ctx.project || (rec && ctx.data.findProjectByCode(rec.projectCode)) || ctx.home;
+        const elsewhere = rec && ctx.project && rec.projectCode !== ctx.project.code
+            ? ctx.data.findProjectByCode(rec.projectCode) : null;
+        const holiday = rec ? (rec.status === 'holiday' ? ctx.holidays[date] || 'Holiday' : '') : ctx.holidays[date] || '';
+        const workingDays = (project && project.workingDays) || [];
+        const weekend = rec ? rec.status === 'weekend'
+            : workingDays.length > 0 && workingDays.indexOf(SHORT_DAYS[fromISO(date).getDay()]) < 0;
+
+        if (holiday || weekend || elsewhere) {
+            return {
+                html: '<tr class="attendance-muted-row">' + cell(longDate(date), 'feriiz-u-078') +
+                    blank() + blank() + blank() + blank() + blank() + blank() + blank() +
+                    cell(holiday, holiday ? 'feriiz-u-082' : 'feriiz-u-079') +
+                    cell(elsewhere && !holiday && !weekend ? 'At ' + elsewhere.name : '', 'feriiz-u-080') + '</tr>',
+                scheduled: 0, worked: 0, shortfall: 0, surplus: 0
+            };
         }
 
-        return [
-            cell('08:00:00'),
-            cell('17:00:00'),
-            cell('09:00:00')
-        ].join('');
+        const start = (project && project.workStart) || '08:00';
+        const end = (project && project.workEnd) || '17:00';
+        const scheduled = Math.max(0, toSeconds(end + ':00') - toSeconds(start + ':00'));
+        const inTime = rec ? rec.inTime || '' : '';
+        const outTime = rec ? rec.outTime || '' : '';
+        let attendance;
+        let worked = 0;
+        let shortfall = 0;
+        let surplus = 0;
+        let rowClass = '';
+
+        if (!inTime && !outTime && req) {
+            worked = scheduled;
+            attendance = blank() + blank() + cell(clock(scheduled));
+            rowClass = ' class="attendance-request-row"';
+        } else {
+            const both = Boolean(inTime && outTime) && toSeconds(outTime) > toSeconds(inTime);
+            worked = both ? toSeconds(outTime) - toSeconds(inTime) : 0;
+            shortfall = both ? Math.min(0, worked - scheduled) : -scheduled;
+            surplus = both ? Math.max(0, worked - scheduled) : 0;
+            attendance = (inTime ? cell(inTime) : blank()) + (outTime ? cell(outTime) : blank()) +
+                (both ? cell(clock(worked)) : blank());
+        }
+
+        return {
+            html: '<tr' + rowClass + '>' + cell(longDate(date), 'feriiz-u-078') +
+                cell(start + ':00') + cell(end + ':00') + cell(clock(scheduled)) +
+                attendance +
+                (shortfall < 0 ? cell(clock(shortfall), 'feriiz-u-083') : blank()) +
+                cell(req ? req.type : '', req ? 'feriiz-u-082' : 'feriiz-u-079') +
+                cell(req ? req.reason : '', 'feriiz-u-080') + '</tr>',
+            scheduled, worked, shortfall, surplus
+        };
     }
 
-    function attendanceCells(row) {
-        const values = row.attendance || ['-', '-', '-'];
-        return values.map(value => cell(value, value === '-' ? 'feriiz-u-079' : 'feriiz-u-073')).join('');
+    function defaultRange() {
+        const monthStart = ctx.today.slice(0, 8) + '01';
+        return { start: ctx.first && monthStart < ctx.first ? ctx.first : monthStart, end: ctx.today };
+    }
+
+    function shownDates() {
+        let from = appliedAttendanceFilters.dateStart || appliedAttendanceFilters.dateEnd;
+        let to = appliedAttendanceFilters.dateEnd || appliedAttendanceFilters.dateStart;
+        if (!from) {
+            from = defaultRange().start;
+            to = defaultRange().end;
+        }
+        if (from > to) { const t = from; from = to; to = t; }
+        if (ctx.first && from < ctx.first) from = ctx.first;
+        if (to > ctx.today) to = ctx.today;
+        const dates = [];
+        for (let d = from; d <= to; d = addDays(d, 1)) dates.push(d);
+        return dates;
+    }
+
+    function setStat(name, text) {
+        const el = document.querySelector('[data-att-stat="' + name + '"]');
+        if (el) el.textContent = text;
     }
 
     function renderAttendanceReport() {
-        document.querySelectorAll('.attendance-table tbody').forEach(tbody => {
-            const rows = reportRows.map(row => {
-                const rowClass = [
-                    row.muted ? 'attendance-muted-row' : '',
-                    row.requestRow ? 'attendance-request-row' : ''
-                ].filter(Boolean).join(' ');
-                const absentClass = row.absent && row.absent !== '-' ? 'feriiz-u-083' : 'feriiz-u-079';
-
-                return `
-                    <tr class="${rowClass}">
-                        <td class="feriiz-u-078">${row.date}</td>
-                        ${scheduleCells(row)}
-                        ${attendanceCells(row)}
-                        ${cell(row.absent || '-', absentClass)}
-                        ${cell(row.request || '-', row.request ? 'feriiz-u-082' : 'feriiz-u-079')}
-                        ${cell(row.note || '-', 'feriiz-u-080')}
-                    </tr>
-                `;
-            }).join('');
-
-            tbody.innerHTML = `${rows}
-                <tr class="feriiz-u-084 attendance-total-row">
-                    <td class="feriiz-u-085"></td>
-                    <td class="feriiz-u-085"></td>
-                    <td class="feriiz-u-085"></td>
-                    <td class="feriiz-u-086">189:00:00</td>
-                    <td class="feriiz-u-085"></td>
-                    <td class="feriiz-u-085"></td>
-                    <td class="feriiz-u-086">108:27:19</td>
-                    <td class="feriiz-u-087">-38:45:57</td>
-                    <td colspan="2" class="feriiz-u-088"></td>
-                </tr>`;
+        const tbody = document.querySelector('.attendance-table tbody');
+        if (!tbody) return;
+        const totals = { scheduled: 0, worked: 0, shortfall: 0, surplus: 0 };
+        const rows = shownDates().map(date => {
+            const row = dayRow(date);
+            totals.scheduled += row.scheduled;
+            totals.worked += row.worked;
+            totals.shortfall += row.shortfall;
+            totals.surplus += row.surplus;
+            return row.html;
         });
 
-        document.querySelectorAll('.attendance-table-container .pagination').forEach(pagination => {
-            pagination.remove();
-        });
+        tbody.innerHTML = (rows.length ? rows.join('') : '<tr><td colspan="10" class="feriiz-u-080">No attendance in this date range.</td></tr>') + `
+            <tr class="feriiz-u-084 attendance-total-row">
+                <td class="feriiz-u-085"></td>
+                <td class="feriiz-u-085"></td>
+                <td class="feriiz-u-085"></td>
+                <td class="feriiz-u-086">${clock(totals.scheduled)}</td>
+                <td class="feriiz-u-085"></td>
+                <td class="feriiz-u-085"></td>
+                <td class="feriiz-u-086">${clock(totals.worked)}</td>
+                <td class="feriiz-u-087">${totals.shortfall < 0 ? clock(totals.shortfall) : '-'}</td>
+                <td colspan="2" class="feriiz-u-088"></td>
+            </tr>`;
+
+        setStat('hours', hoursMinutes(totals.worked));
+        setStat('deficit', hoursMinutes(totals.shortfall));
+        setStat('surplus', hoursMinutes(totals.surplus));
+        applyAttendanceSearch();
     }
 
-    const appliedAttendanceFilters = { dateStart: '', dateEnd: '' };
-
-    function formatInputDate(date) {
-        return date.toISOString().slice(0, 10);
-    }
-
-    function setAttendancePeriodDraft(select, dateInputs) {
-        const value = select.value;
-        const now = new Date();
-        let start = '';
-        let end = '';
-
-        if (value === 'today') {
-            start = end = formatInputDate(now);
-        } else if (value === 'yesterday') {
-            const yesterday = new Date(now);
-            yesterday.setDate(yesterday.getDate() - 1);
-            start = end = formatInputDate(yesterday);
-        } else if (value === 'this_week') {
-            const monday = new Date(now);
-            monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
-            start = formatInputDate(monday);
-            end = formatInputDate(now);
-        } else if (value === 'last_week') {
-            const monday = new Date(now);
-            monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1) - 7);
-            const sunday = new Date(monday);
-            sunday.setDate(monday.getDate() + 6);
-            start = formatInputDate(monday);
-            end = formatInputDate(sunday);
-        } else if (value === 'this_month') {
-            start = formatInputDate(new Date(now.getFullYear(), now.getMonth(), 1));
-            end = formatInputDate(now);
-        } else if (value === 'last_month') {
-            start = formatInputDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
-            end = formatInputDate(new Date(now.getFullYear(), now.getMonth(), 0));
-        } else if (value === 'this_year') {
-            start = formatInputDate(new Date(now.getFullYear(), 0, 1));
-            end = formatInputDate(now);
+    // The Period presets count back from the held "today".
+    function presetRange(value) {
+        const today = ctx.today;
+        const day = fromISO(today).getDay();
+        const monday = addDays(today, day === 0 ? -6 : 1 - day);
+        const monthStart = today.slice(0, 8) + '01';
+        if (value === 'today') return [today, today];
+        if (value === 'yesterday') return [addDays(today, -1), addDays(today, -1)];
+        if (value === 'this_week') return [monday, today];
+        if (value === 'last_week') return [addDays(monday, -7), addDays(monday, -1)];
+        if (value === 'this_month') return [monthStart, today];
+        if (value === 'last_month') {
+            const end = addDays(monthStart, -1);
+            return [end.slice(0, 8) + '01', end];
         }
-
-        dateInputs[0].value = start;
-        dateInputs[1].value = end;
+        if (value === 'this_year') return [today.slice(0, 5) + '01-01', today];
+        if (value === 'all_time') return [ctx.first || today, today];
+        return null;   // Custom: keep what was typed
     }
 
-    function applyAttendanceFilters() {
+    function applyAttendanceSearch() {
         const searchInput = document.querySelector('.page-actions input[placeholder*="Search attendance"]');
         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-        const startTime = appliedAttendanceFilters.dateStart
-            ? new Date(appliedAttendanceFilters.dateStart + 'T00:00:00').getTime()
-            : Number.NEGATIVE_INFINITY;
-        const endTime = appliedAttendanceFilters.dateEnd
-            ? new Date(appliedAttendanceFilters.dateEnd + 'T23:59:59').getTime()
-            : Number.POSITIVE_INFINITY;
-
         document.querySelectorAll('.attendance-table tbody tr:not(.attendance-total-row)').forEach(row => {
-            const dateCell = row.querySelector('td:first-child');
-            if (!dateCell) return;
-            const rowTime = new Date(dateCell.textContent.trim()).getTime();
-            const matchesDate = !Number.isNaN(rowTime) && rowTime >= startTime && rowTime <= endTime;
-            const matchesSearch = !query || row.textContent.toLowerCase().includes(query);
-            row.hidden = !(matchesDate && matchesSearch);
+            row.hidden = Boolean(query) && !row.textContent.toLowerCase().includes(query);
         });
     }
 
     function initAttendanceFilters() {
-        if (!document.querySelector('.attendance-table')) return;
-
         const dateInputs = [...document.querySelectorAll('.filter-date')];
         const periodSelect = document.querySelector('.filter-period');
         const applyButton = document.querySelector('.filter-apply-btn');
         const clearButton = document.querySelector('.filter-clear-btn');
         const searchInput = document.querySelector('.page-actions input[placeholder*="Search attendance"]');
 
+        // The filter always shows the range on screen: This Month until changed.
+        function showDefault() {
+            const range = defaultRange();
+            if (dateInputs.length >= 2) {
+                dateInputs[0].value = range.start;
+                dateInputs[1].value = range.end;
+            }
+            if (periodSelect) periodSelect.value = 'this_month';
+            appliedAttendanceFilters.dateStart = range.start;
+            appliedAttendanceFilters.dateEnd = range.end;
+        }
+
+        dateInputs.forEach(input => {
+            if (ctx.first) input.min = ctx.first;
+            input.max = ctx.today;
+            input.addEventListener('change', function () {
+                if (periodSelect) periodSelect.value = 'custom';
+            });
+        });
+
         if (periodSelect && dateInputs.length >= 2) {
             periodSelect.addEventListener('change', function () {
-                setAttendancePeriodDraft(periodSelect, dateInputs);
+                const range = presetRange(periodSelect.value);
+                if (!range) return;
+                dateInputs[0].value = range[0];
+                dateInputs[1].value = range[1];
             });
         }
 
@@ -930,17 +996,14 @@ function feriizLogout() {
             applyButton.addEventListener('click', function () {
                 appliedAttendanceFilters.dateStart = dateInputs[0].value;
                 appliedAttendanceFilters.dateEnd = dateInputs[1].value;
-                applyAttendanceFilters();
+                renderAttendanceReport();
             });
         }
 
         if (clearButton) {
             clearButton.addEventListener('click', function () {
-                dateInputs.forEach(input => { input.value = ''; });
-                if (periodSelect) periodSelect.value = 'custom';
-                appliedAttendanceFilters.dateStart = '';
-                appliedAttendanceFilters.dateEnd = '';
-                applyAttendanceFilters();
+                showDefault();
+                renderAttendanceReport();
             });
         }
 
@@ -948,14 +1011,94 @@ function feriizLogout() {
             let timer;
             searchInput.addEventListener('input', function () {
                 clearTimeout(timer);
-                timer = setTimeout(applyAttendanceFilters, 180);
+                timer = setTimeout(applyAttendanceSearch, 180);
             });
+        }
+
+        showDefault();
+    }
+
+    function resolveContext(data) {
+        const params = new URLSearchParams(window.location.search);
+        const onProjectPage = document.body.getAttribute('data-page') === 'project-attendance';
+        const wanted = params.get('employee');
+        let projectCode = params.get('project');
+        if (onProjectPage && !projectCode) {
+            try { projectCode = sessionStorage.getItem('feriiz_active_project'); } catch (e) {}
+        }
+
+        let employee = wanted ? data.findEmployeeByCode(wanted) : null;
+        let project = null;
+        if (onProjectPage) {
+            project = (projectCode && data.findProjectByCode(projectCode)) ||
+                (employee && employee.projects && employee.projects.length ? data.findProjectByCode(employee.projects[0]) : null) ||
+                data.projects[0] || null;
+        }
+        if (!employee) {
+            const team = project ? data.employees.filter(e => (e.projects || []).indexOf(project.code) >= 0) : data.employees;
+            employee = team[0] || data.employees[0] || null;
+            if (wanted && employee && window.FeriizNotify) {
+                FeriizNotify.warning('Employee ' + wanted + ' was not found, so ' + employee.name + ' is shown.', 'Employee not found');
+            }
+        }
+
+        ctx.data = data;
+        ctx.employee = employee;
+        ctx.project = project;
+        ctx.home = project || (employee && employee.projects && employee.projects.length ? data.findProjectByCode(employee.projects[0]) : null) || data.projects[0] || null;
+        ctx.records = {};
+        ctx.requests = {};
+        ctx.holidays = {};
+        if (employee) {
+            data.attendance.forEach(a => { if (a.employeeCode === employee.code) ctx.records[a.date] = a; });
+            (data.generatedRequests || []).forEach(r => {
+                if (r.employeeCode !== employee.code || r.status !== 'Accepted' || !r.dateStart) return;
+                for (let d = r.dateStart; d <= (r.dateEnd || r.dateStart); d = addDays(d, 1)) ctx.requests[d] = r;
+            });
+        }
+        (data.datasetHolidays || []).forEach(h => { ctx.holidays[h.date] = h.name; });
+
+        const meta = data.meta || {};
+        const now = toISO(new Date());
+        ctx.first = meta.periodStart || '';
+        ctx.today = meta.periodEnd && now > meta.periodEnd ? meta.periodEnd : now;
+    }
+
+    function fillHeader() {
+        const employee = ctx.employee;
+        if (!employee) return;
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
+        setText('attName', employee.name);
+        setText('attCode', employee.code);
+        setText('attCrumbName', employee.name);
+        const photo = document.getElementById('attPhoto');
+        if (photo) photo.src = ctx.data.avatarSrc(employee);
+        if (ctx.project) {
+            const href = 'project_employees.html?project=' + encodeURIComponent(ctx.project.code);
+            const link = document.getElementById('attProjectLink');
+            if (link) {
+                link.textContent = ctx.project.name;
+                link.href = href;
+            }
+            const back = document.getElementById('attBackLink');
+            if (back) back.href = href;
+            document.title = 'Feriiz - ' + ctx.project.name + ' - ' + employee.name + ' - Attendance';
+        } else {
+            document.title = 'Feriiz - ' + employee.name + ' - Attendance';
         }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        renderAttendanceReport();
-        initAttendanceFilters();
+        if (!document.querySelector('.attendance-table') || !window.FERIIZ_DATA || !window.FERIIZ_DATA.ready) return;
+        window.FERIIZ_DATA.ready.then(function (data) {
+            resolveContext(data);
+            fillHeader();
+            initAttendanceFilters();
+            renderAttendanceReport();
+        });
     });
 })();
 

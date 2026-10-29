@@ -7,11 +7,11 @@
     <title>Feriiz - Employee Attendance</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.27">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.27">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.9" defer></script>
-    <script src="assets/js/app.js?v=3.7.9" defer></script>
+    <script src="assets/js/data.js?v=3.7.27" defer></script>
+    <script src="assets/js/app.js?v=3.7.27" defer></script>
 </head>
 
 <body data-page="employee-attendance">
@@ -34,11 +34,10 @@
                     <i class="fa-solid fa-chevron-left feriiz-u-060"></i>
                 </a>
                 <div class="feriiz-u-061">
-                    <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" class="feriiz-u-062">
+                    <img alt="" class="feriiz-u-062" id="attPhoto">
                     <div>
-                        <h1 class="page-title feriiz-u-063">Adam Ferial</h1>
-                        <div class="feriiz-u-064">
-                            ADA27B1B2E650H0X</div>
+                        <h1 class="page-title feriiz-u-063" id="attName"></h1>
+                        <div class="feriiz-u-064" id="attCode"></div>
                     </div>
                 </div>
             </div>
@@ -99,8 +98,7 @@
                     <i class="fa-solid fa-clock"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">108:27
-                    </div>
+                    <div class="stat-number feriiz-u-069" data-att-stat="hours">0:00</div>
                     <div class="stat-label feriiz-u-070">Attendance Hours</div>
                 </div>
             </div>
@@ -111,8 +109,7 @@
                     <i class="fa-solid fa-circle-exclamation"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">38:45
-                    </div>
+                    <div class="stat-number feriiz-u-069" data-att-stat="deficit">0:00</div>
                     <div class="stat-label feriiz-u-070">Hours Deficit</div>
                 </div>
             </div>
@@ -123,8 +120,7 @@
                     <i class="fa-solid fa-arrow-trend-up"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-069">0:00
-                    </div>
+                    <div class="stat-number feriiz-u-069" data-att-stat="surplus">0:00</div>
                     <div class="stat-label feriiz-u-070">Hours Surplus</div>
                 </div>
             </div>
@@ -164,394 +160,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="feriiz-u-078">Sunday, 01 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Monday, 02 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-081">08:06:10</td>
-                        <td class="feriiz-u-073">19:49:38</td>
-                        <td class="feriiz-u-073">11:43:28</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-082">Remote Work</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Tuesday, 03 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">09:10:24</td>
-                        <td class="feriiz-u-073">19:49:30</td>
-                        <td class="feriiz-u-073">10:39:06</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-082">Remote Work</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Wednesday, 04 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">08:58:39</td>
-                        <td class="feriiz-u-073">17:38:24</td>
-                        <td class="feriiz-u-073">08:39:45</td>
-                        <td class="feriiz-u-083">-00:20:15</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Thursday, 05 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">08:59:51</td>
-                        <td class="feriiz-u-073">19:24:33</td>
-                        <td class="feriiz-u-073">10:24:42</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Friday, 06 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">09:32:19</td>
-                        <td class="feriiz-u-073">17:29:09</td>
-                        <td class="feriiz-u-073">07:56:50</td>
-                        <td class="feriiz-u-083">-01:03:10</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Saturday, 07 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Sunday, 08 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Monday, 09 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">09:12:01</td>
-                        <td class="feriiz-u-073">17:26:41</td>
-                        <td class="feriiz-u-073">08:14:40</td>
-                        <td class="feriiz-u-083">-00:45:20</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Tuesday, 10 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">09:20:34</td>
-                        <td class="feriiz-u-073">17:28:54</td>
-                        <td class="feriiz-u-073">08:08:20</td>
-                        <td class="feriiz-u-083">-00:51:40</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Wednesday, 11 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-073">09:02:39</td>
-                        <td class="feriiz-u-073">17:37:31</td>
-                        <td class="feriiz-u-073">08:34:52</td>
-                        <td class="feriiz-u-083">-00:25:08</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Thursday, 12 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-082">Sick Leave</td>
-                        <td class="feriiz-u-080">Pagi bu, saya ijin tidak dapat hadir...</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Friday, 13 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Saturday, 14 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Sunday, 15 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Monday, 16 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Tuesday, 17 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Wednesday, 18 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Thursday, 19 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-082">Hari Suci Nyepi</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Friday, 20 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Saturday, 21 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-082">Hari Idul Fitri (belum pasti)</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Sunday, 22 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-082">Hari Idul Fitri (belum pasti)</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Monday, 23 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Tuesday, 24 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Wednesday, 25 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Thursday, 26 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Friday, 27 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Saturday, 28 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Sunday, 29 March 2026</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Monday, 30 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-078">Tuesday, 31 March 2026</td>
-                        <td class="feriiz-u-073">08:00:00</td>
-                        <td class="feriiz-u-073">17:00:00</td>
-                        <td class="feriiz-u-073">09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-083">-09:00:00</td>
-                        <td class="feriiz-u-079">-</td>
-                        <td class="feriiz-u-080">-</td>
-                    </tr>
-                    <tr class="feriiz-u-084">
-                        <td class="feriiz-u-085"></td>
-                        <td class="feriiz-u-085"></td>
-                        <td class="feriiz-u-085"></td>
-                        <td class="feriiz-u-086">198:00:00</td>
-                        <td class="feriiz-u-085"></td>
-                        <td class="feriiz-u-085"></td>
-                        <td class="feriiz-u-086">74:21:43</td>
-                        <td class="feriiz-u-087">-120:25:33</td>
-                        <td colspan="2" class="feriiz-u-088"></td>
-                    </tr>
+                    <tr><td colspan="10" class="feriiz-u-080">Loading attendance...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="feriiz-u-032">version : 3.7.9</div>
+        <div class="feriiz-u-032">version : 3.7.27</div>
     </main>
 
 </body>

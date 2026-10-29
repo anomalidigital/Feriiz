@@ -261,7 +261,7 @@ img, svg {
     color: #333;
 }
 
-/* --- Bootstrap tooltips --- */
+/* --- Bootstrap tooltips (the "?" next to Daily / One time) --- */
 .tooltip {
     --bs-tooltip-zindex: 10060; /* above .modal (10050) */
     --bs-tooltip-max-width: 240px;

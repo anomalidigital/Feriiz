@@ -15,7 +15,15 @@
 (function (global) {
     'use strict';
 
-    var DATA_URL = 'feriiz-data.json';
+    // Fetched with force-cache, so change the query whenever the file changes
+    // (2026-10-28: employees got transportPerDay).
+    var DATA_URL = 'feriiz-data.json?v=2026-10-28';
+
+    // Transport / Day (Rp) per employee: from the data, unless it was changed in the
+    // employee form. 0 = no transport. Kept in this browser until the API exists.
+    var TRANSPORT_KEY = 'feriiz_employee_transport_v2';
+    var transportEdits = {};
+    try { transportEdits = JSON.parse(localStorage.getItem(TRANSPORT_KEY) || '{}') || {}; } catch (e) { transportEdits = {}; }
 
     /* ---- Original Anomali team (12 people) — for Requests & Calendar ---- */
     var ANOMALI_EMPLOYEES = [
@@ -101,7 +109,11 @@
         employees: [],
         attendance: [],
         requests: [],
+        generatedRequests: [],
         holidays: [],
+        // The dataset's own holidays: the days its attendance marks 'holiday'
+        // (the Calendar keeps the curated Anomali list in `holidays`).
+        datasetHolidays: [],
         _empByCode: {},
         _projByCode: {},
         findEmployeeByCode: function (code) { return this._empByCode[code] || null; },
@@ -126,14 +138,24 @@
                 };
             });
         },
+        // Transport is paid automatically on every day with a log (Arcon MoM 20-10-2026).
+        transportOf: function (employee) {
+            if (!employee) return 0;
+            if (Object.prototype.hasOwnProperty.call(transportEdits, employee.code)) return Number(transportEdits[employee.code]) || 0;
+            return Number(employee.transportPerDay) || 0;
+        },
+        setTransport: function (code, perDay) {
+            if (!code) return;
+            transportEdits[code] = Math.max(0, Math.round(Number(perDay) || 0));
+            try { localStorage.setItem(TRANSPORT_KEY, JSON.stringify(transportEdits)); } catch (e) { /* kept for this page only */ }
+        },
         initialsAvatar: function (name) { return buildInitialsAvatar(name); },
         avatarSrc: function (employee) {
-            // Real full filename (Anomali team) first, then kebab photo, then initials.
+            // Only the Anomali team has photo files (photoFile). The generated employees'
+            // `photo` slugs have no file behind them, so they get initials instead of a
+            // request that fails (25 404s per list page, backlog A4).
             if (employee && employee.photoFile) {
                 return 'assets/images/employees/' + encodeURIComponent(employee.photoFile);
-            }
-            if (employee && employee.photo) {
-                return 'assets/images/employees/' + employee.photo + '.jpg';
             }
             return buildInitialsAvatar(employee ? employee.name : '');
         }
@@ -174,6 +196,10 @@
             // Requests & Calendar use the curated Anomali-12 demo, not the
             // large generated request set. Register the 12 employees so
             // findEmployeeByCode() resolves them (name + photo).
+            // The generated set (220 requests, matching the sick/leave/remote
+            // days in attendance) stays available for one person's Request page.
+            API.generatedRequests = data.requests || [];
+            API.datasetHolidays = data.holidays || [];
             API.requests = ANOMALI_REQUESTS;
             API.holidays = ANOMALI_HOLIDAYS;
             ANOMALI_EMPLOYEES.forEach(function (e) {

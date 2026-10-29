@@ -7,13 +7,12 @@
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.27">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.27">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.9" defer></script>
-    <script src="assets/js/app.js?v=3.7.9" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.9" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.9" defer></script>
+    <script src="assets/js/data.js?v=3.7.27" defer></script>
+    <script src="assets/js/app.js?v=3.7.27" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.27" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -213,7 +212,7 @@
 
             function copyFormValues(target, v) {
                 ['firstName', 'middleName', 'lastName', 'occupation', 'pin', 'phone', 'email', 'gender', 'birthDate', 'note', 'status', 'role',
-                 'workingDays', 'dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
+                 'workingDays', 'dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate', 'transportPerDay'].forEach(function (k) {
                     target[k] = v[k];
                 });
                 target.name = v.name;
@@ -300,7 +299,8 @@
                 var occs = state.filters.occupations;
                 var q = (document.querySelector('.feriiz-u-020 input')?.value || '').trim().toLowerCase();
                 state.filtered = state.all.filter(function (emp) {
-                    if (occs.length && !occs.some(function (o) { return (emp.occupation || '').toLowerCase().indexOf(o) >= 0; })) return false;
+                    // Exact match: "Surveyor" must not also pick "Quantity Surveyor".
+                    if (occs.length && occs.indexOf((emp.occupation || '').trim().toLowerCase()) < 0) return false;
                     if (q && (emp.name.toLowerCase().indexOf(q) < 0 && emp.code.toLowerCase().indexOf(q) < 0)) return false;
                     var activityDate = (state.lastActivity[emp.code] || '').slice(0, 10);
                     if (state.filters.dateStart && (!activityDate || activityDate < state.filters.dateStart)) return false;
@@ -381,7 +381,7 @@
         })();
         </script>
 
-        <div class="feriiz-u-032">version : 3.7.9</div>
+        <div class="feriiz-u-032">version : 3.7.27</div>
     </main>
 
     <script>

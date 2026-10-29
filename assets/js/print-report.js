@@ -156,6 +156,11 @@
             return '<span class="print-day-off">Off</span>';
         }
 
+        // A day without logs covered by an accepted request prints the request's name.
+        if (td.dataset.request) {
+            return '<div class="print-day-cell"><div class="print-day-log">' + escapeHTML(td.dataset.request) + '</div></div>';
+        }
+
         var inTime = td.dataset.inTime || '';
         var outTime = td.dataset.outTime || '';
 
@@ -172,6 +177,13 @@
         var badges = Array.from(td.querySelectorAll('.badge, .feriiz-u-135, .feriiz-u-136'))
             .map(function (b) { return b.textContent.trim(); })
             .filter(Boolean);
+
+        // An imported day has the file's numbers and no log times.
+        if (td.dataset.imported === '1') {
+            return '<div class="print-day-cell"><div class="print-day-badges">' + badges.map(function (b) {
+                return '<span class="' + (b.toLowerCase().includes('ot') ? 'print-badge-ot' : 'print-badge-work') + '">' + escapeHTML(b) + '</span>';
+            }).join('') + '</div><div class="print-day-log">Imported</div></div>';
+        }
 
         if (!inTime && !outTime && badges.length === 0) {
             return '<span class="print-day-off">-</span>';
@@ -225,17 +237,10 @@
         }
 
         if (sectionKey === 'grpClient') {
-            var cb = document.getElementById('colClient');
-            if (cb && !cb.checked) return false;
+            // Rate columns or request-template columns; the Client box can be half ticked.
             if (groupHeader && !isElementVisible(groupHeader)) return false;
-            var cliCols = document.querySelectorAll('.col-cli-dailyrate, .col-cli-rateovertime, .col-cli-totalrate, .col-cli-totalovertime');
+            var cliCols = document.querySelectorAll('.col-cli-dailyrate, .col-cli-rateovertime, .col-cli-totalrate, .col-cli-totalovertime, .col-cli-add');
             return Array.from(cliCols).some(isElementVisible);
-        }
-
-        if (sectionKey === 'grpAdditional') {
-            if (groupHeader && !isElementVisible(groupHeader)) return false;
-            var addCols = document.querySelectorAll('.col-additional-amount, .col-additional-note');
-            return Array.from(addCols).some(isElementVisible);
         }
 
         if (sectionKey === 'grpDaily') {
@@ -264,7 +269,6 @@
         // Determine active sections
         var isEmpActive = isSectionActive('grpEmployee');
         var isCliActive = isSectionActive('grpClient');
-        var isAddActive = isSectionActive('grpAdditional');
         var isDailyActive = visibleDateHeaders.length > 0;
 
         // Build Identifier
@@ -276,7 +280,6 @@
         if (isDailyActive) identifierParts.push('DAILY');
         if (isEmpActive) identifierParts.push('EMPLOYEE');
         if (isCliActive) identifierParts.push('CLIENT');
-        if (isAddActive) identifierParts.push('ADDITIONAL');
 
         var identifier = identifierParts.join('_');
 
@@ -317,18 +320,23 @@
         var showCliRateOT = isElementVisible(document.querySelector('.col-cli-rateovertime'));
         var showCliTotalR = isElementVisible(document.querySelector('.col-cli-totalrate'));
         var showCliTotalOT = isElementVisible(document.querySelector('.col-cli-totalovertime'));
-        var cliColCount = (showCliDaily ? 1 : 0) + (showCliRateOT ? 1 : 0) + (showCliTotalR ? 1 : 0) + (showCliTotalOT ? 1 : 0);
-
-        var showAddAmt = isElementVisible(document.querySelector('.col-additional-amount'));
-        var showAddNote = isElementVisible(document.querySelector('.col-additional-note'));
-        var addColCount = (showAddAmt ? 1 : 0) + (showAddNote ? 1 : 0);
+        // Request templates (Transport, Uang Makan...) and Total Additional end the Client group.
+        var cliAddCols = Array.from(document.querySelectorAll('.report-table thead th.col-cli-add, .report-table thead th.col-cli-addtotal'))
+            .filter(isElementVisible)
+            .map(function (th) {
+                return {
+                    name: th.textContent.trim(),
+                    sel: th.dataset.template ? '.col-cli-add[data-template="' + th.dataset.template + '"]' : '.col-cli-addtotal'
+                };
+            });
+        var cliColCount = (showCliDaily ? 1 : 0) + (showCliRateOT ? 1 : 0) + (showCliTotalR ? 1 : 0) + (showCliTotalOT ? 1 : 0) + cliAddCols.length;
 
         // Single Unified Wide Table (Old Feriiz Structure + New Design)
         html += '<div class="report-print-section">';
         // Proportional column widths. Without this the browser splits all ~26
         // columns evenly, which starves the money columns (they need room for
         // "1.095.000") while the day columns sit half empty.
-        var W = { no: 0.7, name: 3.5, dayPeriod: 1.62, dayOT: 1.45, totals: 2.4, money: 4.4, addAmt: 2.4, addNote: 2.1, pay: 4.6 };
+        var W = { no: 0.7, name: 3.5, dayPeriod: 1.62, dayOT: 1.45, totals: 2.4, money: 4.4, pay: 4.6 };
         var colW = [W.no, W.name];
         if (isDailyActive) visibleDateHeaders.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
         colW.push(W.totals, W.totals);
@@ -344,11 +352,8 @@
             if (showCliRateOT) colW.push(W.money);
             if (showCliTotalR) colW.push(W.money);
             if (showCliTotalOT) colW.push(W.money);
+            cliAddCols.forEach(function () { colW.push(W.money); });
             colW.push(W.money);
-        }
-        if (isAddActive && addColCount > 0) {
-            if (showAddAmt) colW.push(W.addAmt);
-            if (showAddNote) colW.push(W.addNote);
         }
         if (isEmpActive) colW.push(W.pay);
         if (isCliActive) colW.push(W.pay);
@@ -388,10 +393,6 @@
             html += '<th colspan="' + (cliColCount + 1) + '" class="th-group th-cli-grp">Client (IDR)</th>';
         }
 
-        if (isAddActive && addColCount > 0) {
-            html += '<th colspan="' + addColCount + '" class="th-group th-add-grp">Additional</th>';
-        }
-
         if (isEmpActive) {
             html += '<th rowspan="2" class="th-total-pay">Total Payment<br>Employee<br>(IDR)</th>';
         }
@@ -422,12 +423,8 @@
             if (showCliRateOT) html += '<th>Rate<br>Overtime</th>';
             if (showCliTotalR) html += '<th>Total<br>Rate</th>';
             if (showCliTotalOT) html += '<th>Total Rate<br>OT</th>';
+            cliAddCols.forEach(function (c) { html += '<th>' + escapeHTML(c.name) + '</th>'; });
             html += '<th>Subtotal<br>Rate</th>';
-        }
-
-        if (isAddActive && addColCount > 0) {
-            if (showAddAmt) html += '<th>Amt<br>(IDR)</th>';
-            if (showAddNote) html += '<th>Note</th>';
         }
 
         html += '</tr>';
@@ -437,6 +434,15 @@
         function extractVal(tr, selector) {
             var el = tr.querySelector(selector);
             return sanitizeTextCell(el);
+        }
+
+        // On screen a template amount is a button (it opens the details), which sanitizeTextCell drops.
+        // Only the amount is printed, not the "2 days" line under it.
+        function addVal(tr, col) {
+            var el = tr.querySelector(col.sel);
+            var amount = el ? (el.querySelector('.add-cell-amount') || el) : null;
+            var text = amount ? amount.textContent.trim() : '';
+            return text ? escapeHTML(text) : '-';
         }
 
         // The "IDR" prefix is shown once in the column header instead of on
@@ -461,7 +467,9 @@
             var period = '-';
             var overtime = '-';
 
-            var badges = Array.from(dayTd.querySelectorAll('.badge, .feriiz-u-135, .feriiz-u-136'))
+            // A split day (System | Import) prints the import, which is what the totals count.
+            var scope = dayTd.querySelector('.day-half--import:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
+            var badges = Array.from(scope.querySelectorAll('.badge, .feriiz-u-135, .feriiz-u-136'))
                 .map(function (b) { return b.textContent.trim(); });
 
             badges.forEach(function (b) {
@@ -530,15 +538,10 @@
                 if (showCliRateOT) html += '<td class="td-rate">' + money(cliRateOT) + '</td>';
                 if (showCliTotalR) html += '<td class="td-rate">' + money(cliTotalR) + '</td>';
                 if (showCliTotalOT) html += '<td class="td-rate">' + money(cliTotalOT) + '</td>';
+                cliAddCols.forEach(function (c) {
+                    html += '<td class="td-rate">' + money(addVal(tr, c)) + '</td>';
+                });
                 html += '<td class="td-rate td-subtotal">' + money(cliTotalR !== '-' ? cliTotalR : cliDaily) + '</td>';
-            }
-
-            // Additional
-            if (isAddActive && addColCount > 0) {
-                var addAmt = extractVal(tr, '.col-additional-amount');
-                var addNote = extractVal(tr, '.col-additional-note');
-                if (showAddAmt) html += '<td class="td-add-amt">' + money(addAmt) + '</td>';
-                if (showAddNote) html += '<td class="td-add-note">' + addNote + '</td>';
             }
 
             // Payment Totals
@@ -569,7 +572,7 @@
 
         var sumEmpDaily = 0, sumEmpRateOT = 0, sumEmpTotalR = 0, sumEmpTotalOT = 0, sumEmpSubtotal = 0;
         var sumCliDaily = 0, sumCliRateOT = 0, sumCliTotalR = 0, sumCliTotalOT = 0, sumCliSubtotal = 0;
-        var sumAddAmt = 0, sumEmpPayment = 0, sumCliPayment = 0;
+        var sumCliAdd = {}, sumEmpPayment = 0, sumCliPayment = 0;
 
         visibleRows.forEach(function (tr) {
             if (isEmpActive && empColCount > 0) {
@@ -587,9 +590,9 @@
                 if (showCliTotalOT) sumCliTotalOT += parseNumericVal(extractVal(tr, '.col-cli-totalovertime'));
                 var cliSub = parseNumericVal(extractVal(tr, '.col-cli-totalrate')) || parseNumericVal(extractVal(tr, '.col-cli-dailyrate'));
                 sumCliSubtotal += cliSub;
-            }
-            if (isAddActive && addColCount > 0) {
-                if (showAddAmt) sumAddAmt += parseNumericVal(extractVal(tr, '.col-additional-amount'));
+                cliAddCols.forEach(function (c) {
+                    sumCliAdd[c.sel] = (sumCliAdd[c.sel] || 0) + parseNumericVal(addVal(tr, c));
+                });
             }
             if (isEmpActive) {
                 var empPay = parseNumericVal(extractVal(tr, '.col-emp-totalrate')) || parseNumericVal(extractVal(tr, '.col-emp-dailyrate'));
@@ -619,12 +622,10 @@
             if (showCliRateOT) html += '<td class="td-rate td-total-cell"></td>';
             if (showCliTotalR) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliTotalR) + '</td>';
             if (showCliTotalOT) html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliTotalOT) + '</td>';
+            cliAddCols.forEach(function (c) {
+                html += '<td class="td-rate td-total-cell">' + formatIDRCurrency(sumCliAdd[c.sel] || 0) + '</td>';
+            });
             html += '<td class="td-rate td-subtotal td-total-cell">' + formatIDRCurrency(sumCliSubtotal) + '</td>';
-        }
-
-        if (isAddActive && addColCount > 0) {
-            if (showAddAmt) html += '<td class="td-add-amt td-total-cell">' + formatIDRCurrency(sumAddAmt) + '</td>';
-            if (showAddNote) html += '<td class="td-add-note">-</td>';
         }
 
         if (isEmpActive) {

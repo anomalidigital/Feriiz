@@ -7,11 +7,11 @@
     <title>Feriiz - Employee Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.27">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.27">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.9" defer></script>
-    <script src="assets/js/app.js?v=3.7.9" defer></script>
+    <script src="assets/js/data.js?v=3.7.27" defer></script>
+    <script src="assets/js/app.js?v=3.7.27" defer></script>
 </head>
 
 <body data-page="employee-projects">
@@ -21,7 +21,7 @@
         <div class="breadcrumb">
             <a href="employees.html">Employees</a>
             <span>&gt;</span>
-            <span class="feriiz-u-057">Adam Ferial - Projects</span>
+            <span class="feriiz-u-057" id="projCrumb">Projects</span>
         </div>
 
         <div class="page-header">
@@ -30,10 +30,10 @@
                     <i class="fa-solid fa-chevron-left feriiz-u-060"></i>
                 </a>
                 <div class="feriiz-u-061">
-                    <img src="assets/images/employees/adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg" alt="" class="feriiz-u-062">
+                    <img alt="" class="feriiz-u-062" id="projPhoto">
                     <div>
-                        <h1 class="page-title feriiz-u-063">Adam Ferial</h1>
-                        <div class="feriiz-u-064">ADA27B1B2E650H0X</div>
+                        <h1 class="page-title feriiz-u-063" id="projName"></h1>
+                        <div class="feriiz-u-064" id="projCode"></div>
                     </div>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                     <i class="fa-solid fa-folder"></i>
                 </div>
                 <div class="stat-card-info">
-                    <div class="stat-number feriiz-u-099">3</div>
+                    <div class="stat-number feriiz-u-099" id="projCount">0</div>
                     <div class="stat-label feriiz-u-027">Assigned Projects</div>
                 </div>
             </div>
@@ -99,34 +99,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="feriiz-u-104">Anomali</td>
-                        <td>ANM001</td>
-                        <td>Attendance</td>
-                        <td>01 January 2025</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-104">Diamond Crystal Golf No. 15</td>
-                        <td>DCG015</td>
-                        <td>Attendance</td>
-                        <td>15 March 2025</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td class="feriiz-u-104">Diamond Golf H3 No. 105</td>
-                        <td>DGH105</td>
-                        <td>Attendance</td>
-                        <td>20 June 2025</td>
-                        <td>-</td>
-                    </tr>
+                    <tr><td colspan="5" class="tpl-empty">Loading projects...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="feriiz-u-032">version : 3.7.9</div>
+        <div class="feriiz-u-032">version : 3.7.27</div>
     </main>
     <script>
+        /* One person's projects, from FERIIZ_DATA for ?employee= (it used to be Adam
+           Ferial's written into the page, backlog A2, 2026-10-28). Start Date = when the
+           project started; End Date only for a completed project (its last activity). */
         document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = document.querySelector('.filter-toggle-btn');
             const dropdown = document.querySelector('.filter-dropdown');
@@ -136,8 +119,20 @@
             const dateStart = document.querySelector('.filter-date-start');
             const dateEnd = document.querySelector('.filter-date-end');
             const searchInput = document.getElementById('projectSearch');
-            const tableRows = document.querySelectorAll('.data-table tbody tr');
+            const tbody = document.querySelector('.data-table tbody');
             const appliedFilters = { type: '', start: '', end: '' };
+            const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                'August', 'September', 'October', 'November', 'December'];
+
+            const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+            // "10 December 2025"
+            const longDate = iso => {
+                if (!iso) return '-';
+                const p = iso.slice(0, 10).split('-').map(Number);
+                return String(p[2]).padStart(2, '0') + ' ' + MONTHS[p[1] - 1] + ' ' + p[0];
+            };
 
             if (toggleBtn && dropdown) {
                 toggleBtn.addEventListener('click', (e) => {
@@ -156,36 +151,64 @@
                 const typeVal = appliedFilters.type;
                 const startVal = appliedFilters.start;
                 const endVal = appliedFilters.end;
-                const searchVal = searchInput.value.toLowerCase();
+                const searchVal = searchInput.value.trim().toLowerCase();
+                let shown = 0;
 
-                tableRows.forEach(row => {
-                    const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                    const code = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                    const type = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                    const dateText = row.querySelector('td:nth-child(4)').textContent; // e.g. "01 January 2025"
-                    
+                tbody.querySelectorAll('tr[data-start]').forEach(row => {
+                    const name = row.cells[0].textContent.toLowerCase();
+                    const code = row.cells[1].textContent.toLowerCase();
+                    const type = row.cells[2].textContent.toLowerCase();
+                    const start = row.dataset.start;   // YYYY-MM-DD
+
                     let show = true;
-
-                    // Search match
-                    if (searchVal && !name.includes(searchVal) && !code.includes(searchVal)) {
-                        show = false;
-                    }
-
-                    // Type match
-                    if (show && typeVal !== 'all types' && !type.includes(typeVal)) {
-                        show = false;
-                    }
-
-                    // Date range match
-                    if (show && (startVal || endVal)) {
-                        const rowDate = new Date(dateText);
-                        if (startVal && rowDate < new Date(startVal)) show = false;
-                        if (endVal && rowDate > new Date(endVal)) show = false;
-                    }
+                    if (searchVal && !name.includes(searchVal) && !code.includes(searchVal)) show = false;
+                    if (show && typeVal && typeVal !== 'all types' && type !== typeVal) show = false;
+                    if (show && startVal && start < startVal) show = false;
+                    if (show && endVal && start > endVal) show = false;
 
                     row.style.display = show ? '' : 'none';
+                    if (show) shown++;
                 });
+
+                const emptyRow = tbody.querySelector('.projects-empty-row');
+                if (emptyRow) emptyRow.style.display = shown ? 'none' : '';
             };
+
+            const render = data => {
+                const wanted = new URLSearchParams(window.location.search).get('employee');
+                let employee = wanted ? data.findEmployeeByCode(wanted) : null;
+                if (!employee) {
+                    employee = data.employees[0] || null;
+                    if (wanted && employee && window.FeriizNotify) {
+                        FeriizNotify.warning('Employee ' + wanted + ' was not found, so ' + employee.name + ' is shown.', 'Employee not found');
+                    }
+                }
+                if (!employee) return;
+
+                document.getElementById('projName').textContent = employee.name;
+                document.getElementById('projCode').textContent = employee.code;
+                document.getElementById('projCrumb').textContent = employee.name + ' - Projects';
+                document.getElementById('projPhoto').src = data.avatarSrc(employee);
+                document.title = 'Feriiz - ' + employee.name + ' - Projects';
+
+                const projects = (employee.projects || []).map(code => data.findProjectByCode(code)).filter(Boolean);
+                document.getElementById('projCount').textContent = projects.length;
+                tbody.innerHTML = projects.map(p => {
+                    const start = (p.startedAt || '').slice(0, 10);
+                    return '<tr data-start="' + esc(start) + '">' +
+                        '<td class="feriiz-u-104">' + esc(p.name) + '</td>' +
+                        '<td>' + esc(p.code) + '</td>' +
+                        '<td>' + esc(p.type || '-') + '</td>' +
+                        '<td>' + longDate(start) + '</td>' +
+                        '<td>' + (p.status === 'Completed' ? longDate(p.lastActivityAt) : '-') + '</td>' +
+                    '</tr>';
+                }).join('') +
+                    '<tr class="projects-empty-row"><td colspan="5" class="tpl-empty">' +
+                    (projects.length ? 'No project matches the search or filter.' : 'No projects assigned yet.') + '</td></tr>';
+                applyFilters();
+            };
+
+            if (window.FERIIZ_DATA && window.FERIIZ_DATA.ready) window.FERIIZ_DATA.ready.then(render);
 
             if (applyBtn) {
                 applyBtn.addEventListener('click', () => {

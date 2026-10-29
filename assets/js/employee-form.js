@@ -11,7 +11,9 @@
    FeriizEmployeeForm.mount(container, { employee, project, onSave })
        Renders the same form inline (Employee Detail page).
 
-   onSave(values, isNew). This prototype keeps changes in memory only.
+   onSave(values, isNew). This prototype keeps changes in memory only, except
+   Transport / Day: the Report reads it on another page, so it is kept in this
+   browser (FERIIZ_DATA.setTransport).
 
    Pay is per day (decided Oct 2026):
        Employee pay = Daily rate x days worked + Overtime rate x overtime hours
@@ -95,13 +97,10 @@
                 '<div class="feriiz-u-258">' +
                     field(p, 'status', 'Status', '<select id="' + p + 'status" name="status" class="feriiz-u-260">' +
                         '<option>Active</option><option>Inactive</option></select>') +
-                    // Transport (Arcon meeting 1:50): only for people who do not live on site;
-                    // empty = the standard transport template, a number = this person's own rate.
-                    field(p, 'livesOnSite', 'Lives on Site', '<select id="' + p + 'livesOnSite" name="livesOnSite" class="feriiz-u-260">' +
-                        '<option value="no">No</option><option value="yes">Yes</option></select>') +
+                    // Transport (Arcon MoM 20-10-2026): paid on every day with a log; empty = no transport.
                     field(p, 'transportPerDay', 'Transport / Day',
                         '<div class="rate-input"><span class="rate-icon">Rp</span>' +
-                        '<input type="text" inputmode="numeric" id="' + p + 'transportPerDay" name="transportPerDay" class="feriiz-u-259 js-rupiah" placeholder="Standard"></div>') +
+                        '<input type="text" inputmode="numeric" id="' + p + 'transportPerDay" name="transportPerDay" class="feriiz-u-259 js-rupiah" placeholder="No transport"></div>') +
                 '</div>' +
                 '<div class="feriiz-u-224">' +
                     field(p, 'note', 'Note', '<textarea id="' + p + 'note" name="note" class="feriiz-u-261"></textarea>') +
@@ -158,11 +157,6 @@
         setVal(form, 'birthDate', e.birthDate || '');
         setVal(form, 'gender', e.gender || '');
         setVal(form, 'status', e.status || 'Active');
-        var tr = window.FeriizTemplates && e.code ? window.FeriizTemplates.transportOf(e.code)
-            : { livesOnSite: !!e.livesOnSite, perDay: Number(e.transportPerDay) || 0 };
-        setVal(form, 'livesOnSite', tr.livesOnSite ? 'yes' : 'no');
-        setVal(form, 'transportPerDay', tr.perDay ? rupiah(tr.perDay) : '');
-        syncTransport(form);
         setVal(form, 'note', e.note || '');
         setVal(form, 'startHour', e.workStart || (project && project.workStart) || '08:00');
         setVal(form, 'endHour', e.workEnd || (project && project.workEnd) || '17:00');
@@ -175,6 +169,8 @@
         setVal(form, 'overtimeRate', rupiah(e.overtimeRate != null ? e.overtimeRate : (project && project.overtimeRate)));
         setVal(form, 'clientDailyRate', rupiah(e.clientDailyRate));
         setVal(form, 'clientOvertimeRate', rupiah(e.clientOvertimeRate != null ? e.clientOvertimeRate : (project && project.clientOvertimeRate)));
+        var transport = window.FERIIZ_DATA && window.FERIIZ_DATA.transportOf ? window.FERIIZ_DATA.transportOf(e) : Number(e.transportPerDay) || 0;
+        setVal(form, 'transportPerDay', transport ? rupiah(transport) : '');
         form.querySelectorAll('.emp-invalid').forEach(function (el) { el.classList.remove('emp-invalid'); });
         var box = form.querySelector('.js-reset-box');
         if (box) {
@@ -191,31 +187,13 @@
             var el = form.querySelector('[name="' + k + '"]');
             v[k] = el ? el.value.trim() : '';
         });
-        ['dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
+        ['dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate', 'transportPerDay'].forEach(function (k) {
             v[k] = Number(digits(form.querySelector('[name="' + k + '"]').value)) || 0;
         });
         v.workingDays = Array.prototype.filter.call(form.querySelectorAll('[name="workingDays"]'), function (cb) { return cb.checked; })
             .map(function (cb) { return cb.value; });
         v.name = [v.firstName, v.middleName, v.lastName].filter(Boolean).join(' ');
-        v.livesOnSite = form.querySelector('[name="livesOnSite"]').value === 'yes';
-        v.transportPerDay = v.livesOnSite ? 0 : (Number(digits(form.querySelector('[name="transportPerDay"]').value)) || 0);
         return v;
-    }
-
-    // Living on site means no transport, so the rate field is switched off.
-    function syncTransport(form) {
-        var onSite = form.querySelector('[name="livesOnSite"]').value === 'yes';
-        var input = form.querySelector('[name="transportPerDay"]');
-        input.disabled = onSite;
-        input.placeholder = onSite ? 'No transport' : 'Standard';
-        if (onSite) input.value = '';
-    }
-
-    // Transport is read by the Report's Assign Template, so it is kept with the templates.
-    function keepTransport(code, v) {
-        if (window.FeriizTemplates && code) {
-            window.FeriizTemplates.setTransport(code, { livesOnSite: v.livesOnSite, perDay: v.transportPerDay });
-        }
     }
 
     // Marks wrong fields in red and says what to fix.
@@ -240,9 +218,6 @@
     }
 
     function bindInputs(form) {
-        form.addEventListener('change', function (e) {
-            if (e.target.name === 'livesOnSite') syncTransport(form);
-        });
         form.addEventListener('input', function (e) {
             if (e.target.classList.contains('js-rupiah')) {
                 var fromEnd = e.target.value.length - e.target.selectionStart;
@@ -251,7 +226,6 @@
                 e.target.setSelectionRange(at, at);
             }
             if (e.target.name === 'pin') e.target.value = digits(e.target.value).slice(0, 6);
-            if (e.target.name === 'livesOnSite') syncTransport(form);
             e.target.classList.remove('emp-invalid');
         });
     }
@@ -285,6 +259,13 @@
             if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(done, function () { input.select(); });
             else { input.select(); document.execCommand('copy'); done(); }
         });
+    }
+
+    // A new employee gets a code from the page; this keeps transport for one that has a code.
+    function keepTransport(employee, v) {
+        if (employee && employee.code && window.FERIIZ_DATA && window.FERIIZ_DATA.setTransport) {
+            window.FERIIZ_DATA.setTransport(employee.code, v.transportPerDay);
+        }
     }
 
     /* ---------- overlay (same look as the original Activity form) ---------- */
@@ -324,8 +305,8 @@
             var v = read(e.target);
             if (!validate(e.target, v)) return;
             var isNew = state.isNew;
+            keepTransport(state.employee, v);
             if (state.onSave) state.onSave(v, isNew);
-            keepTransport(state.employee && state.employee.code, v);
             close();
             if (window.FeriizNotify) {
                 window.FeriizNotify.success(v.name + (isNew ? ' was added.' : ' was updated.'), isNew ? 'Employee added' : 'Employee updated');
@@ -370,8 +351,8 @@
                 e.preventDefault();
                 var v = read(form);
                 if (!validate(form, v)) return;
+                keepTransport(opts.employee, v);
                 if (opts.onSave) opts.onSave(v, !opts.employee);
-                keepTransport(opts.employee && opts.employee.code, v);
                 if (window.FeriizNotify) window.FeriizNotify.success(v.name + ' was updated.', 'Employee updated');
             });
             return form;

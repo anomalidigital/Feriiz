@@ -7,12 +7,12 @@
     <title>Feriiz - Request Templates</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.27">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.27">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.9" defer></script>
-    <script src="assets/js/app.js?v=3.7.9" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.9" defer></script>
+    <script src="assets/js/data.js?v=3.7.27" defer></script>
+    <script src="assets/js/app.js?v=3.7.27" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.27" defer></script>
 </head>
 
 <body data-page="request-templates">
@@ -23,26 +23,9 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Request Templates</h1>
-                <p class="tpl-page-note">Made once for every project. Assign them to people from a project's Report; they show up in the Additional column.</p>
+                <p class="tpl-page-note">Made once for every project. Assign them to people from a project's Report, where each template has its own column, or give someone their own amount on the Employee page.</p>
             </div>
             <div class="page-actions">
-                <!-- Same filter dropdown as the other pages -->
-                <div class="feriiz-u-014">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter" aria-label="Filter templates">
-                        <i class="fa-solid fa-filter"></i>
-                    </button>
-                    <div class="filter-dropdown feriiz-u-015">
-                        <div class="feriiz-u-016">Filter Templates</div>
-                        <label for="tplFilterCategory">Category</label>
-                        <select id="tplFilterCategory" class="select">
-                            <option value="">All categories</option>
-                        </select>
-                        <div class="feriiz-u-018">
-                            <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
-                            <button class="btn btn-primary filter-apply-btn feriiz-u-019">Apply</button>
-                        </div>
-                    </div>
-                </div>
                 <button class="btn btn-primary" type="button" id="addTemplateBtn">
                     <i class="fa-solid fa-plus"></i>
                     Add Template
@@ -60,7 +43,6 @@
                     <tr>
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
-                        <th>Category</th>
                         <th>Amount</th>
                         <th>Unit</th>
                     </tr>
@@ -68,32 +50,25 @@
                 <tbody id="tplTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.9</div>
+        <div class="feriiz-u-032">version : 3.7.27</div>
     </main>
 
-    <!-- Add / edit template -->
+    <!-- Add / edit template: Name, Amount, Note from the meeting whiteboard (20-10-2026),
+         plus Daily / One time and the year's red dates (meeting 1:31-1:33, 1:41) -->
     <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <form class="modal-content" id="templateForm" novalidate>
                 <div class="modal-header">
-                    <h2 class="modal-title" id="templateModalTitle">Add Template</h2>
+                    <h2 class="modal-title" id="templateModalTitle">Add Request Template</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <label class="form-label" for="tplName">Name</label>
-                    <input type="text" class="form-control" id="tplName" placeholder="For example: Uang Makan 25rb" autocomplete="off">
-                    <div class="row g-3 mt-0">
-                        <div class="col-sm-6">
-                            <label class="form-label" for="tplCategory">Category</label>
-                            <select class="form-select" id="tplCategory"></select>
-                        </div>
-                        <div class="col-sm-6">
-                            <label class="form-label" for="tplAmount">Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="text" inputmode="numeric" class="form-control" id="tplAmount" placeholder="0">
-                            </div>
-                        </div>
+                    <input type="text" class="form-control" id="tplName" placeholder="For example: Uang Makan" autocomplete="off">
+                    <label class="form-label mt-3" for="tplAmount">Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text" inputmode="numeric" class="form-control" id="tplAmount" placeholder="0">
                     </div>
                     <span class="form-label d-block mt-3">Counted</span>
                     <div class="tpl-unit" role="radiogroup" aria-label="Counted">
@@ -103,17 +78,17 @@
                         </div>
                         <div class="tpl-unit-option">
                             <label class="tpl-check"><input type="radio" class="form-check-input" name="tplUnit" value="once"> One time</label>
-                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Counted once, on the date you assign. Example: holiday incentive." aria-label="About One time"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Counted once on each chosen date. Example: the incentive for this year's red dates." aria-label="About One time"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
                         </div>
                     </div>
                     <div id="tplDatesBlock" hidden>
                         <span class="form-label d-block mt-3">Dates</span>
                         <div id="tplDates" class="tpl-dates"></div>
                         <button type="button" class="btn btn-outline btn-sm mt-2" id="tplAddDate"><i class="fa-solid fa-plus"></i> Add date</button>
-                        <div class="form-text">For holidays: the red dates this amount is for. The Report offers these dates when assigning.</div>
+                        <div class="form-text">For red dates: the days this amount is for. The Report offers them when assigning.</div>
                     </div>
                     <label class="form-label mt-3" for="tplNote">Note <span class="tpl-optional">(Optional)</span></label>
-                    <input type="text" class="form-control" id="tplNote" placeholder="Who gets it, or when" autocomplete="off">
+                    <textarea class="form-control" id="tplNote" rows="3" placeholder="Who gets it, or when"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>
@@ -125,7 +100,6 @@
 
     <script>
         (function () {
-            var state = { filters: { category: '' } };
             var editing = null;
 
             function esc(v) {
@@ -138,25 +112,25 @@
             function render() {
                 var q = document.getElementById('tplSearch').value.trim().toLowerCase();
                 var rows = T().all().filter(function (t) {
-                    if (state.filters.category && t.category !== state.filters.category) return false;
                     return !q || (t.name + ' ' + (t.note || '')).toLowerCase().indexOf(q) >= 0;
                 });
                 var tbody = document.getElementById('tplTableBody');
                 if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="tpl-empty">No template matches. Change the filter or add a template.</td></tr>';
-                } else {
-                    tbody.innerHTML = rows.map(function (t) {
-                        return '<tr>' +
-                            '<td><div class="action-cell">' +
-                                '<a href="#" class="btn-icon" title="Edit" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
-                            '</div></td>' +
-                            '<td><div class="feriiz-u-188">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
-                            '<td>' + T().chip(t.category) + '</td>' +
-                            '<td class="tpl-amount">' + T().rupiah(t.amount) + '</td>' +
-                            '<td>' + esc(T().UNITS[t.unit] || '-') + (t.unit === 'once' && t.dates && t.dates.length ? '<div class="tpl-sub">' + t.dates.length + ' dates</div>' : '') + '</td>' +
-                        '</tr>';
-                    }).join('');
+                    tbody.innerHTML = '<tr><td colspan="4" class="tpl-empty">' +
+                        (q ? 'No template matches your search.' : 'No template yet. Add the first one.') + '</td></tr>';
+                    return;
                 }
+                tbody.innerHTML = rows.map(function (t) {
+                    return '<tr>' +
+                        '<td><div class="action-cell">' +
+                            '<a href="#" class="btn-icon" title="Edit" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
+                        '</div></td>' +
+                        '<td><div class="feriiz-u-188">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
+                        '<td class="tpl-amount">' + T().rupiah(t.amount) + '</td>' +
+                        '<td>' + esc(T().UNITS[t.unit] || T().UNITS.day) +
+                            (t.unit === 'once' && t.dates && t.dates.length ? '<div class="tpl-sub">' + t.dates.length + ' dates</div>' : '') + '</td>' +
+                    '</tr>';
+                }).join('');
             }
 
             /* ---------- add / edit ---------- */
@@ -175,11 +149,10 @@
 
             function openForm(t) {
                 editing = t || null;
-                document.getElementById('templateModalTitle').textContent = t ? 'Edit Template' : 'Add Template';
+                document.getElementById('templateModalTitle').textContent = t ? 'Edit Request Template' : 'Add Request Template';
                 document.getElementById('tplName').value = t ? t.name : '';
-                document.getElementById('tplCategory').value = t ? t.category : 'meal';
                 document.getElementById('tplAmount').value = t ? Number(t.amount).toLocaleString('id-ID') : '';
-                document.querySelector('input[name="tplUnit"][value="' + (t ? t.unit : 'day') + '"]').checked = true;
+                document.querySelector('input[name="tplUnit"][value="' + (t && t.unit === 'once' ? 'once' : 'day') + '"]').checked = true;
                 document.getElementById('tplDates').innerHTML = ((t && t.dates) || []).map(dateRow).join('');
                 document.getElementById('tplNote').value = t ? (t.note || '') : '';
                 document.querySelectorAll('#templateForm .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
@@ -192,11 +165,19 @@
                 var name = document.getElementById('tplName');
                 var amount = document.getElementById('tplAmount');
                 var value = Number(String(amount.value).replace(/\D/g, '')) || 0;
-                name.classList.toggle('is-invalid', !name.value.trim());
+                // The name is also the column title in the Report, so it must be unique,
+                // and "Transport" is the Report's automatic column (Transport / Day of each employee).
+                var same = T().findByName(name.value);
+                var reserved = T().reservedName(name.value);
+                var taken = reserved || (same && (!editing || same.id !== editing.id));
+                name.classList.toggle('is-invalid', !name.value.trim() || !!taken);
                 amount.classList.toggle('is-invalid', !value);
-                if (!name.value.trim() || !value) {
-                    (name.value.trim() ? amount : name).focus();
-                    if (window.FeriizNotify) FeriizNotify.warning('A template needs a name and an amount.', 'Template not saved');
+                if (!name.value.trim() || !value || taken) {
+                    (name.value.trim() && !taken ? amount : name).focus();
+                    if (window.FeriizNotify) {
+                        FeriizNotify.warning(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no template.'
+                            : taken ? 'A template called ' + same.name + ' already exists.' : 'A template needs a name and an amount.', 'Template not saved');
+                    }
                     return;
                 }
                 var unit = document.querySelector('input[name="tplUnit"]:checked').value;
@@ -207,7 +188,6 @@
                 var saved = T().save({
                     id: editing ? editing.id : '',
                     name: name.value.trim(),
-                    category: document.getElementById('tplCategory').value,
                     amount: value,
                     unit: unit,
                     dates: dates,
@@ -219,30 +199,12 @@
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                var cats = T().CATEGORIES.map(function (c) { return '<option value="' + c.id + '">' + c.label + '</option>'; }).join('');
-                document.getElementById('tplCategory').innerHTML = cats;
-                document.getElementById('tplFilterCategory').insertAdjacentHTML('beforeend', cats);
                 document.querySelectorAll('#templateForm [data-bs-toggle="tooltip"]').forEach(function (el) {
                     new window.bootstrap.Tooltip(el);
                 });
                 render();
-
                 document.getElementById('addTemplateBtn').addEventListener('click', function () { openForm(null); });
-                document.getElementById('templateForm').addEventListener('submit', saveForm);
-                document.getElementById('tplAmount').addEventListener('input', function (e) {
-                    var d = e.target.value.replace(/\D/g, '');
-                    e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
-                    e.target.classList.remove('is-invalid');
-                });
-                document.getElementById('tplName').addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
                 document.querySelectorAll('input[name="tplUnit"]').forEach(function (r) { r.addEventListener('change', syncUnitBlock); });
-                document.getElementById('tplCategory').addEventListener('change', function (e) {
-                    // Holiday incentives are paid once per red date.
-                    if (e.target.value === 'holiday') {
-                        document.querySelector('input[name="tplUnit"][value="once"]').checked = true;
-                        syncUnitBlock();
-                    }
-                });
                 document.getElementById('tplAddDate').addEventListener('click', function () {
                     document.getElementById('tplDates').insertAdjacentHTML('beforeend', dateRow({}));
                 });
@@ -250,6 +212,13 @@
                     var btn = e.target.closest('.tpl-date-remove');
                     if (btn) btn.closest('.tpl-date-row').remove();
                 });
+                document.getElementById('templateForm').addEventListener('submit', saveForm);
+                document.getElementById('tplAmount').addEventListener('input', function (e) {
+                    var d = e.target.value.replace(/\D/g, '');
+                    e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
+                    e.target.classList.remove('is-invalid');
+                });
+                document.getElementById('tplName').addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
                 document.getElementById('tplTableBody').addEventListener('click', function (e) {
                     var edit = e.target.closest('[data-edit]');
                     if (edit) { e.preventDefault(); openForm(T().get(edit.dataset.edit)); }
@@ -258,16 +227,6 @@
                 document.getElementById('tplSearch').addEventListener('input', function () {
                     clearTimeout(timer);
                     timer = setTimeout(render, 150);
-                });
-                // Filters change the table only on Apply.
-                document.querySelector('.filter-apply-btn').addEventListener('click', function () {
-                    state.filters.category = document.getElementById('tplFilterCategory').value;
-                    render();
-                });
-                document.querySelector('.filter-clear-btn').addEventListener('click', function () {
-                    document.getElementById('tplFilterCategory').value = '';
-                    state.filters = { category: '' };
-                    render();
                 });
             });
         })();

@@ -6,11 +6,11 @@
     <title>Feriiz - Employee Request History</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.9">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.9">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.27">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.27">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.9" defer></script>
-    <script src="assets/js/app.js?v=3.7.9" defer></script>
+    <script src="assets/js/data.js?v=3.7.27" defer></script>
+    <script src="assets/js/app.js?v=3.7.27" defer></script>
 </head>
 <body data-page="employee-personal-request">
     <aside class="sidebar"></aside>
@@ -126,7 +126,7 @@
                 <div class="pagination-buttons" id="reqPaginationButtons"></div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.9</div>
+        <div class="feriiz-u-032">version : 3.7.27</div>
     </main>
 
     <script>
@@ -272,7 +272,7 @@
                 var requestEnd = r.dateEnd || requestStart;
                 if (f.dateStart && requestEnd < f.dateStart) return false;
                 if (f.dateEnd && requestStart > f.dateEnd) return false;
-                if (q && (r.type + ' ' + projectName(r.projectCode) + ' ' + (r.pic || '')).toLowerCase().indexOf(q) < 0) return false;
+                if (q && (r.type + ' ' + projectName(r.projectCode) + ' ' + (r.pic || '') + ' ' + (r.reason || '')).toLowerCase().indexOf(q) < 0) return false;
                 return true;
             });
             state.page = 1;
@@ -291,15 +291,13 @@
             };
         }
 
-        // Demo data: only the 12 Anomali people have requests. Anyone else shows Adam
-        // Ferial's requests as an example, placed in this project, until the API has real ones.
-        var SAMPLE_EMPLOYEE = 'ADA27B1B2E650H0X';
-        function requestsOf(data, emp, project) {
-            var mine = data.requests.filter(function (r) { return r.employeeCode === emp.code; });
-            if (mine.length) return mine;
-            return data.requests.filter(function (r) { return r.employeeCode === SAMPLE_EMPLOYEE; }).map(function (r) {
-                return Object.assign({}, r, { employeeCode: emp.code, projectCode: project ? project.code : r.projectCode });
-            });
+        // The 12 Anomali people keep their curated demo requests (with attachments);
+        // everyone else gets their own requests from the dataset, which match the
+        // sick, leave and remote days in attendance. No requests = an empty list.
+        function requestsOf(data, emp) {
+            function own(r) { return r.employeeCode === emp.code; }
+            var demo = data.requests.filter(own);
+            return demo.length ? demo : (data.generatedRequests || []).filter(own);
         }
 
         function paintHeader(emp, project) {
@@ -336,7 +334,7 @@
                     return;
                 }
                 window.personalRequestContext = { employee: emp, project: project };
-                state.all = requestsOf(data, emp, project)
+                state.all = requestsOf(data, emp)
                     .sort(function (a, b) { return (b.submittedAt || '').localeCompare(a.submittedAt || ''); });
                 applyFilter();
 
@@ -380,7 +378,7 @@
                     </div>
                     <div class="modal-field">
                         <label>Remark</label>
-                        <input type="text" class="input feriiz-u-153" placeholder="Remark">
+                        <input type="text" class="input feriiz-u-153" id="modalRemark" placeholder="Remark">
                     </div>
                     <div class="modal-field">
                         <label>Amount</label>
@@ -509,6 +507,7 @@
             var attachmentSlot = document.getElementById('modalAttachment');
             attachmentSlot.innerHTML = '';
             attachmentSlot.appendChild(req ? window.requestAttachmentLink(req) : document.createTextNode('–'));
+            document.getElementById('modalRemark').value = (req && req.remark) || '';
             document.getElementById('modalRequest').textContent = type || '-';
             document.getElementById('modalDateRequest').textContent = dateReq || '-';
             document.getElementById('modalDate').textContent = dateRange || '-';

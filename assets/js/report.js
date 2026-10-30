@@ -455,6 +455,17 @@
 
     function differs(a, b) { return a.daily !== b.daily || Math.abs(a.ot - b.ot) >= 0.01; }
 
+    // "Show system data only": a day that has an import gets a small check, with the imported
+    // numbers in its tooltip (IT Arcon and Baldy, 30-10-2026). The word "Import" made the
+    // system's own data look imported, so the mark is a check.
+    function importFlag(code, date) {
+        if (showImported()) return '';
+        var imp = storedImport(code, date);
+        if (!imp) return '';
+        return 'This day has an import: ' + dayText(imp) +
+            (differs(imp, systemDay(code, date)) ? ', different from the system.' : ', the same as the system.');
+    }
+
     /* =============================================
        CELL RENDERING
        ============================================= */
@@ -499,7 +510,11 @@
             var updateBadge = isUpdated
                 ? '<span class="cell-updated-badge"><i class="fa-solid fa-check"></i>Updated</span>'
                 : '';
-            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + updateBadge + '</div>';
+            var importCheck = opts && opts.importFlag
+                ? '<span class="cell-import-flag" title="' + escapeHTML(opts.importFlag) + '" aria-label="' + escapeHTML(opts.importFlag) + '"><i class="fa-solid fa-check" aria-hidden="true"></i></span>'
+                : '';
+            // The check sits with the badges, away from the cell's selection checkbox.
+            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + importCheck + '</div>' + updateBadge + '</div>';
         }
 
         if (renderedLines) {
@@ -562,10 +577,12 @@
     // A day without logs covered by an accepted request shows the request instead of
     // "log incomplete" (backlog A1, 28-10-2026). It is not a missing log, so the Log In /
     // Log Out filter skips it, and it still counts as no day worked.
-    function requestChipHTML(req) {
+    // importFlag: the tooltip of the import check in "Show system data only", if the day has one.
+    function requestChipHTML(req, importFlag) {
         var title = req.type + ' (' + req.id + '), accepted' + (req.reason ? ': ' + req.reason : '');
         return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
             '<span class="badge cell-request-chip cat-' + requestCategory(req.type) + '-bg" title="' + escapeHTML(title) + '">' + escapeHTML(req.type) + '</span>' +
+            (importFlag ? '<span class="cell-import-flag" title="' + escapeHTML(importFlag) + '" aria-label="' + escapeHTML(importFlag) + '"><i class="fa-solid fa-check" aria-hidden="true"></i></span>' : '') +
         '</div></div>';
     }
 
@@ -610,7 +627,7 @@
         var outTime = src.outTime || '';
         var request = !inTime && !outTime ? requestFor(employee.code, date) : null;
         if (request) {
-            return { cls: 'request-day-cell', content: withRequestChips(requestChipHTML(request), employee.code, date),
+            return { cls: 'request-day-cell', content: withRequestChips(requestChipHTML(request, importFlag(employee.code, date)), employee.code, date),
                      attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-adjust="0" data-ot-total="0"' };
         }
         var inNote = src.inNote || '';
@@ -625,7 +642,7 @@
             attrs: (issue ? ' data-missing="' + issue + '"' : '') + logAttrs +
                 ' data-work="' + hours.work.toFixed(4) + '" data-ot="' + hours.ot.toFixed(4) + '" data-ot-adjust="' + adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logAttrs,
-            content: withRequestChips(buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust }), employee.code, date)
+            content: withRequestChips(buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust, importFlag: importFlag(employee.code, date) }), employee.code, date)
         };
     }
 

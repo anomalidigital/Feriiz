@@ -5147,6 +5147,23 @@ div.report-layout .report-table tbody td.day-split-cell {
     padding: 10px !important;
 }
 
+/* "Show system data only": a day that has an import gets a small check after its badges
+   (IT Arcon, 2026-10-30); its tooltip gives the imported numbers. */
+.cell-import-flag {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    align-self: center;
+    border-radius: 50%;
+    background: var(--feriiz-import);
+    color: #fff;
+    font-size: 11px;
+    cursor: help;
+}
+
 /* What a day was given with Assign Request: the template's initials ("UM") at the end
    of the badge row, the same height as the badges, so the day does not grow
    (2026-10-29). Several requests wrap only when the cell is too narrow. */

@@ -5148,19 +5148,18 @@ div.report-layout .report-table tbody td.day-split-cell {
 }
 
 /* "Show system data only": a day that has an import gets a small check after its badges
-   (IT Arcon, 2026-10-30); its tooltip gives the imported numbers. */
+   (IT Arcon, 2026-10-30); its tooltip gives the imported numbers. Only the purple check,
+   with no filled circle, so a page of imported days stays calm (Baldy, 2026-10-30). */
 .cell-import-flag {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 20px;
+    width: 16px;
     height: 20px;
     align-self: center;
-    border-radius: 50%;
-    background: var(--feriiz-import);
-    color: #fff;
-    font-size: 11px;
+    color: var(--feriiz-import);
+    font-size: 14px;
     cursor: help;
 }
 

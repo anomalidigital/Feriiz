@@ -7,14 +7,14 @@
     <title>Feriiz - Anomali - Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.35">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.35">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.38">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.38">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.35" defer></script>
-    <script src="assets/js/app.js?v=3.7.35" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.35" defer></script>
-    <script src="assets/js/report.js?v=3.7.35" defer></script>
-    <script src="assets/js/print-report.js?v=3.7.35" defer></script>
+    <script src="assets/js/data.js?v=3.7.38" defer></script>
+    <script src="assets/js/app.js?v=3.7.38" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.38" defer></script>
+    <script src="assets/js/report.js?v=3.7.38" defer></script>
+    <script src="assets/js/print-report.js?v=3.7.38" defer></script>
 </head>
 
 <body data-page="project-report">
@@ -112,13 +112,13 @@
 
                         <!-- Shown once the project has an import -->
                         <div class="report-data-filter" id="reportDataFilter" hidden>
-                            <label class="feriiz-u-110">Data</label>
+                            <label class="feriiz-u-110">Import</label>
                             <div class="report-data-option">
                                 <label class="missing-filter-option">
                                     <input type="checkbox" class="filter-original" id="filterOriginal">
-                                    <span>Show original data</span>
+                                    <span>Show system data only</span>
                                 </label>
-                                <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Shows the system's own logs instead of the imported numbers. Nothing is deleted." aria-label="About original data"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                                <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Hides the imported numbers: each day shows only the system's own logs, and the totals count them. The import is kept." aria-label="About system data only"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
                             </div>
                         </div>
 
@@ -265,7 +265,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.7.35</div>
+            <div class="version-text">version : 3.7.38</div>
         </div>
     </main>
 

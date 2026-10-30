@@ -3437,6 +3437,12 @@ div.report-layout .report-table-wrap {
     margin: 0 !important;
 }
 
+/* The Report page is white behind the table too, not the app's grey (dev made the
+   same change, 2026-10-30). Print builds its own page, so it is not affected. */
+div.report-layout {
+    background: #fff;
+}
+
 /* Report tables: keep the identity columns aligned while horizontal scrolling. */
 div.report-layout .report-table {
     --report-sticky-name-width: 240px;
@@ -4880,7 +4886,7 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
 }
 
 /* Imported days (Import XLSX > Import Log): the file's numbers replace the system's,
-   which stay and come back with Filter > Show original data (2026-10-27). */
+   which stay and come back with Filter > Show system data only (2026-10-27). */
 .cell-import-line > span:first-child {
     display: inline-flex;
     align-items: center;
@@ -5055,9 +5061,13 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     font-weight: 600;
 }
 
-.import-history-value.is-changed {
-    color: var(--feriiz-import);
-    font-weight: 700;
+/* Each import is drawn like the day's Import half: badges, then log in / log out. */
+.import-history-table td .day-half {
+    min-width: 200px;
+}
+
+.import-history-table td .day-half .feriiz-u-133 {
+    padding-right: 0;
 }
 
 .import-history-table tr.is-changed td:first-child {
@@ -5135,26 +5145,6 @@ div.report-layout .report-table tbody td.day-split-cell.no-log-cell:hover {
 
 div.report-layout .report-table tbody td.day-split-cell {
     padding: 10px !important;
-}
-
-/* Original view: this day has an import (its numbers are in the tooltip) */
-.cell-import-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-right: 24px;
-    padding: 2px 7px;
-    border: 1px solid var(--feriiz-import);
-    border-radius: 999px;
-    background: #fff;
-    color: var(--feriiz-import);
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.cell-import-tag i {
-    font-size: 10px;
 }
 
 /* What a day was given with Assign Request: the template's initials ("UM") at the end
@@ -5693,6 +5683,12 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     }
 
     .report-unified-table tfoot td.td-total-cell {
+        font-variant-numeric: tabular-nums !important;
+    }
+
+    /* "Jumlah Orang Per Hari": the people who worked on each date, centred under it */
+    .report-unified-table tfoot td.td-people-count {
+        text-align: center !important;
         font-variant-numeric: tabular-nums !important;
     }
 
@@ -7942,7 +7938,7 @@ div.report-layout .report-search-input {
     outline: none;
 }
 
-/* Filter > Data: "Show original data" and its "?" */
+/* Filter > Import: "Show system data only" and its "?" */
 .report-data-option {
     display: flex;
     align-items: center;

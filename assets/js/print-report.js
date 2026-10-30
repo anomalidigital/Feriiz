@@ -608,7 +608,34 @@
 
         var leftColspan = 2 + (isDailyActive ? visibleDateHeaders.length * 2 : 0) + 2;
 
-        html += '</tbody><tfoot><tr class="tr-total-row">';
+        html += '</tbody><tfoot>';
+
+        // "Jumlah Orang Per Hari" (Arcon's sheet, built on dev 30-10-2026): how many of the
+        // printed people worked on each date, by the same rule as Total Days, and the sum of
+        // those person-days under Total Day.
+        if (isDailyActive) {
+            var workedOn = function (td) {
+                if (!td || td.classList.contains('weekend-off-cell')) return false;
+                if (td.dataset.imported) return Number(td.dataset.daily) > 0;
+                return Boolean(td.dataset.inTime || td.dataset.outTime);
+            };
+            var personDays = 0;
+            html += '<tr class="tr-people-row"><td colspan="2" class="td-total-label">Jumlah Orang Per Hari</td>';
+            visibleDateHeaders.forEach(function (th) {
+                var count = visibleRows.filter(function (tr) {
+                    return workedOn(tr.querySelector('td.day-col[data-date="' + th.dataset.date + '"]'));
+                }).length;
+                personDays += count;
+                html += '<td colspan="2" class="td-people-count">' + count + '</td>';
+            });
+            html += '<td class="td-people-count">' + personDays + '</td><td></td>';
+            var restCols = (isEmpActive && empColCount > 0 ? empColCount + 1 : 0) + (isCliActive && cliColCount > 0 ? cliColCount + 1 : 0) +
+                (isEmpActive ? 1 : 0) + (isCliActive ? 1 : 0);
+            if (restCols) html += '<td colspan="' + restCols + '"></td>';
+            html += '</tr>';
+        }
+
+        html += '<tr class="tr-total-row">';
         html += '<td colspan="' + leftColspan + '" class="td-total-label">Total</td>';
 
         if (isEmpActive && empColCount > 0) {

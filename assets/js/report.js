@@ -86,7 +86,7 @@
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
-        original: false        // Show original data: the system's logs instead of an import
+        original: false        // Show system data only: the system's logs, without the import
     };
 
     function appliedRange() {
@@ -181,7 +181,7 @@
        A day column with an import is split in two (Baldy, 30-10-2026): the system on
        the left, as always, and the import on the right, shown like a normal day with
        the file's Time Start / Time End as log in / log out and its Overtime. Filter >
-       Show original data shows only the system again. Prototype only: kept in this
+       Show system data only shows only the system again. Prototype only: kept in this
        browser until the API exists.
        ============================================= */
     var IMPORT_KEY = 'feriiz_report_imports_v1';
@@ -243,7 +243,7 @@
 
     function storedImport(code, date) { return projectImports().cells[code + '|' + date] || null; }
 
-    // The imported day the Report shows, or null (none, or Show original data is on).
+    // The imported day the Report shows, or null (none, or Show system data only is on).
     function importedDay(code, date) { return showImported() ? storedImport(code, date) : null; }
 
 
@@ -319,12 +319,12 @@
 
     // The right half of a split day: the file's numbers shown like a normal day, and
     // "Changed" when they differ from the system on the left.
-    function importHalfHTML(employee, date, imp) {
+    // One imported day drawn like a normal day: hours and OT badges, then log in / log out.
+    // "Changed" marks a difference (from the system in the Report, from the import before in the history).
+    function importDayHTML(employee, imp, changed, title) {
         var hours = importHours(employee, imp);
         var work = imp.daily ? hours.period : 0;
-        var changed = differs(systemDay(employee.code, date), imp);
-        var title = 'Imported from ' + imp.file + ' on ' + stampText(imp.at) + '.';
-        return '<div class="day-half day-half--import" title="' + escapeHTML(title) + '">' +
+        return '<div class="day-half day-half--import"' + (title ? ' title="' + escapeHTML(title) + '"' : '') + '>' +
             '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
                 '<span class="badge feriiz-u-135">' + formatHour(work) + '</span>' +
                 '<span class="badge feriiz-u-136">' + formatHour(imp.ot) + ' OT</span>' +
@@ -334,6 +334,11 @@
                     : '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>' +
                       '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>') +
             '</div></div>';
+    }
+
+    function importHalfHTML(employee, date, imp) {
+        return importDayHTML(employee, imp, differs(systemDay(employee.code, date), imp),
+            'Imported from ' + imp.file + ' on ' + stampText(imp.at) + '.');
     }
 
     /* Import history of one day (the clock button in its header, from the second import on).
@@ -347,12 +352,10 @@
             (a.start || '') === (b.start || '') && (a.end || '') === (b.end || '') && (a.period || 0) === (b.period || 0);
     }
 
+    // Each import of the day looks like the day's Import half (Baldy, 30-10-2026).
     function historyValueHTML(employee, value, changed) {
         if (!value) return '<span class="import-history-none">–</span>';
-        var hours = importHours(employee, value);
-        return '<div class="import-history-value' + (changed ? ' is-changed' : '') + '">' +
-            (value.daily ? hours.start.slice(0, 5) + ' – ' + hours.end.slice(0, 5) : 'Not worked') +
-            '<small>' + formatHour(value.daily ? hours.period : 0) + ' · ' + formatHour(value.ot) + ' OT</small></div>';
+        return importDayHTML(employee, value, changed, '');
     }
 
     function buildHistoryModal() {
@@ -452,14 +455,6 @@
 
     function differs(a, b) { return a.daily !== b.daily || Math.abs(a.ot - b.ot) >= 0.01; }
 
-    // In original view a day the import changed gets a small tag with the imported numbers
-    // (days it left the same get none, so the tags show what the import changed).
-    function importNote(code, date) {
-        if (showImported()) return '';
-        var imp = storedImport(code, date);
-        return imp && differs(imp, systemDay(code, date)) ? 'Imported: ' + dayText(imp) : '';
-    }
-
     /* =============================================
        CELL RENDERING
        ============================================= */
@@ -504,10 +499,7 @@
             var updateBadge = isUpdated
                 ? '<span class="cell-updated-badge"><i class="fa-solid fa-check"></i>Updated</span>'
                 : '';
-            var importTag = opts && opts.importNote
-                ? '<span class="cell-import-tag" title="' + escapeHTML(opts.importNote) + '"><i class="fa-solid fa-file-import" aria-hidden="true"></i>Import</span>'
-                : '';
-            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + (updateBadge || importTag) + '</div>';
+            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + updateBadge + '</div>';
         }
 
         if (renderedLines) {
@@ -633,7 +625,7 @@
             attrs: (issue ? ' data-missing="' + issue + '"' : '') + logAttrs +
                 ' data-work="' + hours.work.toFixed(4) + '" data-ot="' + hours.ot.toFixed(4) + '" data-ot-adjust="' + adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logAttrs,
-            content: withRequestChips(buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust, importNote: importNote(employee.code, date) }), employee.code, date)
+            content: withRequestChips(buildDayCellContent({ inTime: inTime, outTime: outTime, inNote: inNote, outNote: outNote, issue: issue, hours: hours, otAdjust: adjust }), employee.code, date)
         };
     }
 
@@ -1157,7 +1149,7 @@
                 '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + (labels[t] || t) + ' filter">&times;</button></span>';
         });
         if (appliedReportFilters.original) {
-            html += '<span class="filter-indicator-chip">Original data' +
+            html += '<span class="filter-indicator-chip">System data only' +
                 '<button class="filter-chip-close" data-filter-type="original" aria-label="Show the imported data again">&times;</button></span>';
         }
         bar.style.display = '';
@@ -1248,7 +1240,7 @@
                 updateCellSelectionUI();
                 selected = getSelectedCells();
                 if (!selected.length) {
-                    if (window.FeriizNotify) FeriizNotify.warning('These days come from an import. To change their system logs, turn on Filter > Show original data.', 'Imported days');
+                    if (window.FeriizNotify) FeriizNotify.warning('These days come from an import. To change their system logs, turn on Filter > Show system data only.', 'Imported days');
                     return;
                 }
                 if (window.FeriizNotify) FeriizNotify.info(imported.length + (imported.length === 1 ? ' imported day was' : ' imported days were') +
@@ -1924,7 +1916,7 @@
         applyReportFilters();
     }
 
-    // "Show original data" is offered once the project has an import.
+    // "Show system data only" is offered once the project has an import.
     function syncDataFilter() {
         var block = document.getElementById('reportDataFilter');
         if (!block) return;

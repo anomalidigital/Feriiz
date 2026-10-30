@@ -17,7 +17,7 @@
 
     // Fetched with force-cache, so change the query whenever the file changes
     // (2026-10-28: employees got transportPerDay).
-    var DATA_URL = 'feriiz-data.json?v=2026-10-30';
+    var DATA_URL = 'feriiz-data.json?v=2026-10-30b';
 
     // Transport / Day (Rp) per employee: from the data, unless it was changed in the
     // employee form. 0 = no transport. Kept in this browser until the API exists.

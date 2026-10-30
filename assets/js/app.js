@@ -931,13 +931,12 @@ function feriizLogout() {
     // The Period presets count back from the held "today".
     function presetRange(value) {
         const today = ctx.today;
-        const day = fromISO(today).getDay();
-        const monday = addDays(today, day === 0 ? -6 : 1 - day);
+        const sunday = addDays(today, -fromISO(today).getDay());   // weeks run Sunday to Saturday
         const monthStart = today.slice(0, 8) + '01';
         if (value === 'today') return [today, today];
         if (value === 'yesterday') return [addDays(today, -1), addDays(today, -1)];
-        if (value === 'this_week') return [monday, today];
-        if (value === 'last_week') return [addDays(monday, -7), addDays(monday, -1)];
+        if (value === 'this_week') return [sunday, today];
+        if (value === 'last_week') return [addDays(sunday, -7), addDays(sunday, -1)];
         if (value === 'this_month') return [monthStart, today];
         if (value === 'last_month') {
             const end = addDays(monthStart, -1);

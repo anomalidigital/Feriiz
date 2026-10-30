@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];   // the week runs Sunday to Saturday (Baldy, 30-10-2026)
     var uid = 0;
 
     function esc(v) {
@@ -161,7 +161,7 @@
         setVal(form, 'startHour', e.workStart || (project && project.workStart) || '08:00');
         setVal(form, 'endHour', e.workEnd || (project && project.workEnd) || '17:00');
         setVal(form, 'cutOff', e.cutOff || (project && project.cutOff) || '');
-        var days = e.workingDays || (project && project.workingDays) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        var days = e.workingDays || (project && project.workingDays) || DAYS;
         form.querySelectorAll('[name="workingDays"]').forEach(function (cb) { cb.checked = days.indexOf(cb.value) >= 0; });
         setVal(form, 'role', e.role || 'Employee');
         setVal(form, 'email', e.email || '');

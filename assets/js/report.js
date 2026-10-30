@@ -6,8 +6,9 @@
        ============================================= */
     /* Day columns run from the start of the selected range up to TODAY and never
        past it: a day that has not happened yet has no attendance, so it gets no
-       column. Default range = Monday of the current week through today, so on a
-       Monday the table shows one day, on Tuesday two, and so on.
+       column. Default range = Sunday of the current week through today (weeks run
+       Sunday to Saturday, as on dev and as Arcon works, Baldy 30-10-2026), so on a
+       Sunday the table shows one day, on Monday two, and so on.
 
        All dates are 'YYYY-MM-DD' strings in local time (never toISOString(),
        which shifts the day in UTC+7). */
@@ -19,14 +20,14 @@
     function toISO(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     function fromISO(iso) { var p = iso.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
     function addDays(iso, n) { var d = fromISO(iso); d.setDate(d.getDate() + n); return toISO(d); }
-    function mondayOf(iso) { var day = fromISO(iso).getDay(); return addDays(iso, day === 0 ? -6 : 1 - day); }
+    function sundayOf(iso) { return addDays(iso, -fromISO(iso).getDay()); }
 
     // Set once the dataset loads (see loadProjectContext).
     var reportToday = toISO(new Date());
     var dataStart = '';
 
     function defaultRange() {
-        return { start: mondayOf(reportToday), end: reportToday };
+        return { start: sundayOf(reportToday), end: reportToday };
     }
 
     // Every day from start to end, cut off at today and at the first day with data.
@@ -1620,8 +1621,8 @@
             var monthStart = today.slice(0, 8) + '01';
             if (v === 'today') { s = e = today; }
             else if (v === 'yesterday') { s = e = addDays(today, -1); }
-            else if (v === 'this_week') { s = mondayOf(today); e = today; }
-            else if (v === 'last_week') { s = addDays(mondayOf(today), -7); e = addDays(s, 6); }
+            else if (v === 'this_week') { s = sundayOf(today); e = today; }
+            else if (v === 'last_week') { s = addDays(sundayOf(today), -7); e = addDays(s, 6); }
             else if (v === 'this_month') { s = monthStart; e = today; }
             else if (v === 'last_month') { e = addDays(monthStart, -1); s = e.slice(0, 8) + '01'; }
             else if (v === 'this_year') { s = today.slice(0, 4) + '-01-01'; e = today; }

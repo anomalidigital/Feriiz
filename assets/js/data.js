@@ -17,7 +17,7 @@
 
     // Fetched with force-cache, so change the query whenever the file changes
     // (2026-10-28: employees got transportPerDay).
-    var DATA_URL = 'feriiz-data.json?v=2026-10-28';
+    var DATA_URL = 'feriiz-data.json?v=2026-10-30';
 
     // Transport / Day (Rp) per employee: from the data, unless it was changed in the
     // employee form. 0 = no transport. Kept in this browser until the API exists.
@@ -61,24 +61,24 @@
     };
 
     var ANOMALI_REQUESTS = [
-        req('REQ-0001', 'SAN79P3WFFK4MQM', 'ANM001', 'Sick Leave',   '2026-05-04', 'Accepted'),
-        req('REQ-0002', 'STEPRQTY99',      'ANM001', 'Annual Leave', '2026-05-05', 'Accepted'),
-        req('REQ-0003', 'RADVBYR5171FSC6', 'ANM001', 'Sick Leave',   '2026-05-05', 'Accepted'),
-        req('REQ-0004', 'YENX6LH3X9',      'ANM001', 'Remote Work',  '2026-05-06', 'Accepted'),
-        req('REQ-0005', 'ADA27B1B2E650H0X','ANM001', 'Sick Leave',   '2026-05-06', 'Accepted'),
-        req('REQ-0006', 'ADA27B1B2E650H0X','DCG015', 'Remote Work',  '2026-05-07', 'Accepted'),
-        req('REQ-0007', 'MAUNZ1TL5H0Q7GG', 'DCG015', 'Annual Leave', '2026-05-11', 'Accepted'),
-        req('REQ-0008', 'IFAT8WJ2DM',      'ANM001', 'Annual Leave', '2026-05-12', 'Accepted'),
-        req('REQ-0009', 'RADVBYR5171FSC6', 'ANM001', 'Sick Leave',   '2026-05-04', 'Accepted'),
-        req('REQ-0010', 'IFAT8WJ2DM',      'ANM001', 'Remote Work',  '2026-05-13', 'Pending'),
-        req('REQ-0011', 'MAUNZ1TL5H0Q7GG', 'DCG015', 'Sick Leave',   '2026-05-13', 'Pending'),
-        req('REQ-0012', 'MAUNZ1TL5H0Q7GG', 'ANM001', 'Annual Leave', '2026-05-08', 'Accepted'),
-        req('REQ-0013', 'VER2FWV8L80S5SX', 'ANM001', 'Annual Leave', '2026-05-15', 'Accepted'),
-        req('REQ-0014', 'STEPRQTY99',      'DGH105', 'Remote Work',  '2026-05-06', 'Accepted'),
-        req('REQ-0015', 'ZICOJMQN8SQ5RDT', 'ANM001', 'Remote Work',  '2026-05-07', 'Accepted'),
-        req('REQ-0016', 'BILFBY9N8YJ1YDN', 'DCG015', 'Remote Work',  '2026-05-13', 'Accepted'),
-        req('REQ-0017', 'IND693283053999', 'ANM001', 'Remote Work',  '2026-05-13', 'Accepted'),
-        req('REQ-0018', 'APR8940K8VB44L8', 'DGH105', 'Sick Leave',   '2026-05-13', 'Accepted')
+        req('REQ-0001', 'SAN79P3WFFK4MQM', 'ANM001', 'Sick Leave',   '2026-09-28', 'Accepted'),
+        req('REQ-0002', 'STEPRQTY99',      'ANM001', 'Annual Leave', '2026-09-29', 'Accepted'),
+        req('REQ-0003', 'RADVBYR5171FSC6', 'ANM001', 'Sick Leave',   '2026-09-29', 'Accepted'),
+        req('REQ-0004', 'YENX6LH3X9',      'ANM001', 'Remote Work',  '2026-09-30', 'Accepted'),
+        req('REQ-0005', 'ADA27B1B2E650H0X','ANM001', 'Sick Leave',   '2026-09-30', 'Accepted'),
+        req('REQ-0006', 'ADA27B1B2E650H0X','DCG015', 'Remote Work',  '2026-10-01', 'Accepted'),
+        req('REQ-0007', 'MAUNZ1TL5H0Q7GG', 'DCG015', 'Annual Leave', '2026-10-05', 'Accepted'),
+        req('REQ-0008', 'IFAT8WJ2DM',      'ANM001', 'Annual Leave', '2026-10-06', 'Accepted'),
+        req('REQ-0009', 'RADVBYR5171FSC6', 'ANM001', 'Sick Leave',   '2026-09-28', 'Accepted'),
+        req('REQ-0010', 'IFAT8WJ2DM',      'ANM001', 'Remote Work',  '2026-10-07', 'Pending'),
+        req('REQ-0011', 'MAUNZ1TL5H0Q7GG', 'DCG015', 'Sick Leave',   '2026-10-07', 'Pending'),
+        req('REQ-0012', 'MAUNZ1TL5H0Q7GG', 'ANM001', 'Annual Leave', '2026-10-02', 'Accepted'),
+        req('REQ-0013', 'VER2FWV8L80S5SX', 'ANM001', 'Annual Leave', '2026-10-09', 'Accepted'),
+        req('REQ-0014', 'STEPRQTY99',      'DGH105', 'Remote Work',  '2026-09-30', 'Accepted'),
+        req('REQ-0015', 'ZICOJMQN8SQ5RDT', 'ANM001', 'Remote Work',  '2026-10-01', 'Accepted'),
+        req('REQ-0016', 'BILFBY9N8YJ1YDN', 'DCG015', 'Remote Work',  '2026-10-07', 'Accepted'),
+        req('REQ-0017', 'IND693283053999', 'ANM001', 'Remote Work',  '2026-10-07', 'Accepted'),
+        req('REQ-0018', 'APR8940K8VB44L8', 'DGH105', 'Sick Leave',   '2026-10-07', 'Accepted')
     ];
     ANOMALI_REQUESTS.forEach(function (r) { r.attachments = ATTACHMENTS[r.id] || []; });
     var ANOMALI_HOLIDAYS = [

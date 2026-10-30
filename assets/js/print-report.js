@@ -514,6 +514,7 @@
 
             html += '<td class="td-total-days">' + totalDaysText + '</td>';
             html += '<td class="td-total-ot">' + totalOtText + '</td>';
+            var m = rowMoney(tr);
 
             // Employee Rates
             if (isEmpActive && empColCount > 0) {
@@ -526,7 +527,7 @@
                 if (showEmpRateOT) html += '<td class="td-rate">' + money(empRateOT) + '</td>';
                 if (showEmpTotalR) html += '<td class="td-rate">' + money(empTotalR) + '</td>';
                 if (showEmpTotalOT) html += '<td class="td-rate">' + money(empTotalOT) + '</td>';
-                html += '<td class="td-rate td-subtotal">' + money(empTotalR !== '-' ? empTotalR : empDaily) + '</td>';
+                html += '<td class="td-rate td-subtotal">' + formatIDRCurrency(m.empSub) + '</td>';
             }
 
             // Client Rates
@@ -543,18 +544,12 @@
                 cliAddCols.forEach(function (c) {
                     html += '<td class="td-rate">' + money(addVal(tr, c)) + '</td>';
                 });
-                html += '<td class="td-rate td-subtotal">' + money(cliTotalR !== '-' ? cliTotalR : cliDaily) + '</td>';
+                html += '<td class="td-rate td-subtotal">' + formatIDRCurrency(m.cliSub) + '</td>';
             }
 
             // Payment Totals
-            if (isEmpActive) {
-                var empPay = extractVal(tr, '.col-emp-totalrate') || extractVal(tr, '.col-emp-dailyrate');
-                html += '<td class="td-payment">' + money(empPay) + '</td>';
-            }
-            if (isCliActive) {
-                var cliPay = extractVal(tr, '.col-cli-totalrate') || extractVal(tr, '.col-cli-dailyrate');
-                html += '<td class="td-payment">' + money(cliPay) + '</td>';
-            }
+            if (isEmpActive) html += '<td class="td-payment">' + formatIDRCurrency(m.empPay) + '</td>';
+            if (isCliActive) html += '<td class="td-payment">' + formatIDRCurrency(m.cliPay) + '</td>';
 
             html += '</tr>';
         });
@@ -572,38 +567,43 @@
             return Math.round(num).toLocaleString('id-ID');
         }
 
+        // As in the old Feriiz summary: Subtotal Rate = Total Rate + Total Rate Overtime in each
+        // group. Total Payment Client also adds the Client group's additional columns (Transport,
+        // request templates); Total Payment Employee is its Subtotal Rate.
+        function rowMoney(tr) {
+            var num = function (selector) { return parseNumericVal(extractVal(tr, selector)); };
+            var empSub = num('.col-emp-totalrate') + num('.col-emp-totalovertime');
+            var cliSub = num('.col-cli-totalrate') + num('.col-cli-totalovertime');
+            var cliAdd = 0;
+            tr.querySelectorAll('td.col-cli-add').forEach(function (td) { cliAdd += parseNumericVal(td.textContent.trim()); });
+            return { empSub: empSub, cliSub: cliSub, empPay: empSub, cliPay: cliSub + cliAdd };
+        }
+
         var sumEmpDaily = 0, sumEmpRateOT = 0, sumEmpTotalR = 0, sumEmpTotalOT = 0, sumEmpSubtotal = 0;
         var sumCliDaily = 0, sumCliRateOT = 0, sumCliTotalR = 0, sumCliTotalOT = 0, sumCliSubtotal = 0;
         var sumCliAdd = {}, sumEmpPayment = 0, sumCliPayment = 0;
 
         visibleRows.forEach(function (tr) {
+            var m = rowMoney(tr);
             if (isEmpActive && empColCount > 0) {
                 if (showEmpDaily) sumEmpDaily += parseNumericVal(extractVal(tr, '.col-emp-dailyrate'));
                 if (showEmpRateOT) sumEmpRateOT += parseNumericVal(extractVal(tr, '.col-emp-rateovertime'));
                 if (showEmpTotalR) sumEmpTotalR += parseNumericVal(extractVal(tr, '.col-emp-totalrate'));
                 if (showEmpTotalOT) sumEmpTotalOT += parseNumericVal(extractVal(tr, '.col-emp-totalovertime'));
-                var empSub = parseNumericVal(extractVal(tr, '.col-emp-totalrate')) || parseNumericVal(extractVal(tr, '.col-emp-dailyrate'));
-                sumEmpSubtotal += empSub;
+                sumEmpSubtotal += m.empSub;
             }
             if (isCliActive && cliColCount > 0) {
                 if (showCliDaily) sumCliDaily += parseNumericVal(extractVal(tr, '.col-cli-dailyrate'));
                 if (showCliRateOT) sumCliRateOT += parseNumericVal(extractVal(tr, '.col-cli-rateovertime'));
                 if (showCliTotalR) sumCliTotalR += parseNumericVal(extractVal(tr, '.col-cli-totalrate'));
                 if (showCliTotalOT) sumCliTotalOT += parseNumericVal(extractVal(tr, '.col-cli-totalovertime'));
-                var cliSub = parseNumericVal(extractVal(tr, '.col-cli-totalrate')) || parseNumericVal(extractVal(tr, '.col-cli-dailyrate'));
-                sumCliSubtotal += cliSub;
+                sumCliSubtotal += m.cliSub;
                 cliAddCols.forEach(function (c) {
                     sumCliAdd[c.sel] = (sumCliAdd[c.sel] || 0) + parseNumericVal(addVal(tr, c));
                 });
             }
-            if (isEmpActive) {
-                var empPay = parseNumericVal(extractVal(tr, '.col-emp-totalrate')) || parseNumericVal(extractVal(tr, '.col-emp-dailyrate'));
-                sumEmpPayment += empPay;
-            }
-            if (isCliActive) {
-                var cliPay = parseNumericVal(extractVal(tr, '.col-cli-totalrate')) || parseNumericVal(extractVal(tr, '.col-cli-dailyrate'));
-                sumCliPayment += cliPay;
-            }
+            if (isEmpActive) sumEmpPayment += m.empPay;
+            if (isCliActive) sumCliPayment += m.cliPay;
         });
 
         var leftColspan = 2 + (isDailyActive ? visibleDateHeaders.length * 2 : 0) + 2;

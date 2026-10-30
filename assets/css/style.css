@@ -24,10 +24,10 @@
        cards. Admins found the pale tints hard to see; the darker set that
        replaced them was too heavy (2026-10-27). */
     --feriiz-success: #27AE60;   /* Active, Accepted */
-    --feriiz-warning: #E67E22;   /* Pending, On Hold */
+    --feriiz-warning: #E67E22;   /* Pending */
     --feriiz-danger: #E74C3C;    /* Rejected, Absent */
     --feriiz-info: #2980B9;      /* Hours, Updated, Leave */
-    --feriiz-neutral: #7F8C8D;   /* Completed */
+    --feriiz-neutral: #7F8C8D;   /* Inactive */
     --feriiz-overtime: #F1C40F;  /* Overtime badge, dark text */
     --feriiz-flag: #FEEFB9;      /* incomplete log cell */
     --feriiz-flag-bar: #F39C12;
@@ -4938,6 +4938,130 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     font-size: 11px;
 }
 
+/* The date's line of a split day: the date, then its history button (the checkbox stays alone). */
+.day-split-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 28px;   /* room for the header checkbox */
+}
+
+.report-table thead th.day-col .day-split-top span {
+    margin: 0;
+}
+
+/* Import history (2026-10-30): from a day's second import, every import side by side. */
+.import-history-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border: 1px solid var(--feriiz-import);
+    border-radius: var(--feriiz-radius-pill);
+    background: #fff;
+    color: var(--feriiz-import);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.import-history-btn:hover,
+.import-history-btn:focus-visible {
+    background: var(--feriiz-import-soft);
+}
+
+.import-history-versions {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+}
+
+.import-history-versions li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.import-history-versions li.is-current {
+    border-color: var(--feriiz-import);
+    background: var(--feriiz-import-soft);
+}
+
+.import-history-no {
+    font-weight: 700;
+}
+
+.import-history-file {
+    font-size: 12px;
+    color: #6B7480;
+    overflow-wrap: anywhere;
+}
+
+.import-history-now {
+    margin-left: auto;
+    padding: 1px 8px;
+    border-radius: var(--feriiz-radius-pill);
+    background: var(--feriiz-import);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.import-history-wrap {
+    max-height: 50vh;
+    margin-top: 8px;
+    overflow: auto;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: 8px;
+}
+
+.import-history-table th,
+.import-history-table td {
+    white-space: nowrap;
+}
+
+.import-history-table th small,
+.import-history-table td small {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: #6B7480;
+}
+
+.import-history-table th.is-current {
+    color: var(--feriiz-import);
+}
+
+.import-history-name {
+    font-weight: 600;
+}
+
+.import-history-value.is-changed {
+    color: var(--feriiz-import);
+    font-weight: 700;
+}
+
+.import-history-table tr.is-changed td:first-child {
+    box-shadow: inset 3px 0 0 var(--feriiz-import);
+}
+
+.import-history-table tr[hidden] {
+    display: none;
+}
+
+.import-history-none {
+    color: #6B7480;
+}
+
 /* The header checkbox stays on the date's line, above the two labels. */
 .report-table thead th.day-split-col .day-header-select {
     top: 12px;
@@ -6960,8 +7084,8 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     box-shadow: inset 2px 0 0 #fff;
 }
 
-.dash-seg--present,
-.dash-dot--present { background: var(--dash-present); }
+.dash-seg--complete,
+.dash-dot--complete { background: var(--dash-present); }
 .dash-seg--missing,
 .dash-dot--missing { background: var(--dash-missing); }
 .dash-seg--leave,
@@ -7076,8 +7200,8 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     width: 120px;
 }
 
-/* Project status pill — shared by the Dashboard and the Projects table so a
-   status always reads the same: green Active, amber On Hold, grey Completed. */
+/* Project status pill, shared by the Dashboard and the Projects table: a project
+   is only Active (green) or Inactive (grey) (2026-10-30). */
 .status-pill {
     display: inline-flex;
     align-items: center;
@@ -7101,8 +7225,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .status-pill--active { background: var(--feriiz-success); color: #fff; }
-.status-pill--hold { background: var(--feriiz-warning); color: #fff; }
-.status-pill--done { background: var(--feriiz-neutral); color: #fff; }
+.status-pill--inactive { background: var(--feriiz-neutral); color: #fff; }
 
 .dash-showed {
     width: 110px;
@@ -7340,7 +7463,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     .dash-projects .dash-missing { grid-area: missing; }
 
     .dash-showed::after {
-        content: ' present';
+        content: ' complete';
     }
 
     .dash-missing::after {
@@ -7819,134 +7942,6 @@ div.report-layout .report-search-input {
 
 .report-data-option .missing-filter-option {
     flex: 1;
-}
-
-/* --- Report: overtime adjustments --- */
-.ot-adjust-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 7px;
-    border: 1px dashed currentColor;
-    border-radius: 6px;
-    background: #fff;
-    font-family: 'Poppins', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.4;
-    cursor: pointer;
-}
-
-.ot-adjust-chip.is-plus {
-    border-style: solid;
-    background: var(--feriiz-success);
-    color: #fff;
-}
-
-.ot-adjust-chip.is-minus {
-    border-style: solid;
-    background: var(--feriiz-danger);
-    color: #fff;
-}
-
-.ot-adjust-chip:hover {
-    filter: brightness(0.92);   /* works on the white and the solid chips */
-}
-
-.ot-adjust-chip:focus-visible {
-    outline: 2px solid #2975BB;
-    outline-offset: 1px;
-}
-
-.ot-summary,
-.ot-history-total {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 8px;
-    margin-bottom: 14px;
-}
-
-.ot-summary > div,
-.ot-history-total > div {
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #F7F9FB;
-}
-
-.ot-summary span,
-.ot-history-total span {
-    display: block;
-    font-size: 12px;
-    color: #6B7480;
-}
-
-.ot-summary strong,
-.ot-history-total strong {
-    font-size: 16px;
-    color: #1a1a1a;
-}
-
-.ot-skipped {
-    margin-bottom: 14px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #FFF8E7;
-    color: #8A5A00;
-    font-size: 13px;
-}
-
-.ot-skipped[hidden],
-#otFloorNote[hidden] {
-    display: none;
-}
-
-.ot-history-sub {
-    margin-top: 2px;
-    font-size: 12px;
-    color: #6B7480;
-}
-
-.ot-history-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.ot-history-list li {
-    display: flex;
-    gap: 12px;
-    padding: 10px 0;
-    border-top: 1px solid #EEF0F3;
-}
-
-.ot-history-amount {
-    flex: none;
-    min-width: 56px;
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.ot-history-amount.is-plus {
-    color: #1E7E34;
-}
-
-.ot-history-amount.is-minus {
-    color: #B42318;
-}
-
-.ot-history-note {
-    margin: 0;
-    font-size: 13px;
-    color: #1a1a1a;
-}
-
-.ot-history-meta {
-    margin: 2px 0 0;
-    font-size: 12px;
-    color: #6B7480;
-}
-
-.ot-adjust-chip.is-zero {
-    color: #6B7480;
 }
 
 /* --- Employee form (assets/js/employee-form.js): the original Activity form

@@ -468,7 +468,7 @@
             var period = '-';
             var overtime = '-';
 
-            // A split day (System | Import) prints the import, which is what the totals count.
+            // A split day (Original | Import) prints the import, which is what the totals count.
             // Only the hour and overtime badges are read, not the request chips.
             var scope = dayTd.querySelector('.day-half--import:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
             var badges = Array.from(scope.querySelectorAll('.feriiz-u-135, .feriiz-u-136'))

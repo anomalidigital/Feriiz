@@ -16,14 +16,20 @@
     'use strict';
 
     // Fetched with force-cache, so change the query whenever the file changes
-    // (2026-10-28: employees got transportPerDay).
-    var DATA_URL = 'feriiz-data.json?v=2026-10-30b';
+    // (2026-11-02: projects got defaultHours).
+    var DATA_URL = 'feriiz-data.json?v=2026-11-02';
 
     // Transport / Day (Rp) per employee: from the data, unless it was changed in the
     // employee form. 0 = no transport. Kept in this browser until the API exists.
     var TRANSPORT_KEY = 'feriiz_employee_transport_v2';
     var transportEdits = {};
     try { transportEdits = JSON.parse(localStorage.getItem(TRANSPORT_KEY) || '{}') || {}; } catch (e) { transportEdits = {}; }
+
+    // Working Time and Default Hours per project, as last saved in Project Detail, so the
+    // Report on another page uses them. Kept in this browser until the API exists.
+    var PROJECT_KEY = 'feriiz_project_settings_v1';
+    var projectEdits = {};
+    try { projectEdits = JSON.parse(localStorage.getItem(PROJECT_KEY) || '{}') || {}; } catch (e) { projectEdits = {}; }
 
     /* ---- Original Anomali team (12 people) — for Requests & Calendar ---- */
     var ANOMALI_EMPLOYEES = [
@@ -149,6 +155,16 @@
             transportEdits[code] = Math.max(0, Math.round(Number(perDay) || 0));
             try { localStorage.setItem(TRANSPORT_KEY, JSON.stringify(transportEdits)); } catch (e) { /* kept for this page only */ }
         },
+        // settings = { workStart, workEnd, cutOff, defaultHours }; defaultHours =
+        // { custom, daily: { work, ot }, days: { Sun: { work, ot }, ... } } in hours.
+        saveProjectSettings: function (code, settings) {
+            if (!code || !settings) return;
+            var edit = projectEdits[code] || (projectEdits[code] = {});
+            Object.keys(settings).forEach(function (k) { if (settings[k] != null) edit[k] = settings[k]; });
+            var project = this._projByCode[code];
+            if (project) Object.keys(edit).forEach(function (k) { project[k] = edit[k]; });
+            try { localStorage.setItem(PROJECT_KEY, JSON.stringify(projectEdits)); } catch (e) { /* kept for this page only */ }
+        },
         initialsAvatar: function (name) { return buildInitialsAvatar(name); },
         avatarSrc: function (employee) {
             // Only the Anomali team has photo files (photoFile). The generated employees'
@@ -191,7 +207,11 @@
             API.employees = data.employees || [];
             API.attendance = data.attendance || [];
             API.employees.forEach(function (e) { API._empByCode[e.code] = e; });
-            API.projects.forEach(function (p) { API._projByCode[p.code] = p; });
+            API.projects.forEach(function (p) {
+                var edit = projectEdits[p.code];
+                if (edit) Object.keys(edit).forEach(function (k) { p[k] = edit[k]; });
+                API._projByCode[p.code] = p;
+            });
 
             // Requests & Calendar use the curated Anomali-12 demo, not the
             // large generated request set. Register the 12 employees so

@@ -48,6 +48,7 @@
     /* Text */
     --feriiz-text: #1a1a1a;
     --feriiz-text-muted: #777;
+    --feriiz-text-hint: #6B7480;     /* helper text and units on white, 4.7:1 */
     --feriiz-text-soft: #999;
 
     /* Shape */
@@ -1799,9 +1800,17 @@ body {
             gap: 12px;
         }
 
+        /* Default Hours: Day | Hours | Overtime (02-11-2026) */
+        #projectModal .project-default-hint {
+            margin: 0 0 12px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--feriiz-text-hint);
+        }
+
         #projectModal .project-overtime-table {
             display: grid;
-            grid-template-columns: minmax(88px, 1fr) 82px 82px 66px;
+            grid-template-columns: minmax(88px, 1fr) 82px 82px;
             gap: 8px 12px;
             align-items: center;
             border: 1px solid #E7E7E7;
@@ -1837,19 +1846,6 @@ body {
             border-radius: 7px !important;
             font-family: 'Poppins', sans-serif;
             outline: none;
-        }
-
-        #projectModal .project-overtime-total {
-            align-items: center;
-            background: #EEF2F6;
-            border-radius: 7px;
-            color: #166DBA;
-            display: flex;
-            font-size: 12px;
-            font-weight: 700;
-            justify-content: center;
-            min-height: 36px;
-            text-align: center;
         }
 
         #projectModal .project-overtime-custom-toggle {
@@ -1919,7 +1915,7 @@ body {
             }
 
             #projectModal .project-overtime-table {
-                grid-template-columns: minmax(72px, 1fr) 68px 68px 58px;
+                grid-template-columns: minmax(72px, 1fr) 68px 68px;
             }
         }
 
@@ -5147,9 +5143,10 @@ div.report-layout .report-table tbody td.day-split-cell {
     padding: 10px !important;
 }
 
-/* "Show system data only": a day that has an import gets a small check after its badges
-   (IT Arcon, 2026-10-30); its tooltip gives the imported numbers. Only the purple check,
-   with no filled circle, so a page of imported days stays calm (Baldy, 2026-10-30). */
+/* The Report's first view shows a day from an import as one normal day with a small check
+   after its badges (IT Arcon, 2026-10-30); its tooltip names the file and what the day
+   counts without it. Only the purple check, with no filled circle, so a page of imported
+   days stays calm (Baldy, 2026-10-30). */
 .cell-import-flag {
     display: inline-flex;
     flex-shrink: 0;

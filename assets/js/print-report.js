@@ -182,7 +182,7 @@
         if (td.dataset.imported === '1') {
             return '<div class="print-day-cell"><div class="print-day-badges">' + badges.map(function (b) {
                 return '<span class="' + (b.toLowerCase().includes('ot') ? 'print-badge-ot' : 'print-badge-work') + '">' + escapeHTML(b) + '</span>';
-            }).join('') + '</div><div class="print-day-log">Imported</div></div>';
+            }).join('') + '</div><div class="print-day-log">Uploaded</div></div>';
         }
 
         if (!inTime && !outTime && badges.length === 0) {

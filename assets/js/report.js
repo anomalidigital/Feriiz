@@ -239,7 +239,7 @@
     }
 
     /* =============================================
-       IMPORTED LOG (Import XLSX > Import Log)
+       IMPORTED LOG (Edit in Excel > Upload Log; on screen it is "upload" since 03-11-2026)
        An import replaces what the Report counts for its days: Daily (1 = paid day,
        0 = not) and Overtime hours, plus the rates in the file (Feriiz team, 27-10-2026).
        The first view shows an imported day as one normal day with the file's numbers,
@@ -438,7 +438,7 @@
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
                         '<div>' +
-                            '<h2 class="modal-title" id="importHistoryTitle">Import history</h2>' +
+                            '<h2 class="modal-title" id="importHistoryTitle">Upload history</h2>' +
                             '<p class="tpl-subtitle" id="importHistoryContext"></p>' +
                         '</div>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
@@ -476,7 +476,7 @@
         if (!historyModal) historyModal = buildHistoryModal();
         var last = batches.length - 1;
         historyModal.querySelector('#importHistoryContext').textContent = projectContext.name + ' · ' +
-            DAY_NAMES[fromISO(date).getDay()] + ', ' + shortDate(date) + ' · ' + batches.length + ' imports';
+            DAY_NAMES[fromISO(date).getDay()] + ', ' + shortDate(date) + ' · ' + batches.length + ' uploads';
         // Newest first: who imported which file, and when.
         historyModal.querySelector('#importHistoryVersions').innerHTML = batches.map(function (b, i) {
             return '<li' + (i === last ? ' class="is-current"' : '') + '>' +
@@ -500,7 +500,7 @@
             return (b.changed - a.changed) || a.e.name.localeCompare(b.e.name);
         });
         var changedCount = rows.filter(function (r) { return r.changed; }).length;
-        historyModal.querySelector('#importHistoryCount').textContent = changedCount + ' of ' + rows.length + ' people changed between imports';
+        historyModal.querySelector('#importHistoryCount').textContent = changedCount + ' of ' + rows.length + ' people changed between uploads';
         historyModal.querySelector('#importHistoryRows').innerHTML = rows.map(function (r) {
             return '<tr data-search="' + escapeHTML((r.e.name + ' ' + r.e.code).toLowerCase()) + '"' + (r.changed ? ' class="is-changed"' : '') + '>' +
                 '<td><div class="import-history-name">' + escapeHTML(r.e.name) + '</div><small>' + escapeHTML(r.e.code) +
@@ -541,8 +541,8 @@
     // The check's tooltip: which file the numbers come from, and what the day counts without it.
     function importFlagText(code, date, imp) {
         var sys = systemDay(code, date);
-        return 'Imported' + (imp.file ? ' from ' + imp.file : '') + (imp.at ? ' (' + stampText(imp.at) + ')' : '') + ': ' + dayText(imp) + '. ' +
-            (differs(imp, sys) ? 'Without the import: ' + dayText(sys) + '.' : 'The same as without the import.');
+        return 'Uploaded' + (imp.file ? ' from ' + imp.file : '') + (imp.at ? ' (' + stampText(imp.at) + ')' : '') + ': ' + dayText(imp) + '. ' +
+            (differs(imp, sys) ? 'Without the upload: ' + dayText(sys) + '.' : 'The same as without the upload.');
     }
 
     function importFlagHTML(text) {
@@ -732,7 +732,7 @@
         return '<div class="day-half day-half--system' + (sys.cls === 'no-log-cell' ? ' is-incomplete' : '') + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
     }
 
-    var NO_IMPORT_HALF = '<div class="day-half day-half--import is-empty"><span class="day-half-empty">Not in the import</span></div>';
+    var NO_IMPORT_HALF = '<div class="day-half day-half--import is-empty"><span class="day-half-empty">Not in the upload</span></div>';
 
     // After Add Log, Delete Log or Add Overtime: the day keeps its request chips, and a day
     // in an Original | Import column keeps its two halves.
@@ -988,14 +988,14 @@
             var label = DAY_NAMES[fromISO(date).getDay()] + ' ' + fromISO(date).getDate();
             var imports = split ? importsOn(date).length : 0;
             var history = imports > 1
-                ? '<button type="button" class="import-history-btn" data-date="' + date + '" title="Imported ' + imports + ' times. Click for the history."' +
-                    ' aria-label="Import history of ' + label + ', ' + imports + ' imports"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>' + imports + '</button>'
+                ? '<button type="button" class="import-history-btn" data-date="' + date + '" title="Uploaded ' + imports + ' times. Click for the history."' +
+                    ' aria-label="Upload history of ' + label + ', ' + imports + ' uploads"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>' + imports + '</button>'
                 : '';
             th.className = 'day-col feriiz-u-130' + (split ? ' day-split-col' : '');
             th.dataset.date = date;
             th.innerHTML = (split ? '<div class="day-split-top"><span>' + label + '</span>' + history + '</div>' : '<span>' + label + '</span>') +
                 '<input type="checkbox" class="day-header-select" data-date="' + date + '" aria-label="Select every log on ' + date + '">' +
-                (split ? '<div class="day-split-labels"><b>Original</b><b><i class="fa-solid fa-file-import" aria-hidden="true"></i>Import</b></div>' : '');
+                (split ? '<div class="day-split-labels"><b>Original</b><b><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>Uploaded</b></div>' : '');
             dayRow.appendChild(th);
         });
     }
@@ -1338,11 +1338,11 @@
             updateCellSelectionUI();
             selected = getSelectedCells();
             if (!selected.length) {
-                if (window.FeriizNotify) FeriizNotify.warning('These days come from an import and count its numbers. To change them, import a new file.', 'Imported days');
+                if (window.FeriizNotify) FeriizNotify.warning('These days come from an upload and count its numbers. To change them, upload a new file.', 'Uploaded days');
                 return;
             }
-            if (window.FeriizNotify) FeriizNotify.info(imported.length + (imported.length === 1 ? ' imported day was' : ' imported days were') +
-                ' left out. Only days with system logs are changed.', 'Imported days skipped');
+            if (window.FeriizNotify) FeriizNotify.info(imported.length + (imported.length === 1 ? ' uploaded day was' : ' uploaded days were') +
+                ' left out. Only days with system logs are changed.', 'Uploaded days skipped');
         }
 
         // Delete actions go to confirmation modal
@@ -1853,7 +1853,7 @@
             var name = logFileName(dates);
             XLSX.writeFile(wb, name);
             if (window.FeriizNotify) {
-                FeriizNotify.success('Fill in Daily (1 or 0) and Overtime (hours) for each day, then upload it with Import Log.', name + ' downloaded');
+                FeriizNotify.success('Fill in Daily (1 or 0) and Overtime (hours) for each day, then bring it back with Upload Log.', name + ' downloaded');
             }
         }).catch(function () {
             if (window.FeriizNotify) FeriizNotify.error('The Excel tool could not be loaded. Check the internet connection and try again.', 'Download failed');
@@ -2036,7 +2036,7 @@
         var count = step === 'preview' && importPlan ? importPlan.cells.length : 0;
         var submit = importModal.querySelector('#importSubmit');
         submit.disabled = !count;
-        submit.textContent = count ? 'Import ' + count + (count === 1 ? ' day' : ' days') : 'Import';
+        submit.textContent = count ? 'Upload ' + count + (count === 1 ? ' day' : ' days') : 'Upload';
     }
 
     function importError(message) {
@@ -2065,31 +2065,31 @@
                 '<span class="import-count"><strong>' + plan.same + '</strong> same as now</span>' +
                 (plan.rateChanges.length ? '<span class="import-count is-changed"><strong>' + plan.rateChanges.length + '</strong> rate ' +
                     (plan.rateChanges.length === 1 ? 'change' : 'changes') + '</span>' : '') +
-                (plan.problems.length ? '<span class="import-count is-problem"><strong>' + plan.problems.length + '</strong> not imported</span>' : '') +
+                (plan.problems.length ? '<span class="import-count is-problem"><strong>' + plan.problems.length + '</strong> not uploaded</span>' : '') +
             '</div>';
         if (!plan.cells.length) {
-            html += '<div class="import-empty">Nothing in this file can be imported. ' +
+            html += '<div class="import-empty">Nothing in this file can be uploaded. ' +
                 (plan.problems.length ? 'See why below.' : 'Every Daily and Overtime cell is empty.') + '</div>';
         }
         if (plan.changed.length) {
-            html += '<h3 class="import-section-title">Changes</h3>' + previewTable(['Name', 'Date', 'Now', 'After import'], plan.changed.map(function (c) {
+            html += '<h3 class="import-section-title">Changes</h3>' + previewTable(['Name', 'Date', 'Now', 'After upload'], plan.changed.map(function (c) {
                 return '<tr><td>' + escapeHTML(c.name) + '</td><td class="tpl-nowrap">' + shortDate(c.date) + '</td>' +
                     '<td>' + escapeHTML(dayText(c.now)) + '</td><td class="import-new">' + escapeHTML(dayText(c.next)) + '</td></tr>';
             }));
         }
         if (plan.rateChanges.length) {
-            html += '<h3 class="import-section-title">Rates</h3>' + previewTable(['Name', 'Rate', 'Now', 'After import'], plan.rateChanges.map(function (c) {
+            html += '<h3 class="import-section-title">Rates</h3>' + previewTable(['Name', 'Rate', 'Now', 'After upload'], plan.rateChanges.map(function (c) {
                 return '<tr><td>' + escapeHTML(c.name) + '</td><td>' + c.label + '</td><td>' + formatIDR(c.from) + '</td><td class="import-new">' + formatIDR(c.to) + '</td></tr>';
             }));
         }
         if (plan.problems.length) {
-            html += '<h3 class="import-section-title">Not imported</h3>' + previewTable(['Row', 'Who', 'Why'], plan.problems.map(function (p) {
+            html += '<h3 class="import-section-title">Not uploaded</h3>' + previewTable(['Row', 'Who', 'Why'], plan.problems.map(function (p) {
                 return '<tr><td>' + p.line + '</td><td>' + escapeHTML(p.who) + '</td><td>' + escapeHTML(p.why) + '</td></tr>';
             }));
         }
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
-                'The original logs are not deleted: after the import, each imported day shows them on the left and the import on the right.</p>';
+                'The original logs are not deleted: after the upload, each uploaded day shows them on the left and the upload on the right.</p>';
         }
         importModal.querySelector('#importStepPreview').innerHTML = html;
     }
@@ -2143,7 +2143,7 @@
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
                         '<div>' +
-                            '<h2 class="modal-title" id="importModalTitle">Import Log</h2>' +
+                            '<h2 class="modal-title" id="importModalTitle">Upload Log</h2>' +
                             '<p class="tpl-subtitle" id="importContext"></p>' +
                         '</div>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
@@ -2169,7 +2169,7 @@
                     '<div class="modal-footer">' +
                         '<button type="button" class="btn btn-outline me-auto" id="importBack" hidden>Choose another file</button>' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
-                        '<button type="button" class="btn btn-primary" id="importSubmit" disabled>Import</button>' +
+                        '<button type="button" class="btn btn-primary" id="importSubmit" disabled>Upload</button>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -2193,8 +2193,8 @@
             commitImport(plan);
             if (window.FeriizNotify) {
                 FeriizNotify.success(plan.cells.length + (plan.cells.length === 1 ? ' day' : ' days') + ' for ' + plan.people + (plan.people === 1 ? ' person' : ' people') +
-                    ' (' + plan.changed.length + ' changed) now show the original logs and the import side by side. The totals count the import. ' +
-                    'Remove "Original logs" from the filter to see the default hours again.', 'Log imported');
+                    ' (' + plan.changed.length + ' changed) now show the original logs and the upload side by side. The totals count the upload. ' +
+                    'Remove "Original logs" from the filter to see the default hours again.', 'Log uploaded');
             }
         });
         el.addEventListener('hidden.bs.modal', function () { input.value = ''; readImportFile(null); });

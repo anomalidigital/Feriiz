@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feriiz - Employee Request History</title>
+    <title>Feriiz - Assigned Requests</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.42">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.42">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.43">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.43">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.42" defer></script>
-    <script src="assets/js/app.js?v=3.7.42" defer></script>
+    <script src="assets/js/data.js?v=3.7.43" defer></script>
+    <script src="assets/js/app.js?v=3.7.43" defer></script>
 </head>
+
 <body data-page="employee-personal-request">
     <aside class="sidebar"></aside>
+
     <main class="main-content">
-        <!-- Same page as the project's Requests, narrowed to one employee (?project=&employee=) -->
+        <!-- Assigned Requests (Baldy, 03-11-2026): how much of each request type one person may use
+             in this project, as the old Feriiz "List Assigned Request" (e.g. Remote Work 20 days a
+             year). Employees ask for it in the mobile app and the project's Requests page approves
+             it, so Used counts their accepted requests. Opened from Activity (the clipboard in a
+             person's row) and from a name on the project's Requests page. -->
         <div class="breadcrumb">
             <a href="projects.html">Projects</a>
             <span>&gt;</span>
             <a href="project_employees.html" id="crumbProject">Project</a>
             <span>&gt;</span>
-            <a href="employee_request.html" id="crumbRequests">Request</a>
+            <span class="feriiz-u-152">Assigned Requests</span>
             <span>&gt;</span>
             <span class="feriiz-u-057" id="crumbEmployee">Employee</span>
         </div>
+
         <div class="page-header">
             <div class="feriiz-u-058">
                 <a href="project_employees.html" class="feriiz-u-059" id="backLink" aria-label="Back">
@@ -38,548 +46,438 @@
                     </div>
                 </div>
             </div>
-            <div class="page-actions feriiz-u-065">
-                <div class="feriiz-u-014">
-                    <button class="btn btn-outline filter-toggle-btn" title="Filter"><i class="fa-solid fa-filter"></i></button>
-                    <div class="filter-dropdown feriiz-u-015">
-                        <div class="feriiz-u-016">Filter Request</div>
-                        <label>Date Range</label>
-                        <div class="feriiz-u-095">
-                            <input type="date" class="input filter-date feriiz-u-004">
-                            <span class="feriiz-u-005">-</span>
-                            <input type="date" class="input filter-date feriiz-u-004">
-                        </div>
-                        <label>Type</label>
-                        <select class="input filter-type feriiz-u-094">
-                            <option value="">-- All Types --</option>
-                            <option value="annual_leave">Annual Leave</option>
-                            <option value="public_holiday">Public Holiday</option>
-                            <option value="time_in_lieu">Time in lieu</option>
-                            <option value="long_service_leave">Long Service Leave</option>
-                            <option value="national_leave">National Leave</option>
-                            <option value="sick_leave">Sick Leave</option>
-                            <option value="unpaid_leave">Unpaid Leave</option>
-                            <option value="marriage_leave">Marriage Leave</option>
-                            <option value="remote_work">Remote Work</option>
-                            <option value="meal">Meal</option>
-                            <option value="medical_claim">Medical Claim</option>
-                            <option value="others">Others</option>
-                            <option value="transport">Transport</option>
-                        </select>
-                        <label>Status</label>
-                        <select class="input filter-status feriiz-u-096">
-                            <option value="">-- All Status --</option>
-                            <option value="pending">Pending</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                        <div class="feriiz-u-018">
-                            <button class="btn btn-outline filter-clear-btn feriiz-u-019">Clear</button>
-                            <button class="btn btn-primary filter-apply-btn feriiz-u-019">Apply</button>
-                        </div>
+        </div>
+
+        <div class="table-container">
+            <!-- As on the old Feriiz: assign and the period on the left, print and search on the right -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 border-bottom">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button class="btn btn-primary" type="button" id="assignRequestBtn">
+                        <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                        Assign Request
+                    </button>
+                    <select class="form-select assigned-period" id="assignedMonth" aria-label="Month"></select>
+                    <select class="form-select assigned-period" id="assignedYear" aria-label="Year"></select>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button class="btn btn-outline" type="button" id="printAssigned">
+                        <i class="fa-solid fa-print" aria-hidden="true"></i>
+                        Print
+                    </button>
+                    <button class="btn btn-outline" type="button" id="printPerRequest">
+                        <i class="fa-solid fa-print" aria-hidden="true"></i>
+                        Print Per Request
+                    </button>
+                    <div class="feriiz-u-020">
+                        <i class="fa-solid fa-magnifying-glass feriiz-u-067" aria-hidden="true"></i>
+                        <input type="text" placeholder="Search request name" class="feriiz-u-068" id="assignedSearch" aria-label="Search request name" autocomplete="off">
                     </div>
                 </div>
-                <button class="btn btn-primary" type="button" onclick="openAddRequestModal()">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Request
-                </button>
-                <div class="feriiz-u-020">
-                    <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
-                    <input type="text" placeholder="Search request..." class="feriiz-u-068" id="requestSearch">
-                </div>
             </div>
-        </div>
-        <div class="stat-cards feriiz-u-023">
-            <div class="stat-card feriiz-u-098">
-                <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-clock"></i></div>
-                <div class="stat-card-info"><div class="stat-number feriiz-u-099">0</div><div class="stat-label feriiz-u-027">Pending</div></div>
-            </div>
-            <div class="stat-card feriiz-u-072">
-                <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-check"></i></div>
-                <div class="stat-card-info"><div class="stat-number feriiz-u-099">0</div><div class="stat-label feriiz-u-027">Accepted</div></div>
-            </div>
-            <div class="stat-card feriiz-u-071">
-                <div class="stat-card-icon feriiz-u-025"><i class="fa-solid fa-circle-xmark"></i></div>
-                <div class="stat-card-info"><div class="stat-number feriiz-u-099">0</div><div class="stat-label feriiz-u-027">Rejected</div></div>
-            </div>
-        </div>
-        <div class="table-container">
-            <table class="data-table request-table">
+            <table class="data-table assigned-table">
                 <thead>
                     <tr>
                         <th class="feriiz-u-028"></th>
+                        <th>Name</th>
                         <th>Type</th>
-                        <th>Project</th>
-                        <th>Date Request</th>
-                        <th>Date Range</th>
-                        <th>Approval</th>
-                        <th>Attachment</th>
-                        <th>Status</th>
+                        <th>Amount</th>
+                        <th>Used</th>
+                        <th>Period</th>
                     </tr>
                 </thead>
-                <tbody id="requestsTableBody"></tbody>
+                <tbody id="assignedBody">
+                    <tr><td colspan="6" class="tpl-empty">Loading assigned requests...</td></tr>
+                </tbody>
             </table>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                <div class="pagination-info" id="reqPaginationInfo">Showing 0 results</div>
-                <div class="pagination-buttons" id="reqPaginationButtons"></div>
-            </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.42</div>
+        <div class="feriiz-u-032">version : 3.7.43</div>
     </main>
+
+    <!-- Assign Request: Request, Amount and Notes, as on the old Feriiz. Editing keeps the request
+         type and can delete it, asking once in the footer. -->
+    <div class="modal fade" id="assignedModal" tabindex="-1" aria-labelledby="assignedModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" id="assignedForm" novalidate>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="assignedModalTitle">Assign Request</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label" for="arType">Request</label>
+                    <select class="form-select" id="arType"></select>
+                    <div class="form-text" id="arTypeInfo"></div>
+                    <div class="row g-3 pt-3">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="arAmount">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="arUnitBefore" hidden>Rp</span>
+                                <input type="text" inputmode="numeric" class="form-control" id="arAmount" autocomplete="off">
+                                <span class="input-group-text" id="arUnitAfter">days</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="arNotes">Notes <span class="tpl-optional">(Optional)</span></label>
+                            <input type="text" class="form-control" id="arNotes" placeholder="For example: Holidays / Meal" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger me-auto" id="arDelete" hidden>Delete</button>
+                    <span class="tpl-summary is-danger me-auto" id="arSummary" hidden></span>
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal" id="arCancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="arSave">Save Changes</button>
+                    <button type="button" class="btn btn-outline" id="arKeep" hidden>Keep</button>
+                    <button type="button" class="btn btn-danger" id="arConfirmDelete" hidden>Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- What Print and Print Per Request put on paper (nothing else of the page is printed) -->
+    <div id="assignedPrint"></div>
 
     <script>
     (function () {
+        var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+            'August', 'September', 'October', 'November', 'December'];
         var params = new URLSearchParams(location.search);
-        var state = {
-            employee: null,
-            all: [],
-            filtered: [],
-            filters: { type: '', status: '', dateStart: '', dateEnd: '' },
-            page: 1,
-            perPage: 25
-        };
+        var state = { data: null, project: null, employee: null, list: [], requests: [], month: 0, year: 0, editing: null };
+        var modal = null;
 
         function esc(v) {
             return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
+        function pad2(n) { return String(n).padStart(2, '0'); }
+        function digits(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
+        function rupiah(n) { return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); }
+        function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+        function notify(kind, message, title) { if (window.FeriizNotify) window.FeriizNotify[kind](message, title); }
 
+        function admin() {
+            try { var u = JSON.parse(localStorage.getItem('feriiz_user') || '{}'); return u.name || u.email || 'Admin'; } catch (e) { return 'Admin'; }
+        }
+
+        function typeOf(name) {
+            return state.data.findRequestType(name) || { name: name, type: 'Other', unit: 'day', period: 'Yearly' };
+        }
+
+        // "20 days" or "Rp 25.000"
+        function amountText(unit, n) { return unit === 'idr' ? rupiah(n) : plural(Number(n) || 0, 'day', 'days'); }
+
+        // "Mon, 05 Oct 2026"
         function fmtDay(iso) {
-            if (!iso) return '-';
-            var d = new Date(iso);
+            var d = new Date(iso + 'T00:00:00');
             if (isNaN(d)) return '-';
-            var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            return days[d.getDay()] + ', ' + d.getDate().toString().padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+            return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()] + ', ' + pad2(d.getDate()) + ' ' +
+                MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
         }
 
-        function statusBadgeClass(s) {
-            var norm = (s || '').toLowerCase();
-            if (norm === 'accepted') return 'badge badge-accepted';
-            if (norm === 'rejected') return 'badge badge-rejected';
-            return 'badge badge-pending';
+        // The days a quota counts in: the chosen year, or the chosen month for a monthly one.
+        function periodOf(t) {
+            if (t.period === 'Monthly') {
+                var month = state.year + '-' + pad2(state.month + 1);
+                return { from: month + '-01', to: month + '-' + pad2(new Date(state.year, state.month + 1, 0).getDate()), label: MONTHS[state.month] + ' ' + state.year };
+            }
+            return { from: state.year + '-01-01', to: state.year + '-12-31', label: String(state.year) };
         }
 
-        function projectName(code) {
-            var p = window.FERIIZ_DATA.findProjectByCode(code);
-            return p ? p.name : (code || '-');
+        // The accepted requests of this type in its period, with the days (or rupiah) each one used.
+        function usesOf(a) {
+            var t = typeOf(a.type);
+            var p = periodOf(t);
+            return state.requests.filter(function (r) {
+                return r.status === 'Accepted' && String(r.type).toLowerCase() === t.name.toLowerCase();
+            }).map(function (r) {
+                var from = r.dateStart > p.from ? r.dateStart : p.from;
+                var end = r.dateEnd || r.dateStart;
+                var to = end < p.to ? end : p.to;
+                var days = to >= from ? Math.round((new Date(to + 'T00:00:00') - new Date(from + 'T00:00:00')) / 86400000) + 1 : 0;
+                return { req: r, days: days, value: t.unit === 'idr' ? Number(r.amount) || 0 : days };
+            }).filter(function (u) { return u.days > 0; });
         }
 
-        function renderRow(req) {
+        function usedOf(a) { return usesOf(a).reduce(function (sum, u) { return sum + u.value; }, 0); }
+
+        // "16 days left", "none left" or "2 days over"
+        function leftText(a) {
+            var t = typeOf(a.type);
+            var left = a.amount - usedOf(a);
+            return left > 0 ? amountText(t.unit, left) + ' left' : left === 0 ? 'none left' : amountText(t.unit, -left) + ' over';
+        }
+
+        // In the order of the request type list, so the table and the prints read the same.
+        function sortList() {
+            var order = state.data.requestTypes.map(function (t) { return t.name.toLowerCase(); });
+            state.list.sort(function (a, b) {
+                var ia = order.indexOf(a.type.toLowerCase()), ib = order.indexOf(b.type.toLowerCase());
+                return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+            });
+        }
+
+        function render() {
+            var tbody = document.getElementById('assignedBody');
+            if (!state.list.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="tpl-empty">' + esc(state.employee.name) + ' has no assigned requests yet.' +
+                    '<div class="mt-3"><button type="button" class="btn btn-primary" data-assign>Assign Request</button></div></td></tr>';
+                return;
+            }
+            var q = document.getElementById('assignedSearch').value.trim().toLowerCase();
+            var rows = state.list.filter(function (a) { return !q || (a.type + ' ' + (a.notes || '')).toLowerCase().indexOf(q) >= 0; });
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="tpl-empty">No assigned request matches the search.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(function (a) {
+                var t = typeOf(a.type);
+                var full = a.amount - usedOf(a) <= 0;
+                return '<tr>' +
+                    '<td><div class="action-cell"><button type="button" class="btn-icon" title="Edit" aria-label="Edit ' + esc(a.type) + '" data-edit="' + esc(a.id) + '">' +
+                        '<i class="fa-solid fa-pen-to-square"></i></button></div></td>' +
+                    '<td><div class="feriiz-u-188">' + esc(a.type) + '</div>' + (a.notes ? '<div class="tpl-sub">' + esc(a.notes) + '</div>' : '') + '</td>' +
+                    '<td>' + esc(t.type) + '</td>' +
+                    '<td class="tpl-amount">' + amountText(t.unit, a.amount) + '</td>' +
+                    '<td>' + amountText(t.unit, usedOf(a)) + '<div class="tpl-sub' + (full ? ' assigned-full' : '') + '">' + leftText(a) + '</div></td>' +
+                    '<td>' + esc(t.period) + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        function persist() {
+            sortList();
+            state.data.saveAssignedRequests(state.project ? state.project.code : '', state.employee.code, state.list);
+        }
+
+        /* ---------- Assign / edit ---------- */
+        function syncUnit() {
+            var name = document.getElementById('arType').value;
+            var t = name ? typeOf(name) : null;
+            var idr = Boolean(t && t.unit === 'idr');
+            var amount = document.getElementById('arAmount');
+            document.getElementById('arUnitBefore').hidden = !idr;
+            document.getElementById('arUnitAfter').hidden = idr;
+            amount.placeholder = idr ? 'For example: 25.000' : 'For example: 20';
+            var d = digits(amount.value);
+            amount.value = d ? (idr ? Number(d).toLocaleString('id-ID') : d) : '';
+            document.getElementById('arTypeInfo').textContent = t
+                ? t.type + ', counted in ' + (idr ? 'rupiah' : 'days') + '. It starts again every ' + (t.period === 'Monthly' ? 'month' : 'year') + '.'
+                : 'How much of it ' + state.employee.name + ' may use.';
+        }
+
+        function setConfirm(on) {
+            var editing = Boolean(state.editing);
+            document.getElementById('arDelete').hidden = on || !editing;
+            document.getElementById('arCancel').hidden = on;
+            document.getElementById('arSave').hidden = on;
+            document.getElementById('arSummary').hidden = !on;
+            document.getElementById('arKeep').hidden = !on;
+            document.getElementById('arConfirmDelete').hidden = !on;
+            if (!on) return;
+            document.getElementById('arSummary').textContent = 'Delete ' + state.editing.type + ' from ' + state.employee.name + '?';
+            document.getElementById('arConfirmDelete').focus();
+        }
+
+        function openForm(a) {
+            var taken = {};
+            state.list.forEach(function (x) { taken[x.type.toLowerCase()] = true; });
+            var types = a ? [typeOf(a.type)] : state.data.requestTypes.filter(function (t) { return !taken[t.name.toLowerCase()]; });
+            if (!types.length) {
+                notify('info', 'Every request type is already assigned to ' + state.employee.name + '. Edit one to change its amount.', 'Nothing left to assign');
+                return;
+            }
+            state.editing = a || null;
+            var select = document.getElementById('arType');
+            select.innerHTML = (a ? '' : '<option value="">Choose request type</option>') + types.map(function (t) {
+                return '<option value="' + esc(t.name) + '">' + esc(t.name) + '</option>';
+            }).join('');
+            select.disabled = Boolean(a);
+            select.value = a ? a.type : '';
+            document.getElementById('arAmount').value = a ? String(a.amount) : '';
+            document.getElementById('arNotes').value = a ? (a.notes || '') : '';
+            document.getElementById('assignedModalTitle').textContent = a ? 'Edit Assigned Request' : 'Assign Request';
+            document.querySelectorAll('#assignedForm .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+            setConfirm(false);
+            syncUnit();
+            modal.show();
+        }
+
+        function save(e) {
+            e.preventDefault();
+            var typeEl = document.getElementById('arType');
+            var amountEl = document.getElementById('arAmount');
+            var name = typeEl.value;
+            var t = name ? typeOf(name) : null;
+            var amount = Number(digits(amountEl.value)) || 0;
+            var tooMany = Boolean(t && t.unit === 'day' && amount > 366);
+            typeEl.classList.toggle('is-invalid', !name);
+            amountEl.classList.toggle('is-invalid', !amount || tooMany);
+            if (!name || !amount || tooMany) {
+                (name ? amountEl : typeEl).focus();
+                notify('warning', !name ? 'Choose the request type first.' : tooMany ? 'A quota in days can be at most 366.' : 'Fill in the amount.', 'Not saved');
+                return;
+            }
+            var notes = document.getElementById('arNotes').value.trim();
+            var at = new Date().toISOString();
+            if (state.editing) {
+                var item = state.list.filter(function (x) { return x.id === state.editing.id; })[0];
+                item.amount = amount; item.notes = notes; item.at = at; item.by = admin();
+            } else {
+                state.list.push({ id: 'AR-' + Date.now().toString(36).toUpperCase(), type: name, amount: amount, notes: notes, at: at, by: admin() });
+            }
+            persist();
+            modal.hide();
+            render();
+            notify('success', state.editing
+                ? name + ' for ' + state.employee.name + ' is now ' + amountText(t.unit, amount) + '.'
+                : name + ' (' + amountText(t.unit, amount) + ') was assigned to ' + state.employee.name + '.',
+                state.editing ? 'Assigned request updated' : 'Request assigned');
+        }
+
+        function remove() {
+            var gone = state.editing;
+            state.list = state.list.filter(function (x) { return x.id !== gone.id; });
+            persist();
+            modal.hide();
+            render();
+            notify('success', gone.type + ' was removed from ' + state.employee.name + '.', 'Assigned request deleted');
+        }
+
+        /* ---------- Print and Print Per Request ---------- */
+        function printSheet(title, body) {
             var emp = state.employee;
-            var tr = document.createElement('tr');
-            tr.innerHTML =
-                '<td><div class="action-cell"><button class="btn-icon" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button></div></td>' +
-                '<td>' + esc(req.type) + '</td>' +
-                '<td>' + esc(projectName(req.projectCode)) + '</td>' +
-                '<td>' + fmtDay(req.submittedAt || req.dateStart) + '</td>' +
-                '<td>' + fmtDay(req.dateStart) + (req.dateEnd && req.dateEnd !== req.dateStart ? ' – ' + fmtDay(req.dateEnd) : '') + '</td>' +
-                '<td>' + esc(req.pic || '-') + '</td>' +
-                '<td class="attachment-cell"></td>' +
-                '<td><span class="' + statusBadgeClass(req.status) + '">' + esc(req.status) + '</span></td>';
-            tr.querySelector('.attachment-cell').appendChild(attachmentLink(req));
-            tr.querySelector('.btn-icon').addEventListener('click', function () {
-                openModal(emp.name, req.type, fmtDay(req.submittedAt || req.dateStart),
-                    fmtDay(req.dateStart) + (req.dateEnd && req.dateEnd !== req.dateStart ? ' – ' + fmtDay(req.dateEnd) : ''), req.status, req);
-            });
-            return tr;
+            document.getElementById('assignedPrint').innerHTML =
+                '<header class="ar-print-head"><h1>' + esc(title) + '</h1>' +
+                    '<p>' + esc(emp.name) + ' · ' + esc(emp.code) + (state.project ? ' · ' + esc(state.project.name) : '') + '</p>' +
+                    '<p>Yearly requests: ' + state.year + ' · Monthly requests: ' + MONTHS[state.month] + ' ' + state.year + '</p></header>' +
+                body +
+                '<p class="ar-print-foot">Printed ' + fmtDay(new Date().toISOString().slice(0, 10)) + ' by ' + esc(admin()) + '</p>';
+            window.print();
         }
 
-        /* ---------- Attachments (same viewer as the project's Requests) ---------- */
-        window.requestAttachmentLink = function (req) { return attachmentLink(req); };
-        // One button per row: the file name for one file, "N files" for more.
-        function attachmentLink(req) {
-            var files = req.attachments || [];
-            if (!files.length) {
-                var none = document.createElement('span');
-                none.className = 'attachment-none';
-                none.textContent = '–';
-                none.setAttribute('aria-label', 'No attachment');
-                return none;
-            }
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'attachment-link';
-            btn.title = files.map(function (f) { return f.name; }).join(', ');
-            btn.innerHTML = '<i class="fa-solid fa-paperclip" aria-hidden="true"></i><span></span>';
-            btn.querySelector('span').textContent = files.length === 1 ? files[0].name : files.length + ' files';
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                window.FeriizAttachments.open(files, req.type + ' from ' + state.employee.name + ', ' + fmtDay(req.dateStart));
-            });
-            return btn;
+        function printAll() {
+            if (!state.list.length) { notify('info', state.employee.name + ' has no assigned requests to print.', 'Nothing to print'); return; }
+            printSheet('Assigned Requests', '<table class="ar-print-table"><thead><tr>' +
+                '<th>Name</th><th>Type</th><th>Amount</th><th>Used</th><th>Left</th><th>Period</th></tr></thead><tbody>' +
+                state.list.map(function (a) {
+                    var t = typeOf(a.type);
+                    return '<tr><td>' + esc(a.type) + (a.notes ? '<br><small>' + esc(a.notes) + '</small>' : '') + '</td><td>' + esc(t.type) + '</td>' +
+                        '<td>' + amountText(t.unit, a.amount) + '</td><td>' + amountText(t.unit, usedOf(a)) + '</td>' +
+                        '<td>' + leftText(a) + '</td><td>' + esc(t.period) + '</td></tr>';
+                }).join('') + '</tbody></table>');
         }
 
-        function renderPage() {
-            var tbody = document.getElementById('requestsTableBody');
-            tbody.innerHTML = '';
-            var start = (state.page - 1) * state.perPage;
-            var end = Math.min(start + state.perPage, state.filtered.length);
-            for (var i = start; i < end; i++) tbody.appendChild(renderRow(state.filtered[i]));
-            if (!state.filtered.length) {
-                tbody.innerHTML = '<tr><td colspan="8" class="request-empty">' +
-                    (state.all.length ? 'No requests match your filter.' : esc(state.employee.name) + ' has no requests yet.') + '</td></tr>';
-            }
-            document.getElementById('reqPaginationInfo').textContent = state.filtered.length === 0
-                ? 'Showing 0 results'
-                : 'Showing ' + (start + 1) + ' - ' + end + ' of ' + state.filtered.length + ' results';
-            renderPagination();
+        // Each assigned request with the accepted requests that used it in its period.
+        function printPerRequest() {
+            if (!state.list.length) { notify('info', state.employee.name + ' has no assigned requests to print.', 'Nothing to print'); return; }
+            printSheet('Assigned Requests per Request', state.list.map(function (a) {
+                var t = typeOf(a.type);
+                var uses = usesOf(a);
+                return '<section class="ar-print-section"><h2>' + esc(a.type) + '</h2>' +
+                    '<p>' + esc(t.type) + ' · ' + amountText(t.unit, a.amount) + ' ' + t.period.toLowerCase() + ' · used ' + amountText(t.unit, usedOf(a)) +
+                        ' · ' + leftText(a) + (a.notes ? ' · ' + esc(a.notes) : '') + '</p>' +
+                    (uses.length
+                        ? '<table class="ar-print-table"><thead><tr><th>Date</th><th>' + (t.unit === 'idr' ? 'Amount' : 'Days') + '</th><th>Reason</th><th>Approved by</th></tr></thead><tbody>' +
+                          uses.map(function (u) {
+                              var r = u.req;
+                              return '<tr><td>' + fmtDay(r.dateStart) + (r.dateEnd && r.dateEnd !== r.dateStart ? ' – ' + fmtDay(r.dateEnd) : '') + '</td>' +
+                                  '<td>' + (t.unit === 'idr' ? rupiah(u.value) : u.days) + '</td><td>' + esc(r.reason || '-') + '</td><td>' + esc(r.pic || '-') + '</td></tr>';
+                          }).join('') + '</tbody></table>'
+                        : '<p class="ar-print-none">Not used in ' + esc(periodOf(t).label) + '.</p>') +
+                '</section>';
+            }).join(''));
         }
 
-        function renderPagination() {
-            var total = Math.ceil(state.filtered.length / state.perPage) || 1;
-            var cur = state.page;
-            var box = document.getElementById('reqPaginationButtons');
-            box.innerHTML = '';
-            var prev = document.createElement('button');
-            prev.textContent = '< Previous'; prev.disabled = cur === 1;
-            prev.addEventListener('click', function () { if (cur > 1) { state.page--; renderPage(); } });
-            box.appendChild(prev);
-            for (var n = 1; n <= total; n++) {
-                (function (n) {
-                    var a = document.createElement('a');
-                    a.href = '#'; a.textContent = n;
-                    if (n === cur) { a.className = 'active'; a.setAttribute('aria-current', 'page'); }
-                    a.addEventListener('click', function (e) { e.preventDefault(); state.page = n; renderPage(); });
-                    box.appendChild(a);
-                })(n);
-            }
-            var next = document.createElement('a');
-            next.href = '#'; next.textContent = 'Next >';
-            if (cur === total) next.style.display = 'none';
-            next.addEventListener('click', function (e) { e.preventDefault(); if (cur < total) { state.page++; renderPage(); } });
-            box.appendChild(next);
-        }
-
-        function updateStatCards() {
-            var counts = { Pending: 0, Accepted: 0, Rejected: 0 };
-            state.filtered.forEach(function (r) { if (counts[r.status] !== undefined) counts[r.status]++; });
-            var cards = document.querySelectorAll('.stat-card');
-            if (cards[0]) cards[0].querySelector('.stat-number').textContent = counts.Pending;
-            if (cards[1]) cards[1].querySelector('.stat-number').textContent = counts.Accepted;
-            if (cards[2]) cards[2].querySelector('.stat-number').textContent = counts.Rejected;
-        }
-
-        function applyFilter() {
-            var q = document.getElementById('requestSearch').value.trim().toLowerCase();
-            var f = state.filters;
-            state.filtered = state.all.filter(function (r) {
-                if (f.type && r.type.toLowerCase().replace(/\s+/g, '_') !== f.type) return false;
-                if (f.status && r.status.toLowerCase() !== f.status) return false;
-                var requestStart = r.dateStart || '';
-                var requestEnd = r.dateEnd || requestStart;
-                if (f.dateStart && requestEnd < f.dateStart) return false;
-                if (f.dateEnd && requestStart > f.dateEnd) return false;
-                if (q && (r.type + ' ' + projectName(r.projectCode) + ' ' + (r.pic || '') + ' ' + (r.reason || '')).toLowerCase().indexOf(q) < 0) return false;
-                return true;
-            });
-            state.page = 1;
-            renderPage();
-            updateStatCards();
-        }
-
-        // Filters change the table only on Apply.
-        function commitRequestFilterDraft() {
-            var dates = document.querySelectorAll('.filter-date');
-            state.filters = {
-                type: document.querySelector('.filter-type').value.toLowerCase(),
-                status: document.querySelector('.filter-status').value.toLowerCase(),
-                dateStart: dates[0] ? dates[0].value : '',
-                dateEnd: dates[1] ? dates[1].value : ''
-            };
-        }
-
-        // The 12 Anomali people keep their curated demo requests (with attachments);
-        // everyone else gets their own requests from the dataset, which match the
-        // sick, leave and remote days in attendance. No requests = an empty list.
-        function requestsOf(data, emp) {
-            function own(r) { return r.employeeCode === emp.code; }
-            var demo = data.requests.filter(own);
-            return demo.length ? demo : (data.generatedRequests || []).filter(own);
+        /* ---------- Page ---------- */
+        // This person's requests in this project (the 12 Anomali people keep their curated demo ones).
+        function requestsOf(data, emp, project) {
+            var demo = data.requests.filter(function (r) { return r.employeeCode === emp.code; });
+            var all = demo.length ? demo : (data.generatedRequests || []).filter(function (r) { return r.employeeCode === emp.code; });
+            return all.filter(function (r) { return !project || r.projectCode === project.code; });
         }
 
         function paintHeader(emp, project) {
-            var projectQuery = project ? '?project=' + encodeURIComponent(project.code) : '';
+            var query = project ? '?project=' + encodeURIComponent(project.code) : '';
             document.getElementById('crumbProject').textContent = project ? project.name : 'Project';
-            document.getElementById('crumbProject').href = 'project_employees.html' + projectQuery;
-            document.getElementById('crumbRequests').href = 'employee_request.html' + projectQuery;
-            document.getElementById('backLink').href = 'project_employees.html' + projectQuery;
+            document.getElementById('crumbProject').href = 'project_employees.html' + query;
+            document.getElementById('backLink').href = 'project_employees.html' + query;
             document.getElementById('crumbEmployee').textContent = emp ? emp.name : 'Employee';
             document.getElementById('employeeName').textContent = emp ? emp.name : 'Employee not found';
             document.getElementById('employeeCode').textContent = emp ? emp.code : '';
-            if (emp) {
-                var img = document.getElementById('employeeAvatar');
-                img.src = window.FERIIZ_DATA.avatarSrc(emp);
-                img.addEventListener('error', function () {
-                    var fallback = window.FERIIZ_DATA.initialsAvatar(emp.name);
-                    if (this.src !== fallback) this.src = fallback;
-                });
-                img.hidden = false;
-                document.title = 'Feriiz - ' + emp.name + ' - Request';
-            }
+            if (!emp) return;
+            var img = document.getElementById('employeeAvatar');
+            img.src = window.FERIIZ_DATA.avatarSrc(emp);
+            img.addEventListener('error', function () {
+                var fallback = window.FERIIZ_DATA.initialsAvatar(emp.name);
+                if (this.src !== fallback) this.src = fallback;
+            });
+            img.hidden = false;
+            document.title = 'Feriiz - ' + emp.name + ' - Assigned Requests';
+        }
+
+        // The month and year Used is counted in: today's, held at the last day of the demo data.
+        function fillPeriod(data) {
+            var end = data.meta && data.meta.periodEnd;
+            var now = new Date();
+            var today = end && now.toISOString().slice(0, 10) > end ? new Date(end + 'T00:00:00') : now;
+            state.month = today.getMonth();
+            state.year = today.getFullYear();
+            var month = document.getElementById('assignedMonth');
+            var year = document.getElementById('assignedYear');
+            month.innerHTML = MONTHS.map(function (m, i) { return '<option value="' + i + '">' + m + '</option>'; }).join('');
+            year.innerHTML = [state.year - 1, state.year, state.year + 1].map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+            month.value = String(state.month);
+            year.value = String(state.year);
         }
 
         document.addEventListener('DOMContentLoaded', function () {
             if (!window.FERIIZ_DATA) return;
             window.FERIIZ_DATA.ready.then(function (data) {
-                var project = data.findProjectByCode(params.get('project'));
                 var emp = data.findEmployeeByCode(params.get('employee'));
+                var project = data.findProjectByCode(params.get('project')) ||
+                    (emp && emp.projects && emp.projects.length ? data.findProjectByCode(emp.projects[0]) : null);
+                state.data = data;
                 state.employee = emp;
+                state.project = project;
                 paintHeader(emp, project);
                 if (!emp) {
-                    document.getElementById('requestsTableBody').innerHTML =
-                        '<tr><td colspan="8" class="request-empty">Open an employee from the project\'s Activity list or from Requests.</td></tr>';
+                    document.getElementById('assignedBody').innerHTML =
+                        '<tr><td colspan="6" class="tpl-empty">Open an employee from the project\'s Activity list.</td></tr>';
                     return;
                 }
-                window.personalRequestContext = { employee: emp, project: project };
-                state.all = requestsOf(data, emp)
-                    .sort(function (a, b) { return (b.submittedAt || '').localeCompare(a.submittedAt || ''); });
-                applyFilter();
+                state.requests = requestsOf(data, emp, project);
+                state.list = data.assignedRequestsOf(project ? project.code : '', emp.code);
+                sortList();
+                fillPeriod(data);
+                modal = window.bootstrap.Modal.getOrCreateInstance(document.getElementById('assignedModal'));
+                render();
 
-                document.querySelector('.filter-apply-btn').addEventListener('click', function () {
-                    commitRequestFilterDraft();
-                    applyFilter();
+                document.getElementById('assignedMonth').addEventListener('change', function (e) { state.month = Number(e.target.value); render(); });
+                document.getElementById('assignedYear').addEventListener('change', function (e) { state.year = Number(e.target.value); render(); });
+                document.getElementById('assignedSearch').addEventListener('input', render);
+                document.getElementById('assignRequestBtn').addEventListener('click', function () { openForm(null); });
+                document.getElementById('printAssigned').addEventListener('click', printAll);
+                document.getElementById('printPerRequest').addEventListener('click', printPerRequest);
+                document.getElementById('assignedBody').addEventListener('click', function (e) {
+                    if (e.target.closest('[data-assign]')) { openForm(null); return; }
+                    var edit = e.target.closest('[data-edit]');
+                    if (edit) openForm(state.list.filter(function (x) { return x.id === edit.dataset.edit; })[0]);
                 });
-                document.querySelector('.filter-clear-btn').addEventListener('click', function () {
-                    document.querySelector('.filter-type').value = '';
-                    document.querySelector('.filter-status').value = '';
-                    document.querySelectorAll('.filter-date').forEach(function (input) { input.value = ''; });
-                    document.getElementById('requestSearch').value = '';
-                    state.filters = { type: '', status: '', dateStart: '', dateEnd: '' };
-                    applyFilter();
+                document.getElementById('assignedForm').addEventListener('submit', save);
+                document.getElementById('arType').addEventListener('change', function (e) { e.target.classList.remove('is-invalid'); syncUnit(); });
+                document.getElementById('arAmount').addEventListener('input', function (e) {
+                    e.target.classList.remove('is-invalid');
+                    var name = document.getElementById('arType').value;
+                    var d = digits(e.target.value);
+                    e.target.value = d ? (name && typeOf(name).unit === 'idr' ? Number(d).toLocaleString('id-ID') : d) : '';
                 });
-                var timer;
-                document.getElementById('requestSearch').addEventListener('input', function () {
-                    clearTimeout(timer); timer = setTimeout(applyFilter, 200);
-                });
+                document.getElementById('arDelete').addEventListener('click', function () { setConfirm(true); });
+                document.getElementById('arKeep').addEventListener('click', function () { setConfirm(false); });
+                document.getElementById('arConfirmDelete').addEventListener('click', remove);
+                document.getElementById('assignedModal').addEventListener('hidden.bs.modal', function () { setConfirm(false); });
             });
         });
     })();
     </script>
-
-    <!-- Approval Modal Overlay (same as the project's Requests) -->
-    <div class="modal-overlay" id="approvalModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2 id="modalTitle">Approval</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-grid">
-                    <div class="modal-field">
-                        <label>Status</label>
-                        <select class="select feriiz-u-153" id="modalStatus">
-                            <option>Pending</option>
-                            <option>Accepted</option>
-                            <option>Rejected</option>
-                        </select>
-                    </div>
-                    <div class="modal-field">
-                        <label>Remark</label>
-                        <input type="text" class="input feriiz-u-153" id="modalRemark" placeholder="Remark">
-                    </div>
-                    <div class="modal-field">
-                        <label>Amount</label>
-                        <input type="number" class="input feriiz-u-153" value="1">
-                    </div>
-                    <div class="modal-field">
-                        <label>Note To Sender</label>
-                        <input type="text" id="modalNoteInput" class="input feriiz-u-153" placeholder="Note To Sender">
-                    </div>
-                </div>
-                <div id="modalNotificationWrapper" class="feriiz-u-154">
-                    <label class="feriiz-u-155">
-                        <input type="checkbox" checked class="feriiz-u-050">
-                        Send Notification
-                    </label>
-                </div>
-                <div class="modal-divider"></div>
-                <div class="modal-info-grid">
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Request</span>
-                        <span class="modal-info-value" id="modalRequest">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Date Request</span>
-                        <span class="modal-info-value" id="modalDateRequest">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Date</span>
-                        <span class="modal-info-value" id="modalDate">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Attachment</span>
-                        <span class="modal-info-value feriiz-u-156" id="modalAttachment">–</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger feriiz-u-157" onclick="deleteRequest()">Delete</button>
-                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveRequestChanges()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-    <!-- Add Request Modal Overlay: employee and project are this page's -->
-    <div class="modal-overlay" id="addRequestModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2 id="addRequestTitle">Request</h2>
-                <button class="modal-close" onclick="closeAddRequestModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-grid">
-                    <div class="modal-field">
-                        <label>Employee Name</label>
-                        <input type="text" id="addReqEmployee" class="input feriiz-u-158" placeholder="Employee Name" readonly>
-                    </div>
-                    <div class="modal-field">
-                        <label>Project Name</label>
-                        <input type="text" id="addReqProject" class="input feriiz-u-158" placeholder="Project Name" readonly>
-                    </div>
-                    <div class="modal-field">
-                        <label>Start Date</label>
-                        <input type="date" class="input feriiz-u-158">
-                    </div>
-                    <div class="modal-field">
-                        <label>End Date</label>
-                        <input type="date" class="input feriiz-u-158">
-                    </div>
-                </div>
-                <div class="feriiz-u-159">
-                    <div class="modal-grid">
-                        <div class="modal-field">
-                            <label>Remark</label>
-                            <input type="text" class="input feriiz-u-158" placeholder="Give a note">
-                        </div>
-                        <div class="modal-field">
-                            <label>Request</label>
-                            <select class="select feriiz-u-153">
-                                <option>Annual Leave</option>
-                                <option>Public Holiday</option>
-                                <option>Time In Lieu</option>
-                                <option>Long Service Leave</option>
-                                <option>National Leave</option>
-                                <option>Sick Leave</option>
-                                <option>Unpaid Leave</option>
-                                <option>Marriage Leave</option>
-                                <option>Remote Work</option>
-                                <option>Meal</option>
-                                <option>Medical Claim</option>
-                                <option>Others</option>
-                                <option>Transport</option>
-                            </select>
-                        </div>
-                        <div class="modal-field">
-                            <label>Status</label>
-                            <select class="select feriiz-u-153">
-                                <option>Pending</option>
-                                <option>Accepted</option>
-                                <option>Rejected</option>
-                            </select>
-                        </div>
-                        <div class="modal-field">
-                            <label>Approval</label>
-                            <select class="select feriiz-u-153">
-                                <option>Ifan Faizal Adnan</option>
-                                <option>Judith Anastalio</option>
-                            </select>
-                        </div>
-                        <div class="modal-field">
-                            <label>Attachment</label>
-                            <input type="file" class="input feriiz-u-160">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer feriiz-u-161" id="addReqFooter">
-                <button class="btn btn-outline feriiz-u-162" onclick="closeAddRequestModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveNewRequest()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function openModal(name, type, dateReq, dateRange, status, req) {
-            document.getElementById('modalTitle').textContent = 'Approval ' + name;
-            var attachmentSlot = document.getElementById('modalAttachment');
-            attachmentSlot.innerHTML = '';
-            attachmentSlot.appendChild(req ? window.requestAttachmentLink(req) : document.createTextNode('–'));
-            document.getElementById('modalRemark').value = (req && req.remark) || '';
-            document.getElementById('modalRequest').textContent = type || '-';
-            document.getElementById('modalDateRequest').textContent = dateReq || '-';
-            document.getElementById('modalDate').textContent = dateRange || '-';
-            var sel = document.getElementById('modalStatus');
-            for (var i = 0; i < sel.options.length; i++) {
-                if (sel.options[i].text === status) { sel.selectedIndex = i; break; }
-            }
-            document.getElementById('approvalModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('approvalModal').classList.remove('show');
-            document.body.style.overflow = '';
-            var noteInput = document.getElementById('modalNoteInput');
-            var notifWrapper = document.getElementById('modalNotificationWrapper');
-            if (noteInput && notifWrapper) {
-                noteInput.value = '';
-                notifWrapper.style.display = 'none';
-            }
-        }
-
-        function saveRequestChanges() {
-            var employee = document.getElementById('modalTitle').textContent.replace(/^Approval\s+/, '') || 'Employee';
-            closeModal();
-            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was updated.', 'Request updated');
-        }
-
-        function deleteRequest() {
-            var employee = document.getElementById('modalTitle').textContent.replace(/^Approval\s+/, '') || 'Employee';
-            closeModal();
-            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was deleted.', 'Request deleted');
-        }
-
-        document.getElementById('approvalModal').addEventListener('click', function (e) {
-            if (e.target === this) closeModal();
-        });
-
-        function openAddRequestModal() {
-            var ctx = window.personalRequestContext;
-            if (!ctx) return;
-            document.getElementById('addReqEmployee').value = ctx.employee.name;
-            document.getElementById('addReqProject').value = ctx.project ? ctx.project.name : '';
-            document.getElementById('addRequestModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeAddRequestModal() {
-            document.getElementById('addRequestModal').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function saveNewRequest() {
-            var employee = document.getElementById('addReqEmployee').value.trim() || 'the employee';
-            closeAddRequestModal();
-            if (window.FeriizNotify) FeriizNotify.success('The request for ' + employee + ' was added.', 'Request added');
-        }
-
-        document.getElementById('addRequestModal').addEventListener('click', function (e) {
-            if (e.target === this) closeAddRequestModal();
-        });
-
-        // The notification checkbox appears once there is a note to send.
-        document.addEventListener('DOMContentLoaded', function () {
-            var modalNoteInput = document.getElementById('modalNoteInput');
-            var modalNotificationWrapper = document.getElementById('modalNotificationWrapper');
-            if (modalNoteInput && modalNotificationWrapper) {
-                modalNoteInput.addEventListener('input', function () {
-                    modalNotificationWrapper.style.display = this.value.trim() !== '' ? 'block' : 'none';
-                });
-            }
-        });
-    </script>
 </body>
+
 </html>

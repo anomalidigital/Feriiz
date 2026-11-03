@@ -381,7 +381,7 @@ function feriizLogout() {
         'employee-attendance':       { main: 'employees' },
         'employee-projects':         { main: 'employees' },
         'employee-report':           { main: 'projects-group', sub: 'report' },
-        'employee-personal-request': { main: 'projects-group', sub: 'requests' }
+        'employee-personal-request': { main: 'projects-group', sub: 'activity' }
     };
 
     function cls(active) { return active ? ' class="active"' : ''; }

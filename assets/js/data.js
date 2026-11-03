@@ -31,6 +31,38 @@
     var projectEdits = {};
     try { projectEdits = JSON.parse(localStorage.getItem(PROJECT_KEY) || '{}') || {}; } catch (e) { projectEdits = {}; }
 
+    // Request quotas: Projects > Activity > an employee > Assigned Requests, the old Feriiz
+    // "List Assigned Request" (Baldy, 03-11-2026). The admin gives each person how much of a
+    // request type they may use, e.g. Remote Work 20 days a year; employees ask for it in the
+    // mobile app and the project's Requests page approves it. type = the group shown in the
+    // list, unit = 'day' or 'idr', period = how often the quota starts again. Prototype list
+    // until the API gives the real one.
+    var REQUEST_TYPES = [
+        { name: 'Annual Leave',       type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Sick Leave',         type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Permission',         type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Time in lieu',       type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Public Holiday',     type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'National Leave',     type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Long Service Leave', type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Marriage Leave',     type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Unpaid Leave',       type: 'Leave',  unit: 'day', period: 'Yearly' },
+        { name: 'Remote Work',        type: 'Remote', unit: 'day', period: 'Yearly' },
+        { name: 'Meal',               type: 'Claim',  unit: 'idr', period: 'Monthly' },
+        { name: 'Transport',          type: 'Claim',  unit: 'idr', period: 'Monthly' },
+        { name: 'Medical Claim',      type: 'Claim',  unit: 'idr', period: 'Yearly' },
+        { name: 'Others',             type: 'Other',  unit: 'day', period: 'Yearly' }
+    ];
+    // Demo: until something is assigned to a person in a project, they start with these.
+    var DEFAULT_ASSIGNED = [
+        { type: 'Annual Leave', amount: 12 },
+        { type: 'Sick Leave', amount: 12 },
+        { type: 'Remote Work', amount: 20 }
+    ];
+    var ASSIGNED_KEY = 'feriiz_assigned_requests_v1';
+    var assignedEdits = {};
+    try { assignedEdits = JSON.parse(localStorage.getItem(ASSIGNED_KEY) || '{}') || {}; } catch (e) { assignedEdits = {}; }
+
     /* ---- Original Anomali team (12 people) — for Requests & Calendar ---- */
     var ANOMALI_EMPLOYEES = [
         { code: 'ADA27B1B2E650H0X', name: 'Adam Ferial',         occupation: 'Graphic Design',   pin: '3131', photoFile: 'adam-ferial_1689213258972QWGCYFQ_1770362381449KFDCLNS.jpg' },
@@ -154,6 +186,23 @@
             if (!code) return;
             transportEdits[code] = Math.max(0, Math.round(Number(perDay) || 0));
             try { localStorage.setItem(TRANSPORT_KEY, JSON.stringify(transportEdits)); } catch (e) { /* kept for this page only */ }
+        },
+        requestTypes: REQUEST_TYPES,
+        findRequestType: function (name) {
+            var key = String(name || '').trim().toLowerCase();
+            return REQUEST_TYPES.filter(function (t) { return t.name.toLowerCase() === key; })[0] || null;
+        },
+        // [{ id, type, amount, notes, at, by }] given to one person in one project (copies).
+        assignedRequestsOf: function (projectCode, employeeCode) {
+            var key = projectCode + '|' + employeeCode;
+            if (Object.prototype.hasOwnProperty.call(assignedEdits, key)) {
+                return assignedEdits[key].map(function (a) { return Object.assign({}, a); });
+            }
+            return DEFAULT_ASSIGNED.map(function (a, i) { return { id: 'AR-DEMO-' + i, type: a.type, amount: a.amount, notes: '', at: '', by: '' }; });
+        },
+        saveAssignedRequests: function (projectCode, employeeCode, list) {
+            assignedEdits[projectCode + '|' + employeeCode] = list;
+            try { localStorage.setItem(ASSIGNED_KEY, JSON.stringify(assignedEdits)); } catch (e) { /* kept for this page only */ }
         },
         // settings = { workStart, workEnd, cutOff, defaultHours }; defaultHours =
         // { custom, daily: { work, ot }, days: { Sun: { work, ot }, ... } } in hours.

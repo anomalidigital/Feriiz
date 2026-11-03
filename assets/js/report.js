@@ -396,15 +396,17 @@
             '</div>';
     }
 
-    // The right half of a split day. "Changed" marks a difference (from what the day counts
-    // without the import in the Report, from the import before in the history).
+    // The right half of a split day, and one version in the import history, where "Changed"
+    // marks a difference from the import before.
     function importDayHTML(employee, imp, changed, title) {
         return '<div class="day-half day-half--import"' + (title ? ' title="' + escapeHTML(title) + '"' : '') + '>' +
             importDayBody(employee, imp, '', changed ? '<span class="cell-import-changed">Changed</span>' : '') + '</div>';
     }
 
+    // The Report shows no "Changed" pill (Baldy, 03-11-2026); the tooltip still says what the
+    // day counts without the import.
     function importHalfHTML(employee, date, imp) {
-        return importDayHTML(employee, imp, differs(systemDay(employee.code, date), imp), importFlagText(employee.code, date, imp));
+        return importDayHTML(employee, imp, false, importFlagText(employee.code, date, imp));
     }
 
     /* Import history of one day (the clock button in its header, from the second import on).

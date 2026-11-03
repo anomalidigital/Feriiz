@@ -10,7 +10,9 @@
    - A template is made once for every project and reused (1:39): Name, Amount, Note.
    - Daily (every day of the range assigned) or One time on chosen dates. A One-time
      template keeps its dates, e.g. the year's red dates: the incentive is set once
-     a year for all of them (1:31-1:33, 1:41).
+     a year for all of them (1:31-1:33, 1:41). Each date can have its own amount,
+     since a red date's incentive usually differs (Baldy, 03-11-2026; Arcon: "amount
+     ditentukan per setiap tgl merah"); a date without one uses the template's Amount.
    - "Assign Request" in the project Report hands it out (1:43). Each template
      then has its own column in the Report's Client group, shown only when
      someone has it in the period (2:01-2:04).
@@ -27,7 +29,7 @@
    Prototype only: everything is kept in this browser (localStorage) so the
    Templates page and the Report see the same data. The API replaces this.
 
-   FeriizTemplates.all(), get(id), findByName(name), save(template)
+   FeriizTemplates.all(), get(id), amountOn(template, date), findByName(name), save(template)
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -53,7 +55,7 @@
               { date: '2026-05-27', name: 'Idul Adha' },
               { date: '2026-05-31', name: 'Hari Raya Waisak' },
               { date: '2026-06-01', name: 'Hari Lahir Pancasila' },
-              { date: '2026-08-17', name: 'HUT RI' }
+              { date: '2026-08-17', name: 'HUT RI', amount: 100000 }
           ] }
     ];
 
@@ -95,6 +97,12 @@
     function digits(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
+
+    // The amount on one date: a One-time date's own amount, else the template's Amount.
+    function amountOn(t, date) {
+        var own = t && t.unit === 'once' ? (t.dates || []).filter(function (d) { return d.date === date; })[0] : null;
+        return own && Number(own.amount) > 0 ? Number(own.amount) : Number(t && t.amount) || 0;
+    }
 
     // The name is also the Report column title, so two templates may not share it.
     function findByName(name) {
@@ -275,12 +283,12 @@
                     '</div>' +
                     '<div class="modal-body">' +
                         '<div class="row g-3">' +
-                            '<div class="col-md-7">' +
+                            '<div class="col-md-7" id="assignTemplateCol">' +
                                 '<label class="form-label" for="assignTemplateSelect">Select Template</label>' +
                                 '<select class="form-select" id="assignTemplateSelect"></select>' +
                                 '<div class="form-text" id="assignTemplateInfo"></div>' +
                             '</div>' +
-                            '<div class="col-md-5">' +
+                            '<div class="col-md-5" id="assignAmountCol">' +
                                 '<label class="form-label" for="assignAmount">Amount</label>' +
                                 '<div class="input-group">' +
                                     '<span class="input-group-text">Rp</span>' +
@@ -331,7 +339,13 @@
             if (e.target.id === 'assignFrom' || e.target.id === 'assignTo') applyDefaultTicks();
             refreshSummary();
         });
-        el.querySelector('#assignWhen').addEventListener('input', refreshSummary);
+        el.querySelector('#assignWhen').addEventListener('input', function (e) {
+            if (e.target.hasAttribute('data-date-amount')) {
+                var d = digits(e.target.value);
+                e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
+            }
+            refreshSummary();
+        });
         el.querySelector('#assignPeople').addEventListener('change', function (e) {
             if (e.target.id === 'assignAll') tickShown(modal, e.target.checked);
             refreshSummary();
@@ -415,7 +429,6 @@
         if (!t) return;
         var days = chosenDays(t);
         var given = givenIndex(t.id);
-        var amount = amountInput();
         modal.querySelectorAll('.tpl-person').forEach(function (row) {
             var code = row.dataset.code;
             var payable = payableDays(t, code, days);
@@ -426,7 +439,7 @@
             meta.classList.toggle('is-muted', !absent && !fresh.length);
             meta.textContent = absent ? 'Did not come in'
                 : !fresh.length ? 'Already has it'
-                : plural(fresh.length, 'day', 'days') + ' · ' + rupiah(fresh.length * amount);
+                : plural(fresh.length, 'day', 'days') + ' · ' + rupiah(fresh.reduce(function (sum, d) { return sum + amountFor(d); }, 0));
         });
     }
 
@@ -441,25 +454,40 @@
         if (!ctx.cells) {
             renderWhen(t);
             applyDefaultTicks();
+        } else {
+            // Chosen cells: one Amount for all of them.
+            modal.querySelector('#assignAmountCol').hidden = false;
+            modal.querySelector('#assignTemplateCol').className = 'col-md-7';
         }
         refreshSummary();
     }
 
     // Daily: every day From-To. One time: the template's dates inside the report period
-    // (all ticked), or any day when none of them falls in it.
+    // (all ticked), each with its own amount (changeable here for this Assign only), or
+    // any day with the Amount field when none of them falls in it.
     function renderWhen(t) {
         var box = modal.querySelector('#assignWhen');
         var first = ctx.dates[0];
         var last = ctx.dates[ctx.dates.length - 1];
+        var inRange = t.unit === 'once' ? (t.dates || []).filter(function (d) { return d.date >= first && d.date <= last; }) : [];
+        // With dates, each date has its amount, so the single Amount field goes away.
+        modal.querySelector('#assignAmountCol').hidden = inRange.length > 0;
+        modal.querySelector('#assignTemplateCol').className = inRange.length ? 'col-12' : 'col-md-7';
         if (t.unit === 'once') {
-            var inRange = (t.dates || []).filter(function (d) { return d.date >= first && d.date <= last; });
             box.innerHTML = inRange.length
                 ? '<span class="form-label d-block">Dates</span>' +
-                  '<div class="tpl-when-dates">' + inRange.map(function (d) {
-                      return '<label class="tpl-check"><input type="checkbox" class="form-check-input" name="assignDates" value="' + esc(d.date) + '" checked> ' +
-                          fmtDate(d.date) + (d.name ? ' <small>' + esc(d.name) + '</small>' : '') + '</label>';
+                  '<div class="tpl-when-dates has-amounts">' + inRange.map(function (d) {
+                      return '<div class="tpl-when-date">' +
+                          '<label class="tpl-check"><input type="checkbox" class="form-check-input" name="assignDates" value="' + esc(d.date) + '" checked> ' +
+                              fmtDate(d.date) + (d.name ? ' <small>' + esc(d.name) + '</small>' : '') + '</label>' +
+                          '<div class="input-group input-group-sm tpl-when-amount">' +
+                              '<span class="input-group-text">Rp</span>' +
+                              '<input type="text" inputmode="numeric" class="form-control" data-date-amount="' + esc(d.date) + '"' +
+                                  ' value="' + amountOn(t, d.date).toLocaleString('id-ID') + '" aria-label="Amount on ' + esc(fmtDate(d.date)) + '">' +
+                          '</div>' +
+                      '</div>';
                   }).join('') + '</div>' +
-                  '<div class="form-text">This template\'s dates inside the report period.</div>'
+                  '<div class="form-text">This template\'s dates inside the report period, each with its own amount.</div>'
                 : '<label class="form-label" for="assignDate">Date</label>' +
                   '<input type="date" class="form-control" id="assignDate" min="' + first + '" max="' + last + '" value="' + last + '">' +
                   '<div class="form-text">None of this template\'s dates are in the report period; pick a day.</div>';
@@ -475,6 +503,12 @@
     }
 
     function amountInput() { return Number(digits(modal.querySelector('#assignAmount').value)) || 0; }
+
+    // The amount of one day: a One-time date's own amount in the list, else the Amount field.
+    function amountFor(date) {
+        var own = modal.querySelector('#assignWhen [data-date-amount="' + date + '"]');
+        return own && !modal.querySelector('#assignWhen').hidden ? Number(digits(own.value)) || 0 : amountInput();
+    }
 
     function chosenDays(t) {
         if (t.unit === 'once') {
@@ -521,7 +555,7 @@
         var given = t ? givenIndex(t.id) : {};
         planned.rows.forEach(function (r) {
             if (given[r.code + '|' + r.date]) { out.skippedDup++; return; }
-            r.amount = amountInput();
+            r.amount = amountFor(r.date);
             if (!r.amount) return;
             out.rows.push(r);
             out.total += r.amount;
@@ -889,6 +923,7 @@
         fmtDate: fmtDate,
         all: function () { return templates.slice(); },
         get: get,
+        amountOn: amountOn,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

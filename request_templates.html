@@ -7,12 +7,12 @@
     <title>Feriiz - Request Templates</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.41">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.41">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.42">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.42">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.41" defer></script>
-    <script src="assets/js/app.js?v=3.7.41" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.41" defer></script>
+    <script src="assets/js/data.js?v=3.7.42" defer></script>
+    <script src="assets/js/app.js?v=3.7.42" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.42" defer></script>
 </head>
 
 <body data-page="request-templates">
@@ -50,7 +50,7 @@
                 <tbody id="tplTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.41</div>
+        <div class="feriiz-u-032">version : 3.7.42</div>
     </main>
 
     <!-- Add / edit template: Name, Amount, Note from the meeting whiteboard (20-10-2026),
@@ -85,7 +85,7 @@
                         <span class="form-label d-block mt-3">Dates</span>
                         <div id="tplDates" class="tpl-dates"></div>
                         <button type="button" class="btn btn-outline btn-sm mt-2" id="tplAddDate"><i class="fa-solid fa-plus"></i> Add date</button>
-                        <div class="form-text">For red dates: the days this amount is for. The Report offers them when assigning.</div>
+                        <div class="form-text">For red dates. A date can have its own amount; left empty, it gets the Amount above. The Report offers these dates when assigning.</div>
                     </div>
                     <label class="form-label mt-3" for="tplNote">Note <span class="tpl-optional">(Optional)</span></label>
                     <textarea class="form-control" id="tplNote" rows="3" placeholder="Who gets it, or when"></textarea>
@@ -126,18 +126,32 @@
                             '<a href="#" class="btn-icon" title="Edit" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
                         '</div></td>' +
                         '<td><div class="feriiz-u-188">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
-                        '<td class="tpl-amount">' + T().rupiah(t.amount) + '</td>' +
+                        '<td class="tpl-amount">' + amountText(t) + '</td>' +
                         '<td>' + esc(T().UNITS[t.unit] || T().UNITS.day) +
                             (t.unit === 'once' && t.dates && t.dates.length ? '<div class="tpl-sub">' + t.dates.length + ' dates</div>' : '') + '</td>' +
                     '</tr>';
                 }).join('');
             }
 
+            // "Rp 50.000", or "Rp 50.000 – Rp 100.000" when a One-time template's dates differ.
+            function amountText(t) {
+                var amounts = t.unit === 'once' && t.dates && t.dates.length
+                    ? t.dates.map(function (d) { return T().amountOn(t, d.date); }) : [Number(t.amount) || 0];
+                var low = Math.min.apply(null, amounts), high = Math.max.apply(null, amounts);
+                return T().rupiah(low) + (high > low ? ' – ' + T().rupiah(high) : '');
+            }
+
             /* ---------- add / edit ---------- */
+            // A date's own amount (One time, Baldy 03-11-2026). Empty = the Amount above, which its
+            // placeholder shows, so changing that Amount changes every date without its own.
             function dateRow(d) {
+                var own = Number(d.amount) > 0 ? Number(d.amount).toLocaleString('id-ID') : '';
                 return '<div class="tpl-date-row">' +
                     '<input type="date" class="form-control" value="' + esc(d.date || '') + '" aria-label="Date">' +
                     '<input type="text" class="form-control" value="' + esc(d.name || '') + '" placeholder="Holiday name" aria-label="Holiday name">' +
+                    '<div class="input-group tpl-date-amount"><span class="input-group-text">Rp</span>' +
+                        '<input type="text" inputmode="numeric" class="form-control" data-date-amount value="' + own + '"' +
+                            ' placeholder="' + esc(document.getElementById('tplAmount').value || '0') + '" aria-label="Amount on this date"></div>' +
                     '<button type="button" class="btn btn-outline btn-sm tpl-date-remove" aria-label="Remove date"><i class="fa-solid fa-xmark"></i></button>' +
                 '</div>';
             }
@@ -183,7 +197,11 @@
                 var unit = document.querySelector('input[name="tplUnit"]:checked').value;
                 var dates = unit === 'once' ? Array.prototype.map.call(document.querySelectorAll('.tpl-date-row'), function (row) {
                     var inputs = row.querySelectorAll('input');
-                    return { date: inputs[0].value, name: inputs[1].value.trim() };
+                    var d = { date: inputs[0].value, name: inputs[1].value.trim() };
+                    // Kept apart only when it differs from the Amount above.
+                    var own = Number(String(row.querySelector('[data-date-amount]').value).replace(/\D/g, '')) || 0;
+                    if (own && own !== value) d.amount = own;
+                    return d;
                 }).filter(function (d) { return d.date; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }) : [];
                 var saved = T().save({
                     id: editing ? editing.id : '',
@@ -212,11 +230,18 @@
                     var btn = e.target.closest('.tpl-date-remove');
                     if (btn) btn.closest('.tpl-date-row').remove();
                 });
+                document.getElementById('tplDates').addEventListener('input', function (e) {
+                    if (!e.target.hasAttribute('data-date-amount')) return;
+                    var d = e.target.value.replace(/\D/g, '');
+                    e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
+                });
                 document.getElementById('templateForm').addEventListener('submit', saveForm);
                 document.getElementById('tplAmount').addEventListener('input', function (e) {
                     var d = e.target.value.replace(/\D/g, '');
                     e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
                     e.target.classList.remove('is-invalid');
+                    // Dates without their own amount follow it.
+                    document.querySelectorAll('#tplDates [data-date-amount]').forEach(function (input) { input.placeholder = e.target.value || '0'; });
                 });
                 document.getElementById('tplName').addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
                 document.getElementById('tplTableBody').addEventListener('click', function (e) {

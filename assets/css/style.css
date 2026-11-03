@@ -8245,10 +8245,17 @@ div.report-layout .report-search-input {
     gap: 8px;
 }
 
+/* Date | Holiday name | its own amount | remove (03-11-2026); the dialog is a little wider for it */
 .tpl-date-row {
     display: grid;
-    grid-template-columns: 160px 1fr 38px;
+    grid-template-columns: 150px 1fr 140px 38px;
     gap: 8px;
+}
+
+@media (min-width: 576px) {
+    #templateModal .modal-dialog {
+        max-width: 600px;
+    }
 }
 
 /* Assign Request: a one-time template's dates inside the report period */
@@ -8256,6 +8263,24 @@ div.report-layout .report-search-input {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
     gap: 8px 16px;
+}
+
+/* ...each with its amount: one date per line, the amount on the right */
+.tpl-when-dates.has-amounts {
+    grid-template-columns: 1fr;
+}
+
+.tpl-when-date {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+}
+
+.tpl-when-amount {
+    width: 168px;
+    flex-shrink: 0;
 }
 
 .tpl-when {
@@ -8495,9 +8520,14 @@ div.report-layout .report-search-input {
         grid-template-columns: 1fr 38px;
     }
 
-    .tpl-date-row input[type="text"] {
+    .tpl-date-row > input[type="text"] {
         grid-column: 1 / -1;
         grid-row: 2;
+    }
+
+    .tpl-date-row .tpl-date-amount {
+        grid-column: 1 / -1;
+        grid-row: 3;
     }
 }
 

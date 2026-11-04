@@ -989,11 +989,6 @@ body {
     transform: rotate(180deg);
 }
 
-/* In the popups it sits next to the search box, so it takes the search box's height. */
-.occ-picker--sm .occ-picker-trigger {
-    height: 37.5px;
-}
-
 .occ-picker-menu {
     position: fixed;
     z-index: 30;
@@ -1030,45 +1025,10 @@ body {
 }
 
 /* "All Occupations" heads the list, set off by a line. */
-.occ-picker label.occ-picker-row.is-all,
-.occ-picker-option.is-all {
+.occ-picker label.occ-picker-row.is-all {
     margin-bottom: 4px;
     border-bottom: 1px solid var(--feriiz-border-soft);
     border-radius: 6px 6px 0 0;
-    font-weight: 600;
-}
-
-/* In a popup the list picks one occupation, without ticks (Baldy, 04-11-2026): the chosen one
-   is tinted and bold. */
-.occ-picker-option {
-    width: 100%;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px;
-    min-height: 32px;
-    padding: 6px 8px;
-    border: 0;
-    border-radius: 6px;
-    background: none;
-    color: #333;
-    font-size: 13px;
-    text-align: left;
-    cursor: pointer;
-}
-
-.occ-picker-option:hover {
-    background: #F5F7FA;
-}
-
-.occ-picker-option:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 2px rgba(41, 117, 187, 0.35);
-}
-
-.occ-picker-option.is-selected {
-    background: var(--feriiz-primary-soft);
-    color: var(--feriiz-primary);
     font-weight: 600;
 }
 
@@ -4037,7 +3997,12 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
 
 /* With Show history a day with an upload is split in two (2026-10-30): the upload on the
    left, drawn like a normal day on a light purple ground, and the system on the right
-   (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the upload. */
+   (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the upload.
+   The two halves are equal and every split day is as wide, so the halves line up from row
+   to row (Baldy, 04-11-2026: fitting them to their content left them out of line). */
+div.report-layout .report-table th.day-split-col {
+    min-width: 300px;
+}
 
 /* The date's line of a split day: the date, then its history button (the checkbox stays alone). */
 .day-split-top {
@@ -4136,7 +4101,7 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
 
 .day-split {
     display: grid;
-    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
 
@@ -4227,21 +4192,10 @@ div.report-layout .report-table td.day-col > .day-cell-checkbox + .req-chip-row 
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
-    cursor: pointer;
+    cursor: default;
 }
 
-.req-chip:hover,
-.req-chip:focus-visible {
-    filter: brightness(0.9);
-}
-
-.req-chip:focus-visible {
-    outline: 2px solid var(--feriiz-primary);
-    outline-offset: 1px;
-}
-
-/* A day off with a request (a red-date incentive): the chip on the grey cell, level
-   with the badges of the days next to it. */
+/* A day off with a request (a red-date incentive): the chip line at the top of the grey cell. */
 div.report-layout .report-table tbody td.weekend-off-cell:has(.req-chip) {
     vertical-align: top !important;
 }
@@ -7183,13 +7137,7 @@ div.report-layout .report-search-input {
     width: 200px;
 }
 
-/* Occupation filter in the request popup (the picker, 04-11-2026) */
-.tpl-people-tools .occ-picker {
-    width: 200px;
-}
-
-/* People list of the request popup (2026-10-29). A sticky head row ticks everyone shown;
-   each row says what that person has. */
+/* The upload history's count line */
 .tpl-people-label {
     display: inline-flex;
     align-items: center;
@@ -7197,105 +7145,6 @@ div.report-layout .report-search-input {
     font-size: 13px;
     font-weight: 600;
     color: #1a1a1a;
-}
-
-.tpl-people {
-    max-height: 260px;
-    margin-top: 8px;
-    overflow-y: auto;
-    border: 1px solid var(--feriiz-border-soft);
-    border-radius: 8px;
-}
-
-.tpl-people--tall {
-    max-height: min(420px, 55vh);
-}
-
-.tpl-person,
-.tpl-list-head {
-    display: grid;
-    grid-template-columns: 18px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #F2F2F2;
-    cursor: pointer;
-}
-
-.tpl-person:last-child {
-    border-bottom: 0;
-}
-
-.tpl-person:hover {
-    background: #F8FAFC;
-}
-
-.tpl-person[hidden],
-.tpl-list-head[hidden],
-.tpl-people-head[hidden] {
-    display: none;
-}
-
-.tpl-list-head {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    border-bottom-color: var(--feriiz-border-soft);
-    background: #F8F9FB;
-    font-size: 12px;
-    font-weight: 600;
-    color: #6B7480;
-}
-
-.tpl-person-name {
-    min-width: 0;
-    overflow: hidden;
-    font-size: 13px;
-    font-weight: 600;
-    color: #1a1a1a;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.tpl-person-name small {
-    display: block;
-    overflow: hidden;
-    font-size: 12px;
-    font-weight: 400;
-    color: #6B7480;
-    text-overflow: ellipsis;
-}
-
-.tpl-person-amount {
-    font-size: 13px;
-    font-weight: 600;
-    color: #1a1a1a;
-    text-align: right;
-    white-space: nowrap;
-}
-
-.tpl-person-amount small {
-    display: block;
-    font-size: 12px;
-    font-weight: 400;
-    color: #6B7480;
-}
-
-.tpl-list-head .tpl-person-amount {
-    font-size: 12px;
-    color: #6B7480;
-}
-
-.tpl-list-empty {
-    margin: 0;
-    padding: 32px 16px;
-    font-size: 13px;
-    color: #6B7480;
-    text-align: center;
-}
-
-.tpl-list-empty[hidden] {
-    display: none;
 }
 
 .tpl-summary {
@@ -7318,8 +7167,7 @@ div.report-layout .report-search-input {
         width: 100%;
     }
 
-    .tpl-people-tools .form-control,
-    .tpl-people-tools .occ-picker {
+    .tpl-people-tools .form-control {
         width: 100%;
     }
 
@@ -7377,6 +7225,43 @@ div.report-layout .report-table thead th.day-col {
 
 div.report-layout .report-table td.day-col > .feriiz-u-133 {
     padding-right: 24px;
+}
+
+/* 20 people a page (Baldy, 04-11-2026). The rows of other pages are off the screen only:
+   print still has them. The pages sit in the bottom bar, next to the version. */
+div.report-layout .report-table tbody tr.page-off {
+    display: none;
+}
+
+.report-pagination {
+    gap: 16px;
+    padding: 0;
+    border-top: 0;
+    background: none;
+}
+
+/* On a phone the pages wrap, so the version goes under them instead of over them. */
+@media (max-width: 760px) {
+    div.report-layout .fixed-bottom-bar {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    div.report-layout .fixed-bottom-bar .version-text {
+        position: static;
+        order: 1;
+    }
+
+    .report-pagination {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .report-pagination .pagination-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
 }
 
 /* "Total Days" etc. sit on two lines; long rate headers may wrap too. */

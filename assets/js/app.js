@@ -503,15 +503,12 @@ function feriizLogout() {
 
 (function () {
     /* Occupation picker (Baldy, 04-11-2026: the occupation filters "ga sama dan ga selaras").
-       One field and one list for every occupation filter: the Filters of the Dashboard,
-       Employees, Activity and the Reports, and the people lists of Assign Request and the
-       request popup.
+       One field and one list for the occupation filter of the Dashboard, Employees, Activity
+       and the Reports.
        - The field reads like the other selects, with how many people it covers:
          "All Occupations (132)", "Tukang Besi (13)", "2 Occupations (27)".
-       - In a Filter the list ticks one or more occupations, A to Z, each with its count. It only
-         drafts: the page's <select class="filter-occ"> keeps the value and is read on Apply.
-       - In a popup (single: true) the list has no ticks: a click picks ONE occupation and
-         onChange applies it once (Baldy, 04-11-2026: every tick would reload the people). */
+       - The list ticks one or more occupations, A to Z, each with its count. It only drafts:
+         the page's <select class="filter-occ"> keeps the value and is read on Apply. */
     const normalizeOccupation = value => String(value || '').trim().toLowerCase();
     const isAllOccupation = value => {
         const normalized = normalizeOccupation(value);
@@ -523,15 +520,14 @@ function feriizLogout() {
     const openPickers = new Set();
 
     function createOccupationPicker(options = {}) {
-        const single = Boolean(options.single);
         const el = document.createElement('div');
-        el.className = 'occ-picker' + (options.size === 'sm' ? ' occ-picker--sm' : '');
+        el.className = 'occ-picker';
         el.innerHTML = `
             <button type="button" class="occ-picker-trigger" aria-haspopup="true" aria-expanded="false">
                 <span class="occ-picker-text">All Occupations</span>
                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </button>
-            <div class="occ-picker-menu" role="${single ? 'listbox' : 'group'}" aria-label="Occupations" tabindex="-1" hidden></div>`;
+            <div class="occ-picker-menu" role="group" aria-label="Occupations" tabindex="-1" hidden></div>`;
         const trigger = el.querySelector('.occ-picker-trigger');
         const text = el.querySelector('.occ-picker-text');
         const menu = el.querySelector('.occ-picker-menu');
@@ -549,26 +545,14 @@ function feriizLogout() {
         }
 
         function rowHTML(value, name, count) {
-            const all = value === '' ? ' is-all' : '';
-            const countHTML = count == null ? '' : `<span class="occ-picker-count">${formatCount(count)}</span>`;
-            if (single) {
-                return `<button type="button" class="occ-picker-option${all}" role="option" aria-selected="false" data-value="${escapeText(value)}">
-                    <span class="occ-picker-name">${escapeText(name)}</span>${countHTML}
-                </button>`;
-            }
-            return `<label class="occ-picker-row${all}">
+            return `<label class="occ-picker-row${value === '' ? ' is-all' : ''}">
                 <input type="checkbox" class="form-check-input" value="${escapeText(value)}">
                 <span class="occ-picker-name">${escapeText(name)}</span>
-                ${countHTML}
+                ${count == null ? '' : `<span class="occ-picker-count">${formatCount(count)}</span>`}
             </label>`;
         }
 
         function paint() {
-            menu.querySelectorAll('.occ-picker-option').forEach(option => {
-                const on = option.dataset.value === (chosen[0] || '');
-                option.classList.toggle('is-selected', on);
-                option.setAttribute('aria-selected', String(on));
-            });
             menu.querySelectorAll('input').forEach(input => {
                 input.checked = input.value === '' ? !chosen.length : chosen.includes(input.value);
             });
@@ -584,7 +568,7 @@ function feriizLogout() {
             paint();
         }
 
-        // The list floats over the page (fixed), so a popup's scrolling body never cuts it off.
+        // The list floats over the page (fixed), so no scrolling panel cuts it off.
         // It opens upwards only when there is clearly more room above.
         function place() {
             const box = trigger.getBoundingClientRect();
@@ -613,7 +597,6 @@ function feriizLogout() {
             openPickers.add(api);
             window.addEventListener('scroll', follow, true);
             window.addEventListener('resize', follow);
-            if (single) (menu.querySelector('.is-selected') || menu.querySelector('.occ-picker-option')).focus();
         }
 
         function close() {
@@ -627,17 +610,6 @@ function feriizLogout() {
         }
 
         trigger.addEventListener('click', () => (menu.hidden ? open() : close()));
-        menu.addEventListener('click', event => {
-            const option = single && event.target.closest('.occ-picker-option');
-            if (!option) return;
-            const next = option.dataset.value ? [option.dataset.value] : [];
-            const changed = next.join() !== chosen.join();
-            chosen = next;
-            paint();
-            close();
-            trigger.focus();
-            if (changed && options.onChange) options.onChange(chosen.slice());
-        });
         menu.addEventListener('change', event => {
             const value = event.target.value;
             if (value === '') chosen = [];
@@ -645,24 +617,12 @@ function feriizLogout() {
             paint();
             if (options.onChange) options.onChange(chosen.slice());
         });
-        // Esc closes only the list, not the popup or Filter around it. In a popup's list the
-        // arrow keys move between the occupations.
+        // Esc closes only the list, not the Filter around it.
         el.addEventListener('keydown', event => {
-            if (menu.hidden) return;
-            if (event.key === 'Escape') {
-                event.stopPropagation();
-                close();
-                trigger.focus();
-                return;
-            }
-            if (!single || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
-            event.preventDefault();
-            const list = [...menu.querySelectorAll('.occ-picker-option')];
-            const at = list.indexOf(document.activeElement);
-            const next = event.key === 'Home' ? 0
-                : event.key === 'End' ? list.length - 1
-                : Math.max(0, Math.min(list.length - 1, at + (event.key === 'ArrowDown' ? 1 : -1)));
-            list[next].focus();
+            if (event.key !== 'Escape' || menu.hidden) return;
+            event.stopPropagation();
+            close();
+            trigger.focus();
         });
         el.addEventListener('focusout', event => {
             if (!el.contains(event.relatedTarget)) close();
@@ -694,7 +654,6 @@ function feriizLogout() {
             },
             counted: () => total != null,
             values: () => chosen.slice(),
-            names: () => items.filter(item => chosen.includes(item.value)).map(item => item.name),
             allNames: () => items.map(item => item.name),
             reset() {
                 chosen = [];
@@ -774,7 +733,6 @@ function feriizLogout() {
         resetOccupationFilter,
         setOccupationPeople
     });
-    window.FeriizOccupationPicker = { create: createOccupationPicker };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initOccupationFilters);

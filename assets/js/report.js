@@ -676,16 +676,16 @@
     /* Request chips: what a day was given with Assign Request, by the template's name
        ("Uang Makan") on a line of their own under the day (Baldy, 04-11-2026: "taro di
        bawahnya", not next to the hours and overtime; they were initials in the badge row
-       before). A chip opens everyone who has that request. Print leaves them out. */
+       before). They are labels: a request is assigned and removed with Batch Update (Baldy,
+       04-11-2026: "jangan di tabel nya"). Print leaves them out. */
     var requestDayIndex = {};   // FeriizTemplates.dayIndex for the days on screen
 
     function requestDayChips(code, date) {
         var items = requestDayIndex[code + '|' + date];
         if (!items || !items.length) return '';
         return items.map(function (it) {
-            var tip = it.name + ' · ' + formatIDR(it.amount) + (it.note ? ' · ' + it.note : '') + '. Click to see who has it.';
-            return '<button type="button" class="req-chip" data-template="' + escapeHTML(it.templateId) + '" title="' + escapeHTML(tip) + '"' +
-                ' aria-label="' + escapeHTML(it.name + ', ' + formatIDR(it.amount)) + '">' + escapeHTML(it.name) + '</button>';
+            var tip = it.name + ' · ' + formatIDR(it.amount) + (it.note ? ' · ' + it.note : '');
+            return '<span class="req-chip" title="' + escapeHTML(tip) + '">' + escapeHTML(it.name) + '</span>';
         }).join('');
     }
 
@@ -893,41 +893,46 @@
         return imported ? imported.daily > 0 : systemDay(code, date).daily > 0;
     }
 
-    // Everyone who has one request on the days shown; focusCode = the row whose day chip was clicked.
-    function openRequestList(templateId, focusCode) {
-        if (!window.FeriizTemplates || !projectContext) return;
-        window.FeriizTemplates.openDetail({
-            project: { code: projectContext.code, name: projectContext.name },
-            templateId: templateId,
-            dates: currentVisibleDates.slice(),
-            people: reportEmployees.map(function (e) { return { code: e.code, name: e.name, occupation: e.occupation }; }),
-            focusCode: focusCode || '',
-            onDone: refreshRequests
-        });
-    }
-
     // Batch Update > Assign Request (Baldy, 04-11-2026: the toolbar button made the admin pick
     // people and days a second time). The ticked days get the template; the Report's own
     // filters and ticks already say who and when.
     function openTemplateAssign() {
-        if (!window.FeriizTemplates || !projectContext) return;
-        var cells = getSelectedCells().map(function (cell) {
-            var row = cell.closest('tr');
-            return { code: row.dataset.employeeCode, name: row.dataset.employeeName, date: cell.dataset.date };
-        });
-        if (!cells.length) {
-            if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
-            return;
-        }
+        var cells = tickedDays();
+        if (!cells) return;
         window.FeriizTemplates.openAssign({
             workedOn: workedOn,
             project: { code: projectContext.code, name: projectContext.name },
             cells: cells,
-            onDone: function () {
-                deselectAllCells();
-                refreshRequests();
-            }
+            onDone: afterRequests
         });
+    }
+
+    // Batch Update > Remove Request (Baldy, 04-11-2026): takes a request off the ticked days.
+    // It used to be done from a chip in the table.
+    function openTemplateRemove() {
+        var cells = tickedDays();
+        if (!cells) return;
+        window.FeriizTemplates.openRemove({
+            project: { code: projectContext.code, name: projectContext.name },
+            cells: cells,
+            onDone: afterRequests
+        });
+    }
+
+    // The ticked day cells as { code, name, date }, or null (with a warning) when none is ticked.
+    function tickedDays() {
+        if (!window.FeriizTemplates || !projectContext) return null;
+        var cells = getSelectedCells().map(function (cell) {
+            var row = cell.closest('tr');
+            return { code: row.dataset.employeeCode, name: row.dataset.employeeName, date: cell.dataset.date };
+        });
+        if (!cells.length && window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
+        return cells.length ? cells : null;
+    }
+
+    function afterRequests() {
+        deselectAllCells();
+        refreshRequests();
     }
 
     function createEmployeeRow(employee, dates) {
@@ -1159,8 +1164,96 @@
                 cell.classList.toggle('filtered-out-cell', !isMatch);
             });
         });
+        paginateRows();
         updateCellSelectionUI();
         updateFilterIndicator();
+    }
+
+    /* =============================================
+       PAGES (Baldy, 04-11-2026): 20 people at a time, like Employees and Activity.
+       The filters decide the rows (hidden); a page only takes the others off the screen
+       (class page-off), so print still has every filtered row and Download Log every
+       person. Ticks belong to the page on screen, so changing page clears them.
+       ============================================= */
+    var PAGE_SIZE = 20;
+    var reportPage = 1;
+    var pageFilterKey = '';
+
+    function rowShown(row) { return !row.hidden && !row.classList.contains('page-off'); }
+
+    function paginateRows() {
+        // A new search or filter starts again on the first page.
+        var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
+            appliedReportFilters.occupations, getSelectedMissingTypes()]);
+        if (key !== pageFilterKey) {
+            pageFilterKey = key;
+            reportPage = 1;
+        }
+        var all = Array.prototype.slice.call(document.querySelectorAll('.report-table tbody tr'));
+        var rows = all.filter(function (row) { return !row.hidden; });
+        var pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        reportPage = Math.min(reportPage, pages);
+        var start = (reportPage - 1) * PAGE_SIZE;
+        all.forEach(function (row) { row.classList.remove('page-off'); });
+        rows.forEach(function (row, i) {
+            if (i >= start && i < start + PAGE_SIZE) return;
+            row.classList.add('page-off');
+            row.querySelectorAll('.day-cell-select:checked').forEach(function (cb) { cb.checked = false; });
+        });
+        renderPager(rows.length, pages, start);
+    }
+
+    function goToPage(n) {
+        reportPage = n;
+        deselectAllCells();
+        paginateRows();
+        updateCellSelectionUI();
+        var wrap = document.querySelector('.report-table-wrap');
+        if (wrap) wrap.scrollTop = 0;
+    }
+
+    // "Showing 1 - 20 of 134 results" and the page buttons, as on Employees.
+    function renderPager(total, pages, start) {
+        var info = document.getElementById('reportPageInfo');
+        var box = document.getElementById('reportPageButtons');
+        if (!info || !box) return;
+        info.textContent = total ? 'Showing ' + (start + 1) + ' - ' + Math.min(start + PAGE_SIZE, total) + ' of ' + total + ' results'
+            : 'No employees match your filter';
+        box.innerHTML = '';
+        var prev = document.createElement('button');
+        prev.type = 'button';
+        prev.textContent = '< Previous';
+        prev.disabled = reportPage === 1;
+        prev.addEventListener('click', function () { goToPage(reportPage - 1); });
+        box.appendChild(prev);
+        var shown = {};
+        shown[1] = shown[pages] = true;
+        for (var p = reportPage - 2; p <= reportPage + 2; p++) if (p > 1 && p < pages) shown[p] = true;
+        var last = 0;
+        Object.keys(shown).map(Number).sort(function (a, b) { return a - b; }).forEach(function (n) {
+            if (last && n - last > 1) {
+                var dots = document.createElement('span');
+                dots.className = 'page-dots';
+                dots.textContent = '...';
+                box.appendChild(dots);
+            }
+            var link = document.createElement('a');
+            link.href = '#';
+            link.textContent = n;
+            if (n === reportPage) {
+                link.className = 'active';
+                link.setAttribute('aria-current', 'page');
+            }
+            link.addEventListener('click', function (e) { e.preventDefault(); goToPage(n); });
+            box.appendChild(link);
+            last = n;
+        });
+        var next = document.createElement('a');
+        next.href = '#';
+        next.textContent = 'Next >';
+        next.hidden = reportPage === pages;
+        next.addEventListener('click', function (e) { e.preventDefault(); goToPage(reportPage + 1); });
+        box.appendChild(next);
     }
 
     /* =============================================
@@ -1169,7 +1262,7 @@
     function getSelectedCells() {
         var cells = [];
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-            if (row.hidden) return;
+            if (!rowShown(row)) return;
             row.querySelectorAll('td.day-col').forEach(function (cell) {
                 if (currentVisibleDates.indexOf(cell.dataset.date) < 0) return;
                 var cb = cell.querySelector('.day-cell-select');
@@ -1219,7 +1312,7 @@
             var checkboxes = [];
 
             document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-                if (row.hidden || currentVisibleDates.indexOf(date) < 0) return;
+                if (!rowShown(row) || currentVisibleDates.indexOf(date) < 0) return;
                 var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
                 if (!cell || cell.classList.contains('filtered-out-cell')) return;
                 var cb = cell.querySelector('.day-cell-select');
@@ -2247,15 +2340,6 @@
     function init() {
         initPeriodPresets();
         initImport();
-        // A request chip in a day opens everyone who has that request; the summary columns only show totals.
-        var reportBody = document.getElementById('reportTableBody');
-        if (reportBody) reportBody.addEventListener('click', function (e) {
-            var chip = e.target.closest('.req-chip');
-            if (!chip) return;
-            e.preventDefault();
-            e.stopPropagation();
-            openRequestList(chip.dataset.template, chip.closest('tr').dataset.employeeCode);
-        });
         // The clock button over a day's Import half opens that day's import history.
         var reportHead = document.querySelector('.report-table thead');
         if (reportHead) reportHead.addEventListener('click', function (e) {
@@ -2321,7 +2405,7 @@
                 if (!headerCb.classList.contains('day-header-select')) return;
                 var date = headerCb.dataset.date;
                 document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-                    if (row.hidden) return;
+                    if (!rowShown(row)) return;
                     var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
                     if (!cell || cell.classList.contains('filtered-out-cell')) return;
                     var cb = cell.querySelector('.day-cell-select');
@@ -2373,9 +2457,10 @@
         if (batchDD) {
             batchDD.querySelectorAll('[data-action]').forEach(function (btn) {
                 btn.addEventListener('click', function () {
-                    if (btn.dataset.action === 'assign') {
+                    if (btn.dataset.action === 'assign' || btn.dataset.action === 'unassign') {
                         batchDD.classList.remove('show');
-                        openTemplateAssign();
+                        if (btn.dataset.action === 'assign') openTemplateAssign();
+                        else openTemplateRemove();
                         return;
                     }
                     showBatchModal(btn.dataset.action);

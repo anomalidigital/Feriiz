@@ -10,8 +10,11 @@
         return style.display !== 'none' && style.visibility !== 'hidden';
     }
 
+    // Every row the filters keep, on every page: the Report shows 20 at a time (page-off).
     function getVisibleRows() {
-        return Array.from(document.querySelectorAll('.report-table tbody tr')).filter(isElementVisible);
+        return Array.from(document.querySelectorAll('.report-table tbody tr')).filter(function (tr) {
+            return tr.classList.contains('page-off') ? !tr.hidden : isElementVisible(tr);
+        });
     }
 
     function getVisibleDateHeaders() {

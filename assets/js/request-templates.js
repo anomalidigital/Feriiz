@@ -20,11 +20,10 @@
      amount. Baldy dropped the whiteboard's "Assign Request" on the Employee
      page (2026-10-26).
    - Every assignment is one person on one day (Feriiz team, 27-10-2026):
-     Batch Update > Assign Request gives a template to exactly the selected
-     days. A day shows what it was given as small chips with the template's
-     initials ("UM"), in the row of hour badges so the day keeps its height.
-     A full line per request (v3.7.19) was too big; the chips are what the team
-     asked for later (Baldy 29-10-2026: "keliatan di daily, jangan terlalu besar").
+     Batch Update > Assign Request gives a template to exactly the ticked days,
+     and Batch Update > Remove Request takes it off them again (Baldy, 04-11-2026).
+     A day shows what it was given as small chips with the template's name, on a
+     line under the day.
 
    Prototype only: everything is kept in this browser (localStorage) so the
    Templates page and the Report see the same data. The API replaces this.
@@ -34,7 +33,7 @@
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
    FeriizTemplates.openAssign(context)   Assign Request in the Report (Batch Update: the ticked days)
-   FeriizTemplates.openDetail(context)   everyone who has one request on the days shown; remove the ticked ones
+   FeriizTemplates.openRemove(context)   Remove Request in the Report (Batch Update: the ticked days)
    ============================================================ */
 (function () {
     'use strict';
@@ -201,12 +200,6 @@
 
     function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
-    // The Occupation picker (app.js) of a popup: no tick means everyone.
-    function inOccupations(picker, occupation) {
-        var chosen = picker.values();
-        return !chosen.length || chosen.indexOf(String(occupation || '').trim().toLowerCase()) >= 0;
-    }
-
     function templateOptions() {
         return templates.map(function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + '</option>';
@@ -348,264 +341,108 @@
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
-    // The tick in a list head ticks or unticks everyone shown (after Occupation and search).
-    function tickShown(box, on) {
-        box.querySelectorAll('.tpl-person').forEach(function (row) {
-            if (!row.hidden) row.querySelector('input').checked = on;
-        });
-    }
+    /* ---------- Remove Request (Report: Batch Update > Remove Request) ----------
+       context = { project: { code, name }, cells: [{ code, name, date }], onDone: function () }
+       Takes one request off the ticked days (Baldy, 04-11-2026: removing belongs in Batch
+       Update, like assigning, not on the chips in the table). The list offers only the
+       requests those days have; the line by the buttons says what goes. */
+    var removeModal = null;
+    var removeCtx = null;
 
-    function syncTickAll(box, selector) {
-        var shown = Array.prototype.filter.call(box.querySelectorAll('.tpl-person'), function (row) { return !row.hidden; });
-        var ticked = shown.filter(function (row) { return row.querySelector('input').checked; }).length;
-        var all = box.querySelector(selector);
-        all.checked = shown.length > 0 && ticked === shown.length;
-        all.indeterminate = ticked > 0 && ticked < shown.length;
-        all.disabled = !shown.length;
-    }
-
-    /* ---------- Who has a request (Report: click a request chip in a day) ----------
-       context = {
-         project: { code, name }, templateId, dates: [visible ISO dates],
-         people: [{ code, name, occupation }],
-         focusCode: the person whose chip was clicked (ticked and listed first), or '' for nobody,
-         onDone: function ()
-       }
-       One list of everyone who has the request on the days shown, with their days and amount
-       (meeting 2:00: "detailnya seperti pop up"). Remove, at the bottom, takes it off the ticked
-       people inside the chosen occupation. The same button undoes a wrong Assign for everyone,
-       for one occupation or for one person (Baldy 29-10-2026: "yang delete all itu yang bawah",
-       "pengen apus yang tukang besi doang"). When and by whom is in each row's tooltip. */
-    var listModal = null;
-    var listCtx = null;
-    var listPeople = [];   // [{ code, name, occupation, ids, dates, total, rate, notes, at, by }]
-    var listConfirming = false;
-    var detailOccupation = null;
-
-    // Everyone with this request in the project on the days shown, one entry per person.
-    function holders() {
-        var inRange = {};
-        var info = {};
-        var byCode = {};
-        var out = [];
-        listCtx.dates.forEach(function (d) { inRange[d] = true; });
-        (listCtx.people || []).forEach(function (p) { info[p.code] = p; });
-        assigned.forEach(function (a) {
-            if (a.templateId !== listCtx.templateId || a.projectCode !== listCtx.project.code || !inRange[a.date]) return;
-            var h = byCode[a.employeeCode];
-            if (!h) {
-                var p = info[a.employeeCode] ||
-                    (window.FERIIZ_DATA && window.FERIIZ_DATA.findEmployeeByCode ? window.FERIIZ_DATA.findEmployeeByCode(a.employeeCode) : null) || {};
-                h = byCode[a.employeeCode] = { code: a.employeeCode, name: p.name || a.employeeName || a.employeeCode, occupation: p.occupation || '',
-                                               ids: [], dates: [], total: 0, rate: a.amount, notes: [], at: a.at, by: a.by };
-                out.push(h);
-            }
-            h.ids.push(a.id);
-            h.dates.push(a.date);
-            h.total += a.amount;
-            if (h.rate !== a.amount) h.rate = null;   // not the same amount every day
-            if (a.note && h.notes.indexOf(a.note) < 0) h.notes.push(a.note);
-            if ((a.at || '') > (h.at || '')) { h.at = a.at; h.by = a.by; }
-        });
-        var focus = listCtx.focusCode;
-        return out.sort(function (a, b) {
-            if (a.code === focus) return -1;
-            if (b.code === focus) return 1;
-            return a.name.localeCompare(b.name);
-        });
-    }
-
-    // Name and amount only: the days are already in the Report's cells (Baldy, 04-11-2026: no
-    // Days column). Who gave it, and its note, are in the tooltip.
-    function holderRowHTML(h, ticked) {
-        var given = 'Given ' + fmtDate(h.at) + (h.by ? ' by ' + h.by : '') + (h.notes.length ? '. Note: ' + h.notes.join('; ') : '');
-        return '<label class="tpl-person" data-code="' + esc(h.code) + '" data-occupation="' + esc(h.occupation) + '"' +
-            ' data-search="' + esc((h.name + ' ' + h.code).toLowerCase()) + '" title="' + esc(given) + '">' +
-            '<input type="checkbox" class="form-check-input" value="' + esc(h.code) + '"' + (ticked ? ' checked' : '') + '>' +
-            '<span class="tpl-person-name">' + esc(h.name) + '<small>' + esc(h.code) + (h.occupation ? ' · ' + esc(h.occupation) : '') + '</small></span>' +
-            '<span class="tpl-person-amount">' + rupiah(h.total) +
-                (h.dates.length > 1 && h.rate ? '<small>' + h.dates.length + ' × ' + rupiah(h.rate) + '</small>' : '') + '</span>' +
-        '</label>';
-    }
-
-    function buildListModal() {
+    function buildRemoveModal() {
         var el = document.createElement('div');
         el.className = 'modal fade';
-        el.id = 'templateDetailModal';
+        el.id = 'removeTemplateModal';
         el.tabIndex = -1;
-        el.setAttribute('aria-labelledby', 'templateDetailTitle');
+        el.setAttribute('aria-labelledby', 'removeTemplateTitle');
         el.setAttribute('aria-hidden', 'true');
         el.innerHTML =
-            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
+            '<div class="modal-dialog modal-dialog-centered">' +
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
                         '<div>' +
-                            '<h2 class="modal-title" id="templateDetailTitle">Request</h2>' +
-                            '<p class="tpl-subtitle" id="templateDetailContext"></p>' +
+                            '<h2 class="modal-title" id="removeTemplateTitle">Remove Request</h2>' +
+                            '<p class="tpl-subtitle" id="removeTemplateContext"></p>' +
                         '</div>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                     '</div>' +
                     '<div class="modal-body">' +
-                        '<div class="tpl-people-head mt-0" id="detailTools">' +
-                            '<span class="tpl-people-label">People</span>' +
-                            '<div class="tpl-people-tools">' +
-                                '<div id="detailOccupation"></div>' +
-                                '<input type="search" class="form-control form-control-sm" id="detailSearch" placeholder="Search name or code" aria-label="Search people">' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="tpl-people tpl-people--tall" id="detailPeople" role="group" aria-label="People">' +
-                            '<label class="tpl-list-head">' +
-                                '<input type="checkbox" class="form-check-input" id="detailAll" aria-label="Tick everyone shown">' +
-                                '<span id="detailCount">Select all</span>' +
-                                '<span class="tpl-person-amount">Amount</span>' +
-                            '</label>' +
-                            '<div id="detailRows"></div>' +
-                        '</div>' +
+                        '<label class="form-label" for="removeTemplateSelect">Select Template</label>' +
+                        '<select class="form-select" id="removeTemplateSelect"></select>' +
                     '</div>' +
                     '<div class="modal-footer">' +
-                        '<span class="tpl-summary me-auto" id="detailSummary"></span>' +
-                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal" id="detailClose">Close</button>' +
-                        '<button type="button" class="btn btn-outline-danger" id="detailRemove">Remove</button>' +
-                        '<button type="button" class="btn btn-outline" id="detailCancel" hidden>Cancel</button>' +
-                        '<button type="button" class="btn btn-danger" id="detailConfirm" hidden>Yes, remove</button>' +
+                        '<span class="tpl-summary me-auto" id="removeSummary"></span>' +
+                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
+                        '<button type="button" class="btn btn-danger" id="removeSubmit">Remove</button>' +
                     '</div>' +
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
-        el.querySelector('#detailPeople').addEventListener('change', function (e) {
-            if (e.target.id === 'detailAll') tickShown(listModal, e.target.checked);
-            setListConfirm(false);
-            refreshList();
-        });
-        el.querySelector('#detailSearch').addEventListener('input', function () {
-            applyListFilter();
-            syncTickAll(listModal, '#detailAll');
-        });
-        detailOccupation = window.FeriizOccupationPicker.create({ size: 'sm', single: true, onChange: function () {
-            setListConfirm(false);
-            applyListFilter();
-            refreshList();
-        } });
-        el.querySelector('#detailOccupation').replaceWith(detailOccupation.el);
-        el.querySelector('#detailRemove').addEventListener('click', function () { setListConfirm(true); });
-        el.querySelector('#detailCancel').addEventListener('click', function () {
-            setListConfirm(false);
-            refreshList();
-        });
-        el.querySelector('#detailConfirm').addEventListener('click', removeTicked);
-        el.addEventListener('hidden.bs.modal', function () { setListConfirm(false); });
+        el.querySelector('#removeTemplateSelect').addEventListener('change', refreshRemove);
+        el.querySelector('#removeSubmit').addEventListener('click', submitRemove);
         return el;
     }
 
-    // As in Assign Request: the Occupation filter decides who Remove covers; the search only finds.
-    function inListScope(occupation) { return inOccupations(detailOccupation, occupation); }
+    // { 'CODE|YYYY-MM-DD': true } for the ticked days.
+    function tickedIndex() {
+        var index = {};
+        removeCtx.cells.forEach(function (c) { index[c.code + '|' + c.date] = true; });
+        return index;
+    }
 
-    function applyListFilter() {
-        var q = listModal.querySelector('#detailSearch').value.trim().toLowerCase();
-        var shown = 0;
-        listModal.querySelectorAll('.tpl-person[data-code]').forEach(function (row) {
-            row.hidden = !inListScope(row.dataset.occupation) || Boolean(q && row.dataset.search.indexOf(q) < 0);
-            if (!row.hidden) shown++;
+    // What Remove takes: the template's assignments on the ticked days, with people and total.
+    function removable() {
+        var id = removeModal.querySelector('#removeTemplateSelect').value;
+        var ticked = tickedIndex();
+        var out = { ids: [], people: {}, total: 0 };
+        assigned.forEach(function (a) {
+            if (a.templateId !== id || a.projectCode !== removeCtx.project.code || !ticked[a.employeeCode + '|' + a.date]) return;
+            out.ids.push(a.id);
+            out.people[a.employeeCode] = true;
+            out.total += a.amount;
         });
-        var none = listModal.querySelector('#detailNoMatch');
-        if (none) none.hidden = shown > 0;
+        return out;
     }
 
-    function tickedPeople() {
-        var codes = {};
-        listModal.querySelectorAll('.tpl-person[data-code]').forEach(function (row) {
-            if (inListScope(row.dataset.occupation) && row.querySelector('input').checked) codes[row.dataset.code] = true;
-        });
-        return listPeople.filter(function (h) { return codes[h.code]; });
+    function refreshRemove() {
+        var r = removable();
+        var people = Object.keys(r.people).length;
+        removeModal.querySelector('#removeSummary').textContent = r.ids.length
+            ? plural(people, 'person', 'people') + ' · ' + rupiah(r.total) : 'None of the ticked days has it';
+        removeModal.querySelector('#removeSubmit').disabled = !r.ids.length;
     }
 
-    function sumUp(people) {
-        return people.reduce(function (s, h) {
-            s.total += h.total;
-            return s;
-        }, { people: people.length, total: 0 });
-    }
-
-    function sumText(s) {
-        return plural(s.people, 'person', 'people') + ' · ' + rupiah(s.total);
-    }
-
-    // The count in the list head, the footer summary and the Remove button follow the ticks.
-    function refreshList() {
-        var occ = detailOccupation.names();
-        var scoped = listPeople.filter(function (h) { return inListScope(h.occupation); });
-        var ticked = tickedPeople();
-        listModal.querySelector('#detailCount').textContent = ticked.length + ' of ' + scoped.length + ' ticked';
-        syncTickAll(listModal, '#detailAll');
-        listModal.querySelector('#detailSummary').textContent = !listPeople.length ? ''
-            : ticked.length ? 'Ticked: ' + sumText(sumUp(ticked))
-            : (occ[0] || 'Total') + ': ' + sumText(sumUp(scoped));
-        var remove = listModal.querySelector('#detailRemove');
-        remove.disabled = !ticked.length;
-        remove.textContent = ticked.length ? 'Remove from ' + plural(ticked.length, 'person', 'people') : 'Remove';
-        remove.hidden = !listPeople.length || listConfirming;
-    }
-
-    // Remove asks once, in the footer, repeating exactly what goes.
-    function setListConfirm(on) {
-        listConfirming = on;
-        if (!listModal) return;
-        var summary = listModal.querySelector('#detailSummary');
-        listModal.querySelector('#detailClose').hidden = on;
-        listModal.querySelector('#detailRemove').hidden = on;
-        listModal.querySelector('#detailCancel').hidden = !on;
-        listModal.querySelector('#detailConfirm').hidden = !on;
-        summary.classList.toggle('is-danger', on);
-        if (!on) return;
-        var t = get(listCtx.templateId) || { name: 'this request' };
-        var s = sumUp(tickedPeople());
-        summary.textContent = 'Remove ' + t.name + ' from ' + plural(s.people, 'person', 'people') + '? ' + rupiah(s.total);
-        listModal.querySelector('#detailConfirm').focus();
-    }
-
-    function removeTicked() {
-        var people = tickedPeople();
-        if (!people.length) return;
-        var t = get(listCtx.templateId) || { name: 'Template' };
-        var s = sumUp(people);
-        var ids = [];
-        people.forEach(function (h) { ids = ids.concat(h.ids); });
-        removeAssignments(ids);
-        setListConfirm(false);
-        renderList(false);
+    function submitRemove() {
+        var t = get(removeModal.querySelector('#removeTemplateSelect').value) || { name: 'Request' };
+        var r = removable();
+        if (!r.ids.length) return;
+        removeAssignments(r.ids);
+        window.bootstrap.Modal.getInstance(removeModal).hide();
         if (window.FeriizNotify) {
-            window.FeriizNotify.success('Taken off ' + plural(s.people, 'person', 'people') + ': ' + rupiah(s.total) + '.', t.name + ' removed');
+            window.FeriizNotify.success('Taken off ' + plural(Object.keys(r.people).length, 'person', 'people') + ': ' + rupiah(r.total) + '.', t.name + ' removed');
         }
-        if (listCtx.onDone) listCtx.onDone();
+        if (removeCtx.onDone) removeCtx.onDone();
     }
 
-    // tickFocus: the clicked person starts ticked (only when the popup opens).
-    function renderList(tickFocus) {
-        var t = get(listCtx.templateId) || { name: 'Template' };
-        listPeople = holders();
-        listModal.querySelector('#templateDetailTitle').textContent = t.name;
-        listModal.querySelector('#templateDetailContext').textContent = listCtx.project.name + ' · ' +
-            fmtDate(listCtx.dates[0]) + ' – ' + fmtDate(listCtx.dates[listCtx.dates.length - 1]);
-        detailOccupation.setPeople(listPeople);
-        listModal.querySelector('#detailTools').hidden = !listPeople.length;
-        listModal.querySelector('#detailRows').innerHTML = listPeople.length
-            ? listPeople.map(function (h) { return holderRowHTML(h, tickFocus && h.code === listCtx.focusCode); }).join('') +
-              '<p class="tpl-list-empty" id="detailNoMatch" hidden>No one here matches the search.</p>'
-            : '<p class="tpl-list-empty">No one has ' + esc(t.name) + ' on these days.</p>';
-        listModal.querySelector('#detailPeople .tpl-list-head').hidden = !listPeople.length;
-        applyListFilter();
-        refreshList();
-    }
-
-    function openDetail(context) {
-        listCtx = context;
-        if (!listModal) listModal = buildListModal();
-        listModal.querySelector('#detailSearch').value = '';
-        detailOccupation.reset();
-        setListConfirm(false);
-        renderList(true);
-        listModal.querySelector('#detailPeople').scrollTop = 0;
-        window.bootstrap.Modal.getOrCreateInstance(listModal).show();
+    function openRemove(context) {
+        removeCtx = context;
+        var ticked = tickedIndex();
+        var has = {};
+        assigned.forEach(function (a) {
+            if (a.projectCode === context.project.code && ticked[a.employeeCode + '|' + a.date]) has[a.templateId] = true;
+        });
+        var list = templates.filter(function (t) { return has[t.id]; });
+        if (!list.length) {
+            if (window.FeriizNotify) window.FeriizNotify.warning('None of the ticked days has a request.', 'Nothing to remove');
+            return;
+        }
+        if (!removeModal) removeModal = buildRemoveModal();
+        removeModal.querySelector('#removeTemplateContext').textContent = context.project.name + ' · ' + context.cells.length + ' selected';
+        removeModal.querySelector('#removeTemplateSelect').innerHTML = list.map(function (t) {
+            return '<option value="' + esc(t.id) + '">' + esc(t.name) + '</option>';
+        }).join('');
+        refreshRemove();
+        window.bootstrap.Modal.getOrCreateInstance(removeModal).show();
     }
 
     window.FeriizTemplates = {
@@ -622,6 +459,6 @@
         usedIn: usedIn,
         dayIndex: dayIndex,
         openAssign: openAssign,
-        openDetail: openDetail
+        openRemove: openRemove
     };
 })();

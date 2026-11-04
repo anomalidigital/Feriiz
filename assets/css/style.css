@@ -4032,19 +4032,8 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     font-size: 8px;
 }
 
-/* Imported days (Import XLSX > Import Log): the file's numbers replace the system's,
-   which stay and come back with Filter > Show system data only (2026-10-27). */
-
-.cell-import-changed {
-    display: inline-flex;
-    align-items: center;
-    padding: 1px 8px;
-    border-radius: 999px;
-    background: var(--feriiz-import);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-}
+/* Uploaded days (XLSX > Upload Log): the file's numbers replace what the system counts; the
+   system's own logs stay (2026-10-27). */
 
 /* With Show history a day with an upload is split in two (2026-10-30): the upload on the
    left, drawn like a normal day on a light purple ground, and the system on the right
@@ -4204,11 +4193,25 @@ div.report-layout .report-table tbody td.day-split-cell {
     padding: 10px !important;
 }
 
-/* What a day was given with Assign Request: the template's initials ("UM") at the end
-   of the badge row, the same height as the badges, so the day does not grow
-   (2026-10-29). They stay on one line: the day column widens to fit them (04-11-2026). */
+/* The hour and overtime badges stay on one line. */
 .report-table td.day-col .feriiz-u-134 {
     flex-wrap: nowrap;
+}
+
+/* What a day was given with Assign Request: the template's name on a line of its own under
+   the day (Baldy, 04-11-2026: "taro di bawahnya"). Several requests wrap, so the column only
+   widens for the longest name. On a day off the chips start the cell, so they keep clear of
+   the checkbox. */
+.req-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+div.report-layout .report-table td.day-col > .day-cell-checkbox + .req-chip-row {
+    margin-top: 0;
+    padding-right: 24px;
 }
 
 .req-chip {
@@ -4243,7 +4246,7 @@ div.report-layout .report-table tbody td.weekend-off-cell:has(.req-chip) {
     vertical-align: top !important;
 }
 
-.day-half.is-empty .feriiz-u-133 {
+.day-half.is-empty .req-chip-row {
     margin: 0 8px 0 0;
 }
 

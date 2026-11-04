@@ -161,15 +161,7 @@
         return cols;
     }
 
-    // The chip text in a Report day: "Uang Makan" -> "UM", "Insentif Tanggal Merah 2026" -> "ITM",
-    // one word -> its first three letters. The full name and amount are in the chip's tooltip.
-    function shortName(name) {
-        var words = String(name || '').trim().split(/\s+/).filter(function (w) { return /^[a-z]/i.test(w); });
-        if (words.length === 1) return words[0].charAt(0).toUpperCase() + words[0].slice(1, 3).toLowerCase();
-        return words.map(function (w) { return w.charAt(0).toUpperCase(); }).join('').slice(0, 3) || '?';
-    }
-
-    // { 'CODE|YYYY-MM-DD': [{ templateId, name, short, amount, note }] } for one project on these days,
+    // { 'CODE|YYYY-MM-DD': [{ templateId, name, amount, note }] } for one project on these days,
     // in the order of the Report's columns (oldest template first).
     function dayIndex(projectCode, dates) {
         var inRange = {};
@@ -179,7 +171,7 @@
             if (a.projectCode !== projectCode || !inRange[a.date]) return;
             var t = get(a.templateId) || { name: 'Template' };
             var key = a.employeeCode + '|' + a.date;
-            (out[key] || (out[key] = [])).push({ templateId: a.templateId, name: t.name, short: shortName(t.name), amount: a.amount, note: a.note,
+            (out[key] || (out[key] = [])).push({ templateId: a.templateId, name: t.name, amount: a.amount, note: a.note,
                                                  order: t.createdAt || '' });
         });
         Object.keys(out).forEach(function (key) {

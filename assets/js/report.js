@@ -391,9 +391,8 @@
 
     // One imported day drawn like a normal day: hours and OT badges, then log in / log out.
     // The log times are the file's Time Start / Time End, or the machine's own logs when
-    // given (the first view shows those, Baldy 04-11-2026). after goes after the badge row
-    // (Changed, in the upload history).
-    function importDayBody(employee, imp, after, logs) {
+    // given (the first view shows those, Baldy 04-11-2026).
+    function importDayBody(employee, imp, logs) {
         var hours = importHours(employee, imp);
         var work = imp.daily ? hours.period : 0;
         var inTime = logs ? logs.inTime : imp.daily ? hours.start : '';
@@ -401,7 +400,7 @@
         return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
                 '<span class="badge feriiz-u-135">' + formatHour(work) + '</span>' +
                 '<span class="badge feriiz-u-136">' + formatHour(imp.ot) + ' OT</span>' +
-            '</div>' + (after || '') + '</div>' +
+            '</div></div>' +
             '<div class="feriiz-u-140">' +
                 (inTime ? buildClockLine('in', inTime) : EMPTY_CLOCK_LINE) +
                 (outTime ? buildClockLine('out', outTime) : EMPTY_CLOCK_LINE) +
@@ -415,16 +414,15 @@
     }
 
     // The left half of a split day (Pak Stef via Baldy, 04-11-2026: the upload first), and one
-    // version in the upload history, where "Changed" marks a difference from the upload before.
-    function importDayHTML(employee, imp, changed, title) {
+    // version in the upload history. Neither has a "Changed" pill (Baldy, 03-11 and 04-11-2026).
+    function importDayHTML(employee, imp, title) {
         return '<div class="day-half day-half--import"' + (title ? ' title="' + escapeHTML(title) + '"' : '') + '>' +
-            importDayBody(employee, imp, changed ? '<span class="cell-import-changed">Changed</span>' : '') + '</div>';
+            importDayBody(employee, imp) + '</div>';
     }
 
-    // The Report shows no "Changed" pill (Baldy, 03-11-2026); the tooltip still says what the
-    // day counts without the import.
+    // Its tooltip says what the day counts without the upload.
     function importHalfHTML(employee, date, imp) {
-        return importDayHTML(employee, imp, false, importFlagText(employee.code, date, imp));
+        return importDayHTML(employee, imp, importFlagText(employee.code, date, imp));
     }
 
     /* Upload history of one day (the clock button in its header, from the second upload on).
@@ -440,10 +438,11 @@
             (a.start || '') === (b.start || '') && (a.end || '') === (b.end || '') && (a.period || 0) === (b.period || 0);
     }
 
-    // Each import of the day looks like the day's Import half (Baldy, 30-10-2026).
-    function historyValueHTML(employee, value, changed) {
+    // Each upload of the day looks like the day's upload half (Baldy, 30-10-2026). Who changed
+    // shows in the count, the order and the purple line by the name, not in a pill (04-11-2026).
+    function historyValueHTML(employee, value) {
         if (!value) return '<span class="import-history-none">–</span>';
-        return importDayHTML(employee, value, changed, '');
+        return importDayHTML(employee, value, '');
     }
 
     function buildHistoryModal() {
@@ -519,7 +518,7 @@
             return '<tr data-search="' + escapeHTML((r.e.name + ' ' + r.e.code).toLowerCase()) + '"' + (r.changed ? ' class="is-changed"' : '') + '>' +
                 '<td><div class="import-history-name">' + escapeHTML(r.e.name) + '</div><small>' + escapeHTML(r.e.code) +
                     (r.e.occupation ? ' · ' + escapeHTML(r.e.occupation) : '') + '</small></td>' +
-                r.values.map(function (v, i) { return '<td>' + historyValueHTML(r.e, v, i > 0 && !sameImport(v, r.values[i - 1])) + '</td>'; }).join('') +
+                r.values.map(function (v) { return '<td>' + historyValueHTML(r.e, v) + '</td>'; }).join('') +
             '</tr>';
         }).join('');
         historyModal.querySelector('#importHistorySearch').value = '';
@@ -547,7 +546,7 @@
         return '<td class="day-col feriiz-u-132 imported-cell' + (request ? ' request-day-cell' : '') + '" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
             (request ? ' data-request="' + escapeHTML(request.type) + '"' : '') + EMPTY_LOG_ATTRS +
             ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-total="' + imp.ot.toFixed(4) + '">' +
-            checkbox + withRequestChips(request ? requestChipHTML(request) : importDayBody(employee, imp, '', systemLogs(employee.code, date)), employee.code, date) + '</td>';
+            checkbox + withRequestChips(request ? requestChipHTML(request) : importDayBody(employee, imp, systemLogs(employee.code, date)), employee.code, date) + '</td>';
     }
 
     function differs(a, b) { return a.daily !== b.daily || Math.abs(a.ot - b.ot) >= 0.01; }
@@ -674,10 +673,10 @@
 
     var EMPTY_LOG_ATTRS = ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""';
 
-    /* Request chips: what a day was given with Assign Request (Uang Makan...), as the
-       template's initials in the row of hour badges, so the day keeps its height
-       (Baldy 29-10-2026: "keliatan di daily, jangan terlalu besar"). A chip opens
-       everyone who has that request. Print leaves them out. */
+    /* Request chips: what a day was given with Assign Request, by the template's name
+       ("Uang Makan") on a line of their own under the day (Baldy, 04-11-2026: "taro di
+       bawahnya", not next to the hours and overtime; they were initials in the badge row
+       before). A chip opens everyone who has that request. Print leaves them out. */
     var requestDayIndex = {};   // FeriizTemplates.dayIndex for the days on screen
 
     function requestDayChips(code, date) {
@@ -686,19 +685,14 @@
         return items.map(function (it) {
             var tip = it.name + ' · ' + formatIDR(it.amount) + (it.note ? ' · ' + it.note : '') + '. Click to see who has it.';
             return '<button type="button" class="req-chip" data-template="' + escapeHTML(it.templateId) + '" title="' + escapeHTML(tip) + '"' +
-                ' aria-label="' + escapeHTML(it.name + ', ' + formatIDR(it.amount)) + '">' + escapeHTML(it.short) + '</button>';
+                ' aria-label="' + escapeHTML(it.name + ', ' + formatIDR(it.amount)) + '">' + escapeHTML(it.name) + '</button>';
         }).join('');
     }
 
-    // The chips go at the end of the badge row; a day without badges (a day off) gets a row for them.
+    // The chips go on their own line under everything else in the day.
     function withRequestChips(content, code, date) {
         var chips = requestDayChips(code, date);
-        if (!chips) return content;
-        var group = '<div class="feriiz-u-134">';
-        var start = content.indexOf(group);
-        if (start < 0) return '<div class="feriiz-u-133">' + group + chips + '</div></div>' + content;
-        var end = content.indexOf('</div>', start + group.length);
-        return content.slice(0, end) + chips + content.slice(end);
+        return chips ? content + '<div class="req-chip-row">' + chips + '</div>' : content;
     }
 
     // What the system shows for one day: the cell's class and data, and what goes inside.

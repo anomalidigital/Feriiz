@@ -6,11 +6,11 @@
     <title>Feriiz - Project Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.44">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.44">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.45">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.45">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.44" defer></script>
-    <script src="assets/js/app.js?v=3.7.44" defer></script>
+    <script src="assets/js/data.js?v=3.7.45" defer></script>
+    <script src="assets/js/app.js?v=3.7.45" defer></script>
 </head>
 <body data-page="project-calendar">
     <aside class="sidebar"></aside>
@@ -33,8 +33,8 @@
         <div class="cal-wrapper">
             <!-- Sidebar -->
             <div class="cal-sidebar" id="calSidebar">
-                <div class="feriiz-u-224">
-                    <div class="cal-toggle feriiz-u-232">
+                <div class="mb-3">
+                    <div class="cal-toggle w-100">
                         <button class="active feriiz-u-004" onclick="toggleSidebarView(this,'today')">Today</button>
                         <button onclick="toggleSidebarView(this,'month')" class="feriiz-u-004">Month</button>
                     </div>
@@ -292,9 +292,9 @@
             let html = toggle;
             html += `<div class="cal-sidebar-section"><h3>ðŸ“Š Summary</h3>`;
             html += `<div class="feriiz-u-140">`;
-            html += `<div class="feriiz-u-233"><span class="feriiz-u-234">ðŸŸ¢ Remote Work</span><span class="feriiz-u-235">${cats.work}</span></div>`;
-            html += `<div class="feriiz-u-233"><span class="feriiz-u-236">ðŸ”µ Cuti</span><span class="feriiz-u-235">${cats.leave}</span></div>`;
-            html += `<div class="feriiz-u-233"><span class="feriiz-u-237">ðŸ”´ Sakit</span><span class="feriiz-u-235">${cats.sick}</span></div>`;
+            html += `<div class="feriiz-u-233"><span class="feriiz-u-234">ðŸŸ¢ Remote Work</span><span class="fw-bold">${cats.work}</span></div>`;
+            html += `<div class="feriiz-u-233"><span class="feriiz-u-236">ðŸ”µ Cuti</span><span class="fw-bold">${cats.leave}</span></div>`;
+            html += `<div class="feriiz-u-233"><span class="feriiz-u-237">ðŸ”´ Sakit</span><span class="fw-bold">${cats.sick}</span></div>`;
             html += `<div class="feriiz-u-238"></div>`;
             html += `<div class="feriiz-u-239"><span>Total</span><span>${filtered.length}</span></div>`;
             html += `</div></div>`;
@@ -304,7 +304,7 @@
             }
             filtered.forEach(e => {
                 const sc = e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} - <span class="feriiz-u-241">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
+                html += `<div class="cal-sidebar-item"><div class="item-name">${e.name} - <span class="fw-normal">${e.type}</span></div><div class="badge-sm ${sc}">${e.status}</div><div class="item-sub">${formatDate(e.dateStart)}</div></div>`;
             });
             html += `</div>`;
             container.innerHTML = html;

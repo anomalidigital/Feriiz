@@ -102,7 +102,7 @@
                         '<div class="rate-input"><span class="rate-icon">Rp</span>' +
                         '<input type="text" inputmode="numeric" id="' + p + 'transportPerDay" name="transportPerDay" class="feriiz-u-259 js-rupiah" placeholder="No transport"></div>') +
                 '</div>' +
-                '<div class="feriiz-u-224">' +
+                '<div class="mb-3">' +
                     field(p, 'note', 'Note', '<textarea id="' + p + 'note" name="note" class="feriiz-u-261"></textarea>') +
                 '</div>' +
                 '<div class="feriiz-u-039"><span class="feriiz-u-040">Working Time</span></div>' +

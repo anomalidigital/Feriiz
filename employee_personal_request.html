@@ -7,11 +7,11 @@
     <title>Feriiz - Assigned Requests</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.44">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.44">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.45">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.45">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.44" defer></script>
-    <script src="assets/js/app.js?v=3.7.44" defer></script>
+    <script src="assets/js/data.js?v=3.7.45" defer></script>
+    <script src="assets/js/app.js?v=3.7.45" defer></script>
 </head>
 
 <body data-page="employee-personal-request">
@@ -34,7 +34,7 @@
         </div>
 
         <div class="page-header">
-            <div class="feriiz-u-058">
+            <div class="d-flex align-items-center gap-3">
                 <a href="project_employees.html" class="feriiz-u-059" id="backLink" aria-label="Back">
                     <i class="fa-solid fa-chevron-left feriiz-u-060"></i>
                 </a>
@@ -90,7 +90,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.44</div>
+        <div class="feriiz-u-032">version : 3.7.45</div>
     </main>
 
     <!-- Assign Request: Request, Amount and Notes, as on the old Feriiz. Editing keeps the request
@@ -234,7 +234,7 @@
                 return '<tr>' +
                     '<td><div class="action-cell"><button type="button" class="btn-icon" title="Edit" aria-label="Edit ' + esc(a.type) + '" data-edit="' + esc(a.id) + '">' +
                         '<i class="fa-solid fa-pen-to-square"></i></button></div></td>' +
-                    '<td><div class="feriiz-u-188">' + esc(a.type) + '</div>' + (a.notes ? '<div class="tpl-sub">' + esc(a.notes) + '</div>' : '') + '</td>' +
+                    '<td><div class="fw-semibold">' + esc(a.type) + '</div>' + (a.notes ? '<div class="tpl-sub">' + esc(a.notes) + '</div>' : '') + '</td>' +
                     '<td>' + esc(t.type) + '</td>' +
                     '<td class="tpl-amount">' + amountText(t.unit, a.amount) + '</td>' +
                     '<td>' + amountText(t.unit, usedOf(a)) + '<div class="tpl-sub' + (full ? ' assigned-full' : '') + '">' + leftText(a) + '</div></td>' +

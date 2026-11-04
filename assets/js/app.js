@@ -684,7 +684,8 @@ function feriizLogout() {
 
 (function () {
     function getDropdown(toggle) {
-        const container = toggle.closest('.cal-filter-wrap, .feriiz-u-014, .page-actions, .report-actions, .toolbar-actions') || toggle.parentElement;
+        // .filter-wrap holds one toggle and its dropdown; a bar can hold several.
+        const container = toggle.closest('.cal-filter-wrap, .filter-wrap, .page-actions, .report-actions, .toolbar-actions') || toggle.parentElement;
         return container ? container.querySelector('.filter-dropdown, .cal-filter-dropdown') : null;
     }
 
@@ -809,7 +810,7 @@ function feriizLogout() {
     }
 
     function cell(value, className) {
-        return `<td class="${className || 'feriiz-u-073'}">${value ? escapeHTML(value) : '-'}</td>`;
+        return `<td${className ? ` class="${className}"` : ''}>${value ? escapeHTML(value) : '-'}</td>`;
     }
 
     const blank = () => cell('', 'feriiz-u-079');

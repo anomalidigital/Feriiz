@@ -7,12 +7,12 @@
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.44">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.44">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.45">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.45">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.44" defer></script>
-    <script src="assets/js/app.js?v=3.7.44" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.44" defer></script>
+    <script src="assets/js/data.js?v=3.7.45" defer></script>
+    <script src="assets/js/app.js?v=3.7.45" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.45" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -28,10 +28,10 @@
             <span class="feriiz-u-057" data-project-name>Project</span>
         </div>
 
-        <div class="page-header feriiz-u-163">
+        <div class="page-header flex-wrap">
             <h1 class="page-title">Activity</h1>
             <div class="page-actions feriiz-u-065">
-                <div class="feriiz-u-014">
+                <div class="filter-wrap position-relative">
                     <button class="btn btn-outline filter-toggle-btn" title="Filter">
                         <i class="fa-solid fa-filter"></i>
                     </button>
@@ -40,7 +40,7 @@
                         <div class="feriiz-u-016">Filter Activity
                         </div>
                         <label>Date Range</label>
-                        <div class="feriiz-u-003 activity-date-range">
+                        <div class="activity-date-range">
                             <input type="date" class="input filter-date feriiz-u-004">
                             <span class="feriiz-u-005">-</span>
                             <input type="date" class="input filter-date feriiz-u-004">
@@ -381,7 +381,7 @@
         })();
         </script>
 
-        <div class="feriiz-u-032">version : 3.7.44</div>
+        <div class="feriiz-u-032">version : 3.7.45</div>
     </main>
 
     <script>
@@ -647,7 +647,7 @@
                 </div>
             </div>
             <div id="empModalFooter" class="feriiz-u-292">
-                <div class="feriiz-u-145">
+                <div class="d-flex align-items-center gap-2">
                     <span class="feriiz-u-293">Selected: <span id="selectedEmpCount" class="feriiz-u-294">11</span> People</span>
                     <button onclick="FeriizNotify.info('The selected employee export is being prepared.', 'Preparing export')"
 

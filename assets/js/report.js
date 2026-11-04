@@ -70,14 +70,11 @@
         var row = cell.closest('tr');
         if (!row) return;
         var key = row.dataset.employeeCode + '|' + cell.dataset.date;
-        var prev = cellOverrides[key] || {};
         cellOverrides[key] = {
             inTime: cell.dataset.inTime || '',
             outTime: cell.dataset.outTime || '',
             inNote: cell.dataset.inNote || '',
-            outNote: cell.dataset.outNote || '',
-            otAdjust: prev.otAdjust || 0,     // minutes, sum of the ledger below
-            otLog: prev.otLog || []           // [{ minutes, note, at, by }], append-only
+            outNote: cell.dataset.outNote || ''
         };
     }
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
@@ -169,11 +166,6 @@
         return computeHours(inTime, outTime, periodOf(code));
     }
 
-    function otAdjustFor(code, date) {
-        var o = cellOverrides[code + '|' + date];
-        return (o && o.otAdjust) || 0;
-    }
-
     /* =============================================
        DEFAULT HOURS (Baldy, 02-11-2026)
        A project sets the Hours and Overtime of its working day, for every day or per
@@ -222,20 +214,18 @@
                 inTime: inTime ? wt.start : '',
                 outTime: outTime ? wt.end : '',
                 hours: complete ? { work: def.work, ot: def.ot } : { work: 0, ot: 0 },
-                adjust: 0,
                 isDefault: true
             };
         }
-        return { inTime: inTime, outTime: outTime, hours: cellHours(code, date, inTime, outTime), adjust: otAdjustFor(code, date), isDefault: false };
+        return { inTime: inTime, outTime: outTime, hours: cellHours(code, date, inTime, outTime), isDefault: false };
     }
 
     // Stamp the numbers totals and print read from.
-    function setCellHours(cell, hours, adjust) {
+    function setCellHours(cell, hours) {
         var complete = Boolean(cell.dataset.inTime && cell.dataset.outTime);
         cell.dataset.work = (hours.work || 0).toFixed(4);
         cell.dataset.ot = (hours.ot || 0).toFixed(4);
-        cell.dataset.otAdjust = String(adjust || 0);
-        cell.dataset.otTotal = complete ? Math.max(0, (hours.ot || 0) + (adjust || 0) / 60).toFixed(4) : '0';
+        cell.dataset.otTotal = complete ? (hours.ot || 0).toFixed(4) : '0';
     }
 
     /* =============================================
@@ -317,7 +307,7 @@
         var src = override || rec || {};
         var inTime = src.inTime || '', outTime = src.outTime || '';
         var view = dayView(code, date, inTime, outTime, true);
-        var ot = inTime && outTime ? Math.max(0, view.hours.ot + view.adjust / 60) : 0;
+        var ot = inTime && outTime ? view.hours.ot : 0;
         return { daily: inTime || outTime ? 1 : 0, ot: Math.round(ot * 100) / 100 };
     }
 
@@ -518,7 +508,7 @@
         var work = imp.daily ? importHours(employee, imp).period : 0;
         return '<td class="day-col feriiz-u-132 imported-cell day-split-cell" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
             ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""' +
-            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-adjust="0" data-ot-total="' + imp.ot.toFixed(4) + '">' +
+            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-total="' + imp.ot.toFixed(4) + '">' +
             checkbox + '<div class="day-split">' + systemHalfHTML(sys) + importHalfHTML(employee, date, imp) + '</div></td>';
     }
 
@@ -532,7 +522,7 @@
         var request = !imp.daily && !imp.ot ? requestFor(employee.code, date) : null;
         return '<td class="day-col feriiz-u-132 imported-cell' + (request ? ' request-day-cell' : '') + '" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
             (request ? ' data-request="' + escapeHTML(request.type) + '"' : '') + EMPTY_LOG_ATTRS +
-            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-adjust="0" data-ot-total="' + imp.ot.toFixed(4) + '">' +
+            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-total="' + imp.ot.toFixed(4) + '">' +
             checkbox + withRequestChips(request ? requestChipHTML(request, flag) : importDayBody(employee, imp, flag, ''), employee.code, date) + '</td>';
     }
 
@@ -580,9 +570,8 @@
         if (isEmpty) return '';
 
         var hours = (opts && opts.hours) || computeHours(inTime, outTime);
-        var adjust = (opts && opts.otAdjust) || 0;
         var complete = Boolean(inTime && outTime);
-        var otTotal = complete ? Math.max(0, hours.ot + adjust / 60) : 0;
+        var otTotal = complete ? hours.ot : 0;
         var totalBadge = '<span class="badge feriiz-u-135">' + formatHour(complete ? hours.work : 0) + '</span>' +
             '<span class="badge feriiz-u-136">' + formatHour(otTotal) + ' OT</span>';
 
@@ -707,21 +696,21 @@
         var request = !inTime && !outTime ? requestFor(employee.code, date) : null;
         if (request) {
             return { cls: 'request-day-cell', content: withRequestChips(requestChipHTML(request), employee.code, date),
-                     attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-adjust="0" data-ot-total="0"' };
+                     attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-total="0"' };
         }
         var inNote = src.inNote || '';
         var outNote = src.outNote || '';
         var issue = getMissingType(inTime, outTime);
         // The data keeps the real logs (Add Log, notes, Show original logs); the cell shows the view.
         var view = dayView(employee.code, date, inTime, outTime);
-        var otTotal = inTime && outTime ? Math.max(0, view.hours.ot + view.adjust / 60) : 0;
+        var otTotal = inTime && outTime ? view.hours.ot : 0;
         var logAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"';
         return {
             cls: issue ? 'no-log-cell' : '',
             attrs: (issue ? ' data-missing="' + issue + '"' : '') + logAttrs +
-                ' data-work="' + view.hours.work.toFixed(4) + '" data-ot="' + view.hours.ot.toFixed(4) + '" data-ot-adjust="' + view.adjust + '" data-ot-total="' + otTotal.toFixed(4) + '"',
+                ' data-work="' + view.hours.work.toFixed(4) + '" data-ot="' + view.hours.ot.toFixed(4) + '" data-ot-total="' + otTotal.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logAttrs,
-            content: withRequestChips(buildDayCellContent({ inTime: view.inTime, outTime: view.outTime, inNote: inNote, outNote: outNote, issue: issue, hours: view.hours, otAdjust: view.adjust }), employee.code, date)
+            content: withRequestChips(buildDayCellContent({ inTime: view.inTime, outTime: view.outTime, inNote: inNote, outNote: outNote, issue: issue, hours: view.hours }), employee.code, date)
         };
     }
 
@@ -1041,7 +1030,7 @@
 
     // Pay is per day (decided Oct 2026):
     //   Total Rate          = Daily Rate x days with a log
-    //   Total Rate Overtime = Overtime Rate per hour x overtime hours (adjustments included)
+    //   Total Rate Overtime = Overtime Rate per hour x overtime hours
     // Client columns use the client rates the same way.
     function setText(row, selector, text) {
         var el = row.querySelector(selector);
@@ -1543,8 +1532,8 @@
                 cell.classList.add('recently-updated-cell');
                 cell.classList.remove('cell-selected');
 
-                setCellHours(cell, addView.hours, addView.adjust);
-                setCellContent(cell, buildDayCellContent({ inTime: addView.inTime, outTime: addView.outTime, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: addView.hours, otAdjust: addView.adjust }));
+                setCellHours(cell, addView.hours);
+                setCellContent(cell, buildDayCellContent({ inTime: addView.inTime, outTime: addView.outTime, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: addView.hours }));
                 updated++;
             });
         } else if (activeAction.indexOf('delete') === 0) {
@@ -1600,13 +1589,13 @@
                 if (existIn) lines.push({ type: 'in', value: delView.inTime, note: existInNote });
                 if (existOut) lines.push({ type: 'out', value: delView.outTime, note: existOutNote });
 
-                setCellHours(cell, delView.hours, delView.adjust);
+                setCellHours(cell, delView.hours);
                 if (backToDayOff) {
                     setCellContent(cell, '');
                 } else if (backToRequest) {
                     setCellContent(cell, requestChipHTML(backToRequest));
                 } else {
-                    setCellContent(cell, buildDayCellContent({ inTime: delView.inTime, outTime: delView.outTime, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: delView.hours, otAdjust: delView.adjust }));
+                    setCellContent(cell, buildDayCellContent({ inTime: delView.inTime, outTime: delView.outTime, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: delView.hours }));
                 }
                 updated++;
             });

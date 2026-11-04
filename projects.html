@@ -7,11 +7,11 @@
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.44">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.44">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.45">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.45">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.44" defer></script>
-    <script src="assets/js/app.js?v=3.7.44" defer></script>
+    <script src="assets/js/data.js?v=3.7.45" defer></script>
+    <script src="assets/js/app.js?v=3.7.45" defer></script>
 </head>
 
 <body data-page="projects">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.44</div>
+        <div class="feriiz-u-032">version : 3.7.45</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -97,7 +97,7 @@
                 <!-- LEFT COLUMN -->
                 <div>
                     <!-- Project Info -->
-                    <div class="feriiz-u-177">
+                    <div class="mb-4">
                         <h3 class="feriiz-u-197">
                             Project Info</h3>
                         <div class="feriiz-u-198">
@@ -133,7 +133,7 @@
 
                     <div id="projectLeftAdvanced">
                         <!-- Working Time -->
-                        <div class="feriiz-u-177">
+                        <div class="mb-4">
                             <h3 class="feriiz-u-202">
                                 Working Time</h3>
                             <div class="project-working-hour-grid">
@@ -206,7 +206,7 @@
                 <!-- RIGHT COLUMN -->
                 <div id="projectAdvancedContent">
                     <!-- Check In Tolerance -->
-                    <div class="feriiz-u-177">
+                    <div class="mb-4">
                         <h3 class="feriiz-u-202">
                             Check In/Out Tolerance</h3>
                         <div class="project-tolerance-grid">
@@ -527,7 +527,7 @@
                             '<a href="' + tr.dataset.href + '" class="btn-icon" title="View"><i class="fa-solid fa-chevron-right"></i></a>' +
                         '</div>' +
                     '</td>' +
-                    '<td><div class="feriiz-u-188">' + p.name + '</div><div class="feriiz-u-189">' + p.code + '</div></td>' +
+                    '<td><div class="fw-semibold">' + p.name + '</div><div class="feriiz-u-189">' + p.code + '</div></td>' +
                     '<td>' + statusPill(p.status) + '</td>' +
                     // No activity yet -> fall back to when the project was created.
                     '<td>' + formatProjectDate(p.startedAt || p.createdAt) + '</td>' +

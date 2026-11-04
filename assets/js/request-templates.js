@@ -33,7 +33,7 @@
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
-   FeriizTemplates.openAssign(context)   Assign Request in the Report (people + days, or context.cells)
+   FeriizTemplates.openAssign(context)   Assign Request in the Report (people + days)
    FeriizTemplates.openDetail(context)   everyone who has one request on the days shown; remove the ticked ones
    ============================================================ */
 (function () {
@@ -405,7 +405,7 @@
     // is ticked; who did not come in at all is unticked, and their row says so.
     function applyDefaultTicks() {
         var t = currentTemplate();
-        if (!t || ctx.cells) return;
+        if (!t) return;
         var days = t.unit === 'once' ? ctx.dates : chosenDays(t);
         modal.querySelectorAll('.tpl-person').forEach(function (row) {
             var came = days.some(function (d) { return cameIn(row.dataset.code, d); });
@@ -451,14 +451,8 @@
         modal.querySelector('#assignAmount').value = Number(t.amount).toLocaleString('id-ID');
         modal.querySelector('#assignTemplateInfo').textContent = (UNITS[t.unit] || UNITS.day) +
             (t.unit === 'once' ? '' : ', only on the days each person came in') + (t.note ? ' · ' + t.note : '');
-        if (!ctx.cells) {
-            renderWhen(t);
-            applyDefaultTicks();
-        } else {
-            // Chosen cells: one Amount for all of them.
-            modal.querySelector('#assignAmountCol').hidden = false;
-            modal.querySelector('#assignTemplateCol').className = 'col-md-7';
-        }
+        renderWhen(t);
+        applyDefaultTicks();
         refreshSummary();
     }
 
@@ -507,7 +501,7 @@
     // The amount of one day: a One-time date's own amount in the list, else the Amount field.
     function amountFor(date) {
         var own = modal.querySelector('#assignWhen [data-date-amount="' + date + '"]');
-        return own && !modal.querySelector('#assignWhen').hidden ? Number(digits(own.value)) || 0 : amountInput();
+        return own ? Number(digits(own.value)) || 0 : amountInput();
     }
 
     function chosenDays(t) {
@@ -524,20 +518,11 @@
         return ctx.dates.filter(function (d) { return d >= from && d <= to; });
     }
 
-    // { rows: [{ code, name, date }], absent } the dialog would create, before amounts.
-    // From Batch Update the days are the selected cells; a Daily template still skips
-    // the ones where the person did not come in (absent counts them).
+    // { rows: [{ code, name, date }] } the dialog would create, before amounts.
     function plannedRows() {
         var t = currentTemplate();
-        var out = { rows: [], absent: 0 };
+        var out = { rows: [] };
         if (!t) return out;
-        if (ctx.cells) {
-            ctx.cells.forEach(function (c) {
-                if (payableDays(t, c.code, [c.date]).length) out.rows.push({ code: c.code, name: c.name, date: c.date });
-                else out.absent++;
-            });
-            return out;
-        }
         var days = chosenDays(t);
         Array.prototype.forEach.call(modal.querySelectorAll('.tpl-person'), function (row) {
             var input = row.querySelector('input');
@@ -551,7 +536,7 @@
     function priced() {
         var t = currentTemplate();
         var planned = plannedRows();
-        var out = { rows: [], skippedDup: 0, absent: planned.absent, total: 0, people: {} };
+        var out = { rows: [], skippedDup: 0, total: 0, people: {} };
         var given = t ? givenIndex(t.id) : {};
         planned.rows.forEach(function (r) {
             if (given[r.code + '|' + r.date]) { out.skippedDup++; return; }
@@ -565,18 +550,15 @@
     }
 
     function refreshSummary() {
-        if (!ctx.cells) {
-            var rows = Array.prototype.filter.call(modal.querySelectorAll('.tpl-person'), inScope);
-            var ticked = rows.filter(function (row) { return row.querySelector('input').checked; }).length;
-            modal.querySelector('#assignPeopleCount').textContent = ticked + ' of ' + rows.length + ' ticked';
-            refreshPeopleMeta();
-            syncTickAll(modal, '#assignAll');
-        }
+        var rows = Array.prototype.filter.call(modal.querySelectorAll('.tpl-person'), inScope);
+        var ticked = rows.filter(function (row) { return row.querySelector('input').checked; }).length;
+        modal.querySelector('#assignPeopleCount').textContent = ticked + ' of ' + rows.length + ' ticked';
+        refreshPeopleMeta();
+        syncTickAll(modal, '#assignAll');
         var p = priced();
         var people = Object.keys(p.people).length;
         var notes = [];
         if (p.skippedDup) notes.push(p.skippedDup + ' already given');
-        if (p.absent) notes.push(p.absent + (p.absent === 1 ? ' day' : ' days') + ' without a log left out');
         var extra = notes.length ? ' (' + notes.join(', ') + ')' : '';
         modal.querySelector('#assignSummary').textContent = people
             ? people + (people === 1 ? ' person' : ' people') + ' · ' + p.rows.length + (p.rows.length === 1 ? ' day' : ' days') + ' in total · ' + rupiah(p.total) + extra
@@ -605,30 +587,15 @@
         if (ctx.onDone) ctx.onDone(p.rows.length);
     }
 
-    // context.cells = [{ code, name, date }] from Batch Update: the days are already chosen,
-    // so the people list and the dates are not asked again.
     function openAssign(context) {
         ctx = context;
         if (noTemplates()) return;
         if (!modal) modal = buildModal();
-        var cells = ctx.cells || null;
-        var picked = {};
-        (cells || []).forEach(function (c) { picked[c.code] = true; });
-        var pickedCount = Object.keys(picked).length;
-        modal.querySelector('#assignWhen').hidden = Boolean(cells);
-        modal.querySelector('#assignPeopleBlock').hidden = Boolean(cells);
-        modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + (cells
-            ? cells.length + (cells.length === 1 ? ' day' : ' days') + ' selected for ' + pickedCount + (pickedCount === 1 ? ' person' : ' people')
-            : fmtDate(ctx.dates[0]) + ' – ' + fmtDate(ctx.dates[ctx.dates.length - 1]));
+        modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' +
+            fmtDate(ctx.dates[0]) + ' – ' + fmtDate(ctx.dates[ctx.dates.length - 1]);
         modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
         modal.querySelector('#assignNote').value = '';
         modal.querySelector('#assignPeopleSearch').value = '';
-        if (cells) {
-            onTemplateChange();
-            window.bootstrap.Modal.getOrCreateInstance(modal).show();
-            return;
-        }
-
         var people = ctx.people.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
         modal.querySelector('#assignOccupation').innerHTML = occupationOptions(people, '');
         modal.querySelector('#assignPeople').scrollTop = 0;

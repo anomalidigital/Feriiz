@@ -3568,8 +3568,7 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-127 { color:#2975BB; width:16px; }
 .feriiz-u-128 { height:1px; background:#f0f0f0; margin:0 12px; }
 .feriiz-u-129 { padding:12px 18px; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:13px; color:#333; transition:background 0.15s; }
-.feriiz-u-130 { min-width:280px; }
-.feriiz-u-132 { min-width:200px; position:relative; }
+.feriiz-u-132 { position:relative; }
 .feriiz-u-133 { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .feriiz-u-134 { display:flex; gap:6px; }
 .feriiz-u-135 { background:var(--feriiz-info); color:#fff; font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
@@ -4047,48 +4046,15 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     font-weight: 600;
 }
 
-/* A day with an import is split in two (2026-10-30): System on the left, as always,
-   Import on the right, shown like a normal day on a light purple ground. The totals
-   count the import. */
-.report-table thead th.day-split-col,
-.report-table tbody td.day-split-cell {
-    min-width: 440px;
-}
-
-.day-split-labels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    padding-bottom: 8px;
-    line-height: 1.5;   /* the day header row is 42px high */
-}
-
-.day-split-labels b {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: #F4F6F8;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.day-split-labels b:last-child {
-    background: var(--feriiz-import-soft);
-    color: var(--feriiz-import) !important;
-}
-
-.day-split-labels i {
-    font-size: 11px;
-}
+/* With Show history a day with an upload is split in two (2026-10-30): the upload on the
+   left, drawn like a normal day on a light purple ground, and the system on the right
+   (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the upload. */
 
 /* The date's line of a split day: the date, then its history button (the checkbox stays alone). */
 .day-split-top {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding-right: 28px;   /* room for the header checkbox */
 }
 
 .report-table thead th.day-col .day-split-top span {
@@ -4115,50 +4081,6 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
 .import-history-btn:hover,
 .import-history-btn:focus-visible {
     background: var(--feriiz-import-soft);
-}
-
-.import-history-versions {
-    display: grid;
-    gap: 8px;
-    margin: 0 0 16px;
-    padding: 0;
-    list-style: none;
-}
-
-.import-history-versions li {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 12px;
-    padding: 8px 12px;
-    border: 1px solid var(--feriiz-border-soft);
-    border-radius: 8px;
-    font-size: 13px;
-}
-
-.import-history-versions li.is-current {
-    border-color: var(--feriiz-import);
-    background: var(--feriiz-import-soft);
-}
-
-.import-history-no {
-    font-weight: 700;
-}
-
-.import-history-file {
-    font-size: 12px;
-    color: #6B7480;
-    overflow-wrap: anywhere;
-}
-
-.import-history-now {
-    margin-left: auto;
-    padding: 1px 8px;
-    border-radius: var(--feriiz-radius-pill);
-    background: var(--feriiz-import);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
 }
 
 .import-history-wrap {
@@ -4196,6 +4118,12 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     color: var(--feriiz-import);
 }
 
+/* Who uploaded it: the account's name and role (Baldy, 04-11-2026) */
+.import-history-table th small.import-history-by {
+    color: #333;
+    font-weight: 600;
+}
+
 .import-history-name {
     font-weight: 600;
 }
@@ -4203,10 +4131,6 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
 /* Each import is drawn like the day's Import half: badges, then log in / log out. */
 .import-history-table td .day-half {
     min-width: 200px;
-}
-
-.import-history-table td .day-half .feriiz-u-133 {
-    padding-right: 0;
 }
 
 .import-history-table tr.is-changed td:first-child {
@@ -4221,15 +4145,9 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     color: #6B7480;
 }
 
-/* The header checkbox stays on the date's line, above the two labels. */
-.report-table thead th.day-split-col .day-header-select {
-    top: 12px;
-    transform: none;
-}
-
 .day-split {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
     gap: 8px;
 }
 
@@ -4247,8 +4165,8 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
     background: #fff;
 }
 
-/* Room for the cell's checkbox, top right. */
-.day-half--import .feriiz-u-133 {
+/* Room for the cell's checkbox, top right: over the system half since 04-11-2026. */
+.day-split > .day-half:last-child .feriiz-u-133 {
     padding-right: 20px;
 }
 
@@ -4288,14 +4206,8 @@ div.report-layout .report-table tbody td.day-split-cell {
 
 /* What a day was given with Assign Request: the template's initials ("UM") at the end
    of the badge row, the same height as the badges, so the day does not grow
-   (2026-10-29). Several requests wrap only when the cell is too narrow. */
+   (2026-10-29). They stay on one line: the day column widens to fit them (04-11-2026). */
 .report-table td.day-col .feriiz-u-134 {
-    flex-wrap: wrap;
-    row-gap: 4px;
-}
-
-/* The Import half never has chips: its badges stay on one line. */
-.report-table td.day-col .day-half--import .feriiz-u-134 {
     flex-wrap: nowrap;
 }
 
@@ -7250,35 +7162,6 @@ div.report-layout .report-search-input {
     }
 }
 
-/* Assign Request: a one-time template's dates inside the report period */
-.tpl-when-dates {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 8px 16px;
-}
-
-/* ...each with its amount: one date per line, the amount on the right */
-.tpl-when-dates.has-amounts {
-    grid-template-columns: 1fr;
-}
-
-.tpl-when-date {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px 16px;
-}
-
-.tpl-when-amount {
-    width: 168px;
-    flex-shrink: 0;
-}
-
-.tpl-when {
-    margin-top: 16px;
-}
-
 .tpl-people-head {
     display: flex;
     flex-wrap: wrap;
@@ -7297,13 +7180,13 @@ div.report-layout .report-search-input {
     width: 200px;
 }
 
-/* Occupation filter in Assign Request and the request popup (the picker, 04-11-2026) */
+/* Occupation filter in the request popup (the picker, 04-11-2026) */
 .tpl-people-tools .occ-picker {
     width: 200px;
 }
 
-/* People list: Assign Request and the request list share it (2026-10-29).
-   A sticky head row ticks everyone shown; each row says what that person gets or has. */
+/* People list of the request popup (2026-10-29). A sticky head row ticks everyone shown;
+   each row says what that person has. */
 .tpl-people-label {
     display: inline-flex;
     align-items: center;
@@ -7378,24 +7261,6 @@ div.report-layout .report-search-input {
     font-weight: 400;
     color: #6B7480;
     text-overflow: ellipsis;
-}
-
-/* Assign Request: "2 days · Rp 50.000", "Did not come in", "Already has it" */
-.tpl-person-meta {
-    font-size: 12px;
-    font-weight: 600;
-    color: #1a1a1a;
-    white-space: nowrap;
-}
-
-.tpl-person-meta.is-idle {
-    color: #B42318;
-    font-weight: 400;
-}
-
-.tpl-person-meta.is-muted {
-    color: #6B7480;
-    font-weight: 400;
 }
 
 .tpl-person-amount {
@@ -7478,7 +7343,7 @@ div.report-layout .report-table {
     --header-spanned-bg: #FFFFFF;
 }
 
-/* Summary columns shrink to their content; the day columns take the spare width. */
+/* Summary columns shrink to their content. */
 div.report-layout .report-table .col-inouthour,
 div.report-layout .report-table .col-activehour,
 div.report-layout .report-table .col-totaldays,
@@ -7487,6 +7352,28 @@ div.report-layout .report-table .col-totalovertime,
 div.report-layout .report-table [class*="col-emp-"],
 div.report-layout .report-table [class*="col-cli-"] {
     width: 1px !important;
+}
+
+/* So do the day columns (Arcon via Baldy, 04-11-2026: "di dempetin aja bener bener fit"):
+   the table no longer spreads them over the page, and a day with more request chips just
+   gets wider. The checkboxes keep their room on the right. */
+div.report-layout .report-table {
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+div.report-layout .report-table th.day-col,
+div.report-layout .report-table td.day-col {
+    width: 1px !important;
+    white-space: nowrap;
+}
+
+div.report-layout .report-table thead th.day-col {
+    padding-right: 36px !important;
+}
+
+div.report-layout .report-table td.day-col > .feriiz-u-133 {
+    padding-right: 24px;
 }
 
 /* "Total Days" etc. sit on two lines; long rate headers may wrap too. */

@@ -33,7 +33,7 @@
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
-   FeriizTemplates.openAssign(context)   Assign Request in the Report (people + days)
+   FeriizTemplates.openAssign(context)   Assign Request in the Report (Batch Update: the ticked days)
    FeriizTemplates.openDetail(context)   everyone who has one request on the days shown; remove the ticked ones
    ============================================================ */
 (function () {
@@ -94,7 +94,6 @@
     }
 
     function rupiah(n) { return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); }
-    function digits(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
 
@@ -216,11 +215,6 @@
         return !chosen.length || chosen.indexOf(String(occupation || '').trim().toLowerCase()) >= 0;
     }
 
-    function initTooltips(el) {
-        if (!window.bootstrap || !window.bootstrap.Tooltip) return;
-        el.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (x) { window.bootstrap.Tooltip.getOrCreateInstance(x); });
-    }
-
     function templateOptions() {
         return templates.map(function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + '</option>';
@@ -233,23 +227,22 @@
         return true;
     }
 
-    /* ---------- Assign Request (Report toolbar) ----------
+    /* ---------- Assign Request (Report: Batch Update > Assign Request) ----------
        context = {
          project: { code, name },
-         people: [{ code, name, occupation, lastActive }],
-         dates: [visible ISO dates], today: ISO,
+         cells: [{ code, name, date }]: the day cells ticked in the Report,
          workedOn: function (code, date) -> true when the person came in that day,
          onDone: function (count)
        }
-       A Daily template is given on the days From-To each person came in; a One-time
-       template on its dates (red dates are days off). People who did not come in at all
-       are left unticked, and an Occupation filter narrows who gets it, since amounts
-       differ per group (Baldy, 29-10-2026). Each person's row says what they get
-       ("2 days · Rp 50.000", "Did not come in", "Already has it"), so the admin sees
-       how many days before assigning. */
+       The Report's own filters and ticks already say who and which days, so the dialog only
+       asks which template, then Apply (Baldy, 04-11-2026: the toolbar dialog made the admin
+       pick people and days a second time).
+       - A Daily template goes only on the ticked days the person came in.
+       - A One-time template goes on every ticked day, at that date's own amount.
+       - A day that already has it is skipped.
+       The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
     var ctx = null;
-    var assignOccupation = null;
 
     function buildModal() {
         var el = document.createElement('div');
@@ -259,7 +252,7 @@
         el.setAttribute('aria-labelledby', 'assignTemplateTitle');
         el.setAttribute('aria-hidden', 'true');
         el.innerHTML =
-            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
+            '<div class="modal-dialog modal-dialog-centered">' +
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
                         '<div>' +
@@ -269,89 +262,101 @@
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                     '</div>' +
                     '<div class="modal-body">' +
-                        '<div class="row g-3">' +
-                            '<div class="col-md-7" id="assignTemplateCol">' +
-                                '<label class="form-label" for="assignTemplateSelect">Select Template</label>' +
-                                '<select class="form-select" id="assignTemplateSelect"></select>' +
-                                '<div class="form-text" id="assignTemplateInfo"></div>' +
-                            '</div>' +
-                            '<div class="col-md-5" id="assignAmountCol">' +
-                                '<label class="form-label" for="assignAmount">Amount</label>' +
-                                '<div class="input-group">' +
-                                    '<span class="input-group-text">Rp</span>' +
-                                    '<input type="text" inputmode="numeric" class="form-control" id="assignAmount">' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="tpl-when" id="assignWhen"></div>' +
-                        '<div id="assignPeopleBlock">' +
-                            '<div class="tpl-people-head">' +
-                                '<span class="tpl-people-label">People' +
-                                    '<button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="People who came in on these days are ticked. A Daily request is only given on the days each person came in." aria-label="Who is ticked"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>' +
-                                '</span>' +
-                                '<div class="tpl-people-tools">' +
-                                    '<div id="assignOccupation"></div>' +
-                                    '<input type="search" class="form-control form-control-sm" id="assignPeopleSearch" placeholder="Search name or code" aria-label="Search people">' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="tpl-people" id="assignPeople" role="group" aria-label="People">' +
-                                '<label class="tpl-list-head">' +
-                                    '<input type="checkbox" class="form-check-input" id="assignAll" aria-label="Tick everyone shown">' +
-                                    '<span id="assignPeopleCount">Select all</span>' +
-                                    '<span>Days · Amount</span>' +
-                                '</label>' +
-                                '<div id="assignPeopleRows"></div>' +
-                            '</div>' +
-                        '</div>' +
-                        '<label class="form-label mt-3" for="assignNote">Note <span class="tpl-optional">(Optional)</span></label>' +
-                        '<input type="text" class="form-control" id="assignNote" placeholder="For example: Insentif 17 Agustus">' +
+                        '<label class="form-label" for="assignTemplateSelect">Select Template</label>' +
+                        '<select class="form-select" id="assignTemplateSelect"></select>' +
+                        '<div class="form-text" id="assignTemplateInfo"></div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
                         '<span class="tpl-summary me-auto" id="assignSummary"></span>' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
-                        '<button type="button" class="btn btn-primary" id="assignSubmit">Assign</button>' +
+                        '<button type="button" class="btn btn-primary" id="assignSubmit">Apply</button>' +
                     '</div>' +
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
-
-        el.querySelector('#assignTemplateSelect').addEventListener('change', onTemplateChange);
-        el.querySelector('#assignAmount').addEventListener('input', function (e) {
-            var d = digits(e.target.value);
-            e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
-            refreshSummary();
-        });
-        el.querySelector('#assignWhen').addEventListener('change', function (e) {
-            // New From-To: tick again whoever came in on those days.
-            if (e.target.id === 'assignFrom' || e.target.id === 'assignTo') applyDefaultTicks();
-            refreshSummary();
-        });
-        el.querySelector('#assignWhen').addEventListener('input', function (e) {
-            if (e.target.hasAttribute('data-date-amount')) {
-                var d = digits(e.target.value);
-                e.target.value = d ? Number(d).toLocaleString('id-ID') : '';
-            }
-            refreshSummary();
-        });
-        el.querySelector('#assignPeople').addEventListener('change', function (e) {
-            if (e.target.id === 'assignAll') tickShown(modal, e.target.checked);
-            refreshSummary();
-        });
-        el.querySelector('#assignPeopleSearch').addEventListener('input', function () {
-            applyPeopleFilter();
-            syncTickAll(modal, '#assignAll');
-        });
-        assignOccupation = window.FeriizOccupationPicker.create({ size: 'sm', single: true, onChange: function () {
-            applyPeopleFilter();
-            refreshSummary();
-        } });
-        el.querySelector('#assignOccupation').replaceWith(assignOccupation.el);
+        el.querySelector('#assignTemplateSelect').addEventListener('change', refreshSummary);
         el.querySelector('#assignSubmit').addEventListener('click', submit);
-        initTooltips(el);
         return el;
     }
 
-    // The tick in the list head ticks or unticks everyone shown (after Occupation and search).
+    function currentTemplate() { return get(modal.querySelector('#assignTemplateSelect').value); }
+
+    function cameIn(code, date) { return !ctx.workedOn || ctx.workedOn(code, date); }
+
+    // { 'CODE|YYYY-MM-DD': true } for every day someone already has this template in the project.
+    function givenIndex(templateId) {
+        var index = {};
+        assigned.forEach(function (a) {
+            if (a.templateId === templateId && a.projectCode === ctx.project.code) index[a.employeeCode + '|' + a.date] = true;
+        });
+        return index;
+    }
+
+    // What Apply gives: one row per ticked day that gets the template, and what it skips.
+    function planned() {
+        var t = currentTemplate();
+        var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0 };
+        if (!t) return out;
+        var given = givenIndex(t.id);
+        ctx.cells.forEach(function (c) {
+            if (given[c.code + '|' + c.date]) { out.already++; return; }
+            if (t.unit !== 'once' && !cameIn(c.code, c.date)) { out.noLog++; return; }
+            var amount = amountOn(t, c.date);
+            if (!amount) return;
+            out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
+            out.total += amount;
+            out.people[c.code] = true;
+        });
+        return out;
+    }
+
+    function refreshSummary() {
+        var t = currentTemplate();
+        if (!t) return;
+        modal.querySelector('#assignTemplateInfo').textContent = (t.unit === 'once' ? UNITS.once + ', on every ticked day'
+            : UNITS.day + ', only on the ticked days each person came in') + (t.note ? ' · ' + t.note : '');
+        var p = planned();
+        var people = Object.keys(p.people).length;
+        var skips = [];
+        if (p.noLog) skips.push(plural(p.noLog, 'day has', 'days have') + ' no log');
+        if (p.already) skips.push(plural(p.already, 'day has', 'days have') + ' it already');
+        modal.querySelector('#assignSummary').textContent = (p.rows.length
+            ? plural(people, 'person', 'people') + ' · ' + rupiah(p.total) : 'Nothing to give') +
+            (skips.length ? ' (' + skips.join(', ') + ')' : '');
+        modal.querySelector('#assignSubmit').disabled = !p.rows.length;
+    }
+
+    function submit() {
+        var t = currentTemplate();
+        var p = planned();
+        if (!p.rows.length) return;
+        var at = new Date().toISOString();
+        var batch = 'B-' + Date.now().toString(36).toUpperCase();   // one Assign, removable as one row
+        p.rows.forEach(function (r, i) {
+            assigned.push({ id: 'ASG-' + Date.now().toString(36).toUpperCase() + i, batch: batch, templateId: t.id, projectCode: ctx.project.code,
+                            employeeCode: r.code, employeeName: r.name, date: r.date, amount: r.amount, note: '', at: at, by: 'Admin' });
+        });
+        store(KEY_ASSIGNED, assigned);
+        window.bootstrap.Modal.getInstance(modal).hide();
+        var people = Object.keys(p.people).length;
+        if (window.FeriizNotify) {
+            window.FeriizNotify.success(rupiah(p.total) + ' given to ' + plural(people, 'person', 'people') +
+                '. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
+        }
+        if (ctx.onDone) ctx.onDone(p.rows.length);
+    }
+
+    function openAssign(context) {
+        ctx = context;
+        if (noTemplates()) return;
+        if (!modal) modal = buildModal();
+        modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + ctx.cells.length + ' selected';
+        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
+        refreshSummary();
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
+
+    // The tick in a list head ticks or unticks everyone shown (after Occupation and search).
     function tickShown(box, on) {
         box.querySelectorAll('.tpl-person').forEach(function (row) {
             if (!row.hidden) row.querySelector('input').checked = on;
@@ -365,236 +370,6 @@
         all.checked = shown.length > 0 && ticked === shown.length;
         all.indeterminate = ticked > 0 && ticked < shown.length;
         all.disabled = !shown.length;
-    }
-
-    // The Occupation filter decides who can get it; the search only helps to find someone.
-    function inScope(row) { return inOccupations(assignOccupation, row.dataset.occupation); }
-
-    function applyPeopleFilter() {
-        var q = modal.querySelector('#assignPeopleSearch').value.trim().toLowerCase();
-        modal.querySelectorAll('.tpl-person').forEach(function (row) {
-            row.hidden = !inScope(row) || Boolean(q && row.dataset.search.indexOf(q) < 0);
-        });
-    }
-
-    function cameIn(code, date) { return !ctx.workedOn || ctx.workedOn(code, date); }
-
-    // The days a person can get the template: for Daily only the days they came in.
-    function payableDays(t, code, days) {
-        return t.unit === 'once' ? days : days.filter(function (d) { return cameIn(code, d); });
-    }
-
-    // Who came in on the days that count (From-To for Daily, the report period for One time)
-    // is ticked; who did not come in at all is unticked, and their row says so.
-    function applyDefaultTicks() {
-        var t = currentTemplate();
-        if (!t) return;
-        var days = t.unit === 'once' ? ctx.dates : chosenDays(t);
-        modal.querySelectorAll('.tpl-person').forEach(function (row) {
-            var came = days.some(function (d) { return cameIn(row.dataset.code, d); });
-            row.querySelector('input').checked = came;
-            row.dataset.absent = came ? '' : '1';
-        });
-    }
-
-    // { 'CODE|YYYY-MM-DD': true } for every day someone already has this template in the project.
-    function givenIndex(templateId) {
-        var index = {};
-        assigned.forEach(function (a) {
-            if (a.templateId === templateId && a.projectCode === ctx.project.code) index[a.employeeCode + '|' + a.date] = true;
-        });
-        return index;
-    }
-
-    // What each person gets with the template, days and amount chosen now.
-    function refreshPeopleMeta() {
-        var t = currentTemplate();
-        if (!t) return;
-        var days = chosenDays(t);
-        var given = givenIndex(t.id);
-        modal.querySelectorAll('.tpl-person').forEach(function (row) {
-            var code = row.dataset.code;
-            var payable = payableDays(t, code, days);
-            var fresh = payable.filter(function (d) { return !given[code + '|' + d]; });
-            var absent = !payable.length || (row.dataset.absent === '1' && !row.querySelector('input').checked);
-            var meta = row.querySelector('.tpl-person-meta');
-            meta.classList.toggle('is-idle', absent);
-            meta.classList.toggle('is-muted', !absent && !fresh.length);
-            meta.textContent = absent ? 'Did not come in'
-                : !fresh.length ? 'Already has it'
-                : plural(fresh.length, 'day', 'days') + ' · ' + rupiah(fresh.reduce(function (sum, d) { return sum + amountFor(d); }, 0));
-        });
-    }
-
-    function currentTemplate() { return get(modal.querySelector('#assignTemplateSelect').value); }
-
-    function onTemplateChange() {
-        var t = currentTemplate();
-        if (!t) return;
-        modal.querySelector('#assignAmount').value = Number(t.amount).toLocaleString('id-ID');
-        modal.querySelector('#assignTemplateInfo').textContent = (UNITS[t.unit] || UNITS.day) +
-            (t.unit === 'once' ? '' : ', only on the days each person came in') + (t.note ? ' · ' + t.note : '');
-        renderWhen(t);
-        applyDefaultTicks();
-        refreshSummary();
-    }
-
-    // Daily: every day From-To. One time: the template's dates inside the report period
-    // (all ticked), each with its own amount (changeable here for this Assign only), or
-    // any day with the Amount field when none of them falls in it.
-    function renderWhen(t) {
-        var box = modal.querySelector('#assignWhen');
-        var first = ctx.dates[0];
-        var last = ctx.dates[ctx.dates.length - 1];
-        var inRange = t.unit === 'once' ? (t.dates || []).filter(function (d) { return d.date >= first && d.date <= last; }) : [];
-        // With dates, each date has its amount, so the single Amount field goes away.
-        modal.querySelector('#assignAmountCol').hidden = inRange.length > 0;
-        modal.querySelector('#assignTemplateCol').className = inRange.length ? 'col-12' : 'col-md-7';
-        if (t.unit === 'once') {
-            box.innerHTML = inRange.length
-                ? '<span class="form-label d-block">Dates</span>' +
-                  '<div class="tpl-when-dates has-amounts">' + inRange.map(function (d) {
-                      return '<div class="tpl-when-date">' +
-                          '<label class="tpl-check"><input type="checkbox" class="form-check-input" name="assignDates" value="' + esc(d.date) + '" checked> ' +
-                              fmtDate(d.date) + (d.name ? ' <small>' + esc(d.name) + '</small>' : '') + '</label>' +
-                          '<div class="input-group input-group-sm tpl-when-amount">' +
-                              '<span class="input-group-text">Rp</span>' +
-                              '<input type="text" inputmode="numeric" class="form-control" data-date-amount="' + esc(d.date) + '"' +
-                                  ' value="' + amountOn(t, d.date).toLocaleString('id-ID') + '" aria-label="Amount on ' + esc(fmtDate(d.date)) + '">' +
-                          '</div>' +
-                      '</div>';
-                  }).join('') + '</div>' +
-                  '<div class="form-text">This template\'s dates inside the report period, each with its own amount.</div>'
-                : '<label class="form-label" for="assignDate">Date</label>' +
-                  '<input type="date" class="form-control" id="assignDate" min="' + first + '" max="' + last + '" value="' + last + '">' +
-                  '<div class="form-text">None of this template\'s dates are in the report period; pick a day.</div>';
-            return;
-        }
-        box.innerHTML =
-            '<div class="row g-3">' +
-                '<div class="col-sm-6"><label class="form-label" for="assignFrom">From</label>' +
-                    '<input type="date" class="form-control" id="assignFrom" min="' + first + '" max="' + last + '" value="' + first + '"></div>' +
-                '<div class="col-sm-6"><label class="form-label" for="assignTo">To</label>' +
-                    '<input type="date" class="form-control" id="assignTo" min="' + first + '" max="' + last + '" value="' + last + '"></div>' +
-            '</div>';
-    }
-
-    function amountInput() { return Number(digits(modal.querySelector('#assignAmount').value)) || 0; }
-
-    // The amount of one day: a One-time date's own amount in the list, else the Amount field.
-    function amountFor(date) {
-        var own = modal.querySelector('#assignWhen [data-date-amount="' + date + '"]');
-        return own ? Number(digits(own.value)) || 0 : amountInput();
-    }
-
-    function chosenDays(t) {
-        if (t.unit === 'once') {
-            var single = modal.querySelector('#assignDate');
-            if (single) return single.value ? [single.value] : [];
-            return Array.prototype.filter.call(modal.querySelectorAll('[name="assignDates"]'), function (i) { return i.checked; })
-                .map(function (i) { return i.value; });
-        }
-        var from = modal.querySelector('#assignFrom').value;
-        var to = modal.querySelector('#assignTo').value;
-        if (!from || !to) return [];
-        if (to < from) { var x = from; from = to; to = x; }
-        return ctx.dates.filter(function (d) { return d >= from && d <= to; });
-    }
-
-    // { rows: [{ code, name, date }] } the dialog would create, before amounts.
-    function plannedRows() {
-        var t = currentTemplate();
-        var out = { rows: [] };
-        if (!t) return out;
-        var days = chosenDays(t);
-        Array.prototype.forEach.call(modal.querySelectorAll('.tpl-person'), function (row) {
-            var input = row.querySelector('input');
-            if (!input.checked || !inScope(row)) return;
-            var p = ctx.people.filter(function (x) { return x.code === input.value; })[0];
-            payableDays(t, p.code, days).forEach(function (d) { out.rows.push({ code: p.code, name: p.name, date: d }); });
-        });
-        return out;
-    }
-
-    function priced() {
-        var t = currentTemplate();
-        var planned = plannedRows();
-        var out = { rows: [], skippedDup: 0, total: 0, people: {} };
-        var given = t ? givenIndex(t.id) : {};
-        planned.rows.forEach(function (r) {
-            if (given[r.code + '|' + r.date]) { out.skippedDup++; return; }
-            r.amount = amountFor(r.date);
-            if (!r.amount) return;
-            out.rows.push(r);
-            out.total += r.amount;
-            out.people[r.code] = true;
-        });
-        return out;
-    }
-
-    function refreshSummary() {
-        var rows = Array.prototype.filter.call(modal.querySelectorAll('.tpl-person'), inScope);
-        var ticked = rows.filter(function (row) { return row.querySelector('input').checked; }).length;
-        modal.querySelector('#assignPeopleCount').textContent = ticked + ' of ' + rows.length + ' ticked';
-        refreshPeopleMeta();
-        syncTickAll(modal, '#assignAll');
-        var p = priced();
-        var people = Object.keys(p.people).length;
-        var notes = [];
-        if (p.skippedDup) notes.push(p.skippedDup + ' already given');
-        var extra = notes.length ? ' (' + notes.join(', ') + ')' : '';
-        modal.querySelector('#assignSummary').textContent = people
-            ? people + (people === 1 ? ' person' : ' people') + ' · ' + p.rows.length + (p.rows.length === 1 ? ' day' : ' days') + ' in total · ' + rupiah(p.total) + extra
-            : (notes.length ? 'Nothing new to add' + extra : 'Nothing selected yet');
-        modal.querySelector('#assignSubmit').disabled = !p.rows.length;
-    }
-
-    function submit() {
-        var t = currentTemplate();
-        var p = priced();
-        if (!p.rows.length) return;
-        var note = modal.querySelector('#assignNote').value.trim();
-        var at = new Date().toISOString();
-        var batch = 'B-' + Date.now().toString(36).toUpperCase();   // one Assign, removable as one row
-        p.rows.forEach(function (r, i) {
-            assigned.push({ id: 'ASG-' + Date.now().toString(36).toUpperCase() + i, batch: batch, templateId: t.id, projectCode: ctx.project.code,
-                            employeeCode: r.code, employeeName: r.name, date: r.date, amount: r.amount, note: note, at: at, by: 'Admin' });
-        });
-        store(KEY_ASSIGNED, assigned);
-        window.bootstrap.Modal.getInstance(modal).hide();
-        var people = Object.keys(p.people).length;
-        if (window.FeriizNotify) {
-            window.FeriizNotify.success(rupiah(p.total) + ' given to ' + people + (people === 1 ? ' person' : ' people') +
-                '. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
-        }
-        if (ctx.onDone) ctx.onDone(p.rows.length);
-    }
-
-    function openAssign(context) {
-        ctx = context;
-        if (noTemplates()) return;
-        if (!modal) modal = buildModal();
-        modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' +
-            fmtDate(ctx.dates[0]) + ' – ' + fmtDate(ctx.dates[ctx.dates.length - 1]);
-        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
-        modal.querySelector('#assignNote').value = '';
-        modal.querySelector('#assignPeopleSearch').value = '';
-        var people = ctx.people.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
-        assignOccupation.setPeople(people);
-        assignOccupation.reset();
-        modal.querySelector('#assignPeople').scrollTop = 0;
-        // The ticks are set by applyDefaultTicks (onTemplateChange): who came in on these days.
-        modal.querySelector('#assignPeopleRows').innerHTML = people.map(function (p) {
-            return '<label class="tpl-person" data-code="' + esc(p.code) + '" data-occupation="' + esc(p.occupation || '') + '"' +
-                ' data-search="' + esc((p.name + ' ' + p.code).toLowerCase()) + '">' +
-                '<input type="checkbox" class="form-check-input" value="' + esc(p.code) + '">' +
-                '<span class="tpl-person-name">' + esc(p.name) + '<small>' + esc(p.code) + (p.occupation ? ' · ' + esc(p.occupation) : '') + '</small></span>' +
-                '<span class="tpl-person-meta"></span>' +
-            '</label>';
-        }).join('');
-        applyPeopleFilter();
-        onTemplateChange();
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
     /* ---------- Who has a request (Report: click a request chip in a day) ----------

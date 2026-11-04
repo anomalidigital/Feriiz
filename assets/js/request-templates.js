@@ -341,7 +341,7 @@
             applyPeopleFilter();
             syncTickAll(modal, '#assignAll');
         });
-        assignOccupation = window.FeriizOccupationPicker.create({ size: 'sm', onChange: function () {
+        assignOccupation = window.FeriizOccupationPicker.create({ size: 'sm', single: true, onChange: function () {
             applyPeopleFilter();
             refreshSummary();
         } });
@@ -714,7 +714,7 @@
             applyListFilter();
             syncTickAll(listModal, '#detailAll');
         });
-        detailOccupation = window.FeriizOccupationPicker.create({ size: 'sm', onChange: function () {
+        detailOccupation = window.FeriizOccupationPicker.create({ size: 'sm', single: true, onChange: function () {
             setListConfirm(false);
             applyListFilter();
             refreshList();
@@ -772,7 +772,7 @@
         syncTickAll(listModal, '#detailAll');
         listModal.querySelector('#detailSummary').textContent = !listPeople.length ? ''
             : ticked.length ? 'Ticked: ' + sumText(sumUp(ticked))
-            : (occ.length === 1 ? occ[0] : occ.length ? occ.length + ' occupations' : 'Total') + ': ' + sumText(sumUp(scoped));
+            : (occ[0] || 'Total') + ': ' + sumText(sumUp(scoped));
         var remove = listModal.querySelector('#detailRemove');
         remove.disabled = !ticked.length;
         remove.textContent = ticked.length ? 'Remove from ' + plural(ticked.length, 'person', 'people') : 'Remove';

@@ -508,9 +508,10 @@ function feriizLogout() {
        request popup.
        - The field reads like the other selects, with how many people it covers:
          "All Occupations (132)", "Tukang Besi (13)", "2 Occupations (27)".
-       - The list ticks one or more occupations, A to Z, each with its count.
-       - In a Filter it only drafts: the page's <select class="filter-occ"> keeps the value and
-         is read on Apply. In a popup, onChange applies a tick at once. */
+       - In a Filter the list ticks one or more occupations, A to Z, each with its count. It only
+         drafts: the page's <select class="filter-occ"> keeps the value and is read on Apply.
+       - In a popup (single: true) the list has no ticks: a click picks ONE occupation and
+         onChange applies it once (Baldy, 04-11-2026: every tick would reload the people). */
     const normalizeOccupation = value => String(value || '').trim().toLowerCase();
     const isAllOccupation = value => {
         const normalized = normalizeOccupation(value);
@@ -522,6 +523,7 @@ function feriizLogout() {
     const openPickers = new Set();
 
     function createOccupationPicker(options = {}) {
+        const single = Boolean(options.single);
         const el = document.createElement('div');
         el.className = 'occ-picker' + (options.size === 'sm' ? ' occ-picker--sm' : '');
         el.innerHTML = `
@@ -529,7 +531,7 @@ function feriizLogout() {
                 <span class="occ-picker-text">All Occupations</span>
                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </button>
-            <div class="occ-picker-menu" role="group" aria-label="Occupations" tabindex="-1" hidden></div>`;
+            <div class="occ-picker-menu" role="${single ? 'listbox' : 'group'}" aria-label="Occupations" tabindex="-1" hidden></div>`;
         const trigger = el.querySelector('.occ-picker-trigger');
         const text = el.querySelector('.occ-picker-text');
         const menu = el.querySelector('.occ-picker-menu');
@@ -547,14 +549,26 @@ function feriizLogout() {
         }
 
         function rowHTML(value, name, count) {
-            return `<label class="occ-picker-row${value === '' ? ' is-all' : ''}">
+            const all = value === '' ? ' is-all' : '';
+            const countHTML = count == null ? '' : `<span class="occ-picker-count">${formatCount(count)}</span>`;
+            if (single) {
+                return `<button type="button" class="occ-picker-option${all}" role="option" aria-selected="false" data-value="${escapeText(value)}">
+                    <span class="occ-picker-name">${escapeText(name)}</span>${countHTML}
+                </button>`;
+            }
+            return `<label class="occ-picker-row${all}">
                 <input type="checkbox" class="form-check-input" value="${escapeText(value)}">
                 <span class="occ-picker-name">${escapeText(name)}</span>
-                ${count == null ? '' : `<span class="occ-picker-count">${formatCount(count)}</span>`}
+                ${countHTML}
             </label>`;
         }
 
         function paint() {
+            menu.querySelectorAll('.occ-picker-option').forEach(option => {
+                const on = option.dataset.value === (chosen[0] || '');
+                option.classList.toggle('is-selected', on);
+                option.setAttribute('aria-selected', String(on));
+            });
             menu.querySelectorAll('input').forEach(input => {
                 input.checked = input.value === '' ? !chosen.length : chosen.includes(input.value);
             });
@@ -599,6 +613,7 @@ function feriizLogout() {
             openPickers.add(api);
             window.addEventListener('scroll', follow, true);
             window.addEventListener('resize', follow);
+            if (single) (menu.querySelector('.is-selected') || menu.querySelector('.occ-picker-option')).focus();
         }
 
         function close() {
@@ -612,6 +627,17 @@ function feriizLogout() {
         }
 
         trigger.addEventListener('click', () => (menu.hidden ? open() : close()));
+        menu.addEventListener('click', event => {
+            const option = single && event.target.closest('.occ-picker-option');
+            if (!option) return;
+            const next = option.dataset.value ? [option.dataset.value] : [];
+            const changed = next.join() !== chosen.join();
+            chosen = next;
+            paint();
+            close();
+            trigger.focus();
+            if (changed && options.onChange) options.onChange(chosen.slice());
+        });
         menu.addEventListener('change', event => {
             const value = event.target.value;
             if (value === '') chosen = [];
@@ -619,12 +645,24 @@ function feriizLogout() {
             paint();
             if (options.onChange) options.onChange(chosen.slice());
         });
-        // Esc closes only the list, not the popup or Filter around it.
+        // Esc closes only the list, not the popup or Filter around it. In a popup's list the
+        // arrow keys move between the occupations.
         el.addEventListener('keydown', event => {
-            if (event.key !== 'Escape' || menu.hidden) return;
-            event.stopPropagation();
-            close();
-            trigger.focus();
+            if (menu.hidden) return;
+            if (event.key === 'Escape') {
+                event.stopPropagation();
+                close();
+                trigger.focus();
+                return;
+            }
+            if (!single || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const list = [...menu.querySelectorAll('.occ-picker-option')];
+            const at = list.indexOf(document.activeElement);
+            const next = event.key === 'Home' ? 0
+                : event.key === 'End' ? list.length - 1
+                : Math.max(0, Math.min(list.length - 1, at + (event.key === 'ArrowDown' ? 1 : -1)));
+            list[next].focus();
         });
         el.addEventListener('focusout', event => {
             if (!el.contains(event.relatedTarget)) close();
@@ -715,6 +753,44 @@ function feriizLogout() {
         });
     }
 
+    const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // "2026-10-25" -> "25 Oct 2026", as the Report's chips write it
+    function shortDate(iso) {
+        const [y, m, d] = String(iso).split('-');
+        return `${d} ${SHORT_MONTHS[Number(m) - 1]} ${y}`;
+    }
+
+    // "25 Oct 2026 - 30 Oct 2026", "From 25 Oct 2026" or "Until 30 Oct 2026"
+    function dateRangeText(from, to) {
+        if (from && to) return `${shortDate(from)} - ${shortDate(to)}`;
+        return from ? `From ${shortDate(from)}` : `Until ${shortDate(to)}`;
+    }
+
+    // Applied occupation values by the names people read ("tukang besi" -> "Tukang Besi").
+    function occupationNames(values, root) {
+        const select = (root || document).querySelector('select.filter-occ');
+        const names = select ? pickerFor(select).allNames() : [];
+        return values.map(value => names.find(name => normalizeOccupation(name) === value) || value);
+    }
+
+    /* Active filter bar (Baldy, 04-11-2026: "seperti yang di report"). The pages with a Filter
+       (Dashboard, Employees, Activity, Requests, Closing; the Report draws its own) list what
+       Apply set, each chip with an x that drops only that filter. No filter, no bar. Popups
+       have none. chips: [{ label, remove }] */
+    function showActiveFilters(bar, chips) {
+        if (!bar) return;
+        const list = bar.querySelector('.filter-indicator-chips');
+        list.innerHTML = chips.map((chip, index) => `<span class="filter-indicator-chip">${escapeText(chip.label)}` +
+            `<button type="button" class="filter-chip-close" data-chip="${index}" aria-label="Remove ${escapeText(chip.label)}">&times;</button></span>`
+        ).join('');
+        list.onclick = event => {
+            const button = event.target.closest('[data-chip]');
+            if (button) chips[Number(button.dataset.chip)].remove();
+        };
+        bar.hidden = !chips.length;
+    }
+
     function initOccupationFilters() {
         const selects = document.querySelectorAll('select.filter-occ');
         if (!selects.length) return;
@@ -734,7 +810,10 @@ function feriizLogout() {
     window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {
         getOccupationValues,
         resetOccupationFilter,
-        setOccupationPeople
+        setOccupationPeople,
+        occupationNames,
+        dateRangeText,
+        showActiveFilters
     });
     window.FeriizOccupationPicker = { create: createOccupationPicker };
 

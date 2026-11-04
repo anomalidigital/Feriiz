@@ -1030,10 +1030,45 @@ body {
 }
 
 /* "All Occupations" heads the list, set off by a line. */
-.occ-picker label.occ-picker-row.is-all {
+.occ-picker label.occ-picker-row.is-all,
+.occ-picker-option.is-all {
     margin-bottom: 4px;
     border-bottom: 1px solid var(--feriiz-border-soft);
     border-radius: 6px 6px 0 0;
+    font-weight: 600;
+}
+
+/* In a popup the list picks one occupation, without ticks (Baldy, 04-11-2026): the chosen one
+   is tinted and bold. */
+.occ-picker-option {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #333;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.occ-picker-option:hover {
+    background: #F5F7FA;
+}
+
+.occ-picker-option:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(41, 117, 187, 0.35);
+}
+
+.occ-picker-option.is-selected {
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary);
     font-weight: 600;
 }
 
@@ -4325,6 +4360,29 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: none !important;
 }
 
+/* The same bar on the other pages with a Filter (04-11-2026, app.js showActiveFilters). It sits
+   inside the page, so it gets its own border and corners; it shows only while a filter is on.
+   On a narrow screen the chips go under the label instead of stacking beside it. */
+.page-filter-indicator {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    margin-bottom: 16px;
+    padding: 8px 16px;
+    background: #F0F7FF;
+    border: 1px solid #D7E8F8;
+    border-radius: 8px;
+}
+
+.page-filter-indicator[hidden] {
+    display: none;
+}
+
+.page-filter-indicator .filter-indicator-chips {
+    flex: 1 1 240px;
+}
+
 /* === Active Filter Indicator Bar === */
 .report-filter-indicator {
     flex-shrink: 0;
@@ -5967,32 +6025,6 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 .dash-search input:focus {
     border-color: var(--dash-present);
     box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.12);
-}
-
-.dash-filter-note {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 12px;
-    margin: -6px 0 16px;
-    font-size: 13px;
-    color: var(--dash-text);
-}
-
-.dash-filter-note[hidden] {
-    display: none;
-}
-
-.dash-link {
-    padding: 0;
-    border: none;
-    background: none;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--dash-present);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    cursor: pointer;
 }
 
 /* --- Panels --- */

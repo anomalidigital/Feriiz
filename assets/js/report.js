@@ -229,7 +229,7 @@
     }
 
     /* =============================================
-       IMPORTED LOG (Edit in Excel > Upload Log; on screen it is "upload" since 03-11-2026)
+       IMPORTED LOG (XLSX > Upload Log; on screen it is "upload" since 03-11-2026)
        An import replaces what the Report counts for its days: Daily (1 = paid day,
        0 = not) and Overtime hours, plus the rates in the file (Feriiz team, 27-10-2026).
        The first view shows an imported day as one normal day with the file's numbers,
@@ -371,13 +371,13 @@
     }
 
     // One imported day drawn like a normal day: hours and OT badges, then log in / log out.
-    // mark goes after the badges (the check in the first view), after the badge row (Changed).
-    function importDayBody(employee, imp, mark, after) {
+    // after goes after the badge row (Changed, in the upload history).
+    function importDayBody(employee, imp, after) {
         var hours = importHours(employee, imp);
         var work = imp.daily ? hours.period : 0;
         return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
                 '<span class="badge feriiz-u-135">' + formatHour(work) + '</span>' +
-                '<span class="badge feriiz-u-136">' + formatHour(imp.ot) + ' OT</span>' + (mark || '') +
+                '<span class="badge feriiz-u-136">' + formatHour(imp.ot) + ' OT</span>' +
             '</div>' + (after || '') + '</div>' +
             '<div class="feriiz-u-140">' +
                 (imp.daily ? buildClockLine('in', hours.start) + buildClockLine('out', hours.end)
@@ -390,7 +390,7 @@
     // marks a difference from the import before.
     function importDayHTML(employee, imp, changed, title) {
         return '<div class="day-half day-half--import"' + (title ? ' title="' + escapeHTML(title) + '"' : '') + '>' +
-            importDayBody(employee, imp, '', changed ? '<span class="cell-import-changed">Changed</span>' : '') + '</div>';
+            importDayBody(employee, imp, changed ? '<span class="cell-import-changed">Changed</span>' : '') + '</div>';
     }
 
     // The Report shows no "Changed" pill (Baldy, 03-11-2026); the tooltip still says what the
@@ -512,31 +512,26 @@
             checkbox + '<div class="day-split">' + systemHalfHTML(sys) + importHalfHTML(employee, date, imp) + '</div></td>';
     }
 
-    // A day from an import in the first view: one normal day with the file's numbers, its
-    // Time Start / Time End as log in / log out, and a purple check after the badges (IT
-    // Arcon and Baldy, 30-10-2026: a check, not the word "Import"). An empty import on a
-    // day with an accepted request keeps showing the request.
+    // A day from an import in the first view: one normal day with the file's numbers and its
+    // Time Start / Time End as log in / log out. The purple check after the badges is gone
+    // (Baldy 04-11-2026: "agak janggal", how to mark an uploaded day is still open). An
+    // empty import on a day with an accepted request keeps showing the request.
     function importedDayCellHTML(employee, date, imp, checkbox) {
         var work = imp.daily ? importHours(employee, imp).period : 0;
-        var flag = importFlagHTML(importFlagText(employee.code, date, imp));
         var request = !imp.daily && !imp.ot ? requestFor(employee.code, date) : null;
         return '<td class="day-col feriiz-u-132 imported-cell' + (request ? ' request-day-cell' : '') + '" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
             (request ? ' data-request="' + escapeHTML(request.type) + '"' : '') + EMPTY_LOG_ATTRS +
             ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-total="' + imp.ot.toFixed(4) + '">' +
-            checkbox + withRequestChips(request ? requestChipHTML(request, flag) : importDayBody(employee, imp, flag, ''), employee.code, date) + '</td>';
+            checkbox + withRequestChips(request ? requestChipHTML(request) : importDayBody(employee, imp, ''), employee.code, date) + '</td>';
     }
 
     function differs(a, b) { return a.daily !== b.daily || Math.abs(a.ot - b.ot) >= 0.01; }
 
-    // The check's tooltip: which file the numbers come from, and what the day counts without it.
+    // The Upload half's tooltip: which file the numbers come from, and what the day counts without it.
     function importFlagText(code, date, imp) {
         var sys = systemDay(code, date);
         return 'Uploaded' + (imp.file ? ' from ' + imp.file : '') + (imp.at ? ' (' + stampText(imp.at) + ')' : '') + ': ' + dayText(imp) + '. ' +
             (differs(imp, sys) ? 'Without the upload: ' + dayText(sys) + '.' : 'The same as without the upload.');
-    }
-
-    function importFlagHTML(text) {
-        return '<span class="cell-import-flag" title="' + escapeHTML(text) + '" aria-label="' + escapeHTML(text) + '"><i class="fa-solid fa-check" aria-hidden="true"></i></span>';
     }
 
     /* =============================================
@@ -645,12 +640,10 @@
     // A day without logs covered by an accepted request shows the request instead of
     // "log incomplete" (backlog A1, 28-10-2026). It is not a missing log, so the Log In /
     // Log Out filter skips it, and it still counts as no day worked.
-    // mark: the import check, when the day is an empty import.
-    function requestChipHTML(req, mark) {
+    function requestChipHTML(req) {
         var title = req.type + ' (' + req.id + '), accepted' + (req.reason ? ': ' + req.reason : '');
         return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
             '<span class="badge cell-request-chip cat-' + requestCategory(req.type) + '-bg" title="' + escapeHTML(title) + '">' + escapeHTML(req.type) + '</span>' +
-            (mark || '') +
         '</div></div>';
     }
 
@@ -2478,6 +2471,7 @@
                 FeriizNotify.warning(who + ' is not assigned to ' + projectContext.name + '.', 'No report to show');
             }
         }
+        if (window.FeriizFilters && window.FeriizFilters.setOccupationPeople) window.FeriizFilters.setOccupationPeople(reportEmployees);
         var reportHref = 'project_report.html?project=' + encodeURIComponent(projectContext.code);
         var reportLink = document.getElementById('reportBackLink');
         if (reportLink) reportLink.href = reportHref;

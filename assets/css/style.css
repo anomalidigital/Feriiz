@@ -34,11 +34,6 @@
     --feriiz-import: #8E44AD;    /* Report days from an import, white text */
     --feriiz-import-soft: #F4ECF8;   /* the Import half of a split day; --feriiz-import text on it is 5:1 */
 
-    /* Days a request was given: the day chips in the request list. Green like the
-       request chips in the Report days (2026-10-29). */
-    --feriiz-request-day: #E9F7EF;
-    --feriiz-request-day-ink: #1E7B45;   /* text on --feriiz-request-day, 4.8:1 */
-
     /* Surfaces */
     --feriiz-bg: #F2F2F2;
     --feriiz-card: #FFFFFF;
@@ -935,83 +930,130 @@ body {
     border-color: #2975BB;
 }
 
-.multi-occ-native {
+/* Occupation picker (04-11-2026, app.js): one field and one list for every occupation
+   filter, in the Filters and in the Assign Request / request popups. The field looks like the
+   other selects; the list floats over the page, so a popup's scrolling body never cuts it. */
+.occ-picker-native {
     display: none !important;
 }
 
-.multi-occ-filter {
+.occ-picker {
     position: relative;
+    min-width: 0;
 }
 
-.multi-occ-trigger {
+.occ-picker-trigger {
     width: 100%;
-    min-height: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 8px 12px;
-    border: 1px solid #D9D9D9;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--feriiz-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--feriiz-card);
     color: #333;
     font-size: 13px;
+    text-align: left;
     cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.multi-occ-trigger:focus {
-    border-color: #2975BB;
-    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.08);
+.occ-picker-trigger:hover {
+    border-color: #BFC5CC;
+}
+
+.occ-picker-trigger:focus-visible,
+.occ-picker.is-open .occ-picker-trigger {
+    border-color: var(--feriiz-primary);
+    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.12);
     outline: none;
 }
 
-.multi-occ-trigger i {
-    color: #777;
+.occ-picker-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.occ-picker-trigger i {
+    flex-shrink: 0;
+    color: var(--feriiz-text-muted);
     font-size: 11px;
+    transition: transform 0.2s ease;
 }
 
-.multi-occ-menu {
-    display: none;
-    width: 100%;
-    max-height: 220px;
+.occ-picker.is-open .occ-picker-trigger i {
+    transform: rotate(180deg);
+}
+
+/* In the popups it sits next to the search box, so it takes the search box's height. */
+.occ-picker--sm .occ-picker-trigger {
+    height: 37.5px;
+}
+
+.occ-picker-menu {
+    position: fixed;
+    z-index: 30;
     overflow-y: auto;
-    margin-top: 6px;
-    padding: 6px;
-    border: 1px solid #E5E8EC;
+    padding: 4px;
+    border: 1px solid var(--feriiz-border-soft);
     border-radius: 8px;
-    background: #fff;
+    background: var(--feriiz-card);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    outline: none;
 }
 
-.multi-occ-menu.show {
-    display: block;
+.occ-picker-menu[hidden] {
+    display: none;
 }
 
-.filter-dropdown label.multi-occ-row {
-    min-height: 28px;
+.occ-picker label.occ-picker-row {
     display: grid;
-    grid-template-columns: 16px 1fr;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
+    min-height: 32px;
     margin: 0;
-    padding: 4px 6px;
+    padding: 6px 8px;
     border-radius: 6px;
     color: #333;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 400;
     cursor: pointer;
 }
 
-.filter-dropdown label.multi-occ-row:hover {
-    background: #F2F7FC;
+.occ-picker label.occ-picker-row:hover {
+    background: var(--feriiz-primary-soft);
 }
 
-.multi-occ-row input {
-    width: 14px;
-    height: 14px;
+/* "All Occupations" heads the list, set off by a line. */
+.occ-picker label.occ-picker-row.is-all {
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--feriiz-border-soft);
+    border-radius: 6px 6px 0 0;
+    font-weight: 600;
+}
+
+.occ-picker-row .form-check-input {
+    width: 16px;
+    height: 16px;
     margin: 0;
-    accent-color: #2975BB;
     cursor: pointer;
+}
+
+.occ-picker-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.occ-picker-count {
+    color: var(--feriiz-text-hint);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
 }
 
 .filter-dropdown .feriiz-u-018,
@@ -4209,23 +4251,6 @@ div.report-layout .report-table tbody td.day-split-cell {
     padding: 10px !important;
 }
 
-/* The Report's first view shows a day from an import as one normal day with a small check
-   after its badges (IT Arcon, 2026-10-30); its tooltip names the file and what the day
-   counts without it. Only the purple check, with no filled circle, so a page of imported
-   days stays calm (Baldy, 2026-10-30). */
-.cell-import-flag {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 20px;
-    align-self: center;
-    color: var(--feriiz-import);
-    font-size: 14px;
-    cursor: help;
-}
-
 /* What a day was given with Assign Request: the template's initials ("UM") at the end
    of the badge row, the same height as the badges, so the day does not grow
    (2026-10-29). Several requests wrap only when the cell is too narrow. */
@@ -5720,7 +5745,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 
     /* --- Filter Bar --- */
 
-    .multi-occ-filter {
+    .occ-picker {
         width: 100% !important;
     }
 
@@ -7263,9 +7288,9 @@ div.report-layout .report-search-input {
     width: 200px;
 }
 
-/* Occupation filter in Assign Request (2026-10-29) */
-.tpl-people-tools .form-select {
-    width: 180px;
+/* Occupation filter in Assign Request and the request popup (the picker, 04-11-2026) */
+.tpl-people-tools .occ-picker {
+    width: 200px;
 }
 
 /* People list: Assign Request and the request list share it (2026-10-29).
@@ -7364,46 +7389,6 @@ div.report-layout .report-search-input {
     font-weight: 400;
 }
 
-/* Request list: name | days | amount */
-.tpl-person--holder {
-    grid-template-columns: 18px minmax(0, 1fr) minmax(0, 252px) 112px;
-}
-
-.tpl-person-days {
-    min-width: 0;
-}
-
-.tpl-person-days small {
-    display: block;
-    margin-top: 4px;
-    overflow: hidden;
-    font-size: 12px;
-    color: #6B7480;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.tpl-days {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-
-.tpl-day {
-    padding: 2px 8px;
-    border-radius: var(--feriiz-radius-pill);
-    background: var(--feriiz-request-day);
-    color: var(--feriiz-request-day-ink);
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.tpl-days-text {
-    font-size: 12px;
-    color: #1a1a1a;
-}
-
 .tpl-person-amount {
     font-size: 13px;
     font-weight: 600;
@@ -7457,21 +7442,8 @@ div.report-layout .report-search-input {
     }
 
     .tpl-people-tools .form-control,
-    .tpl-people-tools .form-select {
+    .tpl-people-tools .occ-picker {
         width: 100%;
-    }
-
-    .tpl-person--holder {
-        grid-template-columns: 18px minmax(0, 1fr) auto;
-    }
-
-    .tpl-person--holder .tpl-person-days {
-        grid-column: 2 / -1;
-        grid-row: 2;
-    }
-
-    .tpl-list-head-days {
-        display: none;
     }
 
     .tpl-date-row {

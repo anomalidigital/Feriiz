@@ -7,11 +7,11 @@
     <title>Feriiz - Assigned Requests</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.45">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.45">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.46">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.46">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.45" defer></script>
-    <script src="assets/js/app.js?v=3.7.45" defer></script>
+    <script src="assets/js/data.js?v=3.7.46" defer></script>
+    <script src="assets/js/app.js?v=3.7.46" defer></script>
 </head>
 
 <body data-page="employee-personal-request">
@@ -46,34 +46,31 @@
                     </div>
                 </div>
             </div>
+            <!-- At the top right like every other page (Baldy, 04-11-2026), not inside the table as
+                 on the old Feriiz: the month and year Used counts in, the prints, Assign Request, search. -->
+            <div class="page-actions flex-wrap">
+                <select class="form-select assigned-period" id="assignedMonth" aria-label="Month"></select>
+                <select class="form-select assigned-period" id="assignedYear" aria-label="Year"></select>
+                <button class="btn btn-outline" type="button" id="printAssigned">
+                    <i class="fa-solid fa-print" aria-hidden="true"></i>
+                    Print
+                </button>
+                <button class="btn btn-outline" type="button" id="printPerRequest">
+                    <i class="fa-solid fa-print" aria-hidden="true"></i>
+                    Print Per Request
+                </button>
+                <button class="btn btn-primary" type="button" id="assignRequestBtn">
+                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                    Assign Request
+                </button>
+                <div class="feriiz-u-020">
+                    <i class="fa-solid fa-magnifying-glass feriiz-u-067" aria-hidden="true"></i>
+                    <input type="text" placeholder="Search request name" class="feriiz-u-068" id="assignedSearch" aria-label="Search request name" autocomplete="off">
+                </div>
+            </div>
         </div>
 
         <div class="table-container">
-            <!-- As on the old Feriiz: assign and the period on the left, print and search on the right -->
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 border-bottom">
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <button class="btn btn-primary" type="button" id="assignRequestBtn">
-                        <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
-                        Assign Request
-                    </button>
-                    <select class="form-select assigned-period" id="assignedMonth" aria-label="Month"></select>
-                    <select class="form-select assigned-period" id="assignedYear" aria-label="Year"></select>
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <button class="btn btn-outline" type="button" id="printAssigned">
-                        <i class="fa-solid fa-print" aria-hidden="true"></i>
-                        Print
-                    </button>
-                    <button class="btn btn-outline" type="button" id="printPerRequest">
-                        <i class="fa-solid fa-print" aria-hidden="true"></i>
-                        Print Per Request
-                    </button>
-                    <div class="feriiz-u-020">
-                        <i class="fa-solid fa-magnifying-glass feriiz-u-067" aria-hidden="true"></i>
-                        <input type="text" placeholder="Search request name" class="feriiz-u-068" id="assignedSearch" aria-label="Search request name" autocomplete="off">
-                    </div>
-                </div>
-            </div>
             <table class="data-table assigned-table">
                 <thead>
                     <tr>
@@ -90,7 +87,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.45</div>
+        <div class="feriiz-u-032">version : 3.7.46</div>
     </main>
 
     <!-- Assign Request: Request, Amount and Notes, as on the old Feriiz. Editing keeps the request
@@ -109,10 +106,9 @@
                     <div class="row g-3 pt-3">
                         <div class="col-sm-6">
                             <label class="form-label" for="arAmount">Amount</label>
-                            <div class="input-group">
+                            <div id="arAmountGroup">
                                 <span class="input-group-text" id="arUnitBefore" hidden>Rp</span>
                                 <input type="text" inputmode="numeric" class="form-control" id="arAmount" autocomplete="off">
-                                <span class="input-group-text" id="arUnitAfter">days</span>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -151,7 +147,6 @@
         function pad2(n) { return String(n).padStart(2, '0'); }
         function digits(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
         function rupiah(n) { return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); }
-        function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
         function notify(kind, message, title) { if (window.FeriizNotify) window.FeriizNotify[kind](message, title); }
 
         function admin() {
@@ -162,8 +157,8 @@
             return state.data.findRequestType(name) || { name: name, type: 'Other', unit: 'day', period: 'Yearly' };
         }
 
-        // "20 days" or "Rp 25.000"
-        function amountText(unit, n) { return unit === 'idr' ? rupiah(n) : plural(Number(n) || 0, 'day', 'days'); }
+        // "20" or "Rp 25.000": a quota in days is a plain number (Baldy, 04-11-2026: no "days")
+        function amountText(unit, n) { return unit === 'idr' ? rupiah(n) : String(Number(n) || 0); }
 
         // "Mon, 05 Oct 2026"
         function fmtDay(iso) {
@@ -199,7 +194,7 @@
 
         function usedOf(a) { return usesOf(a).reduce(function (sum, u) { return sum + u.value; }, 0); }
 
-        // "16 days left", "none left" or "2 days over"
+        // "16 left", "none left" or "2 over"
         function leftText(a) {
             var t = typeOf(a.type);
             var left = a.amount - usedOf(a);
@@ -254,8 +249,9 @@
             var t = name ? typeOf(name) : null;
             var idr = Boolean(t && t.unit === 'idr');
             var amount = document.getElementById('arAmount');
+            // A claim gets "Rp" in front; a quota in days is a plain number field.
+            document.getElementById('arAmountGroup').classList.toggle('input-group', idr);
             document.getElementById('arUnitBefore').hidden = !idr;
-            document.getElementById('arUnitAfter').hidden = idr;
             amount.placeholder = idr ? 'For example: 25.000' : 'For example: 20';
             var d = digits(amount.value);
             amount.value = d ? (idr ? Number(d).toLocaleString('id-ID') : d) : '';

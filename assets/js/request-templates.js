@@ -208,26 +208,12 @@
         return String(d.getDate()).padStart(2, '0') + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
     }
 
-    function daysBetween(a, b) {
-        return Math.round((fromISO(b) - fromISO(a)) / 86400000);
-    }
-
-    var WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    function dayChipText(iso) {
-        var d = fromISO(iso);
-        return WEEKDAYS[d.getDay()] + ' ' + d.getDate();
-    }
-
     function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
-    // "All occupations (134)", then each occupation with how many of these people have it.
-    function occupationOptions(people, keep) {
-        var counts = {};
-        people.forEach(function (p) { if (p.occupation) counts[p.occupation] = (counts[p.occupation] || 0) + 1; });
-        var names = Object.keys(counts).sort(function (a, b) { return a.localeCompare(b); });
-        return '<option value="">All occupations (' + people.length + ')</option>' + names.map(function (o) {
-            return '<option value="' + esc(o) + '"' + (o === keep ? ' selected' : '') + '>' + esc(o) + ' (' + counts[o] + ')</option>';
-        }).join('');
+    // The Occupation picker (app.js) of a popup: no tick means everyone.
+    function inOccupations(picker, occupation) {
+        var chosen = picker.values();
+        return !chosen.length || chosen.indexOf(String(occupation || '').trim().toLowerCase()) >= 0;
     }
 
     function initTooltips(el) {
@@ -263,6 +249,7 @@
        how many days before assigning. */
     var modal = null;
     var ctx = null;
+    var assignOccupation = null;
 
     function buildModal() {
         var el = document.createElement('div');
@@ -303,7 +290,7 @@
                                     '<button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="People who came in on these days are ticked. A Daily request is only given on the days each person came in." aria-label="Who is ticked"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>' +
                                 '</span>' +
                                 '<div class="tpl-people-tools">' +
-                                    '<select class="form-select form-select-sm" id="assignOccupation" aria-label="Occupation"></select>' +
+                                    '<div id="assignOccupation"></div>' +
                                     '<input type="search" class="form-control form-control-sm" id="assignPeopleSearch" placeholder="Search name or code" aria-label="Search people">' +
                                 '</div>' +
                             '</div>' +
@@ -354,10 +341,11 @@
             applyPeopleFilter();
             syncTickAll(modal, '#assignAll');
         });
-        el.querySelector('#assignOccupation').addEventListener('change', function () {
+        assignOccupation = window.FeriizOccupationPicker.create({ size: 'sm', onChange: function () {
             applyPeopleFilter();
             refreshSummary();
-        });
+        } });
+        el.querySelector('#assignOccupation').replaceWith(assignOccupation.el);
         el.querySelector('#assignSubmit').addEventListener('click', submit);
         initTooltips(el);
         return el;
@@ -380,12 +368,7 @@
     }
 
     // The Occupation filter decides who can get it; the search only helps to find someone.
-    function chosenOccupation() { return modal.querySelector('#assignOccupation').value; }
-
-    function inScope(row) {
-        var occ = chosenOccupation();
-        return !occ || row.dataset.occupation === occ;
-    }
+    function inScope(row) { return inOccupations(assignOccupation, row.dataset.occupation); }
 
     function applyPeopleFilter() {
         var q = modal.querySelector('#assignPeopleSearch').value.trim().toLowerCase();
@@ -597,7 +580,8 @@
         modal.querySelector('#assignNote').value = '';
         modal.querySelector('#assignPeopleSearch').value = '';
         var people = ctx.people.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
-        modal.querySelector('#assignOccupation').innerHTML = occupationOptions(people, '');
+        assignOccupation.setPeople(people);
+        assignOccupation.reset();
         modal.querySelector('#assignPeople').scrollTop = 0;
         // The ticks are set by applyDefaultTicks (onTemplateChange): who came in on these days.
         modal.querySelector('#assignPeopleRows').innerHTML = people.map(function (p) {
@@ -629,6 +613,7 @@
     var listCtx = null;
     var listPeople = [];   // [{ code, name, occupation, ids, dates, total, rate, notes, at, by }]
     var listConfirming = false;
+    var detailOccupation = null;
 
     // Everyone with this request in the project on the days shown, one entry per person.
     function holders() {
@@ -655,7 +640,6 @@
             if (a.note && h.notes.indexOf(a.note) < 0) h.notes.push(a.note);
             if ((a.at || '') > (h.at || '')) { h.at = a.at; h.by = a.by; }
         });
-        out.forEach(function (h) { h.dates.sort(); });
         var focus = listCtx.focusCode;
         return out.sort(function (a, b) {
             if (a.code === focus) return -1;
@@ -664,32 +648,14 @@
         });
     }
 
-    // "06 May 2026", "29 Jun 2026 – 30 Jun 2026", or a short list when the days are not in a row.
-    function dateSpan(dates) {
-        if (dates.length === 1) return fmtDate(dates[0]);
-        var inRow = dates.every(function (d, i) { return !i || daysBetween(dates[i - 1], d) === 1; });
-        if (inRow) return fmtDate(dates[0]) + ' – ' + fmtDate(dates[dates.length - 1]);
-        var shown = dates.slice(0, 3).map(fmtDate).join(', ');
-        return dates.length > 3 ? shown + ' and ' + (dates.length - 3) + ' more' : shown;
-    }
-
-    // Up to a week as day chips ("Mon 29"); a longer stretch as dates and a count.
-    function daysHTML(dates) {
-        if (dates.length <= 7) {
-            return '<span class="tpl-days">' + dates.map(function (d) {
-                return '<span class="tpl-day" title="' + fmtDate(d) + '">' + dayChipText(d) + '</span>';
-            }).join('') + '</span>';
-        }
-        return '<span class="tpl-days-text">' + esc(dateSpan(dates)) + ' · ' + plural(dates.length, 'day', 'days') + '</span>';
-    }
-
+    // Name and amount only: the days are already in the Report's cells (Baldy, 04-11-2026: no
+    // Days column). Who gave it, and its note, are in the tooltip.
     function holderRowHTML(h, ticked) {
-        var given = 'Given ' + fmtDate(h.at) + (h.by ? ' by ' + h.by : '');
-        return '<label class="tpl-person tpl-person--holder" data-code="' + esc(h.code) + '" data-occupation="' + esc(h.occupation) + '"' +
+        var given = 'Given ' + fmtDate(h.at) + (h.by ? ' by ' + h.by : '') + (h.notes.length ? '. Note: ' + h.notes.join('; ') : '');
+        return '<label class="tpl-person" data-code="' + esc(h.code) + '" data-occupation="' + esc(h.occupation) + '"' +
             ' data-search="' + esc((h.name + ' ' + h.code).toLowerCase()) + '" title="' + esc(given) + '">' +
             '<input type="checkbox" class="form-check-input" value="' + esc(h.code) + '"' + (ticked ? ' checked' : '') + '>' +
             '<span class="tpl-person-name">' + esc(h.name) + '<small>' + esc(h.code) + (h.occupation ? ' · ' + esc(h.occupation) : '') + '</small></span>' +
-            '<span class="tpl-person-days">' + daysHTML(h.dates) + (h.notes.length ? '<small>' + esc(h.notes.join('; ')) + '</small>' : '') + '</span>' +
             '<span class="tpl-person-amount">' + rupiah(h.total) +
                 (h.dates.length > 1 && h.rate ? '<small>' + h.dates.length + ' × ' + rupiah(h.rate) + '</small>' : '') + '</span>' +
         '</label>';
@@ -716,15 +682,14 @@
                         '<div class="tpl-people-head mt-0" id="detailTools">' +
                             '<span class="tpl-people-label">People</span>' +
                             '<div class="tpl-people-tools">' +
-                                '<select class="form-select form-select-sm" id="detailOccupation" aria-label="Occupation"></select>' +
+                                '<div id="detailOccupation"></div>' +
                                 '<input type="search" class="form-control form-control-sm" id="detailSearch" placeholder="Search name or code" aria-label="Search people">' +
                             '</div>' +
                         '</div>' +
                         '<div class="tpl-people tpl-people--tall" id="detailPeople" role="group" aria-label="People">' +
-                            '<label class="tpl-list-head tpl-person--holder">' +
+                            '<label class="tpl-list-head">' +
                                 '<input type="checkbox" class="form-check-input" id="detailAll" aria-label="Tick everyone shown">' +
                                 '<span id="detailCount">Select all</span>' +
-                                '<span class="tpl-list-head-days">Days</span>' +
                                 '<span class="tpl-person-amount">Amount</span>' +
                             '</label>' +
                             '<div id="detailRows"></div>' +
@@ -749,11 +714,12 @@
             applyListFilter();
             syncTickAll(listModal, '#detailAll');
         });
-        el.querySelector('#detailOccupation').addEventListener('change', function () {
+        detailOccupation = window.FeriizOccupationPicker.create({ size: 'sm', onChange: function () {
             setListConfirm(false);
             applyListFilter();
             refreshList();
-        });
+        } });
+        el.querySelector('#detailOccupation').replaceWith(detailOccupation.el);
         el.querySelector('#detailRemove').addEventListener('click', function () { setListConfirm(true); });
         el.querySelector('#detailCancel').addEventListener('click', function () {
             setListConfirm(false);
@@ -765,12 +731,7 @@
     }
 
     // As in Assign Request: the Occupation filter decides who Remove covers; the search only finds.
-    function listOccupation() { return listModal.querySelector('#detailOccupation').value; }
-
-    function inListScope(occupation) {
-        var occ = listOccupation();
-        return !occ || occupation === occ;
-    }
+    function inListScope(occupation) { return inOccupations(detailOccupation, occupation); }
 
     function applyListFilter() {
         var q = listModal.querySelector('#detailSearch').value.trim().toLowerCase();
@@ -793,26 +754,25 @@
 
     function sumUp(people) {
         return people.reduce(function (s, h) {
-            s.days += h.dates.length;
             s.total += h.total;
             return s;
-        }, { people: people.length, days: 0, total: 0 });
+        }, { people: people.length, total: 0 });
     }
 
     function sumText(s) {
-        return plural(s.people, 'person', 'people') + ' · ' + plural(s.days, 'day', 'days') + ' · ' + rupiah(s.total);
+        return plural(s.people, 'person', 'people') + ' · ' + rupiah(s.total);
     }
 
     // The count in the list head, the footer summary and the Remove button follow the ticks.
     function refreshList() {
-        var occ = listOccupation();
+        var occ = detailOccupation.names();
         var scoped = listPeople.filter(function (h) { return inListScope(h.occupation); });
         var ticked = tickedPeople();
         listModal.querySelector('#detailCount').textContent = ticked.length + ' of ' + scoped.length + ' ticked';
         syncTickAll(listModal, '#detailAll');
         listModal.querySelector('#detailSummary').textContent = !listPeople.length ? ''
             : ticked.length ? 'Ticked: ' + sumText(sumUp(ticked))
-            : (occ || 'Total') + ': ' + sumText(sumUp(scoped));
+            : (occ.length === 1 ? occ[0] : occ.length ? occ.length + ' occupations' : 'Total') + ': ' + sumText(sumUp(scoped));
         var remove = listModal.querySelector('#detailRemove');
         remove.disabled = !ticked.length;
         remove.textContent = ticked.length ? 'Remove from ' + plural(ticked.length, 'person', 'people') : 'Remove';
@@ -832,8 +792,7 @@
         if (!on) return;
         var t = get(listCtx.templateId) || { name: 'this request' };
         var s = sumUp(tickedPeople());
-        summary.textContent = 'Remove ' + t.name + ' from ' + plural(s.people, 'person', 'people') + '? ' +
-            plural(s.days, 'day', 'days') + ' · ' + rupiah(s.total);
+        summary.textContent = 'Remove ' + t.name + ' from ' + plural(s.people, 'person', 'people') + '? ' + rupiah(s.total);
         listModal.querySelector('#detailConfirm').focus();
     }
 
@@ -848,8 +807,7 @@
         setListConfirm(false);
         renderList(false);
         if (window.FeriizNotify) {
-            window.FeriizNotify.success('Taken off ' + plural(s.people, 'person', 'people') + ': ' +
-                plural(s.days, 'day', 'days') + ' · ' + rupiah(s.total) + '.', t.name + ' removed');
+            window.FeriizNotify.success('Taken off ' + plural(s.people, 'person', 'people') + ': ' + rupiah(s.total) + '.', t.name + ' removed');
         }
         if (listCtx.onDone) listCtx.onDone();
     }
@@ -861,8 +819,7 @@
         listModal.querySelector('#templateDetailTitle').textContent = t.name;
         listModal.querySelector('#templateDetailContext').textContent = listCtx.project.name + ' · ' +
             fmtDate(listCtx.dates[0]) + ' – ' + fmtDate(listCtx.dates[listCtx.dates.length - 1]);
-        var occSelect = listModal.querySelector('#detailOccupation');
-        occSelect.innerHTML = occupationOptions(listPeople, occSelect.value);
+        detailOccupation.setPeople(listPeople);
         listModal.querySelector('#detailTools').hidden = !listPeople.length;
         listModal.querySelector('#detailRows').innerHTML = listPeople.length
             ? listPeople.map(function (h) { return holderRowHTML(h, tickFocus && h.code === listCtx.focusCode); }).join('') +
@@ -877,7 +834,7 @@
         listCtx = context;
         if (!listModal) listModal = buildListModal();
         listModal.querySelector('#detailSearch').value = '';
-        listModal.querySelector('#detailOccupation').value = '';
+        detailOccupation.reset();
         setListConfirm(false);
         renderList(true);
         listModal.querySelector('#detailPeople').scrollTop = 0;

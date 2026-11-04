@@ -502,62 +502,199 @@ function feriizLogout() {
 })();
 
 (function () {
-    function normalizeOccupation(value) {
-        return String(value || '').trim().toLowerCase();
-    }
-
-    function isAllOccupation(value) {
+    /* Occupation picker (Baldy, 04-11-2026: the occupation filters "ga sama dan ga selaras").
+       One field and one list for every occupation filter: the Filters of the Dashboard,
+       Employees, Activity and the Reports, and the people lists of Assign Request and the
+       request popup.
+       - The field reads like the other selects, with how many people it covers:
+         "All Occupations (132)", "Tukang Besi (13)", "2 Occupations (27)".
+       - The list ticks one or more occupations, A to Z, each with its count.
+       - In a Filter it only drafts: the page's <select class="filter-occ"> keeps the value and
+         is read on Apply. In a popup, onChange applies a tick at once. */
+    const normalizeOccupation = value => String(value || '').trim().toLowerCase();
+    const isAllOccupation = value => {
         const normalized = normalizeOccupation(value);
         return !normalized || normalized === 'all occupations';
-    }
+    };
+    const escapeText = value => String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const formatCount = n => Number(n).toLocaleString('id-ID');
+    const openPickers = new Set();
 
-    function updateOccupationTrigger(select) {
-        const wrapper = select.nextElementSibling;
-        if (!wrapper || !wrapper.classList.contains('multi-occ-filter')) return;
+    function createOccupationPicker(options = {}) {
+        const el = document.createElement('div');
+        el.className = 'occ-picker' + (options.size === 'sm' ? ' occ-picker--sm' : '');
+        el.innerHTML = `
+            <button type="button" class="occ-picker-trigger" aria-haspopup="true" aria-expanded="false">
+                <span class="occ-picker-text">All Occupations</span>
+                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="occ-picker-menu" role="group" aria-label="Occupations" tabindex="-1" hidden></div>`;
+        const trigger = el.querySelector('.occ-picker-trigger');
+        const text = el.querySelector('.occ-picker-text');
+        const menu = el.querySelector('.occ-picker-menu');
+        let items = [];     // { value, name, count }, A to Z
+        let total = null;   // how many people in all; null until the page gives its people
+        let chosen = [];    // ticked values; none = all occupations
 
-        const triggerLabel = wrapper.querySelector('.multi-occ-filter-text');
-        const selected = [...select.options].filter(option => option.selected && !isAllOccupation(option.value || option.textContent));
+        const countText = n => (n == null ? '' : ` (${formatCount(n)})`);
 
-        if (!triggerLabel) return;
-        if (selected.length === 0) {
-            triggerLabel.textContent = 'All Occupations';
-        } else if (selected.length === 1) {
-            triggerLabel.textContent = selected[0].textContent.trim();
-        } else {
-            triggerLabel.textContent = `${selected.length} Occupations`;
+        function label() {
+            const picked = items.filter(item => chosen.includes(item.value));
+            if (!picked.length) return 'All Occupations' + countText(total);
+            const sum = total == null ? null : picked.reduce((s, item) => s + item.count, 0);
+            return (picked.length === 1 ? picked[0].name : `${picked.length} Occupations`) + countText(sum);
         }
-    }
 
-    function syncOccupationSelect(select) {
-        const wrapper = select.nextElementSibling;
-        if (!wrapper || !wrapper.classList.contains('multi-occ-filter')) return;
+        function rowHTML(value, name, count) {
+            return `<label class="occ-picker-row${value === '' ? ' is-all' : ''}">
+                <input type="checkbox" class="form-check-input" value="${escapeText(value)}">
+                <span class="occ-picker-name">${escapeText(name)}</span>
+                ${count == null ? '' : `<span class="occ-picker-count">${formatCount(count)}</span>`}
+            </label>`;
+        }
 
-        const selectedValues = [...wrapper.querySelectorAll('.multi-occ-option:not(.is-all):checked')].map(input => input.value);
-        [...select.options].forEach(option => {
-            const value = normalizeOccupation(option.value || option.textContent);
-            option.selected = selectedValues.length === 0 ? isAllOccupation(value) : selectedValues.includes(value);
+        function paint() {
+            menu.querySelectorAll('input').forEach(input => {
+                input.checked = input.value === '' ? !chosen.length : chosen.includes(input.value);
+            });
+            text.textContent = label();
+        }
+
+        function setItems(list, people) {
+            items = list.sort((a, b) => a.name.localeCompare(b.name));
+            total = people;
+            chosen = chosen.filter(value => items.some(item => item.value === value));
+            menu.innerHTML = rowHTML('', 'All Occupations', total) +
+                items.map(item => rowHTML(item.value, item.name, total == null ? null : item.count)).join('');
+            paint();
+        }
+
+        // The list floats over the page (fixed), so a popup's scrolling body never cuts it off.
+        // It opens upwards only when there is clearly more room above.
+        function place() {
+            const box = trigger.getBoundingClientRect();
+            const below = window.innerHeight - box.bottom - 12;
+            const above = box.top - 12;
+            const up = below < 200 && above > below;
+            const width = Math.max(box.width, 240);
+            menu.style.left = Math.max(8, Math.min(box.left, window.innerWidth - width - 8)) + 'px';
+            menu.style.width = width + 'px';
+            menu.style.maxHeight = Math.min(288, up ? above : below) + 'px';
+            menu.style.top = up ? '' : (box.bottom + 4) + 'px';
+            menu.style.bottom = up ? (window.innerHeight - box.top + 4) + 'px' : '';
+        }
+
+        function follow(event) {
+            if (event.type === 'scroll' && menu.contains(event.target)) return;
+            place();
+        }
+
+        function open() {
+            openPickers.forEach(picker => { if (picker !== api) picker.close(); });
+            menu.hidden = false;
+            place();
+            el.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            openPickers.add(api);
+            window.addEventListener('scroll', follow, true);
+            window.addEventListener('resize', follow);
+        }
+
+        function close() {
+            if (menu.hidden) return;
+            menu.hidden = true;
+            el.classList.remove('is-open');
+            trigger.setAttribute('aria-expanded', 'false');
+            openPickers.delete(api);
+            window.removeEventListener('scroll', follow, true);
+            window.removeEventListener('resize', follow);
+        }
+
+        trigger.addEventListener('click', () => (menu.hidden ? open() : close()));
+        menu.addEventListener('change', event => {
+            const value = event.target.value;
+            if (value === '') chosen = [];
+            else chosen = event.target.checked ? chosen.concat(value) : chosen.filter(v => v !== value);
+            paint();
+            if (options.onChange) options.onChange(chosen.slice());
+        });
+        // Esc closes only the list, not the popup or Filter around it.
+        el.addEventListener('keydown', event => {
+            if (event.key !== 'Escape' || menu.hidden) return;
+            event.stopPropagation();
+            close();
+            trigger.focus();
+        });
+        el.addEventListener('focusout', event => {
+            if (!el.contains(event.relatedTarget)) close();
         });
 
-        const allInput = wrapper.querySelector('.multi-occ-option.is-all');
-        if (allInput) allInput.checked = selectedValues.length === 0;
-        updateOccupationTrigger(select);
+        const api = {
+            el,
+            close,
+            // Occupation names without counts, until the page gives its people.
+            setNames(names) {
+                const seen = {};
+                setItems(names.map(name => String(name || '').trim()).filter(name => {
+                    const value = normalizeOccupation(name);
+                    if (isAllOccupation(name) || seen[value]) return false;
+                    seen[value] = true;
+                    return true;
+                }).map(name => ({ value: normalizeOccupation(name), name, count: 0 })), null);
+            },
+            // The occupations these people have, each with how many of them.
+            setPeople(people) {
+                const byValue = {};
+                people.forEach(person => {
+                    const name = String(person.occupation || '').trim();
+                    const value = normalizeOccupation(name);
+                    if (!value) return;
+                    (byValue[value] = byValue[value] || { value, name, count: 0 }).count++;
+                });
+                setItems(Object.values(byValue), people.length);
+            },
+            counted: () => total != null,
+            values: () => chosen.slice(),
+            names: () => items.filter(item => chosen.includes(item.value)).map(item => item.name),
+            allNames: () => items.map(item => item.name),
+            reset() {
+                chosen = [];
+                paint();
+            }
+        };
+        return api;
+    }
+
+    // A Filter keeps its <select class="filter-occ"> as the value the page reads on Apply; the
+    // picker is drawn after it and writes its ticks back into it.
+    const filterPickers = new WeakMap();
+
+    function pickerFor(select) {
+        if (filterPickers.has(select)) return filterPickers.get(select);
+        const picker = createOccupationPicker({ onChange: () => writeSelect(select) });
+        select.multiple = true;
+        select.classList.add('occ-picker-native');
+        select.insertAdjacentElement('afterend', picker.el);
+        filterPickers.set(select, picker);
+        return picker;
+    }
+
+    function writeSelect(select) {
+        const picker = pickerFor(select);
+        const chosen = picker.values();
+        select.innerHTML = '<option value="">All Occupations</option>' +
+            picker.allNames().map(name => `<option>${escapeText(name)}</option>`).join('');
+        [...select.options].forEach((option, index) => {
+            option.selected = chosen.length ? chosen.includes(normalizeOccupation(option.value)) : index === 0;
+        });
     }
 
     function resetOccupationFilter(root) {
         const select = (root || document).querySelector('.filter-occ');
         if (!select) return;
-
-        const wrapper = select.nextElementSibling;
-        if (wrapper && wrapper.classList.contains('multi-occ-filter')) {
-            wrapper.querySelectorAll('.multi-occ-option').forEach(input => {
-                input.checked = input.classList.contains('is-all');
-            });
-        }
-
-        [...select.options].forEach((option, index) => {
-            option.selected = index === 0 || isAllOccupation(option.value || option.textContent);
-        });
-        updateOccupationTrigger(select);
+        pickerFor(select).reset();
+        writeSelect(select);
     }
 
     function getOccupationValues(root) {
@@ -570,106 +707,36 @@ function feriizLogout() {
             .filter(value => !isAllOccupation(value));
     }
 
-    function initOccupationFilter(select) {
-        if (!select || select.dataset.multiOccupationReady === 'true') return;
-
-        select.dataset.multiOccupationReady = 'true';
-        select.multiple = true;
-        select.classList.add('multi-occ-native');
-
-        const options = [...select.options].map(option => ({
-            label: option.textContent.trim(),
-            value: normalizeOccupation(option.value || option.textContent),
-            isAll: isAllOccupation(option.value || option.textContent)
-        }));
-        const occupationOptions = options.filter(option => !option.isAll);
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'multi-occ-filter';
-        wrapper.innerHTML = `
-            <button type="button" class="multi-occ-trigger">
-                <span class="multi-occ-filter-text">All Occupations</span>
-                <i class="fa-solid fa-chevron-down"></i>
-            </button>
-            <div class="multi-occ-menu">
-                <label class="multi-occ-row">
-                    <input type="checkbox" class="multi-occ-option is-all" checked value="">
-                    <span>All Occupations</span>
-                </label>
-                ${occupationOptions.map(option => `
-                    <label class="multi-occ-row">
-                        <input type="checkbox" class="multi-occ-option" value="${option.value}">
-                        <span>${option.label}</span>
-                    </label>
-                `).join('')}
-            </div>
-        `;
-        select.insertAdjacentElement('afterend', wrapper);
-        resetOccupationFilter(select.parentElement || document);
-
-        const trigger = wrapper.querySelector('.multi-occ-trigger');
-        const menu = wrapper.querySelector('.multi-occ-menu');
-
-        trigger.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation();
-            document.querySelectorAll('.multi-occ-menu.show').forEach(openMenu => {
-                if (openMenu !== menu) openMenu.classList.remove('show');
-            });
-            menu.classList.toggle('show');
+    // Pages give the people their table lists, so every occupation shows its count.
+    function setOccupationPeople(people, root) {
+        (root || document).querySelectorAll('select.filter-occ').forEach(select => {
+            pickerFor(select).setPeople(people || []);
+            writeSelect(select);
         });
-
-        wrapper.addEventListener('click', event => event.stopPropagation());
-
-        wrapper.querySelectorAll('.multi-occ-option').forEach(input => {
-            input.addEventListener('change', () => {
-                if (input.classList.contains('is-all') && input.checked) {
-                    wrapper.querySelectorAll('.multi-occ-option:not(.is-all)').forEach(child => {
-                        child.checked = false;
-                    });
-                } else if (!input.classList.contains('is-all')) {
-                    const allInput = wrapper.querySelector('.multi-occ-option.is-all');
-                    if (allInput) allInput.checked = false;
-                }
-                syncOccupationSelect(select);
-            });
-        });
-    }
-
-    function populateOccupationOptions(select) {
-        // If FERIIZ_DATA provides an occupation list, rebuild the <option>s
-        // so pages don't need to hard-code them.
-        var data = window.FERIIZ_DATA;
-        if (!data || !data.occupations || !data.occupations.length) return;
-        var current = select.value;
-        select.innerHTML = '';
-        var allOpt = document.createElement('option');
-        allOpt.value = '';
-        allOpt.textContent = 'All Occupations';
-        select.appendChild(allOpt);
-        data.occupations.forEach(function (occ) {
-            var opt = document.createElement('option');
-            opt.textContent = occ;
-            select.appendChild(opt);
-        });
-        select.value = current;
     }
 
     function initOccupationFilters() {
-        var selects = document.querySelectorAll('select.filter-occ');
+        const selects = document.querySelectorAll('select.filter-occ');
         if (!selects.length) return;
-        var ready = window.FERIIZ_DATA && window.FERIIZ_DATA.ready;
-        var run = function () {
-            selects.forEach(function (s) { populateOccupationOptions(s); });
-            selects.forEach(initOccupationFilter);
-        };
+        const run = () => selects.forEach(select => {
+            const picker = pickerFor(select);
+            if (picker.counted()) return;
+            const data = window.FERIIZ_DATA;
+            picker.setNames(data && data.occupations && data.occupations.length
+                ? data.occupations
+                : [...select.options].map(option => option.textContent));
+            writeSelect(select);
+        });
+        const ready = window.FERIIZ_DATA && window.FERIIZ_DATA.ready;
         if (ready) ready.then(run); else run();
     }
 
     window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {
         getOccupationValues,
-        resetOccupationFilter
+        resetOccupationFilter,
+        setOccupationPeople
     });
+    window.FeriizOccupationPicker = { create: createOccupationPicker };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initOccupationFilters);
@@ -677,8 +744,8 @@ function feriizLogout() {
         initOccupationFilters();
     }
 
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.multi-occ-menu.show').forEach(menu => menu.classList.remove('show'));
+    document.addEventListener('click', event => {
+        openPickers.forEach(picker => { if (!picker.el.contains(event.target)) picker.close(); });
     });
 })();
 

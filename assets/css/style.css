@@ -32,7 +32,8 @@
     --feriiz-flag: #FEEFB9;      /* incomplete log cell */
     --feriiz-flag-bar: #F39C12;
     --feriiz-import: #8E44AD;    /* Report days from an import, white text */
-    --feriiz-import-soft: #F4ECF8;   /* the Import half of a split day; --feriiz-import text on it is 5:1 */
+    --feriiz-import-soft: #F4ECF8;   /* light purple behind purple text (5:1), e.g. a hovered history button */
+    --feriiz-import-tint: #EAD0F7;   /* the upload half of a split day, as strong as the yellow --feriiz-flag */
 
     /* Surfaces */
     --feriiz-bg: #F2F2F2;
@@ -3116,36 +3117,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 }
 
 /* Log Type Toggle in Add Log modal */
-.batch-log-type-toggle {
-    display: flex;
-    border: 1.5px solid #D0D5DD;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 16px;
-}
-
-.batch-log-type-btn {
-    flex: 1;
-    border: none;
-    background: #fff;
-    color: #344054;
-    height: 40px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.batch-log-type-btn.active {
-    background: #2975BB;
-    color: #fff;
-}
-
-.batch-log-type-btn:not(.active):hover {
-    background: #F0F7FF;
-    color: #2975BB;
-}
-
 .report-fix-input {
     height: 44px;
     padding: 0 14px;
@@ -4123,8 +4094,11 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     border-radius: 8px;
 }
 
+/* The upload half is drawn like the yellow "incomplete" half, in purple: a strong tint and a bar
+   on the left (Baldy, 04-11-2026: "dikerengin… style nya sama"). */
 .day-half--import {
-    background: var(--feriiz-import-soft);
+    background: var(--feriiz-import-tint);
+    box-shadow: inset 4px 0 0 var(--feriiz-import);
 }
 
 .day-half--import .feriiz-u-141 {
@@ -4152,6 +4126,7 @@ div.report-layout .report-table thead th.day-col.day-split-col {
 .day-half--import.is-empty {
     border: 1px dashed var(--feriiz-border);
     background: transparent;
+    box-shadow: none;
 }
 
 .day-half-empty {

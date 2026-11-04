@@ -1403,22 +1403,13 @@
        ============================================= */
     var activeAction = 'add';
 
-    function setLogType(type) {
-        var label = document.getElementById('batchUpdateLabel');
-        var input = document.getElementById('batchUpdateInput');
-        document.querySelectorAll('.batch-log-type-btn').forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.logType === type);
-        });
-        if (label) label.textContent = type === 'in' ? 'Set Log In Time' : 'Set Log Out Time';
-        // Starts at the project's working hours (meeting 1:28); the admin can still change it.
-        var start = ((projectContext && projectContext.workStart) || '08:00') + ':00';
-        var end = ((projectContext && projectContext.workEnd) || '17:00') + ':00';
-        if (input) input.value = type === 'in' ? start : end;
-    }
-
-    function getActiveLogType() {
-        var active = document.querySelector('.batch-log-type-btn.active');
-        return active ? active.dataset.logType : 'in';
+    // Add Log asks for the log in and the log out at once (Baldy, 04-11-2026), starting at the
+    // project's working hours (meeting 1:28); the admin can still change them.
+    function resetAddLogTimes() {
+        var inInput = document.getElementById('batchUpdateIn');
+        var outInput = document.getElementById('batchUpdateOut');
+        if (inInput) inInput.value = ((projectContext && projectContext.workStart) || '08:00') + ':00';
+        if (outInput) outInput.value = ((projectContext && projectContext.workEnd) || '17:00') + ':00';
     }
 
     function showBatchModal(action) {
@@ -1467,26 +1458,12 @@
         // Add Log modal
         var modal = document.getElementById('batchUpdateModal');
         var title = document.getElementById('batchUpdateTitle');
-        var label = document.getElementById('batchUpdateLabel');
-        var input = document.getElementById('batchUpdateInput');
         var note = document.getElementById('batchUpdateNote');
         var cellSum = document.getElementById('batchSelectedSummary');
         var empSum = document.getElementById('batchEmployeeSummary');
 
-        if (label) label.style.display = '';
-        if (input) input.style.display = '';
-
         if (title) title.textContent = 'Add Log';
-
-        // Detect default log type based on selected cells
-        var inCount = 0, outCount = 0;
-        selected.forEach(function (c) {
-            var m = c.dataset.missing || '';
-            if (m === 'in') inCount++;
-            else if (m === 'out') outCount++;
-        });
-        var defaultType = inCount >= outCount ? 'in' : 'out';
-        setLogType(defaultType);
+        resetAddLogTimes();
         if (note) note.value = '';
         if (cellSum) cellSum.textContent = selected.length + ' log';
         if (empSum) empSum.textContent = getAffectedEmployeeCount() + ' employee';
@@ -1514,11 +1491,7 @@
 
     function closeBatchModal() {
         var modal = document.getElementById('batchUpdateModal');
-        var label = document.getElementById('batchUpdateLabel');
-        var input = document.getElementById('batchUpdateInput');
         if (modal) modal.classList.remove('show');
-        if (label) label.style.display = '';
-        if (input) input.style.display = '';
     }
 
     function formatLogNoteDate(value) {
@@ -1578,46 +1551,54 @@
     }
 
     function applyBatchUpdate() {
-        var input = document.getElementById('batchUpdateInput');
+        var inInput = document.getElementById('batchUpdateIn');
+        var outInput = document.getElementById('batchUpdateOut');
+        var inValue = inInput ? inInput.value : '';
+        var outValue = outInput ? outInput.value : '';
         var noteInput = document.getElementById('batchUpdateNote');
-        var clockValue = input ? input.value : '07:00:00';
         var noteValue = noteInput ? noteInput.value.trim() : '';
         var selectedCells = getSelectedCells();
-        var affectedEmployees = getAffectedEmployeeCount();
-        var selectedLogType = getActiveLogType();
         var dateSummary = getBatchDateSummary(selectedCells);
         var updated = 0;
+        var addedIns = 0, addedOuts = 0, kept = 0;
+        var addedPeople = {};
 
         if (selectedCells.length === 0) {
             if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
             return;
         }
-        if (activeAction === 'add' && !clockValue) {
-            if (input) input.focus();
-            if (window.FeriizNotify) FeriizNotify.warning('Set a valid clock time before saving.', 'Log not saved');
+        if (activeAction === 'add' && !inValue && !outValue) {
+            if (inInput) inInput.focus();
+            if (window.FeriizNotify) FeriizNotify.warning('Set a log in or a log out time before saving.', 'Log not saved');
             return;
         }
 
         clearRecentUpdateMarkers();
 
         if (activeAction === 'add') {
-            // Determine if we are adding log-in or log-out based on label
-            var addingIn = getActiveLogType() === 'in';
-
+            // Each time fills only a log the day is missing: a log the machine has stays as it is
+            // (Arcon: machine times are never overwritten). Delete Log first to replace one.
             selectedCells.forEach(function (cell) {
-                var missing = cell.dataset.missing || '';
                 var existIn = cell.dataset.inTime || '';
                 var existOut = cell.dataset.outTime || '';
                 var existInNote = cell.dataset.inNote || '';
                 var existOutNote = cell.dataset.outNote || '';
 
-                var fillType = addingIn ? 'in' : 'out';
+                var addIn = Boolean(inValue && !existIn);
+                var addOut = Boolean(outValue && !existOut);
+                if (!addIn && !addOut) {
+                    kept++;
+                    return;
+                }
+                if (addIn) addedIns++;
+                if (addOut) addedOuts++;
+                addedPeople[cell.closest('tr').dataset.employeeCode] = true;
 
-                var newIn = fillType === 'in' ? clockValue : existIn;
-                var newOut = fillType === 'out' ? clockValue : existOut;
+                var newIn = addIn ? inValue : existIn;
+                var newOut = addOut ? outValue : existOut;
                 // A blank optional note must not erase an existing audit note.
-                var newInNote = fillType === 'in' ? (noteValue || existInNote) : existInNote;
-                var newOutNote = fillType === 'out' ? (noteValue || existOutNote) : existOutNote;
+                var newInNote = addIn ? (noteValue || existInNote) : existInNote;
+                var newOutNote = addOut ? (noteValue || existOutNote) : existOutNote;
 
                 // The cell shows the view (the default, or the real logs); always in on top, out on bottom.
                 var addView = dayView(cell.closest('tr').dataset.employeeCode, cell.dataset.date, newIn, newOut);
@@ -1721,20 +1702,21 @@
         deselectAllCells();
         applyReportFilters();
         updateVisibleTotals(currentVisibleDates);
+        if (activeAction === 'add' && !updated && window.FeriizNotify) {
+            FeriizNotify.info('The ticked days already have their log in and log out. Add Log only fills a missing one; use Delete Log first to replace a log.', 'Nothing to add');
+        }
         if (updated > 0 && window.FeriizNotify) {
             var isAdd = activeAction === 'add';
-            var logLabel = selectedLogType === 'in' ? 'log in' : 'log out';
-            var title = isAdd ? (selectedLogType === 'in' ? 'Log in added' : 'Log out added') : 'Log deleted';
-            var employeeLabel = affectedEmployees === 1 ? 'employee' : 'employees';
-            var entryLabel = updated === 1 ? 'entry was' : 'entries were';
+            var people = Object.keys(addedPeople).length;
+            var added = [addedIns ? addedIns + ' log in' : '', addedOuts ? addedOuts + ' log out' : ''].filter(Boolean).join(' and ');
             var message = isAdd
-                ? updated + ' ' + logLabel + ' ' + entryLabel + ' added for ' + affectedEmployees + ' ' + employeeLabel + ' on ' + dateSummary +
-                    (noteValue ? ' A note was attached to each updated log.' : '') +
-                    (selectedLogType === 'in'
-                        ? ' Cells that still need log out remain yellow.'
-                        : ' The updated cells are highlighted in blue.')
+                ? added + ' added for ' + people + (people === 1 ? ' employee' : ' employees') + ' on ' + dateSummary + '.' +
+                    (noteValue ? ' A note was attached to each new log.' : '') +
+                    (kept === 1 ? ' 1 day already had its logs and was left as it is.'
+                        : kept ? ' ' + kept + ' days already had their logs and were left as they are.' : '') +
+                    ' The updated cells are highlighted in blue.'
                 : updated + ' selected log entries were deleted on ' + dateSummary + '.';
-            window.FeriizNotify.success(message, title);
+            window.FeriizNotify.success(message, isAdd ? 'Log added' : 'Log deleted');
         }
     }
 
@@ -2417,13 +2399,6 @@
                 updateCellSelectionUI();
             });
         }
-
-        // Log type toggle in modal
-        document.querySelectorAll('.batch-log-type-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                setLogType(btn.dataset.logType);
-            });
-        });
 
         // Cell checkbox change (event delegation)
         var tbody = document.querySelector('.report-table tbody');

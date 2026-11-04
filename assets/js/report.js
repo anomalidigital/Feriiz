@@ -1298,9 +1298,12 @@
                    (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
         });
 
+        // Uploaded days keep Delete Log clickable, so the click can say why they are left alone
+        // (they count the file; a new upload changes them). Baldy, 04-11-2026: "kenapa ga bisa delete log?"
+        var hasUploaded = selected.some(function (cell) { return cell.dataset.imported === '1'; });
         var deleteBtn = document.querySelector('#batchUpdateDropdown button[data-action="delete"]');
         if (deleteBtn) {
-            deleteBtn.disabled = !hasLogs;
+            deleteBtn.disabled = !hasLogs && !hasUploaded;
         }
 
         syncDayHeaderSelections();

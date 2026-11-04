@@ -8,11 +8,9 @@
 
    As drawn on the whiteboard of the Arcon meeting (20-10-2026):
    - A template is made once for every project and reused (1:39): Name, Amount, Note.
-   - Daily (every day of the range assigned) or One time on chosen dates. A One-time
-     template keeps its dates, e.g. the year's red dates: the incentive is set once
-     a year for all of them (1:31-1:33, 1:41). Each date can have its own amount,
-     since a red date's incentive usually differs (Baldy, 03-11-2026; Arcon: "amount
-     ditentukan per setiap tgl merah"); a date without one uses the template's Amount.
+   - Every template is per day: each ticked day gets its Amount. The Daily / One time
+     choice and the One-time dates with their own amounts are gone (Baldy, 04-11-2026:
+     "secara logika agak bingung"); how to handle one-off payments is still open.
    - "Assign Request" in the project Report hands it out (1:43). Each template
      then has its own column in the Report's Client group, shown only when
      someone has it in the period (2:01-2:04).
@@ -28,7 +26,7 @@
    Prototype only: everything is kept in this browser (localStorage) so the
    Templates page and the Report see the same data. The API replaces this.
 
-   FeriizTemplates.all(), get(id), amountOn(template, date), findByName(name), save(template)
+   FeriizTemplates.all(), get(id), findByName(name), save(template)
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -40,22 +38,13 @@
 
     var KEY_TEMPLATES = 'feriiz_request_templates_v1';
     var KEY_ASSIGNED = 'feriiz_template_assignments_v1';
-    var UNITS = { day: 'Daily', once: 'One time' };
 
-    // Sample templates, as on the whiteboard (Uang Makan) plus this year's red-date incentive.
+    // Sample templates, as on the whiteboard (Uang Makan) plus an incentive for working on a red date.
     // The ids are the ones the first samples had, so assignments made with them still match.
     var OLD_TRANSPORT_ID = 'TPL-003';   // the Transport sample, before transport became automatic
     var DEFAULT_TEMPLATES = [
-        { id: 'TPL-001', name: 'Uang Makan', amount: 25000, unit: 'day', note: '' },
-        { id: 'TPL-004', name: 'Insentif Tanggal Merah 2026', amount: 50000, unit: 'once', note: '',
-          dates: [
-              { date: '2026-05-01', name: 'Hari Buruh' },
-              { date: '2026-05-14', name: 'Kenaikan Isa Al Masih' },
-              { date: '2026-05-27', name: 'Idul Adha' },
-              { date: '2026-05-31', name: 'Hari Raya Waisak' },
-              { date: '2026-06-01', name: 'Hari Lahir Pancasila' },
-              { date: '2026-08-17', name: 'HUT RI', amount: 100000 }
-          ] }
+        { id: 'TPL-001', name: 'Uang Makan', amount: 25000, note: '' },
+        { id: 'TPL-004', name: 'Insentif Tanggal Merah 2026', amount: 50000, note: '' }
     ];
 
     function clone(v) { return JSON.parse(JSON.stringify(v)); }
@@ -78,6 +67,8 @@
     // Archiving was dropped (2026-10-26); templates archived before that are left out.
     // The old Transport sample goes too: transport is paid automatically now.
     var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false && t.id !== OLD_TRANSPORT_ID; });
+    // Templates saved before 04-11-2026 may still say Daily / One time and carry dates: all per day now.
+    templates.forEach(function (t) { delete t.unit; delete t.dates; });
     var assigned = load(KEY_ASSIGNED, []);
     if (assigned.some(function (a) { return a.templateId === OLD_TRANSPORT_ID; })) {
         assigned = assigned.filter(function (a) { return a.templateId !== OLD_TRANSPORT_ID; });
@@ -95,12 +86,6 @@
     function rupiah(n) { return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); }
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
-
-    // The amount on one date: a One-time date's own amount, else the template's Amount.
-    function amountOn(t, date) {
-        var own = t && t.unit === 'once' ? (t.dates || []).filter(function (d) { return d.date === date; })[0] : null;
-        return own && Number(own.amount) > 0 ? Number(own.amount) : Number(t && t.amount) || 0;
-    }
 
     // The name is also the Report column title, so two templates may not share it.
     function findByName(name) {
@@ -222,8 +207,7 @@
        The Report's own filters and ticks already say who and which days, so the dialog only
        asks which template, then Apply (Baldy, 04-11-2026: the toolbar dialog made the admin
        pick people and days a second time).
-       - A Daily template goes only on the ticked days the person came in.
-       - A One-time template goes on every ticked day, at that date's own amount.
+       - Each ticked day the person came in gets the template's Amount.
        - A day that already has it is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
@@ -283,11 +267,11 @@
         var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0 };
         if (!t) return out;
         var given = givenIndex(t.id);
+        var amount = Number(t.amount) || 0;
+        if (!amount) return out;
         ctx.cells.forEach(function (c) {
             if (given[c.code + '|' + c.date]) { out.already++; return; }
-            if (t.unit !== 'once' && !cameIn(c.code, c.date)) { out.noLog++; return; }
-            var amount = amountOn(t, c.date);
-            if (!amount) return;
+            if (!cameIn(c.code, c.date)) { out.noLog++; return; }
             out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
             out.total += amount;
             out.people[c.code] = true;
@@ -298,8 +282,8 @@
     function refreshSummary() {
         var t = currentTemplate();
         if (!t) return;
-        modal.querySelector('#assignTemplateInfo').textContent = (t.unit === 'once' ? UNITS.once + ', on every ticked day'
-            : UNITS.day + ', only on the ticked days each person came in') + (t.note ? ' · ' + t.note : '');
+        modal.querySelector('#assignTemplateInfo').textContent = rupiah(t.amount) + ' a day, only on the ticked days each person came in' +
+            (t.note ? ' · ' + t.note : '');
         var p = planned();
         var people = Object.keys(p.people).length;
         var skips = [];
@@ -446,12 +430,10 @@
     }
 
     window.FeriizTemplates = {
-        UNITS: UNITS,
         rupiah: rupiah,
         fmtDate: fmtDate,
         all: function () { return templates.slice(); },
         get: get,
-        amountOn: amountOn,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

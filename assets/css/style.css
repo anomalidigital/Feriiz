@@ -7066,36 +7066,7 @@ div.report-layout .report-search-input {
     color: #6B7480;
 }
 
-.tpl-check {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 13px;
-    color: #333;
-    cursor: pointer;
-}
-
-.tpl-check .form-check-input {
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.tpl-check small {
-    color: #6B7480;
-}
-
-/* Template form: Daily / One time, each with a "?" whose explanation is a Bootstrap tooltip */
-.tpl-unit {
-    display: grid;
-    gap: 8px;
-}
-
-.tpl-unit-option {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
+/* A "?" whose explanation is a Bootstrap tooltip */
 .tpl-help {
     display: inline-flex;
     padding: 0;
@@ -7110,25 +7081,6 @@ div.report-layout .report-search-input {
 .tpl-help:hover,
 .tpl-help:focus-visible {
     color: #2975BB;
-}
-
-/* One-time templates: the dates (red dates) they are for */
-.tpl-dates {
-    display: grid;
-    gap: 8px;
-}
-
-/* Date | Holiday name | its own amount | remove (03-11-2026); the dialog is a little wider for it */
-.tpl-date-row {
-    display: grid;
-    grid-template-columns: 150px 1fr 140px 38px;
-    gap: 8px;
-}
-
-@media (min-width: 576px) {
-    #templateModal .modal-dialog {
-        max-width: 600px;
-    }
 }
 
 .tpl-people-head {
@@ -7182,20 +7134,6 @@ div.report-layout .report-search-input {
     .tpl-people-tools .form-control {
         width: 100%;
     }
-
-    .tpl-date-row {
-        grid-template-columns: 1fr 38px;
-    }
-
-    .tpl-date-row > input[type="text"] {
-        grid-column: 1 / -1;
-        grid-row: 2;
-    }
-
-    .tpl-date-row .tpl-date-amount {
-        grid-column: 1 / -1;
-        grid-row: 3;
-    }
 }
 
 /* --- Report table: narrow summary columns, black text, white header
@@ -7240,6 +7178,12 @@ div.report-layout .report-table thead th.day-col {
 
 div.report-layout .report-table td.day-col > .feriiz-u-133 {
     padding-right: 24px;
+}
+
+/* Every day starts at the top of its row, so the badges and logs line up from day to day
+   whether or not a day has request chips under it (Baldy, 04-11-2026: "di sejajari"). */
+div.report-layout .report-table tbody td.day-col {
+    vertical-align: top !important;
 }
 
 /* 20 people a page (Baldy, 04-11-2026). The rows of other pages are off the screen only:

@@ -7,12 +7,12 @@
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.48">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.48">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.49">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.49">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.48" defer></script>
-    <script src="assets/js/app.js?v=3.7.48" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.48" defer></script>
+    <script src="assets/js/data.js?v=3.7.49" defer></script>
+    <script src="assets/js/app.js?v=3.7.49" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.49" defer></script>
 </head>
 
 <body data-page="employees">
@@ -79,12 +79,6 @@
             </div>
         </div>
 
-        <!-- Active filter, as on the Report (04-11-2026): what the Filter applied, each with an x -->
-        <div class="page-filter-indicator" id="activeFilterBar" hidden>
-            <span class="filter-indicator-label">Active filter:</span>
-            <div class="filter-indicator-chips"></div>
-        </div>
-
         <div class="table-container">
             <table class="data-table">
                 <thead>
@@ -103,7 +97,7 @@
                 <div class="pagination-buttons" id="paginationButtons"></div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.48</div>
+        <div class="feriiz-u-032">version : 3.7.49</div>
     </main>
 
     <script>
@@ -270,30 +264,6 @@
             });
             employeesState.page = 1;
             renderPage();
-            renderActiveFilters();
-        }
-
-        // Active filter (as on the Report): what Apply set, each with an x of its own.
-        function renderActiveFilters() {
-            if (!window.FeriizFilters) return;
-            var f = employeesState.filters;
-            var chips = [];
-            if (f.occupations.length) {
-                chips.push({ label: 'Occupation: ' + window.FeriizFilters.occupationNames(f.occupations).join(', '), remove: function () {
-                    window.FeriizFilters.resetOccupationFilter(document);
-                    employeesState.filters.occupations = [];
-                    applyEmployeeFilter();
-                } });
-            }
-            if (f.project) {
-                var project = window.FERIIZ_DATA.findProjectByCode(f.project);
-                chips.push({ label: 'Project: ' + (project ? project.name : f.project), remove: function () {
-                    document.getElementById('filterProject').value = '';
-                    employeesState.filters.project = '';
-                    applyEmployeeFilter();
-                } });
-            }
-            window.FeriizFilters.showActiveFilters(document.getElementById('activeFilterBar'), chips);
         }
 
         function commitEmployeeFilterDraft() {

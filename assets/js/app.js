@@ -753,44 +753,6 @@ function feriizLogout() {
         });
     }
 
-    const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    // "2026-10-25" -> "25 Oct 2026", as the Report's chips write it
-    function shortDate(iso) {
-        const [y, m, d] = String(iso).split('-');
-        return `${d} ${SHORT_MONTHS[Number(m) - 1]} ${y}`;
-    }
-
-    // "25 Oct 2026 - 30 Oct 2026", "From 25 Oct 2026" or "Until 30 Oct 2026"
-    function dateRangeText(from, to) {
-        if (from && to) return `${shortDate(from)} - ${shortDate(to)}`;
-        return from ? `From ${shortDate(from)}` : `Until ${shortDate(to)}`;
-    }
-
-    // Applied occupation values by the names people read ("tukang besi" -> "Tukang Besi").
-    function occupationNames(values, root) {
-        const select = (root || document).querySelector('select.filter-occ');
-        const names = select ? pickerFor(select).allNames() : [];
-        return values.map(value => names.find(name => normalizeOccupation(name) === value) || value);
-    }
-
-    /* Active filter bar (Baldy, 04-11-2026: "seperti yang di report"). The pages with a Filter
-       (Dashboard, Employees, Activity, Requests, Closing; the Report draws its own) list what
-       Apply set, each chip with an x that drops only that filter. No filter, no bar. Popups
-       have none. chips: [{ label, remove }] */
-    function showActiveFilters(bar, chips) {
-        if (!bar) return;
-        const list = bar.querySelector('.filter-indicator-chips');
-        list.innerHTML = chips.map((chip, index) => `<span class="filter-indicator-chip">${escapeText(chip.label)}` +
-            `<button type="button" class="filter-chip-close" data-chip="${index}" aria-label="Remove ${escapeText(chip.label)}">&times;</button></span>`
-        ).join('');
-        list.onclick = event => {
-            const button = event.target.closest('[data-chip]');
-            if (button) chips[Number(button.dataset.chip)].remove();
-        };
-        bar.hidden = !chips.length;
-    }
-
     function initOccupationFilters() {
         const selects = document.querySelectorAll('select.filter-occ');
         if (!selects.length) return;
@@ -810,10 +772,7 @@ function feriizLogout() {
     window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {
         getOccupationValues,
         resetOccupationFilter,
-        setOccupationPeople,
-        occupationNames,
-        dateRangeText,
-        showActiveFilters
+        setOccupationPeople
     });
     window.FeriizOccupationPicker = { create: createOccupationPicker };
 

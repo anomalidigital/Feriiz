@@ -7,11 +7,11 @@
     <title>Feriiz - Request</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.48">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.48">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.49">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.49">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.48" defer></script>
-    <script src="assets/js/app.js?v=3.7.48" defer></script>
+    <script src="assets/js/data.js?v=3.7.49" defer></script>
+    <script src="assets/js/app.js?v=3.7.49" defer></script>
 </head>
 
 <body data-page="project-requests">
@@ -133,12 +133,6 @@
                     <div class="stat-label feriiz-u-027">Rejected</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Active filter, as on the Report (04-11-2026): what the Filter applied, each with an x -->
-        <div class="page-filter-indicator" id="activeFilterBar" hidden>
-            <span class="filter-indicator-label">Active filter:</span>
-            <div class="filter-indicator-chips"></div>
         </div>
 
         <!-- Table -->
@@ -328,40 +322,6 @@
             state.page = 1;
             renderPage();
             updateStatCards();
-            renderActiveFilters();
-        }
-
-        // Active filter (as on the Report): what Apply set, each with an x of its own.
-        function renderActiveFilters() {
-            if (!window.FeriizFilters) return;
-            var f = state.filters;
-            var chips = [];
-            if (f.dateStart || f.dateEnd) {
-                chips.push({ label: 'Date Range: ' + window.FeriizFilters.dateRangeText(f.dateStart, f.dateEnd), remove: function () {
-                    document.querySelectorAll('.filter-date').forEach(function (input) { input.value = ''; });
-                    state.filters.dateStart = '';
-                    state.filters.dateEnd = '';
-                    applyFilter();
-                } });
-            }
-            if (f.type) {
-                var typeSel = document.querySelector('.filter-type');
-                var option = typeSel ? Array.prototype.filter.call(typeSel.options, function (o) { return o.value === f.type; })[0] : null;
-                chips.push({ label: 'Type: ' + (option ? option.textContent.trim() : f.type), remove: function () {
-                    if (typeSel) typeSel.value = '';
-                    state.filters.type = '';
-                    applyFilter();
-                } });
-            }
-            if (f.status) {
-                chips.push({ label: 'Status: ' + f.status.charAt(0).toUpperCase() + f.status.slice(1), remove: function () {
-                    var statSel = document.querySelector('.filter-status');
-                    if (statSel) statSel.value = '';
-                    state.filters.status = '';
-                    applyFilter();
-                } });
-            }
-            window.FeriizFilters.showActiveFilters(document.getElementById('activeFilterBar'), chips);
         }
 
         function commitRequestFilterDraft() {

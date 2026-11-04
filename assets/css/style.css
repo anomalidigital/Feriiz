@@ -4360,29 +4360,6 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: none !important;
 }
 
-/* The same bar on the other pages with a Filter (04-11-2026, app.js showActiveFilters). It sits
-   inside the page, so it gets its own border and corners; it shows only while a filter is on.
-   On a narrow screen the chips go under the label instead of stacking beside it. */
-.page-filter-indicator {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 10px;
-    margin-bottom: 16px;
-    padding: 8px 16px;
-    background: #F0F7FF;
-    border: 1px solid #D7E8F8;
-    border-radius: 8px;
-}
-
-.page-filter-indicator[hidden] {
-    display: none;
-}
-
-.page-filter-indicator .filter-indicator-chips {
-    flex: 1 1 240px;
-}
-
 /* === Active Filter Indicator Bar === */
 .report-filter-indicator {
     flex-shrink: 0;

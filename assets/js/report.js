@@ -127,11 +127,15 @@
 
     /* =============================================
        HOURS
-       From the real logs, hours are the working hours, at most the Time Period (9h
-       for 08:00-17:00); whatever is worked beyond it is overtime (Baldy, 30-10-2026,
-       like the old Feriiz: in 08:54, out 18:06 shows 9h / 0.21h). The Time Period is
-       the person's own hours, else the project's. A project with Default Hours counts
-       those instead (see DEFAULT HOURS).
+       From the real logs, hours are the time worked, at most the Time Period; overtime is
+       what is worked beyond the Working Time (Baldy, 30-10-2026, like the old Feriiz: in
+       08:54, out 18:06 shows 0.21h of overtime).
+       - The Time Period is the project's Default Hours for that weekday: 8 of 08:00-17:00
+         (Baldy, 04-11-2026: "yang di lapangan kerjanya 8 jam kerja", it was 9). Without
+         Default Hours it is the whole Working Time.
+       - The hour between them (8h to 9h) is the break: neither hours nor overtime.
+       - The Working Time is the person's own, else the project's.
+       A project with Default Hours counts those in the first view (see DEFAULT HOURS).
        ============================================= */
     function toSeconds(t) {
         var p = String(t || '').split(':').map(Number);
@@ -147,23 +151,33 @@
         };
     }
 
-    function periodOf(code) {
+    // How long the Working Time is: 9h for 08:00-17:00.
+    function spanOf(code) {
         var t = workTimeOf(code);
         var start = toSeconds(t.start), end = toSeconds(t.end);
         return end > start ? (end - start) / 3600 : 0;
     }
 
-    function computeHours(inTime, outTime, period) {
+    // The Time Period: the Default Hours of that day's weekday; without a date, the Default
+    // Hours when every weekday has the same. Else the whole Working Time.
+    function periodOf(code, date) {
+        var def = date ? dayDefault(date) : null;
+        var hours = def ? def.work : date ? null : defaultWorkHours();
+        return hours || spanOf(code);
+    }
+
+    function computeHours(inTime, outTime, period, span) {
         if (!inTime || !outTime) return { work: 0, ot: 0 };
         var i = toSeconds(inTime), o = toSeconds(outTime);
         if (o <= i) return { work: 0, ot: 0 };
         var worked = (o - i) / 3600;
         var limit = period == null ? periodOf('') : period;
-        return { work: Math.min(worked, limit), ot: Math.max(0, worked - limit) };
+        var otFrom = Math.max(limit, span == null ? spanOf('') : span);
+        return { work: Math.min(worked, limit), ot: Math.max(0, worked - otFrom) };
     }
 
     function cellHours(code, date, inTime, outTime) {
-        return computeHours(inTime, outTime, periodOf(code));
+        return computeHours(inTime, outTime, periodOf(code, date), spanOf(code));
     }
 
     /* =============================================
@@ -340,7 +354,7 @@
         var workTime = workTimeOf(employee.code);
         var start = imp.start || workTime.start;
         var end = imp.end || workTime.end;
-        var period = imp.period != null ? imp.period : Math.max(0, (toSeconds(end) - toSeconds(start)) / 3600);
+        var period = imp.period != null ? imp.period : periodOf(employee.code);
         return { start: start, end: end, period: period };
     }
 
@@ -1808,14 +1822,13 @@
             head.push('Employee', 'Employe Overtime', 'Client', 'Client Overtime');
             sub.push('Rate Daily', 'Rate Overtime', 'Rate Daily', 'Rate Overtime');
             var aoa = [head, sub];
-            // Period: the hours of a default day while the table shows them, else the Working Time's.
-            var defaultHours = showOriginal() ? null : defaultWorkHours();
             people.forEach(function (p, i) {
                 var emp = p.emp;
                 var row = p.row;
-                // A person's own working hours (employee form), else the project's.
+                // A person's own working hours (employee form), else the project's, and the Time
+                // Period (the Default Hours, else the Working Time's length).
                 var workTime = workTimeOf(row.dataset.employeeCode);
-                var hours = defaultHours || periodOf(row.dataset.employeeCode);
+                var hours = periodOf(row.dataset.employeeCode);
                 var line = [i + 1, row.dataset.employeeCode, emp.pin ? String(emp.pin) : null, p.first,
                             emp.occupation || null, workTime.start, workTime.end, round2(hours)];
                 dates.forEach(function (d) {

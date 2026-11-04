@@ -985,7 +985,11 @@ function feriizLogout() {
 
         const start = (project && project.workStart) || '08:00';
         const end = (project && project.workEnd) || '17:00';
-        const scheduled = Math.max(0, toSeconds(end + ':00') - toSeconds(start + ':00'));
+        // As in the Report: the Time Period is the project's Default Hours for that weekday
+        // (8 of 08:00-17:00, Baldy 04-11-2026), else the whole Working Time. Surplus starts
+        // after the Working Time; the hour between them is the break.
+        const span = Math.max(0, toSeconds(end + ':00') - toSeconds(start + ':00'));
+        const scheduled = defaultSeconds(project, date) || span;
         const inTime = rec ? rec.inTime || '' : '';
         const outTime = rec ? rec.outTime || '' : '';
         let attendance;
@@ -1002,7 +1006,7 @@ function feriizLogout() {
             const both = Boolean(inTime && outTime) && toSeconds(outTime) > toSeconds(inTime);
             worked = both ? toSeconds(outTime) - toSeconds(inTime) : 0;
             shortfall = both ? Math.min(0, worked - scheduled) : -scheduled;
-            surplus = both ? Math.max(0, worked - scheduled) : 0;
+            surplus = both ? Math.max(0, worked - Math.max(span, scheduled)) : 0;
             attendance = (inTime ? cell(inTime) : blank()) + (outTime ? cell(outTime) : blank()) +
                 (both ? cell(clock(worked)) : blank());
         }
@@ -1016,6 +1020,14 @@ function feriizLogout() {
                 cell(req ? req.reason : '', 'feriiz-u-080') + '</tr>',
             scheduled, worked, shortfall, surplus
         };
+    }
+
+    // The project's Default Hours of that day in seconds (per weekday when customised), or 0.
+    function defaultSeconds(project, date) {
+        const set = project && project.defaultHours;
+        if (!set) return 0;
+        const day = set.custom ? (set.days || {})[SHORT_DAYS[fromISO(date).getDay()]] : set.daily;
+        return Math.max(0, Number(day && day.work) || 0) * 3600;
     }
 
     function defaultRange() {

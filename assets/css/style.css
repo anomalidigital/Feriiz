@@ -547,6 +547,18 @@ body {
     background: #fff;
 }
 
+/* Under a list the pages stay in view at the bottom of the screen while it scrolls, as on dev
+   (Baldy, 04-11-2026). The list's card clips instead of hiding its overflow, so they can stick. */
+.table-container:has(> .pagination) {
+    overflow: clip;
+}
+
+.table-container > .pagination {
+    position: sticky !important;   /* over the old report rules' "position: relative !important" */
+    bottom: 0;
+    z-index: 5;
+}
+
 .pagination-info {
     font-size: 13px;
     color: #888;
@@ -931,8 +943,8 @@ body {
 }
 
 /* Occupation picker (04-11-2026, app.js): one field and one list for every occupation
-   filter, in the Filters and in the Assign Request / request popups. The field looks like the
-   other selects; the list floats over the page, so a popup's scrolling body never cuts it. */
+   filter. It is Bootstrap's dropdown (.dropdown / .dropdown-menu / .dropdown-item) restyled:
+   the field looks like the other selects, the list has a tick and a count per occupation. */
 .occ-picker-native {
     display: none !important;
 }
@@ -965,7 +977,7 @@ body {
 }
 
 .occ-picker-trigger:focus-visible,
-.occ-picker.is-open .occ-picker-trigger {
+.occ-picker-trigger[aria-expanded="true"] {
     border-color: var(--feriiz-primary);
     box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.12);
     outline: none;
@@ -985,24 +997,32 @@ body {
     transition: transform 0.2s ease;
 }
 
-.occ-picker.is-open .occ-picker-trigger i {
+.occ-picker-trigger[aria-expanded="true"] i {
     transform: rotate(180deg);
 }
 
 .occ-picker-menu {
-    position: fixed;
-    z-index: 30;
+    --bs-dropdown-min-width: 240px;
+    --bs-dropdown-padding-x: 4px;
+    --bs-dropdown-padding-y: 4px;
+    --bs-dropdown-font-size: 13px;
+    --bs-dropdown-color: #333;
+    --bs-dropdown-bg: var(--feriiz-card);
+    --bs-dropdown-border-color: var(--feriiz-border-soft);
+    --bs-dropdown-border-radius: 8px;
+    --bs-dropdown-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --bs-dropdown-link-color: #333;
+    --bs-dropdown-link-hover-color: #333;
+    --bs-dropdown-link-hover-bg: var(--feriiz-primary-soft);
+    --bs-dropdown-link-active-color: #333;
+    --bs-dropdown-link-active-bg: var(--feriiz-primary-soft);
+    --bs-dropdown-item-padding-x: 8px;
+    --bs-dropdown-item-padding-y: 6px;
+    --bs-dropdown-item-border-radius: 6px;
+    width: 100%;
+    max-height: 288px;
     overflow-y: auto;
-    padding: 4px;
-    border: 1px solid var(--feriiz-border-soft);
-    border-radius: 8px;
-    background: var(--feriiz-card);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    outline: none;
-}
-
-.occ-picker-menu[hidden] {
-    display: none;
+    box-shadow: var(--bs-dropdown-box-shadow);
 }
 
 .occ-picker label.occ-picker-row {
@@ -1012,16 +1032,9 @@ body {
     gap: 8px;
     min-height: 32px;
     margin: 0;
-    padding: 6px 8px;
-    border-radius: 6px;
-    color: #333;
     font-size: 13px;
     font-weight: 400;
     cursor: pointer;
-}
-
-.occ-picker label.occ-picker-row:hover {
-    background: var(--feriiz-primary-soft);
 }
 
 /* "All Occupations" heads the list, set off by a line. */
@@ -3610,7 +3623,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-247 { background:#2975BB; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px; border-radius:10px; }
 .feriiz-u-248 { background:rgba(255,255,255,0.2); width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-right:16px; flex-shrink:0; }
 .feriiz-u-249 { color:#fff; font-size:13px; font-weight:600; }
-.feriiz-u-251 { background:#fff; border:1px solid #D9D9D9; border-radius:7px; overflow:hidden; }
 .feriiz-u-252 { width:780px; max-width:96vw; max-height:90vh; overflow-y:auto; border-radius:14px; background:#fff; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.18); }
 .feriiz-u-253 { position:sticky; top:0; background:#fff; padding:20px 28px 16px; border-bottom:1px solid #eee; z-index:10; display:flex; justify-content:space-between; align-items:center; border-radius:14px 14px 0 0; }
 .feriiz-u-254 { font-size:17px; font-weight:700; color:#1a1a1a; margin:0; }
@@ -4000,8 +4012,8 @@ div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell)
    (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the upload.
    The two halves are equal and every split day is as wide, so the halves line up from row
    to row (Baldy, 04-11-2026: fitting them to their content left them out of line). */
-div.report-layout .report-table th.day-split-col {
-    min-width: 300px;
+div.report-layout .report-table thead th.day-col.day-split-col {
+    min-width: 340px;
 }
 
 /* The date's line of a split day: the date, then its history button (the checkbox stays alone). */
@@ -7206,8 +7218,10 @@ div.report-layout .report-table [class*="col-cli-"] {
 }
 
 /* So do the day columns (Arcon via Baldy, 04-11-2026: "di dempetin aja bener bener fit"):
-   the table no longer spreads them over the page, and a day with more request chips just
-   gets wider. The checkboxes keep their room on the right. */
+   the table no longer spreads them over the page, and a day with a long request name just
+   gets wider. Each day is at least 168px, a little room so every day is as wide (Baldy, the
+   same day: "kasih space dikit biar semuanya sama dan rapi"). The checkboxes keep their room
+   on the right. */
 div.report-layout .report-table {
     width: auto !important;
     min-width: 0 !important;
@@ -7216,6 +7230,7 @@ div.report-layout .report-table {
 div.report-layout .report-table th.day-col,
 div.report-layout .report-table td.day-col {
     width: 1px !important;
+    min-width: 168px;
     white-space: nowrap;
 }
 

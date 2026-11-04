@@ -21,7 +21,7 @@
      page (2026-10-26).
    - Every assignment is one person on one day (Feriiz team, 27-10-2026):
      Batch Update > Assign Request gives a template to exactly the ticked days,
-     and Batch Update > Remove Request takes it off them again (Baldy, 04-11-2026).
+     and Batch Update > Delete Request takes it off them again (Baldy, 04-11-2026).
      A day shows what it was given as small chips with the template's name, on a
      line under the day.
 
@@ -33,7 +33,7 @@
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
    FeriizTemplates.openAssign(context)   Assign Request in the Report (Batch Update: the ticked days)
-   FeriizTemplates.openRemove(context)   Remove Request in the Report (Batch Update: the ticked days)
+   FeriizTemplates.openRemove(context)   Delete Request in the Report (Batch Update: the ticked days)
    ============================================================ */
 (function () {
     'use strict';
@@ -306,7 +306,7 @@
         if (p.noLog) skips.push(plural(p.noLog, 'day has', 'days have') + ' no log');
         if (p.already) skips.push(plural(p.already, 'day has', 'days have') + ' it already');
         modal.querySelector('#assignSummary').textContent = (p.rows.length
-            ? plural(people, 'person', 'people') + ' · ' + rupiah(p.total) : 'Nothing to give') +
+            ? plural(p.rows.length, 'day', 'days') + ' · ' + plural(people, 'person', 'people') + ' · ' + rupiah(p.total) : 'Nothing to give') +
             (skips.length ? ' (' + skips.join(', ') + ')' : '');
         modal.querySelector('#assignSubmit').disabled = !p.rows.length;
     }
@@ -341,11 +341,11 @@
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
-    /* ---------- Remove Request (Report: Batch Update > Remove Request) ----------
+    /* ---------- Delete Request (Report: Batch Update > Delete Request) ----------
        context = { project: { code, name }, cells: [{ code, name, date }], onDone: function () }
-       Takes one request off the ticked days (Baldy, 04-11-2026: removing belongs in Batch
-       Update, like assigning, not on the chips in the table). The list offers only the
-       requests those days have; the line by the buttons says what goes. */
+       Takes one request off the ticked days (Baldy, 04-11-2026: it can only be deleted in
+       Batch Update, like assigning, never from the chips in the table). The list offers only
+       the requests those days have; the line by the buttons says what goes. */
     var removeModal = null;
     var removeCtx = null;
 
@@ -361,7 +361,7 @@
                 '<div class="modal-content">' +
                     '<div class="modal-header">' +
                         '<div>' +
-                            '<h2 class="modal-title" id="removeTemplateTitle">Remove Request</h2>' +
+                            '<h2 class="modal-title" id="removeTemplateTitle">Delete Request</h2>' +
                             '<p class="tpl-subtitle" id="removeTemplateContext"></p>' +
                         '</div>' +
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
@@ -373,7 +373,7 @@
                     '<div class="modal-footer">' +
                         '<span class="tpl-summary me-auto" id="removeSummary"></span>' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
-                        '<button type="button" class="btn btn-danger" id="removeSubmit">Remove</button>' +
+                        '<button type="button" class="btn btn-danger" id="removeSubmit">Delete</button>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -390,7 +390,7 @@
         return index;
     }
 
-    // What Remove takes: the template's assignments on the ticked days, with people and total.
+    // What Delete takes: the template's assignments on the ticked days, with people and total.
     function removable() {
         var id = removeModal.querySelector('#removeTemplateSelect').value;
         var ticked = tickedIndex();
@@ -408,7 +408,7 @@
         var r = removable();
         var people = Object.keys(r.people).length;
         removeModal.querySelector('#removeSummary').textContent = r.ids.length
-            ? plural(people, 'person', 'people') + ' · ' + rupiah(r.total) : 'None of the ticked days has it';
+            ? plural(r.ids.length, 'day', 'days') + ' · ' + plural(people, 'person', 'people') + ' · ' + rupiah(r.total) : 'None of the ticked days has it';
         removeModal.querySelector('#removeSubmit').disabled = !r.ids.length;
     }
 
@@ -419,7 +419,7 @@
         removeAssignments(r.ids);
         window.bootstrap.Modal.getInstance(removeModal).hide();
         if (window.FeriizNotify) {
-            window.FeriizNotify.success('Taken off ' + plural(Object.keys(r.people).length, 'person', 'people') + ': ' + rupiah(r.total) + '.', t.name + ' removed');
+            window.FeriizNotify.success('Taken off ' + plural(r.ids.length, 'day', 'days') + ' of ' + plural(Object.keys(r.people).length, 'person', 'people') + ': ' + rupiah(r.total) + '.', t.name + ' deleted');
         }
         if (removeCtx.onDone) removeCtx.onDone();
     }
@@ -433,7 +433,7 @@
         });
         var list = templates.filter(function (t) { return has[t.id]; });
         if (!list.length) {
-            if (window.FeriizNotify) window.FeriizNotify.warning('None of the ticked days has a request.', 'Nothing to remove');
+            if (window.FeriizNotify) window.FeriizNotify.warning('None of the ticked days has a request.', 'Nothing to delete');
             return;
         }
         if (!removeModal) removeModal = buildRemoveModal();

@@ -907,8 +907,8 @@
         });
     }
 
-    // Batch Update > Remove Request (Baldy, 04-11-2026): takes a request off the ticked days.
-    // It used to be done from a chip in the table.
+    // Batch Update > Delete Request (Baldy, 04-11-2026): takes a request off the ticked days.
+    // This is the only place a request is deleted; the chips in the table cannot be clicked.
     function openTemplateRemove() {
         var cells = tickedDays();
         if (!cells) return;

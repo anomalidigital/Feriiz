@@ -508,7 +508,9 @@ function feriizLogout() {
        - The field reads like the other selects, with how many people it covers:
          "All Occupations (132)", "Tukang Besi (13)", "2 Occupations (27)".
        - The list ticks one or more occupations, A to Z, each with its count. It only drafts:
-         the page's <select class="filter-occ"> keeps the value and is read on Apply. */
+         the page's <select class="filter-occ"> keeps the value and is read on Apply.
+       It is Bootstrap's dropdown, restyled as ours (Baldy, 04-11-2026): Bootstrap opens, places
+       and closes it (a tick keeps it open; Esc or a click outside closes it). */
     const normalizeOccupation = value => String(value || '').trim().toLowerCase();
     const isAllOccupation = value => {
         const normalized = normalizeOccupation(value);
@@ -517,18 +519,16 @@ function feriizLogout() {
     const escapeText = value => String(value == null ? '' : value)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const formatCount = n => Number(n).toLocaleString('id-ID');
-    const openPickers = new Set();
 
     function createOccupationPicker(options = {}) {
         const el = document.createElement('div');
-        el.className = 'occ-picker';
+        el.className = 'dropdown occ-picker';
         el.innerHTML = `
-            <button type="button" class="occ-picker-trigger" aria-haspopup="true" aria-expanded="false">
+            <button type="button" class="occ-picker-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                 <span class="occ-picker-text">All Occupations</span>
                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </button>
-            <div class="occ-picker-menu" role="group" aria-label="Occupations" tabindex="-1" hidden></div>`;
-        const trigger = el.querySelector('.occ-picker-trigger');
+            <div class="dropdown-menu occ-picker-menu" role="group" aria-label="Occupations"></div>`;
         const text = el.querySelector('.occ-picker-text');
         const menu = el.querySelector('.occ-picker-menu');
         let items = [];     // { value, name, count }, A to Z
@@ -545,7 +545,7 @@ function feriizLogout() {
         }
 
         function rowHTML(value, name, count) {
-            return `<label class="occ-picker-row${value === '' ? ' is-all' : ''}">
+            return `<label class="dropdown-item occ-picker-row${value === '' ? ' is-all' : ''}">
                 <input type="checkbox" class="form-check-input" value="${escapeText(value)}">
                 <span class="occ-picker-name">${escapeText(name)}</span>
                 ${count == null ? '' : `<span class="occ-picker-count">${formatCount(count)}</span>`}
@@ -568,48 +568,6 @@ function feriizLogout() {
             paint();
         }
 
-        // The list floats over the page (fixed), so no scrolling panel cuts it off.
-        // It opens upwards only when there is clearly more room above.
-        function place() {
-            const box = trigger.getBoundingClientRect();
-            const below = window.innerHeight - box.bottom - 12;
-            const above = box.top - 12;
-            const up = below < 200 && above > below;
-            const width = Math.max(box.width, 240);
-            menu.style.left = Math.max(8, Math.min(box.left, window.innerWidth - width - 8)) + 'px';
-            menu.style.width = width + 'px';
-            menu.style.maxHeight = Math.min(288, up ? above : below) + 'px';
-            menu.style.top = up ? '' : (box.bottom + 4) + 'px';
-            menu.style.bottom = up ? (window.innerHeight - box.top + 4) + 'px' : '';
-        }
-
-        function follow(event) {
-            if (event.type === 'scroll' && menu.contains(event.target)) return;
-            place();
-        }
-
-        function open() {
-            openPickers.forEach(picker => { if (picker !== api) picker.close(); });
-            menu.hidden = false;
-            place();
-            el.classList.add('is-open');
-            trigger.setAttribute('aria-expanded', 'true');
-            openPickers.add(api);
-            window.addEventListener('scroll', follow, true);
-            window.addEventListener('resize', follow);
-        }
-
-        function close() {
-            if (menu.hidden) return;
-            menu.hidden = true;
-            el.classList.remove('is-open');
-            trigger.setAttribute('aria-expanded', 'false');
-            openPickers.delete(api);
-            window.removeEventListener('scroll', follow, true);
-            window.removeEventListener('resize', follow);
-        }
-
-        trigger.addEventListener('click', () => (menu.hidden ? open() : close()));
         menu.addEventListener('change', event => {
             const value = event.target.value;
             if (value === '') chosen = [];
@@ -617,20 +575,9 @@ function feriizLogout() {
             paint();
             if (options.onChange) options.onChange(chosen.slice());
         });
-        // Esc closes only the list, not the Filter around it.
-        el.addEventListener('keydown', event => {
-            if (event.key !== 'Escape' || menu.hidden) return;
-            event.stopPropagation();
-            close();
-            trigger.focus();
-        });
-        el.addEventListener('focusout', event => {
-            if (!el.contains(event.relatedTarget)) close();
-        });
 
-        const api = {
+        return {
             el,
-            close,
             // Occupation names without counts, until the page gives its people.
             setNames(names) {
                 const seen = {};
@@ -660,7 +607,6 @@ function feriizLogout() {
                 paint();
             }
         };
-        return api;
     }
 
     // A Filter keeps its <select class="filter-occ"> as the value the page reads on Apply; the
@@ -740,9 +686,6 @@ function feriizLogout() {
         initOccupationFilters();
     }
 
-    document.addEventListener('click', event => {
-        openPickers.forEach(picker => { if (!picker.el.contains(event.target)) picker.close(); });
-    });
 })();
 
 (function () {

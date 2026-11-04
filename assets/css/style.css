@@ -31,6 +31,8 @@
     --feriiz-overtime: #F1C40F;  /* Overtime badge, dark text */
     --feriiz-flag: #FEEFB9;      /* incomplete log cell */
     --feriiz-flag-bar: #F39C12;
+    --feriiz-flag-danger: #F8D2CD;   /* a Report day missing both logs, with a --feriiz-danger bar */
+    --feriiz-added: #CCE3F6;         /* a log added with Add Log, with a --feriiz-info bar */
     --feriiz-import: #8E44AD;    /* Report days from an import, white text */
     --feriiz-import-soft: #F4ECF8;   /* light purple behind purple text (5:1), e.g. a hovered history button */
     --feriiz-import-tint: #EAD0F7;   /* the upload half of a split day, as strong as the yellow --feriiz-flag */
@@ -3017,11 +3019,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
     margin: 4px 8px;
 }
 
-.fixed-clock-line {
-    border: 1px solid #B9D8F2;
-    background: #F5FAFF !important;
-}
-
 .report-fix-modal {
     z-index: 1200;
 }
@@ -3884,6 +3881,16 @@ div.report-layout .report-table tbody td.no-log-cell:hover {
     background: #FDE68A !important;
 }
 
+/* Both logs missing: red (Baldy, 04-11-2026: "kalau missing dua duanya itu merah"). */
+div.report-layout .report-table tbody td.no-log-cell.log-missing-both {
+    background: var(--feriiz-flag-danger) !important;
+    box-shadow: inset 4px 0 0 var(--feriiz-danger) !important;
+}
+
+div.report-layout .report-table tbody td.no-log-cell.log-missing-both:hover {
+    background: #F3B6AE !important;
+}
+
 /* Weekend off cells */
 div.report-layout .report-table tbody td.weekend-off-cell {
     background: #F8FAFC !important;
@@ -3911,6 +3918,10 @@ div.report-layout .report-table tbody td.weekend-off-cell {
 
 div.report-layout .report-table tbody td.no-log-cell .day-cell-select {
     accent-color: var(--feriiz-flag-bar);
+}
+
+div.report-layout .report-table tbody td.no-log-cell.log-missing-both .day-cell-select {
+    accent-color: var(--feriiz-danger);
 }
 
 /* Day column header: label left, select-all checkbox right */
@@ -3946,33 +3957,27 @@ div.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checke
     background: #FDE68A !important;
 }
 
-/* Latest batch result. This is a lightweight DOM marker, not database state. */
-div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell) {
-    background: #DBEAFE !important;
-    box-shadow: inset 4px 0 0 var(--feriiz-info) !important;
+div.report-layout .report-table tbody td.no-log-cell.log-missing-both:has(.day-cell-select:checked) {
+    outline-color: var(--feriiz-danger) !important;
+    background: #F3B6AE !important;
 }
 
-div.report-layout .report-table tbody td.recently-updated-cell:not(.no-log-cell):hover {
-    background: #BFDBFE !important;
+/* What changed a day (Baldy, 04-11-2026: "biru itu batch update, ungu itu hasil import"), the
+   same in the first view and with Show history:
+   - a log an admin added with Add Log is blue, a tint with a bar like the day colours; its
+     tooltip says who added it and when.
+   - a number an upload changed is a purple badge; its tooltip says what the day counts without
+     the upload. */
+div.report-layout .report-table .feriiz-u-141.log-added,
+div.report-layout .report-table .day-half .feriiz-u-141.log-added {
+    background: var(--feriiz-added);
+    box-shadow: inset 3px 0 0 var(--feriiz-info);
 }
 
-.cell-updated-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-right: 24px;
-    padding: 4px 7px;
-    border-radius: 999px;
-    background: var(--feriiz-info);
+.badge.feriiz-u-135.badge-uploaded,
+.badge.feriiz-u-136.badge-uploaded {
+    background: var(--feriiz-import);
     color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.cell-updated-badge i {
-    font-size: 8px;
 }
 
 /* Uploaded days (XLSX > Upload Log): the file's numbers replace what the system counts; the
@@ -4065,9 +4070,9 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     font-weight: 600;
 }
 
-/* Each import is drawn like the day's Import half: badges, then log in / log out. */
-.import-history-table td .day-half {
-    min-width: 200px;
+/* Each upload is its hours and overtime badges on the upload's purple ground (it has no log times). */
+.import-history-table td .day-half .feriiz-u-133 {
+    margin-bottom: 0;
 }
 
 .import-history-table tr.is-changed td:first-child {
@@ -4115,6 +4120,11 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     box-shadow: inset 4px 0 0 var(--feriiz-flag-bar);
 }
 
+.day-half--system.is-missing-both {
+    background: var(--feriiz-flag-danger);
+    box-shadow: inset 4px 0 0 var(--feriiz-danger);
+}
+
 .day-half.is-empty {
     display: flex;
     align-items: center;
@@ -4134,7 +4144,7 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     color: #6B7480 !important;
 }
 
-/* In a split column only the System half turns yellow for a missing log. */
+/* In a split column only the System half turns yellow (or red) for missing logs. */
 div.report-layout .report-table tbody td.day-split-cell.no-log-cell,
 div.report-layout .report-table tbody td.day-split-cell.no-log-cell:hover {
     background: #fff !important;

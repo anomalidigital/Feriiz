@@ -48,9 +48,14 @@
     var attendanceIndex = {};
     // Accepted requests (sick, leave, remote, permission) keyed the same way.
     var requestIndex = {};
-    // Logs added or deleted with Batch Update in this visit, keyed like attendanceIndex.
-    // Presentation-only (never sent anywhere) but survives a change of date range.
-    var cellOverrides = {};
+    // Logs added or deleted with Batch Update, keyed like attendanceIndex: { inTime, outTime,
+    // inNote, outNote, inAdded, outAdded }, where inAdded / outAdded = { by, role, at } of a log
+    // an admin added. Prototype only: kept in this browser per project, like the uploads, until
+    // the API exists, so an added log stays blue after a reload (Baldy, 04-11-2026).
+    var LOG_EDITS_KEY = 'feriiz_report_log_edits_v1';
+    var logEditStore = {};
+    try { logEditStore = JSON.parse(localStorage.getItem(LOG_EDITS_KEY) || '{}') || {}; } catch (e) { logEditStore = {}; }
+    var cellOverrides = {};   // this project's part of logEditStore (see loadProjectContext)
 
     function isOffDay(date) {
         var days = projectContext && projectContext.workingDays;
@@ -58,22 +63,20 @@
         return days.indexOf(DAY_NAMES[fromISO(date).getDay()]) < 0;
     }
 
-    // Weekend or holiday for this person: from their record, else the project's working days.
-    function isOffCell(employeeCode, date) {
-        var rec = attendanceIndex[employeeCode + '|' + date];
-        return rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
+    // A day's log in and log out, Add Log and Delete Log included, and which of them an admin added.
+    function dayLogs(code, date) {
+        var edit = cellOverrides[code + '|' + date];
+        var src = edit || attendanceIndex[code + '|' + date] || {};
+        return {
+            inTime: src.inTime || '', outTime: src.outTime || '',
+            inNote: src.inNote || '', outNote: src.outNote || '',
+            inAdded: edit && edit.inTime ? edit.inAdded || null : null,
+            outAdded: edit && edit.outTime ? edit.outAdded || null : null
+        };
     }
 
-    function rememberCell(cell) {
-        var row = cell.closest('tr');
-        if (!row) return;
-        var key = row.dataset.employeeCode + '|' + cell.dataset.date;
-        cellOverrides[key] = {
-            inTime: cell.dataset.inTime || '',
-            outTime: cell.dataset.outTime || '',
-            inNote: cell.dataset.inNote || '',
-            outNote: cell.dataset.outNote || ''
-        };
+    function saveLogEdits() {
+        try { localStorage.setItem(LOG_EDITS_KEY, JSON.stringify(logEditStore)); } catch (e) { /* kept for this page only */ }
     }
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
@@ -229,23 +232,17 @@
         return { inTime: inTime, outTime: outTime, hours: cellHours(code, date, inTime, outTime) };
     }
 
-    // Stamp the numbers totals and print read from.
-    function setCellHours(cell, hours) {
-        var complete = Boolean(cell.dataset.inTime && cell.dataset.outTime);
-        cell.dataset.work = (hours.work || 0).toFixed(4);
-        cell.dataset.ot = (hours.ot || 0).toFixed(4);
-        cell.dataset.otTotal = complete ? (hours.ot || 0).toFixed(4) : '0';
-    }
-
     /* =============================================
        IMPORTED LOG (XLSX > Upload Log; on screen it is "upload" since 03-11-2026)
-       An import replaces what the Report counts for its days: Daily (1 = paid day,
-       0 = not) and Overtime hours, plus the rates in the file (Feriiz team, 27-10-2026).
-       The first view shows an uploaded day as one normal day with the file's numbers and
-       the machine's own log in / log out. With Filter > Show history (on by itself after an
-       upload) a day column with an upload is split in two: the upload on the left and the
-       original logs on the right (Pak Stef via Baldy, 04-11-2026; the other way round
-       before). Prototype only: kept in this browser until the API exists.
+       An upload replaces the NUMBERS the Report counts for its days: Daily (1 = a day,
+       0.5 = half a day, as dev writes a day with one log, 0 = none) and Overtime hours, plus
+       the rates in the file (Feriiz team, 27-10-2026). The file has no log times, so the log
+       in / log out stay the machine's (Add Log included), and Add Log / Delete Log work on
+       uploaded days too. The newest upload is what a day shows, in both views, and every
+       number it changes is purple (Baldy, 04-11-2026: "biru itu batch update, ungu itu hasil
+       import"). With Filter > Show history (on by itself after an upload) a day column with
+       an upload is split in two: the upload on the left and the original on the right (Pak
+       Stef via Baldy, 04-11-2026). Prototype only: kept in this browser until the API exists.
        ============================================= */
     var IMPORT_KEY = 'feriiz_report_imports_v1';
     var RATE_LABELS = { daily: 'Daily Rate', ot: 'Rate Overtime', clientDaily: 'Client Daily Rate', clientOt: 'Client Rate Overtime' };
@@ -313,19 +310,16 @@
     // The imported day of one person, or null.
     function importedDay(code, date) { return projectImports().cells[code + '|' + date] || null; }
 
-    // What the system counts for one day without an import, Add Log included: the default
-    // when there is one (also with Show history), else the real logs. An import is
-    // compared with this, so only the days the file really changes are marked.
+    // What the system counts for one day without an upload, Add Log included: the default
+    // when there is one (also with Show history), else the real logs. An upload is compared
+    // with this, so only the numbers the file really changes turn purple.
     function systemDay(code, date) {
-        var rec = attendanceFor(code, date);
         var override = cellOverrides[code + '|' + date];
-        var dayOff = rec ? (rec.status === 'weekend' || rec.status === 'holiday') : isOffDay(date);
-        if (dayOff && !(override && (override.inTime || override.outTime))) return { daily: 0, ot: 0 };
-        var src = override || rec || {};
-        var inTime = src.inTime || '', outTime = src.outTime || '';
-        var view = dayView(code, date, inTime, outTime, true);
-        var ot = inTime && outTime ? view.hours.ot : 0;
-        return { daily: inTime || outTime ? 1 : 0, ot: Math.round(ot * 100) / 100 };
+        if (dayOffFor(code, date) && !(override && (override.inTime || override.outTime))) return { daily: 0, work: 0, ot: 0 };
+        var logs = dayLogs(code, date);
+        var complete = Boolean(logs.inTime && logs.outTime);
+        var view = dayView(code, date, logs.inTime, logs.outTime, true);
+        return { daily: logs.inTime || logs.outTime ? 1 : 0, work: complete ? round2(view.hours.work) : 0, ot: complete ? round2(view.hours.ot) : 0 };
     }
 
     // "Daily 1 · OT 1.47h", in the words of the Excel columns.
@@ -389,46 +383,41 @@
 
     var EMPTY_CLOCK_LINE = '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
 
-    // One imported day drawn like a normal day: hours and OT badges, then log in / log out.
-    // The log times are the file's Time Start / Time End, or the machine's own logs when
-    // given (the first view shows those, Baldy 04-11-2026).
-    function importDayBody(employee, imp, logs) {
-        var hours = importHours(employee, imp);
-        var work = imp.daily ? hours.period : 0;
-        var inTime = logs ? logs.inTime : imp.daily ? hours.start : '';
-        var outTime = logs ? logs.outTime : imp.daily ? hours.end : '';
-        return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
-                '<span class="badge feriiz-u-135">' + formatHour(work) + '</span>' +
-                '<span class="badge feriiz-u-136">' + formatHour(imp.ot) + ' OT</span>' +
-            '</div></div>' +
-            '<div class="feriiz-u-140">' +
-                (inTime ? buildClockLine('in', inTime) : EMPTY_CLOCK_LINE) +
-                (outTime ? buildClockLine('out', outTime) : EMPTY_CLOCK_LINE) +
-            '</div>';
+    // What an uploaded day counts. changed says which numbers the file changed, as the upload
+    // preview counts them (Daily, Overtime): those badges are purple, so the table shows the
+    // same changes as "N changed". A changed Daily counts Daily x the file's Period; a Daily the
+    // file left as it was keeps the hours the system counts, so a plain download and upload
+    // changes nothing on screen.
+    function uploadView(employee, date, imp) {
+        var ot = round2(imp.ot);
+        var sys = systemDay(employee.code, date);
+        var changed = { work: imp.daily !== sys.daily, ot: Math.abs(ot - sys.ot) >= 0.01 };
+        return {
+            work: changed.work ? round2((Number(imp.daily) || 0) * importHours(employee, imp).period) : sys.work,
+            ot: ot,
+            changed: changed,
+            sys: sys
+        };
     }
 
-    // The machine's log in / log out of one day, Add Log included.
-    function systemLogs(code, date) {
-        var src = cellOverrides[code + '|' + date] || attendanceFor(code, date) || {};
-        return { inTime: src.inTime || '', outTime: src.outTime || '' };
+    // One uploaded day drawn like a normal day: the upload's hours and OT badges, then the
+    // machine's log in / log out (the file has no log times).
+    function importDayBody(employee, date, imp) {
+        var up = uploadView(employee, date, imp);
+        return badgesHTML(up.work, up.ot, up.changed, uploadedTip(imp, imp, up.sys)) + logLinesHTML(dayLogs(employee.code, date));
     }
 
-    // The left half of a split day (Pak Stef via Baldy, 04-11-2026: the upload first), and one
-    // version in the upload history. Neither has a "Changed" pill (Baldy, 03-11 and 04-11-2026).
-    function importDayHTML(employee, imp, title) {
-        return '<div class="day-half day-half--import"' + (title ? ' title="' + escapeHTML(title) + '"' : '') + '>' +
-            importDayBody(employee, imp) + '</div>';
-    }
-
-    // Its tooltip says what the day counts without the upload.
+    // The left half of a split day (Pak Stef via Baldy, 04-11-2026: the upload first). There is
+    // no "Changed" pill (Baldy, 03-11 and 04-11-2026): the purple badges show what changed.
     function importHalfHTML(employee, date, imp) {
-        return importDayHTML(employee, imp, importFlagText(employee.code, date, imp));
+        return '<div class="day-half day-half--import" title="' + escapeHTML(importFlagText(employee.code, date, imp)) + '">' +
+            importDayBody(employee, date, imp) + '</div>';
     }
 
     /* Upload history of one day (the clock button in its header, from the second upload on).
-       Every upload of that day side by side, oldest first: log in, log out, hours and
-       overtime per person. Each column's title says when and who: the account's name and
-       role (Baldy, 04-11-2026, who also dropped the list of uploads above the table). The
+       Every upload of that day side by side, oldest first: hours and overtime per person
+       (an upload has no log times). Each column's title says when and who: the account's name
+       and role (Baldy, 04-11-2026, who also dropped the list of uploads above the table). The
        newest is what the day shows. */
     var historyModal = null;
 
@@ -438,11 +427,13 @@
             (a.start || '') === (b.start || '') && (a.end || '') === (b.end || '') && (a.period || 0) === (b.period || 0);
     }
 
-    // Each upload of the day looks like the day's upload half (Baldy, 30-10-2026). Who changed
-    // shows in the count, the order and the purple line by the name, not in a pill (04-11-2026).
-    function historyValueHTML(employee, value) {
+    // Each upload of the day: its badges on the upload's purple ground, purple where they differ
+    // from what the day counts without an upload. The logs are not repeated: an upload has none.
+    // Who changed between uploads shows in the count, the order and the purple line by the name.
+    function historyValueHTML(employee, date, value, batch) {
         if (!value) return '<span class="import-history-none">–</span>';
-        return importDayHTML(employee, value, '');
+        var up = uploadView(employee, date, value);
+        return '<div class="day-half day-half--import">' + badgesHTML(up.work, up.ot, up.changed, uploadedTip(value, batch, up.sys)) + '</div>';
     }
 
     function buildHistoryModal() {
@@ -518,7 +509,7 @@
             return '<tr data-search="' + escapeHTML((r.e.name + ' ' + r.e.code).toLowerCase()) + '"' + (r.changed ? ' class="is-changed"' : '') + '>' +
                 '<td><div class="import-history-name">' + escapeHTML(r.e.name) + '</div><small>' + escapeHTML(r.e.code) +
                     (r.e.occupation ? ' · ' + escapeHTML(r.e.occupation) : '') + '</small></td>' +
-                r.values.map(function (v) { return '<td>' + historyValueHTML(r.e, v) + '</td>'; }).join('') +
+                r.values.map(function (v, i) { return '<td>' + historyValueHTML(r.e, date, v, batches[i]) + '</td>'; }).join('') +
             '</tr>';
         }).join('');
         historyModal.querySelector('#importHistorySearch').value = '';
@@ -528,25 +519,29 @@
     // A day from an upload with Show history: the totals count the file's numbers; the cell
     // shows the upload on the left and the original on the right (Pak Stef, 04-11-2026).
     function importedCellHTML(employee, date, imp, sys, checkbox) {
-        var work = imp.daily ? importHours(employee, imp).period : 0;
-        return '<td class="day-col feriiz-u-132 imported-cell day-split-cell" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
-            ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""' +
-            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-total="' + imp.ot.toFixed(4) + '">' +
+        var up = uploadView(employee, date, imp);
+        var logs = dayLogs(employee.code, date);
+        var issue = dayIssue(employee.code, date, logs);
+        return '<td class="day-col feriiz-u-132 imported-cell day-split-cell' + missingClass(issue) + '" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
+            (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(logs) +
+            ' data-work="' + up.work.toFixed(4) + '" data-ot="' + up.ot.toFixed(4) + '" data-ot-total="' + up.ot.toFixed(4) + '">' +
             checkbox + '<div class="day-split">' + importHalfHTML(employee, date, imp) + systemHalfHTML(sys) + '</div></td>';
     }
 
-    // A day from an upload in the first view: one normal day with the file's numbers and the
-    // machine's own log in / log out (Baldy, 04-11-2026; it showed the file's Time Start /
-    // Time End before). The purple check after the badges is gone ("agak janggal", how to
-    // mark an uploaded day is still open). An empty upload on a day with an accepted request
-    // keeps showing the request.
+    // A day from an upload in the first view: one normal day showing what the newest upload
+    // counts, purple where it changed the system's numbers, with the machine's log in / log out
+    // (Baldy, 04-11-2026: the upload "yang di tampilkan di yang tanpa show"). Its colour follows
+    // the logs like any day. An empty upload on a day off work for an accepted request keeps
+    // showing the request.
     function importedDayCellHTML(employee, date, imp, checkbox) {
-        var work = imp.daily ? importHours(employee, imp).period : 0;
-        var request = !imp.daily && !imp.ot ? requestFor(employee.code, date) : null;
-        return '<td class="day-col feriiz-u-132 imported-cell' + (request ? ' request-day-cell' : '') + '" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
-            (request ? ' data-request="' + escapeHTML(request.type) + '"' : '') + EMPTY_LOG_ATTRS +
-            ' data-work="' + work.toFixed(4) + '" data-ot="' + imp.ot.toFixed(4) + '" data-ot-total="' + imp.ot.toFixed(4) + '">' +
-            checkbox + withRequestChips(request ? requestChipHTML(request) : importDayBody(employee, imp, systemLogs(employee.code, date)), employee.code, date) + '</td>';
+        var up = uploadView(employee, date, imp);
+        var logs = dayLogs(employee.code, date);
+        var issue = dayIssue(employee.code, date, logs);
+        var request = !imp.daily && !imp.ot && !logs.inTime && !logs.outTime ? requestFor(employee.code, date) : null;
+        return '<td class="day-col feriiz-u-132 imported-cell' + (request ? ' request-day-cell' : missingClass(issue)) + '" data-date="' + date + '" data-imported="1" data-daily="' + imp.daily + '"' +
+            (request ? ' data-request="' + escapeHTML(request.type) + '"' : issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(logs) +
+            ' data-work="' + up.work.toFixed(4) + '" data-ot="' + up.ot.toFixed(4) + '" data-ot-total="' + up.ot.toFixed(4) + '">' +
+            checkbox + withRequestChips(request ? requestChipHTML(request) : importDayBody(employee, date, imp), employee.code, date) + '</td>';
     }
 
     function differs(a, b) { return a.daily !== b.daily || Math.abs(a.ot - b.ot) >= 0.01; }
@@ -558,86 +553,63 @@
             (differs(imp, sys) ? 'Without the upload: ' + dayText(sys) + '.' : 'The same as without the upload.');
     }
 
+    // "Uploaded from 261025_261030_..._FOR_IMPORT.xlsx (04 Nov 2026, 18:30)."
+    function uploadSource(src) {
+        return 'Uploaded' + (src && src.file ? ' from ' + src.file : '') + (src && src.at ? ' (' + stampText(src.at) + ')' : '') + '.';
+    }
+
+    // The tooltips of the purple badges: where the number comes from (src: the upload's file and
+    // time) and what the day counts without the upload.
+    function uploadedTip(imp, src, sys) {
+        return {
+            work: uploadSource(src) + ' Daily ' + imp.daily + '; without the upload: Daily ' + sys.daily + '.',
+            ot: uploadSource(src) + ' Without the upload: ' + formatHour(sys.ot) + ' OT.'
+        };
+    }
+
     /* =============================================
        CELL RENDERING
        ============================================= */
+    // One log line. A log an admin added with Add Log is blue, and its tooltip says who added it
+    // (Baldy, 04-11-2026: "kalau yang di update log in doang… colom nya jadi biru").
     function buildClockLine(type, value, options) {
-        var fixed = (options && options.fixed) || false;
         var note = (options && options.note) || '';
+        var added = options && options.added;
         var iconClass = type === 'in'
             ? 'fa-arrow-right-to-bracket feriiz-u-142'
             : 'fa-arrow-right-from-bracket feriiz-u-144';
-        var fixedClass = fixed ? ' fixed-clock-line' : '';
         var noteButton = note
             ? '<button type="button" class="report-log-note-btn" data-log-type="' + type + '" title="View log note" aria-label="View ' + (type === 'in' ? 'log in' : 'log out') + ' note"><i class="fa-solid fa-note-sticky"></i></button>'
             : '';
-        return '<div class="feriiz-u-141' + fixedClass + '">' +
+        return '<div class="feriiz-u-141' + (added ? ' log-added' : '') + '"' + (added ? ' title="' + escapeHTML(addedText(type, added)) + '"' : '') + '>' +
             '<span><i class="fa-solid ' + iconClass + '"></i>' + escapeHTML(value) + '</span>' +
             noteButton + '</div>';
     }
 
-    function buildDayCellContent(opts) {
-        var inTime = (opts && opts.inTime) || '';
-        var outTime = (opts && opts.outTime) || '';
-        var issue = (opts && opts.issue) || '';
-        var inNote = (opts && opts.inNote) || '';
-        var outNote = (opts && opts.outNote) || '';
-        var clockLines = opts && opts.clockLines;
-        var isEmpty = (opts && opts.isEmpty) || false;
-        var isUpdated = Boolean(opts && opts.updated);
+    // "Log in added with Add Log by Baldyas Satrio · Admin, 04 Nov 2026, 18:30"
+    function addedText(type, added) {
+        var who = accountOf(added.by, added.role);
+        return (type === 'in' ? 'Log in' : 'Log out') + ' added with Add Log by ' + who.name + ' · ' + who.role + (added.at ? ', ' + stampText(added.at) : '');
+    }
 
-        if (isEmpty) return '';
+    // A day's log in over its log out, "--:--:--" for a missing one.
+    function logLinesHTML(logs) {
+        return '<div class="feriiz-u-140">' +
+            (logs.inTime ? buildClockLine('in', logs.inTime, { note: logs.inNote, added: logs.inAdded }) : EMPTY_CLOCK_LINE) +
+            (logs.outTime ? buildClockLine('out', logs.outTime, { note: logs.outNote, added: logs.outAdded }) : EMPTY_CLOCK_LINE) +
+        '</div>';
+    }
 
-        var hours = (opts && opts.hours) || computeHours(inTime, outTime);
-        var complete = Boolean(inTime && outTime);
-        var otTotal = complete ? hours.ot : 0;
-        var totalBadge = '<span class="badge feriiz-u-135">' + formatHour(complete ? hours.work : 0) + '</span>' +
-            '<span class="badge feriiz-u-136">' + formatHour(otTotal) + ' OT</span>';
-
-        var renderedLines = Array.isArray(clockLines) ? clockLines : null;
-
-        var html = '';
-        if (totalBadge) {
-            var updateBadge = isUpdated
-                ? '<span class="cell-updated-badge"><i class="fa-solid fa-check"></i>Updated</span>'
-                : '';
-            html += '<div class="feriiz-u-133"><div class="feriiz-u-134">' + totalBadge + '</div>' + updateBadge + '</div>';
+    // A day's hours and overtime badges. The ones an upload changed are purple (Baldy,
+    // 04-11-2026: "ungu itu hasil import"), with tips saying what the day counts without it.
+    function badgesHTML(work, ot, changed, tips) {
+        function badge(cls, text, purple, tip) {
+            return '<span class="badge ' + cls + (purple ? ' badge-uploaded' : '') + '"' + (purple && tip ? ' title="' + escapeHTML(tip) + '"' : '') + '>' + text + '</span>';
         }
-
-        if (renderedLines) {
-            // Custom clock lines (from batch update)
-            // Sort: in first, out second
-            var inLines = renderedLines.filter(function (l) { return l.type === 'in'; });
-            var outLines = renderedLines.filter(function (l) { return l.type === 'out'; });
-            html += '<div class="feriiz-u-140">';
-            if (inLines.length > 0) {
-                html += inLines.map(function (l) { return buildClockLine('in', l.value, { fixed: l.fixed, note: l.note || inNote }); }).join('');
-            } else {
-                html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
-            }
-            if (outLines.length > 0) {
-                html += outLines.map(function (l) { return buildClockLine('out', l.value, { fixed: l.fixed, note: l.note || outNote }); }).join('');
-            } else {
-                html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
-            }
-            html += '</div>';
-        } else {
-            // Default rendering: always show in row on top, out row on bottom
-            html += '<div class="feriiz-u-140">';
-            if (inTime) {
-                html += buildClockLine('in', inTime, { note: inNote });
-            } else {
-                html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
-            }
-            if (outTime) {
-                html += buildClockLine('out', outTime, { note: outNote });
-            } else {
-                html += '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
-            }
-            html += '</div>';
-        }
-
-        return html;
+        return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
+            badge('feriiz-u-135', formatHour(work), changed && changed.work, tips && tips.work) +
+            badge('feriiz-u-136', formatHour(ot) + ' OT', changed && changed.ot, tips && tips.ot) +
+        '</div></div>';
     }
 
     /* =============================================
@@ -673,6 +645,23 @@
 
     var EMPTY_LOG_ATTRS = ' data-in-time="" data-out-time="" data-in-note="" data-out-note=""';
 
+    function logDataAttrs(logs) {
+        return ' data-in-time="' + escapeHTML(logs.inTime) + '" data-out-time="' + escapeHTML(logs.outTime) + '"' +
+            ' data-in-note="' + escapeHTML(logs.inNote) + '" data-out-note="' + escapeHTML(logs.outNote) + '"';
+    }
+
+    // What a day is missing, for its colour and the Log Status filter: '', 'in', 'out' or 'both'.
+    // A day without logs that an accepted request covers is not missing anything.
+    function dayIssue(code, date, logs) {
+        var issue = getMissingType(logs.inTime, logs.outTime);
+        return issue === 'both' && requestFor(code, date) ? '' : issue;
+    }
+
+    // The colour of a day that misses logs: yellow for one, red for both (Baldy, 04-11-2026).
+    function missingClass(issue) {
+        return issue === 'both' ? ' no-log-cell log-missing-both' : issue ? ' no-log-cell' : '';
+    }
+
     /* Request chips: what a day was given with Assign Request, by the template's name
        ("Uang Makan") on a line of their own under the day (Baldy, 04-11-2026: "taro di
        bawahnya", not next to the hours and overtime; they were initials in the badge row
@@ -696,60 +685,42 @@
     }
 
     // What the system shows for one day: the cell's class and data, and what goes inside.
-    // noteAttrs lets the left half of a split day open its own log notes.
+    // Its colour follows the logs (Baldy, 04-11-2026): yellow when one is missing, red when
+    // both are. noteAttrs lets the system half of a split day open its own log notes.
     function systemCell(employee, date) {
         var override = cellOverrides[employee.code + '|' + date];
         if (dayOffFor(employee.code, date) && !(override && (override.inTime || override.outTime))) {
             return { cls: 'weekend-off-cell', attrs: EMPTY_LOG_ATTRS, content: withRequestChips('', employee.code, date), off: true };
         }
-        var src = override || attendanceFor(employee.code, date) || {};
-        var inTime = src.inTime || '';
-        var outTime = src.outTime || '';
-        var request = !inTime && !outTime ? requestFor(employee.code, date) : null;
+        var logs = dayLogs(employee.code, date);
+        var request = !logs.inTime && !logs.outTime ? requestFor(employee.code, date) : null;
         if (request) {
             return { cls: 'request-day-cell', content: withRequestChips(requestChipHTML(request), employee.code, date),
                      attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-total="0"' };
         }
-        var inNote = src.inNote || '';
-        var outNote = src.outNote || '';
-        var issue = getMissingType(inTime, outTime);
+        var issue = getMissingType(logs.inTime, logs.outTime);
         // The data keeps the real logs (Add Log, notes, Show history); the cell shows the view.
-        var view = dayView(employee.code, date, inTime, outTime);
-        var otTotal = inTime && outTime ? view.hours.ot : 0;
-        var logAttrs = ' data-in-time="' + escapeHTML(inTime) + '" data-out-time="' + escapeHTML(outTime) + '" data-in-note="' + escapeHTML(inNote) + '" data-out-note="' + escapeHTML(outNote) + '"';
+        var view = dayView(employee.code, date, logs.inTime, logs.outTime);
+        var otTotal = issue ? 0 : view.hours.ot;
         return {
-            cls: issue ? 'no-log-cell' : '',
-            attrs: (issue ? ' data-missing="' + issue + '"' : '') + logAttrs +
+            cls: missingClass(issue).trim(),
+            issue: issue,
+            attrs: (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(logs) +
                 ' data-work="' + view.hours.work.toFixed(4) + '" data-ot="' + view.hours.ot.toFixed(4) + '" data-ot-total="' + otTotal.toFixed(4) + '"',
-            noteAttrs: ' data-date="' + date + '"' + logAttrs,
-            content: withRequestChips(buildDayCellContent({ inTime: view.inTime, outTime: view.outTime, inNote: inNote, outNote: outNote, issue: issue, hours: view.hours }), employee.code, date)
+            noteAttrs: ' data-date="' + date + '"' + logDataAttrs(logs),
+            content: withRequestChips(badgesHTML(issue ? 0 : view.hours.work, otTotal) + logLinesHTML(logs), employee.code, date)
         };
     }
 
-    // The right half of a split day: the system as it always looks, yellow when a log is missing.
-    // A day off keeps its request chips (a red-date incentive).
+    // The right half of a split day: the system as it always looks, yellow when a log is missing
+    // and red when both are. A day off keeps its request chips (a red-date incentive).
     function systemHalfHTML(sys) {
         if (sys.off) return '<div class="day-half day-half--system is-empty">' + (sys.content || '') + '<span class="day-half-empty">Day off</span></div>';
-        return '<div class="day-half day-half--system' + (sys.cls === 'no-log-cell' ? ' is-incomplete' : '') + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
+        var state = sys.issue === 'both' ? ' is-incomplete is-missing-both' : sys.issue ? ' is-incomplete' : '';
+        return '<div class="day-half day-half--system' + state + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
     }
 
     var NO_IMPORT_HALF = '<div class="day-half day-half--import is-empty"><span class="day-half-empty">Not in the upload</span></div>';
-
-    // After Add Log or Delete Log: the day keeps its request chips, and a day in a split
-    // column keeps its two halves.
-    function setCellContent(cell, content) {
-        var checkbox = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
-        content = withRequestChips(content, cell.closest('tr').dataset.employeeCode, cell.dataset.date);
-        if (!cell.classList.contains('day-split-cell') || cell.classList.contains('weekend-off-cell')) {
-            cell.innerHTML = checkbox + content;
-            return;
-        }
-        var d = cell.dataset;
-        var noteAttrs = ' data-date="' + d.date + '" data-in-time="' + escapeHTML(d.inTime || '') + '" data-out-time="' + escapeHTML(d.outTime || '') + '"' +
-            ' data-in-note="' + escapeHTML(d.inNote || '') + '" data-out-note="' + escapeHTML(d.outNote || '') + '"';
-        cell.innerHTML = checkbox + '<div class="day-split">' + NO_IMPORT_HALF +
-            systemHalfHTML({ cls: cell.classList.contains('no-log-cell') ? 'no-log-cell' : '', noteAttrs: noteAttrs, content: content }) + '</div>';
-    }
 
     function createDayCells(employee, dates) {
         return dates.map(function (date) {
@@ -1062,7 +1033,7 @@
         if (el) el.textContent = text;
     }
 
-    // An imported day counts its Daily (1 or 0) instead of "has a log". Transport is paid
+    // An uploaded day counts its Daily (1, 0.5 or 0) instead of "has a log". Transport is paid
     // on the same days.
     function updateVisibleTotals(datesToShow) {
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
@@ -1298,12 +1269,11 @@
                    (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
         });
 
-        // Uploaded days keep Delete Log clickable, so the click can say why they are left alone
-        // (they count the file; a new upload changes them). Baldy, 04-11-2026: "kenapa ga bisa delete log?"
-        var hasUploaded = selected.some(function (cell) { return cell.dataset.imported === '1'; });
+        // Uploaded days have the machine's logs too, so Delete Log works on them (Baldy,
+        // 04-11-2026: "kenapa ga bisa delete log?").
         var deleteBtn = document.querySelector('#batchUpdateDropdown button[data-action="delete"]');
         if (deleteBtn) {
-            deleteBtn.disabled = !hasLogs && !hasUploaded;
+            deleteBtn.disabled = !hasLogs;
         }
 
         syncDayHeaderSelections();
@@ -1424,23 +1394,6 @@
         var dd = document.getElementById('batchUpdateDropdown');
         if (dd) dd.classList.remove('show');
 
-        // An imported day counts the file's numbers, so its logs are not changed here.
-        var imported = selected.filter(function (cell) { return cell.dataset.imported === '1'; });
-        if (imported.length) {
-            imported.forEach(function (cell) {
-                var cb = cell.querySelector('.day-cell-select');
-                if (cb) cb.checked = false;
-            });
-            updateCellSelectionUI();
-            selected = getSelectedCells();
-            if (!selected.length) {
-                if (window.FeriizNotify) FeriizNotify.warning('These days come from an upload and count its numbers. To change them, upload a new file.', 'Uploaded days');
-                return;
-            }
-            if (window.FeriizNotify) FeriizNotify.info(imported.length + (imported.length === 1 ? ' uploaded day was' : ' uploaded days were') +
-                ' left out. Only days with system logs are changed.', 'Uploaded days skipped');
-        }
-
         // Delete actions go to confirmation modal
         if (action === 'delete') {
             var hasLogs = selected.some(function (cell) {
@@ -1527,15 +1480,6 @@
         if (modal) modal.classList.remove('show');
     }
 
-    function clearRecentUpdateMarkers() {
-        // Presentation-only state: never persisted and never sent to the backend.
-        document.querySelectorAll('.recently-updated-cell').forEach(function (cell) {
-            cell.classList.remove('recently-updated-cell');
-            var badge = cell.querySelector('.cell-updated-badge');
-            if (badge) badge.remove();
-        });
-    }
-
     function getBatchDateSummary(cells) {
         var dates = Array.from(new Set(cells.map(function (cell) { return cell.dataset.date; }).filter(Boolean)));
         if (dates.length !== 1) return dates.length + ' selected dates';
@@ -1550,6 +1494,9 @@
         });
     }
 
+    // Add Log and Delete Log change the logs of the ticked days, and the table is drawn again
+    // from them: the day's colour, the blue added logs, the totals and, on an uploaded day,
+    // which of the upload's numbers now differ. An uploaded day keeps counting the upload.
     function applyBatchUpdate() {
         var inInput = document.getElementById('batchUpdateIn');
         var outInput = document.getElementById('batchUpdateOut');
@@ -1559,164 +1506,81 @@
         var noteValue = noteInput ? noteInput.value.trim() : '';
         var selectedCells = getSelectedCells();
         var dateSummary = getBatchDateSummary(selectedCells);
+        var isAdd = activeAction === 'add';
         var updated = 0;
         var addedIns = 0, addedOuts = 0, kept = 0;
-        var addedPeople = {};
+        var people = {};
 
         if (selectedCells.length === 0) {
             if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
             return;
         }
-        if (activeAction === 'add' && !inValue && !outValue) {
+        if (isAdd && !inValue && !outValue) {
             if (inInput) inInput.focus();
             if (window.FeriizNotify) FeriizNotify.warning('Set a log in or a log out time before saving.', 'Log not saved');
             return;
         }
 
-        clearRecentUpdateMarkers();
+        // Who added a log and when: the blue line's tooltip says so.
+        var account = currentAccount();
+        var stamp = { by: account.name, role: account.role, at: new Date().toISOString() };
 
-        if (activeAction === 'add') {
-            // Each time fills only a log the day is missing: a log the machine has stays as it is
-            // (Arcon: machine times are never overwritten). Delete Log first to replace one.
-            selectedCells.forEach(function (cell) {
-                var existIn = cell.dataset.inTime || '';
-                var existOut = cell.dataset.outTime || '';
-                var existInNote = cell.dataset.inNote || '';
-                var existOutNote = cell.dataset.outNote || '';
-
-                var addIn = Boolean(inValue && !existIn);
-                var addOut = Boolean(outValue && !existOut);
+        selectedCells.forEach(function (cell) {
+            var code = cell.closest('tr').dataset.employeeCode;
+            var date = cell.dataset.date;
+            var logs = dayLogs(code, date);
+            if (isAdd) {
+                // Each time fills only a log the day is missing: a log the machine has stays as it
+                // is (Arcon: machine times are never overwritten). Delete Log first to replace one.
+                var addIn = Boolean(inValue && !logs.inTime);
+                var addOut = Boolean(outValue && !logs.outTime);
                 if (!addIn && !addOut) {
                     kept++;
                     return;
                 }
                 if (addIn) addedIns++;
                 if (addOut) addedOuts++;
-                addedPeople[cell.closest('tr').dataset.employeeCode] = true;
-
-                var newIn = addIn ? inValue : existIn;
-                var newOut = addOut ? outValue : existOut;
-                // A blank optional note must not erase an existing audit note.
-                var newInNote = addIn ? (noteValue || existInNote) : existInNote;
-                var newOutNote = addOut ? (noteValue || existOutNote) : existOutNote;
-
-                // The cell shows the view (the default, or the real logs); always in on top, out on bottom.
-                var addView = dayView(cell.closest('tr').dataset.employeeCode, cell.dataset.date, newIn, newOut);
-                var lines = [];
-                if (newIn) lines.push({ type: 'in', value: addView.inTime, fixed: true, note: newInNote });
-                if (newOut) lines.push({ type: 'out', value: addView.outTime, fixed: true, note: newOutNote });
-
-                cell.dataset.inTime = newIn;
-                cell.dataset.outTime = newOut;
-                cell.dataset.inNote = newInNote;
-                cell.dataset.outNote = newOutNote;
-                rememberCell(cell);
-
-                var issue = getMissingType(newIn, newOut);
-                if (issue) {
-                    cell.dataset.missing = issue;
-                    cell.classList.add('no-log-cell');
-                } else {
-                    cell.removeAttribute('data-missing');
-                    cell.classList.remove('no-log-cell');
-                }
-
-                if (newIn || newOut) {
-                    cell.classList.remove('weekend-off-cell', 'request-day-cell');
-                    cell.removeAttribute('data-request');
-                }
-
-                cell.classList.add('recently-updated-cell');
-                cell.classList.remove('cell-selected');
-
-                setCellHours(cell, addView.hours);
-                setCellContent(cell, buildDayCellContent({ inTime: addView.inTime, outTime: addView.outTime, inNote: newInNote, outNote: newOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: addView.hours }));
-                updated++;
-            });
-        } else if (activeAction.indexOf('delete') === 0) {
-            selectedCells.forEach(function (cell) {
-                var existIn = cell.dataset.inTime || '';
-                var existOut = cell.dataset.outTime || '';
-                var existInNote = cell.dataset.inNote || '';
-                var existOutNote = cell.dataset.outNote || '';
-                var date = cell.dataset.date;
-
-                if (activeAction === 'delete-in') {
-                    existIn = '';
-                    existInNote = '';
-                } else if (activeAction === 'delete-out') {
-                    existOut = '';
-                    existOutNote = '';
-                } else {
-                    existIn = '';
-                    existOut = '';
-                    existInNote = '';
-                    existOutNote = '';
-                }
-
-                cell.dataset.inTime = existIn;
-                cell.dataset.outTime = existOut;
-                cell.dataset.inNote = existInNote;
-                cell.dataset.outNote = existOutNote;
-                rememberCell(cell);
-
-                // An emptied day off goes back to grey, an emptied day with an accepted request
-                // shows the request again, and an emptied work day is missing both logs.
-                var backToDayOff = !existIn && !existOut && isOffCell(cell.closest('tr').dataset.employeeCode, date);
-                var backToRequest = !existIn && !existOut && !backToDayOff ? requestFor(cell.closest('tr').dataset.employeeCode, date) : null;
-                var issue = backToDayOff || backToRequest ? '' : getMissingType(existIn, existOut);
-                if (issue) {
-                    cell.dataset.missing = issue;
-                    cell.classList.add('no-log-cell');
-                } else {
-                    cell.removeAttribute('data-missing');
-                    cell.classList.remove('no-log-cell');
-                    if (backToDayOff) cell.classList.add('weekend-off-cell');
-                    if (backToRequest) {
-                        cell.classList.add('request-day-cell');
-                        cell.dataset.request = backToRequest.type;
-                    }
-                }
-
-                cell.classList.add('recently-updated-cell');
-                cell.classList.remove('cell-selected');
-
-                var delView = dayView(cell.closest('tr').dataset.employeeCode, date, existIn, existOut);
-                var lines = [];
-                if (existIn) lines.push({ type: 'in', value: delView.inTime, note: existInNote });
-                if (existOut) lines.push({ type: 'out', value: delView.outTime, note: existOutNote });
-
-                setCellHours(cell, delView.hours);
-                if (backToDayOff) {
-                    setCellContent(cell, '');
-                } else if (backToRequest) {
-                    setCellContent(cell, requestChipHTML(backToRequest));
-                } else {
-                    setCellContent(cell, buildDayCellContent({ inTime: delView.inTime, outTime: delView.outTime, inNote: existInNote, outNote: existOutNote, issue: issue, clockLines: lines.length > 0 ? lines : null, updated: true, hours: delView.hours }));
-                }
-                updated++;
-            });
-        }
+                cellOverrides[code + '|' + date] = {
+                    inTime: addIn ? inValue : logs.inTime,
+                    outTime: addOut ? outValue : logs.outTime,
+                    // A blank optional note must not erase an existing audit note.
+                    inNote: addIn ? (noteValue || logs.inNote) : logs.inNote,
+                    outNote: addOut ? (noteValue || logs.outNote) : logs.outNote,
+                    inAdded: addIn ? stamp : logs.inAdded,
+                    outAdded: addOut ? stamp : logs.outAdded
+                };
+            } else {
+                if (!logs.inTime && !logs.outTime) return;
+                cellOverrides[code + '|' + date] = { inTime: '', outTime: '', inNote: '', outNote: '', inAdded: null, outAdded: null };
+            }
+            people[code] = true;
+            updated++;
+        });
 
         closeBatchModal();
         deselectAllCells();
-        applyReportFilters();
-        updateVisibleTotals(currentVisibleDates);
-        if (activeAction === 'add' && !updated && window.FeriizNotify) {
-            FeriizNotify.info('The ticked days already have their log in and log out. Add Log only fills a missing one; use Delete Log first to replace a log.', 'Nothing to add');
+        if (updated) {
+            saveLogEdits();
+            showDays(currentVisibleDates.slice(), true);
+            applyReportFilters();
         }
-        if (updated > 0 && window.FeriizNotify) {
-            var isAdd = activeAction === 'add';
-            var people = Object.keys(addedPeople).length;
+        if (!window.FeriizNotify) return;
+        if (isAdd && !updated) {
+            FeriizNotify.info('The ticked days already have their log in and log out. Add Log only fills a missing one; use Delete Log first to replace a log.', 'Nothing to add');
+            return;
+        }
+        if (!updated) return;
+        var count = Object.keys(people).length;
+        var who = count + (count === 1 ? ' employee' : ' employees');
+        if (isAdd) {
             var added = [addedIns ? addedIns + ' log in' : '', addedOuts ? addedOuts + ' log out' : ''].filter(Boolean).join(' and ');
-            var message = isAdd
-                ? added + ' added for ' + people + (people === 1 ? ' employee' : ' employees') + ' on ' + dateSummary + '.' +
-                    (noteValue ? ' A note was attached to each new log.' : '') +
-                    (kept === 1 ? ' 1 day already had its logs and was left as it is.'
-                        : kept ? ' ' + kept + ' days already had their logs and were left as they are.' : '') +
-                    ' The updated cells are highlighted in blue.'
-                : updated + ' selected log entries were deleted on ' + dateSummary + '.';
-            window.FeriizNotify.success(message, isAdd ? 'Log added' : 'Log deleted');
+            FeriizNotify.success(added + ' added for ' + who + ' on ' + dateSummary + '.' +
+                (noteValue ? ' A note was attached to each new log.' : '') +
+                (kept === 1 ? ' 1 day already had its logs and was left as it is.'
+                    : kept ? ' ' + kept + ' days already had their logs and were left as they are.' : '') +
+                ' The added logs are blue.', 'Log added');
+        } else {
+            FeriizNotify.success('The logs of ' + updated + (updated === 1 ? ' day' : ' days') + ' (' + who + ') on ' + dateSummary + ' were deleted.', 'Log deleted');
         }
     }
 
@@ -1837,7 +1701,7 @@
        IMPORT XLSX
        One menu with the two steps of the live Feriiz:
        - Download Log: the period as an Excel to fill in, one row per person with
-         Daily (1 or 0) and Overtime (hours) under every date, then the rates.
+         Daily (1, 0.5 or 0) and Overtime (hours) under every date, then the rates.
        - Import Log: upload that file. Its numbers replace what the Report counts
          for those days (Feriiz team, 27-10-2026); with Show history each of those days
          shows the upload on the left and the original logs on the right (04-11-2026). The
@@ -1939,7 +1803,7 @@
             var name = logFileName(dates);
             XLSX.writeFile(wb, name);
             if (window.FeriizNotify) {
-                FeriizNotify.success('Fill in Daily (1 or 0) and Overtime (hours) for each day, then bring it back with Upload Log.', name + ' downloaded');
+                FeriizNotify.success('Fill in Daily (1, 0.5 or 0) and Overtime (hours) for each day, then bring it back with Upload Log.', name + ' downloaded');
             }
         }).catch(function () {
             if (window.FeriizNotify) FeriizNotify.error('The Excel tool could not be loaded. Check the internet connection and try again.', 'Download failed');
@@ -2032,7 +1896,7 @@
             var emp = byCode[code.toUpperCase()] || (pin && byPin[pin]);
             if (!emp) { plan.problems.push({ line: line, who: who, why: 'Not in this report' }); return; }
             plan.people++;
-            // The person's working day in the file: shown as log in / log out on imported days.
+            // The person's working day in the file: its Period is the hours of a Daily 1.
             var start = sheet.col.start >= 0 ? clockText(r[sheet.col.start]) : '';
             var end = sheet.col.end >= 0 ? clockText(r[sheet.col.end]) : '';
             var period = sheet.col.period >= 0 ? cellNumber(r[sheet.col.period]) : null;
@@ -2042,7 +1906,8 @@
                 var ot = d.ot >= 0 ? cellNumber(r[d.ot]) : null;
                 if (daily === null && ot === null) return;   // left empty: that day stays as it is
                 var on = ' on ' + shortDate(d.date);
-                if (daily !== 0 && daily !== 1) { plan.problems.push({ line: line, who: emp.name, why: 'Daily' + on + ' must be 1 or 0' }); return; }
+                // 0.5 = half a day: dev's Download Log writes it for a day with only one log (04-11-2026).
+                if (daily !== 0 && daily !== 0.5 && daily !== 1) { plan.problems.push({ line: line, who: emp.name, why: 'Daily' + on + ' must be 1, 0.5 or 0' }); return; }
                 if (ot === null) ot = 0;
                 if (!(ot >= 0 && ot <= 24)) { plan.problems.push({ line: line, who: emp.name, why: 'Overtime' + on + ' must be hours between 0 and 24' }); return; }
                 var key = emp.code + '|' + d.date;
@@ -2175,7 +2040,7 @@
         }
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
-                'The original logs are not deleted: after the upload, each uploaded day shows the upload on the left and the original logs on the right.</p>';
+                'Log in and log out stay as the machine recorded them: the upload replaces only Daily and Overtime, and every number it changes turns purple.</p>';
         }
         importModal.querySelector('#importStepPreview').innerHTML = html;
     }
@@ -2236,8 +2101,8 @@
                     '</div>' +
                     '<div class="modal-body">' +
                         '<div id="importStepChoose">' +
-                            '<p class="import-intro">Upload the Excel from <strong>Download Log</strong> after filling in Daily (1 or 0) and Overtime (hours). ' +
-                                'Its numbers replace what the Report counts for those days. The original logs are kept and shown next to them.</p>' +
+                            '<p class="import-intro">Upload the Excel from <strong>Download Log</strong> after filling in Daily (1, 0.5 or 0) and Overtime (hours). ' +
+                                'Its numbers replace what the Report counts for those days. The log in and log out stay the machine\'s.</p>' +
                             '<label class="import-drop" for="importInput">' +
                                 '<i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>' +
                                 '<span class="import-drop-title">Drag the file here or <u>choose a file</u></span>' +
@@ -2551,6 +2416,7 @@
             try { sessionStorage.setItem('feriiz_active_project', projectContext.code); } catch (e) {}
         }
         resolveToday(data);
+        cellOverrides = logEditStore[projectContext.code] || (logEditStore[projectContext.code] = {});
 
         reportEmployees = data.employees.filter(function (e) {
             return (e.projects || []).indexOf(projectContext.code) >= 0;

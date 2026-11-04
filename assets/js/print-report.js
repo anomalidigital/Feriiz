@@ -221,7 +221,7 @@
     function sanitizeTextCell(td) {
         if (!td) return '-';
         var clone = td.cloneNode(true);
-        clone.querySelectorAll('button, input, select, .day-cell-checkbox, .cell-updated-badge, .note-icon, .screen-only').forEach(function (el) {
+        clone.querySelectorAll('button, input, select, .day-cell-checkbox, .note-icon, .screen-only').forEach(function (el) {
             el.remove();
         });
         var text = clone.textContent.trim();

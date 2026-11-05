@@ -1157,13 +1157,16 @@
        PAGES (Baldy, 04-11-2026): 20 people at a time, like Employees and Activity.
        The filters decide the rows (hidden); a page only takes the others off the screen
        (class page-off), so print still has every filtered row and Download Log every
-       person. Ticks belong to the page on screen, so changing page clears them.
+       person. Ticks are not tied to a page (Baldy, 05-11-2026: "mau di pagination berapa… sampe
+       pagination 7"): a date's checkbox ticks that date for everyone the filters show, on every
+       page, ticks stay when the page changes, and Batch Update acts on all of them.
        ============================================= */
     var PAGE_SIZE = 20;
     var reportPage = 1;
     var pageFilterKey = '';
 
-    function rowShown(row) { return !row.hidden && !row.classList.contains('page-off'); }
+    // A row the filters show, on whichever page.
+    function rowInFilter(row) { return !row.hidden; }
 
     function paginateRows() {
         // A new search or filter starts again on the first page.
@@ -1182,14 +1185,12 @@
         rows.forEach(function (row, i) {
             if (i >= start && i < start + PAGE_SIZE) return;
             row.classList.add('page-off');
-            row.querySelectorAll('.day-cell-select:checked').forEach(function (cb) { cb.checked = false; });
         });
         renderPager(rows.length, pages, start);
     }
 
     function goToPage(n) {
         reportPage = n;
-        deselectAllCells();
         paginateRows();
         updateCellSelectionUI();
         var wrap = document.querySelector('.report-table-wrap');
@@ -1243,10 +1244,11 @@
     /* =============================================
        CELL SELECTION
        ============================================= */
+    // Every ticked day the filters show, on every page.
     function getSelectedCells() {
         var cells = [];
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-            if (!rowShown(row)) return;
+            if (!rowInFilter(row)) return;
             row.querySelectorAll('td.day-col').forEach(function (cell) {
                 if (currentVisibleDates.indexOf(cell.dataset.date) < 0) return;
                 var cb = cell.querySelector('.day-cell-select');
@@ -1298,7 +1300,7 @@
             var checkboxes = [];
 
             document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-                if (!rowShown(row) || currentVisibleDates.indexOf(date) < 0) return;
+                if (!rowInFilter(row) || currentVisibleDates.indexOf(date) < 0) return;
                 var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
                 if (!cell || cell.classList.contains('filtered-out-cell')) return;
                 var cb = cell.querySelector('.day-cell-select');
@@ -2284,8 +2286,9 @@
                 var headerCb = e.target;
                 if (!headerCb.classList.contains('day-header-select')) return;
                 var date = headerCb.dataset.date;
+                // The whole date: everyone the filters show, on every page.
                 document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-                    if (!rowShown(row)) return;
+                    if (!rowInFilter(row)) return;
                     var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
                     if (!cell || cell.classList.contains('filtered-out-cell')) return;
                     var cb = cell.querySelector('.day-cell-select');

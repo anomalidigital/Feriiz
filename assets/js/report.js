@@ -209,9 +209,11 @@
        - Add Log sets the LOGS (a custom time like 07:00 -> 08:00 is done here, Baldy
          05-11-2026) and Delete Log empties them; the numbers come from the logs again.
        The newest version is what the day shows and counts ("import 1 > import 2 > add log:
-       yang dipake add log", and the other way round). A day that now differs from the
-       machine's original is blue as a whole cell ("lansung coloms nya"), for an import and
-       for Add Log alike ("sama sama update"). With Filter > Show history a changed day splits:
+       yang dipake add log", and the other way round). A version keeps only the days it
+       changes: a day a file or Add Log leaves as it was gets no version and no History
+       (Baldy, 05-11-2026: "kalau data nya sama itu gausah ada history"). What a change made
+       is yellow on the day's boxes, for an import and for Add Log alike ("sama sama update"),
+       and a missing log red (see dayMarks). With Filter > Show history a changed day splits:
        the newest version on the left, the original on the right (Pak Stef, 04-11-2026), and
        a date's History lists every version. Prototype only: kept in this browser per project
        until the API exists.
@@ -285,6 +287,36 @@
         } catch (e) { /* tried again next time */ }
     }
 
+    // Versions kept before 05-11-2026 could hold days they left as they were (a file brought
+    // back unchanged) and rates the same as the system's. Those come out, and a version left
+    // with no day goes, so the History and Show history only show what changed. Runs once per
+    // page, after the machine's logs are indexed; people no longer in the report are left alone.
+    function dropUnchanged() {
+        var p = projectImports(), byCode = {}, states = {}, dropped = false;
+        reportEmployees.forEach(function (e) { byCode[e.code] = e; });
+        p.batches.forEach(function (b) {
+            Object.keys(b.cells).forEach(function (key) {
+                var parts = key.split('|'), e = byCode[parts[0]];
+                if (!e) return;
+                var next = afterVersion(e, parts[1], states[key] || dayState(e.code, parts[1], null), b, b.cells[key]);
+                if (next) states[key] = next;
+                else { delete b.cells[key]; dropped = true; }
+            });
+        });
+        var kept = p.batches.filter(function (b) { return Object.keys(b.cells).length > 0; });
+        if (kept.length !== p.batches.length) { p.batches = kept; dropped = true; }
+        Object.keys(p.rates).forEach(function (code) {
+            var e = byCode[code], r = p.rates[code];
+            if (!e) return;
+            var own = systemRates(e);
+            Object.keys(RATE_LABELS).forEach(function (k) {
+                if (r[k] != null && r[k] === own[k]) { delete r[k]; dropped = true; }
+            });
+            if (!Object.keys(RATE_LABELS).some(function (k) { return r[k] != null; })) { delete p.rates[code]; dropped = true; }
+        });
+        if (dropped) saveImports();
+    }
+
     // Who changes a day, for its History: the account's name and role, as My Account shows them
     // (Baldy, 04-11-2026). Sessions and imports from before then kept only "Admin": that is the
     // demo account.
@@ -351,30 +383,52 @@
         for (var i = 0; i < batches.length; i++) {
             var b = batches[i], c = b.cells[key];
             if (!c) continue;
-            var kind = kindOf(b);
-            if (kind === 'add') {
-                if (c.inTime) { s.inTime = c.inTime; s.inNote = b.note || ''; }
-                if (c.outTime) { s.outTime = c.outTime; s.outNote = b.note || ''; }
-                s.numbers = null;
-                s.filled = false;
-            } else if (kind === 'delete') {
-                s.inTime = s.outTime = s.inNote = s.outNote = '';
-                s.numbers = null;
-                s.filled = false;
-            } else {
-                if (Number(c.daily) === 1 && logCount(code, date, s.inTime, s.outTime).daily < 1) {
-                    var workTime = workTimeOf(code);
-                    s.inTime = c.start || workTime.start;
-                    s.outTime = c.end || workTime.end;
-                    s.inNote = s.outNote = '';
-                    s.filled = true;
-                }
-                s.numbers = c;
-            }
-            s.last = b;
+            stepDay(s, b, c, code, date);
             if (b === upTo) break;
         }
         return s;
+    }
+
+    // One version b, its cell c, on a day's state s, as dayState plays them.
+    function stepDay(s, b, c, code, date) {
+        var kind = kindOf(b);
+        if (kind === 'add') {
+            if (c.inTime) { s.inTime = c.inTime; s.inNote = b.note || ''; }
+            if (c.outTime) { s.outTime = c.outTime; s.outNote = b.note || ''; }
+            s.numbers = null;
+            s.filled = false;
+        } else if (kind === 'delete') {
+            s.inTime = s.outTime = s.inNote = s.outNote = '';
+            s.numbers = null;
+            s.filled = false;
+        } else {
+            if (Number(c.daily) === 1 && logCount(code, date, s.inTime, s.outTime).daily < 1) {
+                var workTime = workTimeOf(code);
+                s.inTime = c.start || workTime.start;
+                s.outTime = c.end || workTime.end;
+                s.inNote = s.outNote = '';
+                s.filled = true;
+            }
+            s.numbers = c;
+        }
+        s.last = b;
+        return s;
+    }
+
+    // What a day shows and counts in state s: its logs, Daily, hours and overtime.
+    function dayLine(employee, date, s) {
+        var c = stateCount(employee, date, s);
+        return s.inTime + '|' + s.outTime + '|' + c.daily + '|' + c.work + '|' + c.ot;
+    }
+
+    // The day after one more version, or null when it would look and count the same: then the
+    // version is not kept for that day (Baldy, 05-11-2026: "kalau data nya sama itu gausah ada
+    // history ... jangan sampe kaya ada yang ke update").
+    function afterVersion(employee, date, s, b, c) {
+        var next = {};
+        Object.keys(s).forEach(function (k) { next[k] = s[k]; });
+        stepDay(next, b, c, employee.code, date);
+        return dayLine(employee, date, next) === dayLine(employee, date, s) ? null : next;
     }
 
     // What a day's logs count, by the live Feriiz's rule (Baldy, 05-11-2026): Daily 1 when the day
@@ -412,8 +466,8 @@
         return Boolean(s.numbers) && differs(s.numbers, logCount(employee.code, date, s.inTime, s.outTime));
     }
 
-    // "Daily 1 · OT 1.47h", in the words of the Excel columns.
-    function dayText(d) { return 'Daily ' + d.daily + ' · OT ' + formatHour(d.ot); }
+    // "Daily 1 · OT 1.47h", in the words of the Excel columns, with the hours when only they change.
+    function dayText(d, hours) { return 'Daily ' + d.daily + (hours ? ' · ' + formatHour(d.work) : '') + ' · OT ' + formatHour(d.ot); }
 
     function stampText(iso) {
         var d = new Date(iso);
@@ -426,21 +480,26 @@
         return kind === 'add' ? 'Add Log' : kind === 'delete' ? 'Delete Log' : 'Import';
     }
 
-    // Who changed a day last, and how: the tooltip of a blue day.
+    // Who changed a day last, and how: the tooltip of a changed day.
     function versionText(b) {
         var who = accountOf(b.by, b.role);
         var what = kindOf(b) === 'import' ? 'Imported' + (b.file ? ' from ' + b.file : '') : versionName(b);
         return what + ' by ' + who.name + ' · ' + who.role + (b.at ? ', ' + stampText(b.at) : '') + '.' + (b.note ? ' Note: ' + b.note : '');
     }
 
-    // The rates a row is paid with: the imported ones, else the system's.
-    function ratesFor(employee) {
-        var r = {
+    // The system's rates for a row.
+    function systemRates(employee) {
+        return {
             daily: Number(employee.dailyRate) || 0,
             ot: projectContext ? Number(projectContext.overtimeRate) || 0 : 0,
             clientDaily: Number(employee.clientDailyRate) || 0,
             clientOt: projectContext ? Number(projectContext.clientOvertimeRate) || 0 : 0
         };
+    }
+
+    // The rates a row is paid with: the imported ones, else the system's.
+    function ratesFor(employee) {
+        var r = systemRates(employee);
         var imp = projectImports().rates[employee.code];
         if (imp) Object.keys(r).forEach(function (k) { if (imp[k] != null) r[k] = imp[k]; });
         return r;
@@ -458,9 +517,9 @@
     }
 
     // Does Show history put this day's newest version next to its original: an import, Add Log
-    // or Delete Log set it, whether or not it changed it (Baldy, 05-11-2026: after an import its
-    // days split "berdua", as before 3.7.57, when only changed days did). An import of a day
-    // off that says nobody worked does not count.
+    // or Delete Log changed it (Baldy, 05-11-2026: after an import its days split "berdua"; a
+    // version keeps only the days it changes, see afterVersion), even when a later one put it
+    // back as it was. A day off that an import says nobody worked keeps its own look.
     function versionShown(employee, date, s) {
         if (!s.last) return false;
         if (isChanged(employee, date, s)) return true;
@@ -469,7 +528,7 @@
     }
 
     // { 'YYYY-MM-DD': true } for the days on screen that split into newest | original: with Show
-    // history, the dates a version set for someone the Report shows.
+    // history, the dates a version changed for someone the Report shows.
     var splitDates = {};
 
     function computeSplitDates(dates) {
@@ -487,17 +546,16 @@
     }
 
     // The colours on a day's boxes (Baldy, 05-11-2026: "kotak yang di text nya aja yang
-    // berwarna", the cell itself stays white): a log box whose time differs from the machine's
-    // original is blue, a missing log yellow, both missing red (issue, see dayIssue); hours
-    // (or a Daily) or overtime that changed get a blue ring.
+    // berwarna", the cell itself stays white; no blue): a log box an import, Add Log or Delete
+    // Log made differ from the machine's original is yellow, a missing log red, one or both
+    // (issue, see dayIssue); hours (or a Daily) or overtime that changed get a yellow ring.
     function dayMarks(employee, date, s, count, issue) {
         var o = dayState(employee.code, date, null);
         var oc = logCount(employee.code, date, o.inTime, o.outTime);
         var changed = Boolean(s.last);
         function logMark(now, orig, side) {
             if (changed && now !== orig) return 'log-changed';
-            if (issue === 'both') return 'log-missing-both';
-            return issue === side ? 'log-missing' : '';
+            return issue === 'both' || issue === side ? 'log-missing' : '';
         }
         return {
             inCls: logMark(s.inTime, o.inTime, 'in'),
@@ -517,9 +575,7 @@
 
     // What a person's day shows after a version, to compare one version with the one before.
     function snapshot(employee, date, upTo) {
-        var s = dayState(employee.code, date, upTo);
-        var c = stateCount(employee, date, s);
-        return s.inTime + '|' + s.outTime + '|' + c.daily + '|' + c.work + '|' + c.ot;
+        return dayLine(employee, date, dayState(employee.code, date, upTo));
     }
 
     function historyValueHTML(employee, date, b) {
@@ -641,7 +697,7 @@
         '</div>';
     }
 
-    // A day's hours and overtime badges; a changed number gets a blue ring.
+    // A day's hours and overtime badges; a changed number gets a yellow ring.
     function badgesHTML(work, ot, marks) {
         marks = marks || {};
         return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
@@ -754,10 +810,10 @@
     var NO_CHANGE_HALF = '<div class="day-half day-half--changed is-empty"><span class="day-half-empty">No change</span></div>';
     var CELL_CHECKBOX = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
 
-    // One day as it stands, the marks on its boxes; a day a version set says which and who in
-    // its tooltip. With Show history a split column shows the newest version on the left and
-    // the original on the right, the same numbers too when the version changed nothing; a day
-    // no version set has an empty left half.
+    // One day as it stands, the marks on its boxes; a day a version changed says which and who
+    // in its tooltip. With Show history a split column shows the newest version on the left and
+    // the original on the right (the same when a later version put the day back); a day no
+    // version changed has an empty left half.
     function dayCellHTML(employee, date) {
         var s = dayState(employee.code, date);
         var shown = versionShown(employee, date, s);
@@ -1550,8 +1606,9 @@
     }
 
     // Add Log and Delete Log are changes like an import (Baldy, 05-11-2026: "dia kaya mengubah
-    // juga"): each Save is one version in the History of the ticked days, and the newest version
-    // is what a day shows. The table is drawn again from the versions.
+    // juga"): each Save is one version in the History of the ticked days it changes (a day that
+    // already has these times gets none), and the newest version is what a day shows. The table
+    // is drawn again from the versions.
     function applyBatchUpdate() {
         var inInput = document.getElementById('batchUpdateIn');
         var outInput = document.getElementById('batchUpdateOut');
@@ -1630,9 +1687,9 @@
                     : replaced ? ' ' + replaced + ' replaced logs the days had; the originals stay in the History.' : '') +
                 (noteValue ? ' A note was attached to each new log.' : '') +
                 (kept === 1 ? ' 1 day already had these times.' : kept ? ' ' + kept + ' days already had these times.' : '') +
-                ' The changed days are blue.', 'Log added');
+                ' What changed is yellow.', 'Log added');
         } else {
-            FeriizNotify.success('The logs of ' + updated + (updated === 1 ? ' day' : ' days') + ' (' + who + ') on ' + dateSummary + ' were deleted. The changed days are blue.', 'Log deleted');
+            FeriizNotify.success('The logs of ' + updated + (updated === 1 ? ' day' : ' days') + ' (' + who + ') on ' + dateSummary + ' were deleted. What changed is yellow.', 'Log deleted');
         }
     }
 
@@ -2005,12 +2062,14 @@
                 if (daily !== 0 && daily !== 0.5 && daily !== 1) { plan.problems.push({ line: line, who: emp.name, why: 'Daily' + on + ' must be 1, 0.5 or 0' }); return; }
                 if (ot === null) ot = 0;
                 if (!(ot >= 0 && ot <= 24)) { plan.problems.push({ line: line, who: emp.name, why: 'Overtime' + on + ' must be hours between 0 and 24' }); return; }
-                var key = emp.code + '|' + d.date;
-                var now = stateCount(emp, d.date, dayState(emp.code, d.date));
-                var next = { daily: daily, ot: round2(ot) };
-                plan.cells.push({ key: key, daily: next.daily, ot: next.ot, start: start, end: end, period: period });
-                if (differs(now, next)) plan.changed.push({ name: emp.name, date: d.date, now: now, next: next });
-                else plan.same++;
+                var cell = { daily: daily, ot: round2(ot), start: start, end: end, period: period };
+                var s = dayState(emp.code, d.date);
+                var after = afterVersion(emp, d.date, s, { kind: 'import' }, cell);
+                // The same as now: left out, so the day neither changes nor gets a History.
+                if (!after) { plan.same++; return; }
+                cell.key = emp.code + '|' + d.date;
+                plan.cells.push(cell);
+                plan.changed.push({ name: emp.name, date: d.date, now: stateCount(emp, d.date, s), next: stateCount(emp, d.date, after) });
             });
             var rate = {}, bad = false;
             Object.keys(sheet.rates).forEach(function (k) {
@@ -2021,25 +2080,32 @@
             });
             if (bad) plan.problems.push({ line: line, who: emp.name, why: 'A rate is not a number, so the rates were left as they are' });
             else if (Object.keys(rate).length) {
-                var was = ratesFor(emp);
-                var diff = Object.keys(rate).filter(function (k) { return rate[k] !== was[k]; });
-                plan.rates.push({ code: emp.code, rate: rate });
-                diff.forEach(function (k) { plan.rateChanges.push({ name: emp.name, label: RATE_LABELS[k], from: was[k], to: rate[k] }); });
+                // Only the rates that differ from what the Report uses now are kept.
+                var was = ratesFor(emp), changedRate = {};
+                Object.keys(rate).forEach(function (k) {
+                    if (rate[k] === was[k]) return;
+                    changedRate[k] = rate[k];
+                    plan.rateChanges.push({ name: emp.name, label: RATE_LABELS[k], from: was[k], to: rate[k] });
+                });
+                if (Object.keys(changedRate).length) plan.rates.push({ code: emp.code, rate: changedRate });
             }
         });
         return plan;
     }
 
-    // An import is the newest version of its days; the earlier ones stay in the History.
+    // An import is the newest version of the days it changes (plan.cells holds only those); the
+    // earlier versions stay in the History.
     function commitImport(plan) {
         var stored = projectImports();
         var at = new Date().toISOString();
         var account = currentAccount();
-        var batch = { id: 'IMP-' + Date.now().toString(36).toUpperCase(), kind: 'import', file: plan.file, at: at, by: account.name, role: account.role, cells: {} };
-        plan.cells.forEach(function (c) {
-            batch.cells[c.key] = { daily: c.daily, ot: c.ot, start: c.start, end: c.end, period: c.period };
-        });
-        stored.batches.push(batch);
+        if (plan.cells.length) {
+            var batch = { id: 'IMP-' + Date.now().toString(36).toUpperCase(), kind: 'import', file: plan.file, at: at, by: account.name, role: account.role, cells: {} };
+            plan.cells.forEach(function (c) {
+                batch.cells[c.key] = { daily: c.daily, ot: c.ot, start: c.start, end: c.end, period: c.period };
+            });
+            stored.batches.push(batch);
+        }
         plan.rates.forEach(function (r) {
             var merged = stored.rates[r.code] || {};
             Object.keys(r.rate).forEach(function (k) { merged[k] = r.rate[k]; });
@@ -2049,11 +2115,13 @@
         });
         saveImports();
         syncDataFilter();
-        // The import next to the original logs, to check it (Baldy, 02-11-2026); removing
-        // Show history goes back to the default.
-        appliedReportFilters.original = true;
-        var originalBox = document.getElementById('filterOriginal');
-        if (originalBox) originalBox.checked = true;
+        // The changed days next to their original logs, to check them (Baldy, 02-11-2026);
+        // removing Show history goes back to the default.
+        if (plan.cells.length) {
+            appliedReportFilters.original = true;
+            var originalBox = document.getElementById('filterOriginal');
+            if (originalBox) originalBox.checked = true;
+        }
         deselectAllCells();
         showDays(currentVisibleDates.slice(), true);
         applyReportFilters();
@@ -2077,7 +2145,7 @@
     function importStep(step) {
         importModal.querySelector('#importStepLoading').hidden = step !== 'loading';
         importModal.querySelector('#importStepPreview').hidden = step !== 'preview';
-        importModal.querySelector('#importSubmit').disabled = !(step === 'preview' && importPlan && importPlan.cells.length);
+        importModal.querySelector('#importSubmit').disabled = !(step === 'preview' && importPlan && (importPlan.cells.length || importPlan.rates.length));
     }
 
     function importError(message) {
@@ -2104,14 +2172,18 @@
                     (plan.rateChanges.length === 1 ? 'change' : 'changes') + '</span>' : '') +
                 (plan.problems.length ? '<span class="import-count is-problem"><strong>' + plan.problems.length + '</strong> not imported</span>' : '') +
             '</div>';
-        if (!plan.cells.length) {
-            html += '<div class="import-empty">Nothing in this file can be imported. ' +
-                (plan.problems.length ? 'See why below.' : 'Every Daily and Overtime cell is empty.') + '</div>';
+        if (!plan.cells.length && !plan.rates.length) {
+            html += plan.same
+                ? '<div class="import-empty is-same">Nothing to import: everything in this file is the same as the Report now, so nothing changes and no History is added.' +
+                    (plan.problems.length ? ' The rows below were not read.' : '') + '</div>'
+                : '<div class="import-empty">Nothing in this file can be imported. ' +
+                    (plan.problems.length ? 'See why below.' : 'Every Daily and Overtime cell is empty.') + '</div>';
         }
         if (plan.changed.length) {
             html += '<h3 class="import-section-title">Changes</h3>' + previewTable(['Name', 'Date', 'Now', 'After import'], plan.changed.map(function (c) {
+                var hours = !differs(c.now, c.next);   // only the hours change
                 return '<tr><td>' + escapeHTML(c.name) + '</td><td class="tpl-nowrap">' + shortDate(c.date) + '</td>' +
-                    '<td>' + escapeHTML(dayText(c.now)) + '</td><td class="import-new">' + escapeHTML(dayText(c.next)) + '</td></tr>';
+                    '<td>' + escapeHTML(dayText(c.now, hours)) + '</td><td class="import-new">' + escapeHTML(dayText(c.next, hours)) + '</td></tr>';
             }));
         }
         if (plan.rateChanges.length) {
@@ -2127,7 +2199,8 @@
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
                 'A day the file raises to Daily 1 takes the working time as its log in and log out; the other days keep their logs. Set other times with Add Log. ' +
-                'After the import, Show history puts each imported day next to its original, what changed in blue.</p>';
+                'Only the changed days are imported: Show history puts each next to its original, what changed in yellow.' +
+                (plan.same ? ' The days the same as now stay as they are, with no History.' : '') + '</p>';
         }
         importModal.querySelector('#importStepPreview').innerHTML = html;
     }
@@ -2224,13 +2297,18 @@
         el.querySelector('#importTemplate').addEventListener('click', downloadLog);
         el.querySelector('#importSubmit').addEventListener('click', function () {
             var plan = importPlan;
-            if (!plan || !plan.cells.length) return;
+            if (!plan || !(plan.cells.length || plan.rates.length)) return;
             window.bootstrap.Modal.getInstance(el).hide();
             commitImport(plan);
             if (window.FeriizNotify) {
-                FeriizNotify.success(plan.cells.length + (plan.cells.length === 1 ? ' day' : ' days') + ' for ' + plan.people + (plan.people === 1 ? ' person' : ' people') +
-                    ' imported (' + plan.changed.length + ' changed). Show history puts each imported day next to its original, what changed in blue. ' +
-                    'The totals count the import.', 'File imported');
+                var days = plan.cells.length, rates = plan.rateChanges.length, people = {};
+                plan.cells.forEach(function (c) { people[c.key.split('|')[0]] = true; });
+                var count = Object.keys(people).length;
+                var done = [days ? days + (days === 1 ? ' day' : ' days') + ' changed for ' + count + (count === 1 ? ' person' : ' people') : '',
+                            rates ? rates + (rates === 1 ? ' rate' : ' rates') + ' changed' : ''].filter(Boolean).join(' and ');
+                FeriizNotify.success(done + '.' +
+                    (plan.same ? ' ' + plan.same + (plan.same === 1 ? ' day was' : ' days were') + ' the same as now and stayed as they were, with no History.' : '') +
+                    (days ? ' Show history puts each changed day next to its original, what changed in yellow. The totals count the import.' : ''), 'File imported');
             }
         });
         el.addEventListener('hidden.bs.modal', function () { input.value = ''; readImportFile(null); });
@@ -2529,6 +2607,7 @@
             }
         }
         migrateLogEdits();
+        dropUnchanged();
         // A request covers the person, whichever project it was filed under.
         requestIndex = {};
         (data.generatedRequests || []).forEach(function (r) {

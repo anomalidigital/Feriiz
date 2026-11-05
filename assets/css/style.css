@@ -29,12 +29,12 @@
     --feriiz-info: #2980B9;      /* Hours, Updated, Leave */
     --feriiz-neutral: #7F8C8D;   /* Inactive */
     --feriiz-overtime: #F1C40F;  /* Overtime badge, dark text */
-    --feriiz-flag: #FEEFB9;      /* incomplete log cell */
-    --feriiz-flag-bar: #F39C12;
-    --feriiz-flag-danger: #F8D2CD;   /* a Report day missing both logs, with a --feriiz-danger bar */
-    --feriiz-changed: #2980B9;       /* a Report day an import, Add Log or Delete Log changed: its bar */
-    --feriiz-changed-tint: #D4E6F7;  /* ...and its ground, as strong as the yellow --feriiz-flag */
-    --feriiz-changed-soft: #EBF4FC;  /* light blue behind blue text, e.g. a hovered History button */
+    --feriiz-flag-danger: #F8D2CD;   /* a Report log box that is missing, with a --feriiz-danger bar */
+    /* What an import, Add Log or Delete Log changed is yellow, never blue (Baldy, 05-11-2026) */
+    --feriiz-changed: #F39C12;       /* its bar or ring */
+    --feriiz-changed-tint: #FEEFB9;  /* ...and its ground */
+    --feriiz-changed-soft: #FFF7E0;  /* a light yellow, e.g. behind a hovered History button */
+    --feriiz-changed-ink: #7A4A00;   /* dark text on the yellow ground, 6.5:1 */
 
     /* Surfaces */
     --feriiz-bg: #F2F2F2;
@@ -3892,16 +3892,10 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 }
 
 /* === Day marks on the boxes, not on the cell (Baldy, 05-11-2026: "kotak yang di text nya aja
-   yang berwarna") === A missing log is a yellow box, both missing are red boxes (04-11: "missing
-   dua duanya itu merah"), a log box whose time differs from the machine's original is blue, and
-   a changed hours or overtime number gets a blue ring. Each box is a tint with a bar. */
+   yang berwarna") === No blue (05-11-2026): a missing log is a red box, one or both; a log box an
+   import, Add Log or Delete Log made differ from the machine's original is yellow, and a changed
+   hours or overtime number gets a yellow ring. Each box is a tint with a bar. */
 .feriiz-u-141.log-missing {
-    background: var(--feriiz-flag);
-    box-shadow: inset 3px 0 0 var(--feriiz-flag-bar);
-    opacity: 1;
-}
-
-.feriiz-u-141.log-missing-both {
     background: var(--feriiz-flag-danger);
     box-shadow: inset 3px 0 0 var(--feriiz-danger);
     opacity: 1;
@@ -4105,7 +4099,7 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     min-height: 96px;
 }
 
-/* A day nobody changed, in a split column: an outline, not the blue ground. */
+/* A day nobody changed, in a split column: a dashed outline. */
 .day-half--changed.is-empty {
     border: 1px dashed var(--feriiz-border);
     background: transparent;
@@ -6603,8 +6597,9 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .import-count.is-changed {
-    background: var(--feriiz-changed);
-    color: #fff;
+    background: var(--feriiz-changed-tint);
+    color: var(--feriiz-changed-ink);
+    box-shadow: inset 0 0 0 1px var(--feriiz-changed);
 }
 
 .import-count.is-problem {
@@ -6637,8 +6632,10 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     background: #fff;
 }
 
+/* The value after the import, yellow like what it changes on the Report. */
 .import-new {
-    color: var(--feriiz-primary-dark);
+    background: var(--feriiz-changed-tint);
+    color: var(--feriiz-changed-ink);
     font-weight: 600;
 }
 
@@ -6649,6 +6646,12 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     background: #FDECEC;
     color: #B42318;
     font-size: 13px;
+}
+
+/* Everything in the file is the same as now: nothing wrong, nothing to do. */
+.import-empty.is-same {
+    background: #F2F4F7;
+    color: #344054;
 }
 
 .import-keep {

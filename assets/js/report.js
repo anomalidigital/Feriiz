@@ -301,10 +301,18 @@
         return accountOf(user.name, user.role);
     }
 
-    // The versions that changed this day for someone in this report, oldest first.
+    // The people the Report's Occupation filter shows (everyone without one). The History, its
+    // count and the split days follow it; the Log Status filter does not (Baldy, 05-11-2026).
+    function peopleInOccupations() {
+        var sel = appliedReportFilters.occupations;
+        if (!sel.length) return reportEmployees;
+        return reportEmployees.filter(function (e) { return sel.indexOf(String(e.occupation || '').trim().toLowerCase()) >= 0; });
+    }
+
+    // The versions that changed this day for someone the Report shows, oldest first.
     function versionsOn(date) {
         var inReport = {};
-        reportEmployees.forEach(function (e) { inReport[e.code] = true; });
+        peopleInOccupations().forEach(function (e) { inReport[e.code] = true; });
         return projectImports().batches.filter(function (b) {
             return Object.keys(b.cells).some(function (key) {
                 var parts = key.split('|');
@@ -456,12 +464,37 @@
     function computeSplitDates(dates) {
         splitDates = {};
         if (!showOriginal()) return;
+        var people = peopleInOccupations();
         dates.forEach(function (date) {
-            if (reportEmployees.some(function (e) { return isChanged(e, date, dayState(e.code, date)); })) splitDates[date] = true;
+            if (people.some(function (e) { return isChanged(e, date, dayState(e.code, date)); })) splitDates[date] = true;
         });
     }
 
-    var EMPTY_CLOCK_LINE = '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
+    // A missing log's box, coloured by its mark.
+    function emptyLine(mark) {
+        return '<div class="feriiz-u-141 log-empty-row' + (mark ? ' ' + mark : '') + '"><span class="log-placeholder">--:--:--</span></div>';
+    }
+
+    // The colours on a day's boxes (Baldy, 05-11-2026: "kotak yang di text nya aja yang
+    // berwarna", the cell itself stays white): a log box whose time differs from the machine's
+    // original is blue, a missing log yellow, both missing red (issue, see dayIssue); hours
+    // (or a Daily) or overtime that changed get a blue ring.
+    function dayMarks(employee, date, s, count, issue) {
+        var o = dayState(employee.code, date, null);
+        var oc = logCount(employee.code, date, o.inTime, o.outTime);
+        var changed = Boolean(s.last);
+        function logMark(now, orig, side) {
+            if (changed && now !== orig) return 'log-changed';
+            if (issue === 'both') return 'log-missing-both';
+            return issue === side ? 'log-missing' : '';
+        }
+        return {
+            inCls: logMark(s.inTime, o.inTime, 'in'),
+            outCls: logMark(s.outTime, o.outTime, 'out'),
+            work: changed && (Math.abs(count.work - oc.work) >= 0.01 || Number(count.daily) !== oc.daily),
+            ot: changed && Math.abs(count.ot - oc.ot) >= 0.01
+        };
+    }
 
     /* History of one day (the clock button after its date, with Show history, from its second
        change on). Every version of that day side by side, oldest first, each drawn as the day
@@ -482,7 +515,8 @@
         if (!b.cells[employee.code + '|' + date]) return '<span class="import-history-none">–</span>';
         var s = dayState(employee.code, date, b);
         var c = stateCount(employee, date, s);
-        return '<div class="day-half day-half--changed">' + badgesHTML(c.work, c.ot) + logLinesHTML(s) + '</div>';
+        var marks = dayMarks(employee, date, s, c, dayIssue(employee.code, date, s));
+        return '<div class="day-half day-half--changed">' + badgesHTML(c.work, c.ot, marks) + logLinesHTML(s, marks) + '</div>';
     }
 
     function buildHistoryModal() {
@@ -530,8 +564,9 @@
         if (batches.length < 2) return;
         if (!historyModal) historyModal = buildHistoryModal();
         var last = batches.length - 1;
+        var occ = appliedReportFilters.occupations.length ? appliedReportFilters.occupationLabels.join(', ') : '';
         historyModal.querySelector('#importHistoryContext').textContent = projectContext.name + ' · ' +
-            DAY_NAMES[fromISO(date).getDay()] + ', ' + shortDate(date) + ' · ' + batches.length + ' changes';
+            DAY_NAMES[fromISO(date).getDay()] + ', ' + shortDate(date) + ' · ' + batches.length + ' changes' + (occ ? ' · ' + occ : '');
         historyModal.querySelector('#importHistoryHead').innerHTML = '<tr><th>Name</th>' + batches.map(function (b, i) {
             var who = accountOf(b.by, b.role);
             var tip = b.file || (b.note ? 'Note: ' + b.note : '');
@@ -541,7 +576,7 @@
                 '<small class="import-history-by">' + escapeHTML(who.name) + ' · ' + escapeHTML(who.role) + '</small></th>';
         }).join('') + '</tr>';
         // People whose day one of the versions changed come first.
-        var rows = reportEmployees.map(function (e) {
+        var rows = peopleInOccupations().map(function (e) {
             var key = e.code + '|' + date;
             var touched = batches.filter(function (b) { return b.cells[key]; });
             if (!touched.length) return null;
@@ -574,30 +609,33 @@
        ============================================= */
     function buildClockLine(type, value, options) {
         var note = (options && options.note) || '';
+        var mark = (options && options.mark) || '';
         var iconClass = type === 'in'
             ? 'fa-arrow-right-to-bracket feriiz-u-142'
             : 'fa-arrow-right-from-bracket feriiz-u-144';
         var noteButton = note
             ? '<button type="button" class="report-log-note-btn" data-log-type="' + type + '" title="View log note" aria-label="View ' + (type === 'in' ? 'log in' : 'log out') + ' note"><i class="fa-solid fa-note-sticky"></i></button>'
             : '';
-        return '<div class="feriiz-u-141">' +
+        return '<div class="feriiz-u-141' + (mark ? ' ' + mark : '') + '">' +
             '<span><i class="fa-solid ' + iconClass + '"></i>' + escapeHTML(value) + '</span>' +
             noteButton + '</div>';
     }
 
-    // A day's log in over its log out, "--:--:--" for a missing one.
-    function logLinesHTML(logs) {
+    // A day's log in over its log out, "--:--:--" for a missing one, each box with its mark.
+    function logLinesHTML(logs, marks) {
+        marks = marks || {};
         return '<div class="feriiz-u-140">' +
-            (logs.inTime ? buildClockLine('in', logs.inTime, { note: logs.inNote }) : EMPTY_CLOCK_LINE) +
-            (logs.outTime ? buildClockLine('out', logs.outTime, { note: logs.outNote }) : EMPTY_CLOCK_LINE) +
+            (logs.inTime ? buildClockLine('in', logs.inTime, { note: logs.inNote, mark: marks.inCls }) : emptyLine(marks.inCls)) +
+            (logs.outTime ? buildClockLine('out', logs.outTime, { note: logs.outNote, mark: marks.outCls }) : emptyLine(marks.outCls)) +
         '</div>';
     }
 
-    // A day's hours and overtime badges.
-    function badgesHTML(work, ot) {
+    // A day's hours and overtime badges; a changed number gets a blue ring.
+    function badgesHTML(work, ot, marks) {
+        marks = marks || {};
         return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
-            '<span class="badge feriiz-u-135">' + formatHour(work) + '</span>' +
-            '<span class="badge feriiz-u-136">' + formatHour(ot) + ' OT</span>' +
+            '<span class="badge feriiz-u-135' + (marks.work ? ' badge-changed' : '') + '">' + formatHour(work) + '</span>' +
+            '<span class="badge feriiz-u-136' + (marks.ot ? ' badge-changed' : '') + '">' + formatHour(ot) + ' OT</span>' +
         '</div></div>';
     }
 
@@ -646,11 +684,6 @@
         return issue === 'both' && requestFor(code, date) ? '' : issue;
     }
 
-    // The colour of a day that misses logs: yellow for one, red for both (Baldy, 04-11-2026).
-    function missingClass(issue) {
-        return issue === 'both' ? ' no-log-cell log-missing-both' : issue ? ' no-log-cell' : '';
-    }
-
     /* Request chips: what a day was given with Assign Request, by the template's name
        ("Uang Makan") on a line of their own under the day (Baldy, 04-11-2026: "taro di
        bawahnya", not next to the hours and overtime; they were initials in the badge row
@@ -673,9 +706,8 @@
         return chips ? content + '<div class="req-chip-row">' + chips + '</div>' : content;
     }
 
-    // A day in a given state: its class and data, and what goes inside. Its colour follows its
-    // logs (Baldy, 04-11-2026): yellow when one is missing, red when both are. noteAttrs lets
-    // the original half of a split day open its own log notes.
+    // A day in a given state: its class and data, and what goes inside, its boxes marked (see
+    // dayMarks). noteAttrs lets the original half of a split day open its own log notes.
     function dayContent(employee, date, s) {
         var code = employee.code;
         var numbered = s.numbers && (s.numbers.daily || s.numbers.ot);
@@ -690,37 +722,35 @@
         var issue = dayIssue(code, date, s);
         // The data keeps the logs (notes, Batch Update); the cell shows the view.
         var count = stateCount(employee, date, s);
+        var marks = dayMarks(employee, date, s, count, issue);
         return {
-            cls: missingClass(issue).trim(),
+            cls: '',
             issue: issue,
             attrs: (s.numbers ? ' data-imported="1"' : '') + ' data-daily="' + count.daily + '"' + (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(s) +
                 ' data-work="' + count.work.toFixed(4) + '" data-ot="' + count.ot.toFixed(4) + '" data-ot-total="' + count.ot.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logDataAttrs(s),
-            content: withRequestChips(badgesHTML(count.work, count.ot) + logLinesHTML(s), code, date)
+            content: withRequestChips(badgesHTML(count.work, count.ot, marks) + logLinesHTML(s, marks), code, date)
         };
     }
 
-    // The right half of a split day: the machine's original, yellow when a log is missing and red
-    // when both are. A day off keeps its request chips (a red-date incentive).
+    // The right half of a split day: the machine's original, its missing logs marked on their
+    // boxes. A day off keeps its request chips (a red-date incentive).
     function systemHalfHTML(sys) {
         if (sys.off) return '<div class="day-half day-half--system is-empty">' + (sys.content || '') + '<span class="day-half-empty">Day off</span></div>';
-        var state = sys.issue === 'both' ? ' is-incomplete is-missing-both' : sys.issue ? ' is-incomplete' : '';
-        return '<div class="day-half day-half--system' + state + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
+        return '<div class="day-half day-half--system"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
     }
 
     var NO_CHANGE_HALF = '<div class="day-half day-half--changed is-empty"><span class="day-half-empty">No change</span></div>';
     var CELL_CHECKBOX = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
 
-    // One day as it stands. A day that differs from the machine's original is blue as a whole
-    // cell, whatever changed it (Baldy, 05-11-2026), with who did it in its tooltip; the others
-    // are yellow or red by their logs. With Show history a split column shows the newest
-    // version on the left and the original on the right; a day nobody changed has an empty
-    // left half.
+    // One day as it stands, the marks on its boxes; a changed day says who changed it in its
+    // tooltip. With Show history a split column shows the newest version on the left and the
+    // original on the right; a day nobody changed has an empty left half.
     function dayCellHTML(employee, date) {
         var s = dayState(employee.code, date);
         var changed = isChanged(employee, date, s);
         var now = dayContent(employee, date, s);
-        var cls = changed ? ' day-changed' : now.cls ? ' ' + now.cls : '';
+        var cls = now.cls ? ' ' + now.cls : '';
         var title = changed ? ' title="' + escapeHTML(versionText(s.last) + (s.filled ? ' Daily 1: the log in and log out follow the working time.' : '')) + '"' : '';
         if (splitDates[date] && !(now.off && !changed)) {
             var halves = changed
@@ -963,10 +993,11 @@
             groupRow.appendChild(th);
         });
 
-        // With Show history a changed day splits in two, told apart by colour alone (Baldy,
-        // 04-11-2026: no labels). From a date's second change on (an import, Add Log or Delete
-        // Log), a clock button right after the date opens its History: it belongs to the day,
-        // and stays away from the column's checkbox (Baldy, 30-10-2026).
+        // With Show history a changed day splits in two, told apart by the colours of their
+        // boxes (Baldy, 04-11-2026: no labels). From a date's second change on (an import, Add
+        // Log or Delete Log) for the people the Occupation filter shows, a clock button right
+        // after the date opens its History: it belongs to the day, and stays away from the
+        // column's checkbox (Baldy, 30-10-2026).
         dates.forEach(function (date) {
             var th = document.createElement('th');
             var split = splitDates[date];
@@ -1341,6 +1372,7 @@
                     if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                     appliedReportFilters.occupations = [];
                     appliedReportFilters.occupationLabels = [];
+                    if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
                 } else {
                     document.querySelectorAll('.filter-missing').forEach(function (cb) {
                         if (cb.value === type) cb.checked = false;
@@ -2226,6 +2258,7 @@
         if (applyBtn) {
             applyBtn.addEventListener('click', function () {
                 var wasOriginal = appliedReportFilters.original;
+                var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
                 appliedReportFilters.missingTypes = getDraftMissingTypes();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
@@ -2234,7 +2267,8 @@
                 appliedReportFilters.occupationLabels = selectedOccupationLabels();
                 appliedReportFilters.range = draftRange();
                 appliedReportFilters.original = Boolean(originalBox && originalBox.checked && originalAvailable());
-                showDays(datesFromDraft(), wasOriginal !== appliedReportFilters.original);
+                var occChanged = JSON.stringify(appliedReportFilters.occupations) !== wasOccupations;
+                showDays(datesFromDraft(), wasOriginal !== appliedReportFilters.original || (occChanged && appliedReportFilters.original));
                 applyReportFilters();
             });
         }

@@ -3891,24 +3891,30 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
     color: #fff;
 }
 
-/* === No Log Cell === */
-div.report-layout .report-table tbody td.no-log-cell {
-    background: var(--feriiz-flag) !important;
-    box-shadow: inset 4px 0 0 var(--feriiz-flag-bar) !important;
+/* === Day marks on the boxes, not on the cell (Baldy, 05-11-2026: "kotak yang di text nya aja
+   yang berwarna") === A missing log is a yellow box, both missing are red boxes (04-11: "missing
+   dua duanya itu merah"), a log box whose time differs from the machine's original is blue, and
+   a changed hours or overtime number gets a blue ring. Each box is a tint with a bar. */
+.feriiz-u-141.log-missing {
+    background: var(--feriiz-flag);
+    box-shadow: inset 3px 0 0 var(--feriiz-flag-bar);
+    opacity: 1;
 }
 
-div.report-layout .report-table tbody td.no-log-cell:hover {
-    background: #FDE68A !important;
+.feriiz-u-141.log-missing-both {
+    background: var(--feriiz-flag-danger);
+    box-shadow: inset 3px 0 0 var(--feriiz-danger);
+    opacity: 1;
 }
 
-/* Both logs missing: red (Baldy, 04-11-2026: "kalau missing dua duanya itu merah"). */
-div.report-layout .report-table tbody td.no-log-cell.log-missing-both {
-    background: var(--feriiz-flag-danger) !important;
-    box-shadow: inset 4px 0 0 var(--feriiz-danger) !important;
+.feriiz-u-141.log-changed {
+    background: var(--feriiz-changed-tint);
+    box-shadow: inset 3px 0 0 var(--feriiz-changed);
+    opacity: 1;
 }
 
-div.report-layout .report-table tbody td.no-log-cell.log-missing-both:hover {
-    background: #F3B6AE !important;
+.badge.badge-changed {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--feriiz-changed);
 }
 
 /* Weekend off cells */
@@ -3934,14 +3940,6 @@ div.report-layout .report-table tbody td.weekend-off-cell {
     margin: 0;
     accent-color: #2975BB;
     cursor: pointer;
-}
-
-div.report-layout .report-table tbody td.no-log-cell .day-cell-select {
-    accent-color: var(--feriiz-flag-bar);
-}
-
-div.report-layout .report-table tbody td.no-log-cell.log-missing-both .day-cell-select {
-    accent-color: var(--feriiz-danger);
 }
 
 /* Day column header: label left, select-all checkbox right */
@@ -3972,37 +3970,9 @@ div.report-layout .report-table tbody td.day-col:has(.day-cell-select:checked) {
     background: #EEF7FF !important;
 }
 
-div.report-layout .report-table tbody td.no-log-cell:has(.day-cell-select:checked) {
-    outline-color: var(--feriiz-flag-bar) !important;
-    background: #FDE68A !important;
-}
-
-div.report-layout .report-table tbody td.no-log-cell.log-missing-both:has(.day-cell-select:checked) {
-    outline-color: var(--feriiz-danger) !important;
-    background: #F3B6AE !important;
-}
-
-/* A day an import, Add Log or Delete Log changed is blue as a whole cell, the same in the first
-   view and with Show history (Baldy, 05-11-2026: "lansung coloms nya", one colour for every
-   change). A tint with a bar like the yellow and red days; its logs sit on white. Its tooltip
-   says who changed it. */
-div.report-layout .report-table tbody td.day-changed {
-    background: var(--feriiz-changed-tint) !important;
-    box-shadow: inset 4px 0 0 var(--feriiz-changed) !important;
-}
-
-div.report-layout .report-table tbody td.day-changed:hover,
-div.report-layout .report-table tbody td.day-changed:has(.day-cell-select:checked) {
-    background: #BFD9F1 !important;
-}
-
-div.report-layout .report-table tbody td.day-changed .feriiz-u-141 {
-    background: #fff;
-}
-
 /* With Show history a changed day is split in two (2026-10-30): its newest version on the
-   left, drawn like a normal day on the blue ground, and the machine's original on the right
-   (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the newest version.
+   left and the machine's original on the right (Pak Stef, 04-11-2026), each drawn like any
+   day, its boxes coloured (05-11-2026). The totals count the newest version.
    The two halves are equal and every split day is as wide, so the halves line up from row
    to row (Baldy, 04-11-2026: fitting them to their content left them out of line). */
 div.report-layout .report-table thead th.day-col.day-split-col {
@@ -4117,30 +4087,15 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     border-radius: 8px;
 }
 
-/* The newest version's half is drawn like the yellow "incomplete" half, in blue: a strong tint
-   and a bar on the left (Baldy, 04-11-2026: "dikerengin… style nya sama"). */
-.day-half--changed {
-    background: var(--feriiz-changed-tint);
-    box-shadow: inset 4px 0 0 var(--feriiz-changed);
-}
-
-.day-half--changed .feriiz-u-141 {
-    background: #fff;
+/* The two halves of a split day, the newest on the left, are outlined alike: only their boxes
+   carry colour, as in any day (Baldy, 05-11-2026). */
+.day-split > .day-half:not(.is-empty) {
+    border: 1px solid var(--feriiz-border-soft);
 }
 
 /* Room for the cell's checkbox, top right: over the system half since 04-11-2026. */
 .day-split > .day-half:last-child .feriiz-u-133 {
     padding-right: 20px;
-}
-
-.day-half--system.is-incomplete {
-    background: var(--feriiz-flag);
-    box-shadow: inset 4px 0 0 var(--feriiz-flag-bar);
-}
-
-.day-half--system.is-missing-both {
-    background: var(--feriiz-flag-danger);
-    box-shadow: inset 4px 0 0 var(--feriiz-danger);
 }
 
 .day-half.is-empty {
@@ -4160,16 +4115,6 @@ div.report-layout .report-table thead th.day-col.day-split-col {
 .day-half-empty {
     font-size: 12px;
     color: #6B7480 !important;
-}
-
-/* In a split column only the halves are coloured: the newest version blue, the original
-   yellow (or red) for missing logs. */
-div.report-layout .report-table tbody td.day-split-cell.no-log-cell,
-div.report-layout .report-table tbody td.day-split-cell.no-log-cell:hover,
-div.report-layout .report-table tbody td.day-split-cell.day-changed,
-div.report-layout .report-table tbody td.day-split-cell.day-changed:hover {
-    background: #fff !important;
-    box-shadow: none !important;
 }
 
 div.report-layout .report-table tbody td.day-split-cell {

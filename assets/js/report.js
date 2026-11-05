@@ -457,8 +457,19 @@
         return { start: start, end: end, period: period };
     }
 
+    // Does Show history put this day's newest version next to its original: an import, Add Log
+    // or Delete Log set it, whether or not it changed it (Baldy, 05-11-2026: after an import its
+    // days split "berdua", as before 3.7.57, when only changed days did). An import of a day
+    // off that says nobody worked does not count.
+    function versionShown(employee, date, s) {
+        if (!s.last) return false;
+        if (isChanged(employee, date, s)) return true;
+        var c = s.last.cells[employee.code + '|' + date] || {};
+        return !(kindOf(s.last) === 'import' && s.off && !Number(c.daily) && !Number(c.ot));
+    }
+
     // { 'YYYY-MM-DD': true } for the days on screen that split into newest | original: with Show
-    // history, the dates where someone's day changed.
+    // history, the dates a version set for someone the Report shows.
     var splitDates = {};
 
     function computeSplitDates(dates) {
@@ -466,7 +477,7 @@
         if (!showOriginal()) return;
         var people = peopleInOccupations();
         dates.forEach(function (date) {
-            if (people.some(function (e) { return isChanged(e, date, dayState(e.code, date)); })) splitDates[date] = true;
+            if (people.some(function (e) { return versionShown(e, date, dayState(e.code, date)); })) splitDates[date] = true;
         });
     }
 
@@ -743,17 +754,18 @@
     var NO_CHANGE_HALF = '<div class="day-half day-half--changed is-empty"><span class="day-half-empty">No change</span></div>';
     var CELL_CHECKBOX = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
 
-    // One day as it stands, the marks on its boxes; a changed day says who changed it in its
-    // tooltip. With Show history a split column shows the newest version on the left and the
-    // original on the right; a day nobody changed has an empty left half.
+    // One day as it stands, the marks on its boxes; a day a version set says which and who in
+    // its tooltip. With Show history a split column shows the newest version on the left and
+    // the original on the right, the same numbers too when the version changed nothing; a day
+    // no version set has an empty left half.
     function dayCellHTML(employee, date) {
         var s = dayState(employee.code, date);
-        var changed = isChanged(employee, date, s);
+        var shown = versionShown(employee, date, s);
         var now = dayContent(employee, date, s);
         var cls = now.cls ? ' ' + now.cls : '';
-        var title = changed ? ' title="' + escapeHTML(versionText(s.last) + (s.filled ? ' Daily 1: the log in and log out follow the working time.' : '')) + '"' : '';
-        if (splitDates[date] && !(now.off && !changed)) {
-            var halves = changed
+        var title = shown ? ' title="' + escapeHTML(versionText(s.last) + (s.filled ? ' Daily 1: the log in and log out follow the working time.' : '')) + '"' : '';
+        if (splitDates[date] && !(now.off && !shown)) {
+            var halves = shown
                 ? '<div class="day-half day-half--changed"' + title + '>' + now.content + '</div>' +
                     systemHalfHTML(dayContent(employee, date, dayState(employee.code, date, null)))
                 : NO_CHANGE_HALF + systemHalfHTML(now);
@@ -2114,7 +2126,8 @@
         }
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
-                'A day the file raises to Daily 1 takes the working time as its log in and log out; the other days keep their logs. Set other times with Add Log. A day the import changes turns blue.</p>';
+                'A day the file raises to Daily 1 takes the working time as its log in and log out; the other days keep their logs. Set other times with Add Log. ' +
+                'After the import, Show history puts each imported day next to its original, what changed in blue.</p>';
         }
         importModal.querySelector('#importStepPreview').innerHTML = html;
     }
@@ -2216,7 +2229,7 @@
             commitImport(plan);
             if (window.FeriizNotify) {
                 FeriizNotify.success(plan.cells.length + (plan.cells.length === 1 ? ' day' : ' days') + ' for ' + plan.people + (plan.people === 1 ? ' person' : ' people') +
-                    ' imported (' + plan.changed.length + ' changed). The changed days are blue, and Show history puts each next to its original. ' +
+                    ' imported (' + plan.changed.length + ' changed). Show history puts each imported day next to its original, what changed in blue. ' +
                     'The totals count the import.', 'File imported');
             }
         });

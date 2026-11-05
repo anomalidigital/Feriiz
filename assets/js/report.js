@@ -513,9 +513,6 @@
                             '<thead id="importHistoryHead"></thead><tbody id="importHistoryRows"></tbody>' +
                         '</table></div>' +
                     '</div>' +
-                    '<div class="modal-footer">' +
-                        '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>' +
-                    '</div>' +
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
@@ -2342,14 +2339,21 @@
         if (saveBtn) saveBtn.addEventListener('click', applyBatchUpdate);
         if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeBatchModal(); });
 
-        // Log note detail
+        // Log note detail: its x, Esc or a click outside closes it.
         var noteModal = document.getElementById('logNoteModal');
         var noteClose = document.getElementById('logNoteClose');
-        var noteDone = document.getElementById('logNoteDone');
         if (noteClose) noteClose.addEventListener('click', closeLogNote);
-        if (noteDone) noteDone.addEventListener('click', closeLogNote);
         if (noteModal) noteModal.addEventListener('click', function (e) {
             if (e.target === noteModal) closeLogNote();
+        });
+        // Esc closes the open Add Log, Delete Log or note window without doing anything, as
+        // Esc does on every Bootstrap window.
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            [['batchUpdateModal', closeBatchModal], ['deleteConfirmModal', closeDeleteConfirm], ['logNoteModal', closeLogNote]].forEach(function (m) {
+                var el = document.getElementById(m[0]);
+                if (el && el.classList.contains('show')) m[1]();
+            });
         });
 
         // Delete Confirmation Modal

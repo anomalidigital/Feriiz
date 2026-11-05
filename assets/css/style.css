@@ -722,12 +722,6 @@ body {
     overflow-wrap: anywhere;
 }
 
-.partner-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    padding: 0 28px 24px;
-}
-
 #partnerDetailModal .modal-card:focus {
     outline: none;
 }

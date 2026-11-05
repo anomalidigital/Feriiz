@@ -212,11 +212,13 @@
     /* =============================================
        CHANGES: IMPORT, ADD LOG, DELETE LOG (Baldy, 05-11-2026)
        Every change to a day is a version, kept in order:
-       - Import XLSX sets the day's NUMBERS: Daily (1 = a day, 0.5 = half a day, as dev
-         writes a day with one log, 0 = none) and Overtime hours, plus the rates in the file
-         (Feriiz team, 27-10-2026). The file has no log times, so the logs stay as they are.
-       - Add Log fills the LOGS a day is missing and Delete Log empties them; the numbers come
-         from the logs again.
+       - Import XLSX sets the day's NUMBERS: Daily (1 = the project's hours met, 0.5 = came
+         but did not meet them, 0 = did not come) and Overtime hours, plus the rates in the file
+         (Feriiz team, 27-10-2026). The file has no log times: a day it raises to Daily 1 takes
+         the working time as its log in and log out (Baldy, 05-11-2026, as the live Feriiz does:
+         "langsung keisi"); the other days keep their logs.
+       - Add Log sets the LOGS (a custom time like 07:00 -> 08:00 is done here, Baldy
+         05-11-2026) and Delete Log empties them; the numbers come from the logs again.
        The newest version is what the day shows and counts ("import 1 > import 2 > add log:
        yang dipake add log", and the other way round). A day that now differs from the
        machine's original is blue as a whole cell ("lansung coloms nya"), for an import and
@@ -337,15 +339,16 @@
     }
 
     // A day after its versions, oldest first, up to and with `upTo` (null: none, the machine's
-    // original). The newest decides: an import sets the numbers; Add Log fills missing logs and
-    // Delete Log empties them, after which the numbers come from the logs again. A day off
-    // ignores the machine's logs, as it always did; Add Log can still give it some.
+    // original). The newest decides: an import sets the numbers, and a day it raises to Daily 1
+    // takes the working time as its logs (filled); Add Log sets logs and Delete Log empties
+    // them, after which the numbers come from the logs again. A day off ignores the machine's
+    // logs, as it always did; Add Log can still give it some.
     function dayState(code, date, upTo) {
         var key = code + '|' + date;
         var rec = attendanceIndex[key] || {};
         var off = dayOffFor(code, date);
         var s = { off: off, inTime: off ? '' : rec.inTime || '', outTime: off ? '' : rec.outTime || '',
-                  inNote: off ? '' : rec.inNote || '', outNote: off ? '' : rec.outNote || '', numbers: null, last: null };
+                  inNote: off ? '' : rec.inNote || '', outNote: off ? '' : rec.outNote || '', numbers: null, last: null, filled: false };
         if (upTo === null) return s;
         var batches = projectImports().batches;
         for (var i = 0; i < batches.length; i++) {
@@ -356,10 +359,19 @@
                 if (c.inTime) { s.inTime = c.inTime; s.inNote = b.note || ''; }
                 if (c.outTime) { s.outTime = c.outTime; s.outNote = b.note || ''; }
                 s.numbers = null;
+                s.filled = false;
             } else if (kind === 'delete') {
                 s.inTime = s.outTime = s.inNote = s.outNote = '';
                 s.numbers = null;
+                s.filled = false;
             } else {
+                if (Number(c.daily) === 1 && logCount(code, date, s.inTime, s.outTime, true).daily < 1) {
+                    var workTime = workTimeOf(code);
+                    s.inTime = c.start || workTime.start;
+                    s.outTime = c.end || workTime.end;
+                    s.inNote = s.outNote = '';
+                    s.filled = true;
+                }
                 s.numbers = c;
             }
             s.last = b;
@@ -368,13 +380,16 @@
         return s;
     }
 
-    // What a day's logs count: a day with a log is Daily 1; hours and overtime need both logs.
-    // The default when the project has one (counted: also with Show history), else the real logs.
+    // What a day's logs count, by the live Feriiz's rule (Baldy, 05-11-2026): Daily 1 when the day
+    // meets the project's hours, 0.5 when someone came but did not (7 of 8 hours, or only one
+    // log), 0 when nobody came. Hours and overtime need both logs. The default when the project
+    // has one (counted: also with Show history), else the real logs.
     function logCount(code, date, inTime, outTime, counted) {
         if (!inTime && !outTime) return { daily: 0, work: 0, ot: 0 };
-        if (!inTime || !outTime) return { daily: 1, work: 0, ot: 0 };
+        if (!inTime || !outTime) return { daily: 0.5, work: 0, ot: 0 };
         var view = dayView(code, date, inTime, outTime, counted);
-        return { daily: 1, work: round2(view.hours.work), ot: round2(view.hours.ot) };
+        var work = round2(view.hours.work);
+        return { daily: work >= round2(periodOf(code, date)) ? 1 : 0.5, work: work, ot: round2(view.hours.ot) };
     }
 
     // What a day shows and counts now: the newest import's numbers, else its logs'. A Daily the
@@ -685,7 +700,7 @@
         var request = !s.inTime && !s.outTime && !numbered ? requestFor(code, date) : null;
         if (request) {
             return { cls: 'request-day-cell', content: withRequestChips(requestChipHTML(request), code, date),
-                     attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-work="0" data-ot="0" data-ot-total="0"' };
+                     attrs: ' data-request="' + escapeHTML(request.type) + '"' + EMPTY_LOG_ATTRS + ' data-daily="0" data-work="0" data-ot="0" data-ot-total="0"' };
         }
         var issue = dayIssue(code, date, s);
         // The data keeps the logs (notes, Batch Update); the cell shows the view.
@@ -693,7 +708,7 @@
         return {
             cls: missingClass(issue).trim(),
             issue: issue,
-            attrs: (s.numbers ? ' data-imported="1" data-daily="' + s.numbers.daily + '"' : '') + (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(s) +
+            attrs: (s.numbers ? ' data-imported="1"' : '') + ' data-daily="' + count.daily + '"' + (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(s) +
                 ' data-work="' + count.work.toFixed(4) + '" data-ot="' + count.ot.toFixed(4) + '" data-ot-total="' + count.ot.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logDataAttrs(s),
             content: withRequestChips(badgesHTML(count.work, count.ot) + logLinesHTML(s), code, date)
@@ -721,7 +736,7 @@
         var changed = isChanged(employee, date, s);
         var now = dayContent(employee, date, s);
         var cls = changed ? ' day-changed' : now.cls ? ' ' + now.cls : '';
-        var title = changed ? ' title="' + escapeHTML(versionText(s.last)) + '"' : '';
+        var title = changed ? ' title="' + escapeHTML(versionText(s.last) + (s.filled ? ' Daily 1: the log in and log out follow the working time.' : '')) + '"' : '';
         if (splitDates[date] && !(now.off && !changed)) {
             var halves = changed
                 ? '<div class="day-half day-half--changed"' + title + '>' + now.content + '</div>' +
@@ -753,11 +768,10 @@
         return employee && window.FERIIZ_DATA && window.FERIIZ_DATA.transportOf ? window.FERIIZ_DATA.transportOf(employee) : 0;
     }
 
-    // A worked day, by the same rule as Total Days.
+    // A day someone came in (Daily 1 or 0.5), by the same rule as Total Days.
     function workedCell(cell) {
         if (cell.classList.contains('weekend-off-cell')) return false;
-        if (cell.dataset.imported) return Number(cell.dataset.daily) > 0;
-        return Boolean(cell.dataset.inTime || cell.dataset.outTime);
+        return Number(cell.dataset.daily) > 0;
     }
 
     // The Transport cell and Total Additional of one row, from its worked days.
@@ -1033,8 +1047,8 @@
         if (el) el.textContent = text;
     }
 
-    // An imported day counts its Daily (1, 0.5 or 0) instead of "has a log". Transport is paid
-    // on the same days.
+    // Total Days adds up each day's Daily (1, 0.5 or 0), what pay counts. Transport is paid on the
+    // days someone came in.
     function updateVisibleTotals(datesToShow) {
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
             var otRate = Number(row.dataset.otRate) || 0;
@@ -1043,8 +1057,7 @@
             var days = 0, totalWork = 0, totalOT = 0, paid = 0;
             row.querySelectorAll('td.day-col').forEach(function (cell) {
                 if (datesToShow.indexOf(cell.dataset.date) < 0 || cell.classList.contains('weekend-off-cell')) return;
-                if (cell.dataset.imported) days += Number(cell.dataset.daily) || 0;
-                else if (cell.dataset.inTime || cell.dataset.outTime) days++;
+                days += Number(cell.dataset.daily) || 0;
                 if (transportRate && workedCell(cell)) paid++;
                 totalWork += Number(cell.dataset.work) || 0;
                 totalOT += Number(cell.dataset.otTotal) || 0;
@@ -1373,14 +1386,25 @@
        ============================================= */
     var activeAction = 'add';
 
-    // Add Log asks for the log in and the log out at once (Baldy, 04-11-2026), starting at the
-    // project's working hours (meeting 1:28); the admin can still change them.
-    function resetAddLogTimes() {
+    // Add Log asks for the log in and the log out at once (Baldy, 04-11-2026). A time sets that log:
+    // a missing one is added, an existing one replaced (Baldy, 05-11-2026: a custom log, "dari jam
+    // 07:00 ke jam 08:00", is done here; the original stays in the History). An empty time keeps
+    // that log as it is. A time starts at the project's working hours (meeting 1:28) only when
+    // every ticked day is missing that log, so a real log is never replaced by accident.
+    function prefillAddLog(cells) {
         var inInput = document.getElementById('batchUpdateIn');
         var outInput = document.getElementById('batchUpdateOut');
-        if (inInput) inInput.value = ((projectContext && projectContext.workStart) || '08:00') + ':00';
-        if (outInput) outInput.value = ((projectContext && projectContext.workEnd) || '17:00') + ':00';
+        var start = ((projectContext && projectContext.workStart) || '08:00') + ':00';
+        var end = ((projectContext && projectContext.workEnd) || '17:00') + ':00';
+        var states = cells.map(function (cell) { return dayState(cell.closest('tr').dataset.employeeCode, cell.dataset.date); });
+        if (inInput) inInput.value = states.every(function (s) { return !s.inTime; }) ? start : '';
+        if (outInput) outInput.value = states.every(function (s) { return !s.outTime; }) ? end : '';
+        var hint = document.getElementById('batchUpdateHint');
+        if (hint) hint.textContent = 'A time you set replaces the log a day already has (the original stays in the History); an empty time keeps it. Working time: ' + start + ' - ' + end + '.';
     }
+
+    // "08:00" from a time field reads as "08:00:00", like the machine's logs.
+    function clockValue(v) { return /^\d{2}:\d{2}$/.test(v) ? v + ':00' : v; }
 
     function showBatchModal(action) {
         var selected = getSelectedCells();
@@ -1416,7 +1440,7 @@
         var empSum = document.getElementById('batchEmployeeSummary');
 
         if (title) title.textContent = 'Add Log';
-        resetAddLogTimes();
+        prefillAddLog(selected);
         if (note) note.value = '';
         if (cellSum) cellSum.textContent = selected.length + ' log';
         if (empSum) empSum.textContent = getAffectedEmployeeCount() + ' employee';
@@ -1500,15 +1524,15 @@
     function applyBatchUpdate() {
         var inInput = document.getElementById('batchUpdateIn');
         var outInput = document.getElementById('batchUpdateOut');
-        var inValue = inInput ? inInput.value : '';
-        var outValue = outInput ? outInput.value : '';
+        var inValue = inInput ? clockValue(inInput.value) : '';
+        var outValue = outInput ? clockValue(outInput.value) : '';
         var noteInput = document.getElementById('batchUpdateNote');
         var noteValue = noteInput ? noteInput.value.trim() : '';
         var selectedCells = getSelectedCells();
         var dateSummary = getBatchDateSummary(selectedCells);
         var isAdd = activeAction === 'add';
         var updated = 0;
-        var addedIns = 0, addedOuts = 0, kept = 0;
+        var addedIns = 0, addedOuts = 0, replaced = 0, kept = 0;
         var people = {};
 
         if (selectedCells.length === 0) {
@@ -1531,19 +1555,17 @@
             var date = cell.dataset.date;
             var s = dayState(code, date);
             if (isAdd) {
-                // Each time fills only a log the day is missing: a log the machine has stays as it
-                // is (Arcon: machine times are never overwritten). Delete Log first to replace one.
-                var addIn = Boolean(inValue && !s.inTime);
-                var addOut = Boolean(outValue && !s.outTime);
-                if (!addIn && !addOut) {
+                // Each time set adds that log or replaces it; the machine's original stays in the
+                // History and in Show history (Arcon: machine times are never lost).
+                var setIn = Boolean(inValue && inValue !== s.inTime);
+                var setOut = Boolean(outValue && outValue !== s.outTime);
+                if (!setIn && !setOut) {
                     kept++;
                     return;
                 }
-                if (addIn) addedIns++;
-                if (addOut) addedOuts++;
                 var added = {};
-                if (addIn) added.inTime = inValue;
-                if (addOut) added.outTime = outValue;
+                if (setIn) { added.inTime = inValue; addedIns++; if (s.inTime) replaced++; }
+                if (setOut) { added.outTime = outValue; addedOuts++; if (s.outTime) replaced++; }
                 version.cells[code + '|' + date] = added;
             } else {
                 if (!s.inTime && !s.outTime) return;
@@ -1564,7 +1586,7 @@
         }
         if (!window.FeriizNotify) return;
         if (isAdd && !updated) {
-            FeriizNotify.info('The ticked days already have their log in and log out. Add Log only fills a missing one; use Delete Log first to replace a log.', 'Nothing to add');
+            FeriizNotify.info('The ticked days already have these times, so nothing was changed.', 'Nothing to change');
             return;
         }
         if (!updated) return;
@@ -1572,10 +1594,11 @@
         var who = count + (count === 1 ? ' employee' : ' employees');
         if (isAdd) {
             var added = [addedIns ? addedIns + ' log in' : '', addedOuts ? addedOuts + ' log out' : ''].filter(Boolean).join(' and ');
-            FeriizNotify.success(added + ' added for ' + who + ' on ' + dateSummary + '.' +
+            FeriizNotify.success(added + ' set for ' + who + ' on ' + dateSummary + '.' +
+                (replaced === 1 ? ' 1 replaced a log the day had; the original stays in the History.'
+                    : replaced ? ' ' + replaced + ' replaced logs the days had; the originals stay in the History.' : '') +
                 (noteValue ? ' A note was attached to each new log.' : '') +
-                (kept === 1 ? ' 1 day already had its logs and was left as it is.'
-                    : kept ? ' ' + kept + ' days already had their logs and were left as they are.' : '') +
+                (kept === 1 ? ' 1 day already had these times.' : kept ? ' ' + kept + ' days already had these times.' : '') +
                 ' The changed days are blue.', 'Log added');
         } else {
             FeriizNotify.success('The logs of ' + updated + (updated === 1 ? ' day' : ' days') + ' (' + who + ') on ' + dateSummary + ' were deleted. The changed days are blue.', 'Log deleted');
@@ -1759,9 +1782,7 @@
                     emp.occupation || null, workTime.start, workTime.end, round2(hours)];
         dates.forEach(function (d) {
             var cell = row.querySelector('td.day-col[data-date="' + d + '"]');
-            var daily = 0;
-            if (cell && cell.dataset.imported) daily = Number(cell.dataset.daily) || 0;
-            else if (cell && !cell.classList.contains('weekend-off-cell') && (cell.dataset.inTime || cell.dataset.outTime)) daily = 1;
+            var daily = cell && !cell.classList.contains('weekend-off-cell') ? Number(cell.dataset.daily) || 0 : 0;
             line.push(daily, round2(cell ? cell.dataset.otTotal : 0));
         });
         line.push(Number(row.dataset.dailyRate) || 0, Number(row.dataset.otRate) || 0,
@@ -2074,7 +2095,7 @@
         }
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
-                'Log in and log out stay as the machine recorded them: the import replaces only Daily and Overtime. A day it changes turns blue.</p>';
+                'A day the file raises to Daily 1 takes the working time as its log in and log out; the other days keep their logs. Set other times with Add Log. A day the import changes turns blue.</p>';
         }
         importModal.querySelector('#importStepPreview').innerHTML = html;
     }

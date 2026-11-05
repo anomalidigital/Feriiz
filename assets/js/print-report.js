@@ -619,7 +619,7 @@
         if (isDailyActive) {
             var workedOn = function (td) {
                 if (!td || td.classList.contains('weekend-off-cell')) return false;
-                if (td.dataset.imported) return Number(td.dataset.daily) > 0;
+                if (td.dataset.daily != null) return Number(td.dataset.daily) > 0;
                 return Boolean(td.dataset.inTime || td.dataset.outTime);
             };
             var personDays = 0;

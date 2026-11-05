@@ -7,14 +7,14 @@
     <title>Feriiz - Anomali - Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.58">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.58">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.59">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.59">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.58" defer></script>
-    <script src="assets/js/app.js?v=3.7.58" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.58" defer></script>
-    <script src="assets/js/report.js?v=3.7.58" defer></script>
-    <script src="assets/js/print-report.js?v=3.7.58" defer></script>
+    <script src="assets/js/data.js?v=3.7.59" defer></script>
+    <script src="assets/js/app.js?v=3.7.59" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.59" defer></script>
+    <script src="assets/js/report.js?v=3.7.59" defer></script>
+    <script src="assets/js/print-report.js?v=3.7.59" defer></script>
 </head>
 
 <body data-page="project-report">
@@ -259,7 +259,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.7.58</div>
+            <div class="version-text">version : 3.7.59</div>
             <!-- 20 people a page, like Employees and Activity (Baldy, 04-11-2026) -->
             <div class="pagination report-pagination">
                 <div class="pagination-info" id="reportPageInfo"></div>
@@ -315,11 +315,12 @@
                         <strong id="batchEmployeeSummary">0 employee</strong>
                     </div>
                 </div>
-                <!-- Both times at once (Baldy, 04-11-2026); each fills only a log the day is missing -->
+                <!-- Both times at once (Baldy, 04-11-2026). A time sets that log, added or replaced (05-11-2026); an empty time keeps it -->
                 <label class="report-fix-label" for="batchUpdateIn">Set Log In Time</label>
                 <input type="time" step="1" id="batchUpdateIn" class="report-fix-input" value="08:00:00">
                 <label class="report-fix-label" for="batchUpdateOut">Set Log Out Time</label>
                 <input type="time" step="1" id="batchUpdateOut" class="report-fix-input" value="17:00:00">
+                <p class="report-fix-hint" id="batchUpdateHint"></p>
                 <label class="report-fix-label" for="batchUpdateNote">Note</label>
                 <textarea id="batchUpdateNote" class="report-fix-note" placeholder="Note"></textarea>
             </div>

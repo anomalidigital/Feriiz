@@ -3144,6 +3144,14 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
     resize: vertical;
 }
 
+/* Add Log: what a set time and an empty time do (Baldy, 05-11-2026). */
+.report-fix-hint {
+    margin: -8px 0 16px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--feriiz-text-hint);
+}
+
 .report-fix-input:focus,
 .report-fix-note:focus {
     border-color: #2975BB;

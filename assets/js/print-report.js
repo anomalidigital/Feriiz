@@ -185,7 +185,7 @@
         if (td.dataset.imported === '1') {
             return '<div class="print-day-cell"><div class="print-day-badges">' + badges.map(function (b) {
                 return '<span class="' + (b.toLowerCase().includes('ot') ? 'print-badge-ot' : 'print-badge-work') + '">' + escapeHTML(b) + '</span>';
-            }).join('') + '</div><div class="print-day-log">Uploaded</div></div>';
+            }).join('') + '</div><div class="print-day-log">Imported</div></div>';
         }
 
         if (!inTime && !outTime && badges.length === 0) {
@@ -471,9 +471,9 @@
             var period = '-';
             var overtime = '-';
 
-            // A split day (Original | Import) prints the import, which is what the totals count.
-            // Only the hour and overtime badges are read, not the request chips.
-            var scope = dayTd.querySelector('.day-half--import:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
+            // A split day (newest | original) prints the newest version, which is what the totals
+            // count. Only the hour and overtime badges are read, not the request chips.
+            var scope = dayTd.querySelector('.day-half--changed:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
             var badges = Array.from(scope.querySelectorAll('.feriiz-u-135, .feriiz-u-136'))
                 .map(function (b) { return b.textContent.trim(); });
 

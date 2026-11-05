@@ -7,11 +7,11 @@
     <title>Feriiz - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.56">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.56">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.57">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.57">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.56" defer></script>
-    <script src="assets/js/app.js?v=3.7.56" defer></script>
+    <script src="assets/js/data.js?v=3.7.57" defer></script>
+    <script src="assets/js/app.js?v=3.7.57" defer></script>
 </head>
 
 <body data-page="dashboard">
@@ -117,7 +117,7 @@
             <p class="dash-footnote">Workers assigned to more than one project are counted once in each project.</p>
         </section>
 
-        <div class="feriiz-u-032">version : 3.7.56</div>
+        <div class="feriiz-u-032">version : 3.7.57</div>
     </main>
 
     <script>
@@ -449,9 +449,24 @@
             table.appendChild(tfoot);
         }
 
+        // Exporting shows its loading on the button, like every download (Baldy, 05-11-2026).
         function exportMatrix() {
             var model = state.matrixModel;
-            if (!model || model.rows.length === 0) return;
+            var btn = $('dashExport');
+            if (!model || model.rows.length === 0 || btn.classList.contains('is-loading')) return;
+            var label = btn.innerHTML;
+            btn.classList.add('is-loading');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
+            window.setTimeout(function () {
+                downloadMatrix(model);
+                btn.innerHTML = label;
+                btn.classList.remove('is-loading');
+                btn.disabled = !(state.matrixModel && state.matrixModel.rows.length);
+            }, 800);
+        }
+
+        function downloadMatrix(model) {
             var quote = function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; };
             var lines = [];
             lines.push(['Occupation'].concat(model.projects.map(function (p) { return p.name; }), ['Total']).map(quote).join(','));

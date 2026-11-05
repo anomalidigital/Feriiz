@@ -32,10 +32,9 @@
     --feriiz-flag: #FEEFB9;      /* incomplete log cell */
     --feriiz-flag-bar: #F39C12;
     --feriiz-flag-danger: #F8D2CD;   /* a Report day missing both logs, with a --feriiz-danger bar */
-    --feriiz-added: #CCE3F6;         /* a log added with Add Log, with a --feriiz-info bar */
-    --feriiz-import: #8E44AD;    /* Report days from an import, white text */
-    --feriiz-import-soft: #F4ECF8;   /* light purple behind purple text (5:1), e.g. a hovered history button */
-    --feriiz-import-tint: #EAD0F7;   /* the upload half of a split day, as strong as the yellow --feriiz-flag */
+    --feriiz-changed: #2980B9;       /* a Report day an import, Add Log or Delete Log changed: its bar */
+    --feriiz-changed-tint: #D4E6F7;  /* ...and its ground, as strong as the yellow --feriiz-flag */
+    --feriiz-changed-soft: #EBF4FC;  /* light blue behind blue text, e.g. a hovered History button */
 
     /* Surfaces */
     --feriiz-bg: #F2F2F2;
@@ -912,6 +911,25 @@ body {
 
 .filter-dropdown.show {
     display: block;
+}
+
+/* A dropdown taller than the room under its button scrolls inside (app.js fitDropdown), and its
+   Clear / Apply stay in view at the bottom (Baldy, 05-11-2026). */
+.filter-dropdown.is-scrolling,
+.cal-filter-dropdown.is-scrolling {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.filter-dropdown.is-scrolling .filter-footer,
+.filter-dropdown.is-scrolling .feriiz-u-018 {
+    position: sticky;
+    bottom: -24px;
+    z-index: 1;
+    margin: 20px -24px -24px;
+    padding: 12px 24px 24px;
+    background: #fff;
+    box-shadow: 0 -1px 0 #EEF1F4;
 }
 
 .filter-dropdown label {
@@ -3435,7 +3453,7 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-099 { color:#fff; font-size:28px; font-weight:700; line-height:1; }
 .feriiz-u-103 { gap:24px; margin-bottom:24px; }
 .feriiz-u-104 { font-weight:600; color:#1a1a1a; }
-.feriiz-u-105 { position:sticky; top:0; background:#F2F2F2; z-index:90; padding-top:24px; padding-bottom:16px; border-bottom:1px solid #D9D9D9; display:flex; justify-content:space-between; align-items:flex-end; }
+.feriiz-u-105 { position:sticky; top:0; background:#F2F2F2; z-index:95; padding-top:24px; padding-bottom:16px; border-bottom:1px solid #D9D9D9; display:flex; justify-content:space-between; align-items:flex-end; }
 .feriiz-u-106 { margin-bottom:12px; }
 .feriiz-u-108 { display:inline-flex; align-items:center; gap:8px; width:38px; height:38px; justify-content:center; padding:0; }
 .feriiz-u-109 { text-align:left; font-weight:normal; left:0; right:auto; }
@@ -3962,30 +3980,27 @@ div.report-layout .report-table tbody td.no-log-cell.log-missing-both:has(.day-c
     background: #F3B6AE !important;
 }
 
-/* What changed a day (Baldy, 04-11-2026: "biru itu batch update, ungu itu hasil import"), the
-   same in the first view and with Show history:
-   - a log an admin added with Add Log is blue, a tint with a bar like the day colours; its
-     tooltip says who added it and when.
-   - a number an upload changed is a purple badge; its tooltip says what the day counts without
-     the upload. */
-div.report-layout .report-table .feriiz-u-141.log-added,
-div.report-layout .report-table .day-half .feriiz-u-141.log-added {
-    background: var(--feriiz-added);
-    box-shadow: inset 3px 0 0 var(--feriiz-info);
+/* A day an import, Add Log or Delete Log changed is blue as a whole cell, the same in the first
+   view and with Show history (Baldy, 05-11-2026: "lansung coloms nya", one colour for every
+   change). A tint with a bar like the yellow and red days; its logs sit on white. Its tooltip
+   says who changed it. */
+div.report-layout .report-table tbody td.day-changed {
+    background: var(--feriiz-changed-tint) !important;
+    box-shadow: inset 4px 0 0 var(--feriiz-changed) !important;
 }
 
-.badge.feriiz-u-135.badge-uploaded,
-.badge.feriiz-u-136.badge-uploaded {
-    background: var(--feriiz-import);
-    color: #fff;
+div.report-layout .report-table tbody td.day-changed:hover,
+div.report-layout .report-table tbody td.day-changed:has(.day-cell-select:checked) {
+    background: #BFD9F1 !important;
 }
 
-/* Uploaded days (XLSX > Upload Log): the file's numbers replace what the system counts; the
-   system's own logs stay (2026-10-27). */
+div.report-layout .report-table tbody td.day-changed .feriiz-u-141 {
+    background: #fff;
+}
 
-/* With Show history a day with an upload is split in two (2026-10-30): the upload on the
-   left, drawn like a normal day on a light purple ground, and the system on the right
-   (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the upload.
+/* With Show history a changed day is split in two (2026-10-30): its newest version on the
+   left, drawn like a normal day on the blue ground, and the machine's original on the right
+   (Pak Stef, 04-11-2026). Colour alone tells them apart. The totals count the newest version.
    The two halves are equal and every split day is as wide, so the halves line up from row
    to row (Baldy, 04-11-2026: fitting them to their content left them out of line). */
 div.report-layout .report-table thead th.day-col.day-split-col {
@@ -4003,16 +4018,17 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     margin: 0;
 }
 
-/* Import history (2026-10-30): from a day's second import, every import side by side. */
+/* History (2026-10-30; Add Log and Delete Log too since 05-11-2026): from a date's second
+   change, every version side by side. */
 .import-history-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 2px 8px;
-    border: 1px solid var(--feriiz-import);
+    border: 1px solid var(--feriiz-changed);
     border-radius: var(--feriiz-radius-pill);
     background: #fff;
-    color: var(--feriiz-import);
+    color: var(--feriiz-primary-dark);
     font-family: inherit;
     font-size: 12px;
     font-weight: 600;
@@ -4022,7 +4038,7 @@ div.report-layout .report-table thead th.day-col.day-split-col {
 
 .import-history-btn:hover,
 .import-history-btn:focus-visible {
-    background: var(--feriiz-import-soft);
+    background: var(--feriiz-changed-soft);
 }
 
 .import-history-wrap {
@@ -4057,10 +4073,10 @@ div.report-layout .report-table thead th.day-col.day-split-col {
 }
 
 .import-history-table th.is-current {
-    color: var(--feriiz-import);
+    color: var(--feriiz-primary-dark);
 }
 
-/* Who uploaded it: the account's name and role (Baldy, 04-11-2026) */
+/* Who changed it: the account's name and role (Baldy, 04-11-2026) */
 .import-history-table th small.import-history-by {
     color: #333;
     font-weight: 600;
@@ -4070,13 +4086,13 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     font-weight: 600;
 }
 
-/* Each upload is its hours and overtime badges on the upload's purple ground (it has no log times). */
-.import-history-table td .day-half .feriiz-u-133 {
-    margin-bottom: 0;
+/* Each version is drawn like the day right after it: badges, then log in / log out. */
+.import-history-table td .day-half {
+    min-width: 200px;
 }
 
 .import-history-table tr.is-changed td:first-child {
-    box-shadow: inset 3px 0 0 var(--feriiz-import);
+    box-shadow: inset 3px 0 0 var(--feriiz-changed);
 }
 
 .import-history-table tr[hidden] {
@@ -4099,14 +4115,14 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     border-radius: 8px;
 }
 
-/* The upload half is drawn like the yellow "incomplete" half, in purple: a strong tint and a bar
-   on the left (Baldy, 04-11-2026: "dikerengin… style nya sama"). */
-.day-half--import {
-    background: var(--feriiz-import-tint);
-    box-shadow: inset 4px 0 0 var(--feriiz-import);
+/* The newest version's half is drawn like the yellow "incomplete" half, in blue: a strong tint
+   and a bar on the left (Baldy, 04-11-2026: "dikerengin… style nya sama"). */
+.day-half--changed {
+    background: var(--feriiz-changed-tint);
+    box-shadow: inset 4px 0 0 var(--feriiz-changed);
 }
 
-.day-half--import .feriiz-u-141 {
+.day-half--changed .feriiz-u-141 {
     background: #fff;
 }
 
@@ -4132,8 +4148,8 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     min-height: 96px;
 }
 
-/* Nobody's import for this person on this day: an outline, not the purple ground. */
-.day-half--import.is-empty {
+/* A day nobody changed, in a split column: an outline, not the blue ground. */
+.day-half--changed.is-empty {
     border: 1px dashed var(--feriiz-border);
     background: transparent;
     box-shadow: none;
@@ -4144,9 +4160,12 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     color: #6B7480 !important;
 }
 
-/* In a split column only the System half turns yellow (or red) for missing logs. */
+/* In a split column only the halves are coloured: the newest version blue, the original
+   yellow (or red) for missing logs. */
 div.report-layout .report-table tbody td.day-split-cell.no-log-cell,
-div.report-layout .report-table tbody td.day-split-cell.no-log-cell:hover {
+div.report-layout .report-table tbody td.day-split-cell.no-log-cell:hover,
+div.report-layout .report-table tbody td.day-split-cell.day-changed,
+div.report-layout .report-table tbody td.day-split-cell.day-changed:hover {
     background: #fff !important;
     box-shadow: none !important;
 }
@@ -6538,99 +6557,51 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-size: 40px;
 }
 
-/* --- Report: Import XLSX modal --- */
+/* --- Report: Import XLSX dialog ("Import attendance", Baldy 05-11-2026: the first design) --- */
 .import-intro {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     font-size: 13px;
     line-height: 1.55;
     color: #3A4250;
 }
 
-.import-drop {
+.import-file-box {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 4px;
-    padding: 26px 16px;
-    border: 1.5px dashed #B9CCE0;
-    border-radius: 12px;
-    background: #F7FAFD;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    padding: 16px;
+    border: 1px solid var(--feriiz-border);
+    border-radius: 8px;
 }
 
-.import-drop:hover,
-.import-drop.is-over {
-    border-color: #2975BB;
-    background: #EBF3FA;
-}
-
-.import-drop:focus-within {
-    outline: 2px solid #2975BB;
-    outline-offset: 2px;
-}
-
-.import-drop > i {
-    margin-bottom: 4px;
-    font-size: 28px;
-    color: #2975BB;
-}
-
-.import-drop-title {
+.import-file-label {
     font-size: 13px;
     font-weight: 600;
     color: #1a1a1a;
 }
 
-.import-drop-title u {
-    color: #2975BB;
-    text-underline-offset: 3px;
-}
-
-.import-drop-hint {
+.import-file-hint {
+    margin-bottom: 8px;
     font-size: 12px;
-    color: #6B7480;
+    color: var(--feriiz-text-hint);
 }
 
-.import-chosen {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 12px;
-    padding: 10px 12px;
-    border: 1px solid #D9E6F3;
-    border-radius: 10px;
-    background: #fff;
+.import-file-meta {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: var(--feriiz-text-hint);
 }
 
-.import-chosen[hidden],
 .import-error[hidden] {
     display: none;
 }
 
-.import-chosen > i {
-    font-size: 22px;
-    color: #1E7E34;
-}
-
-.import-file-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.import-file-name {
-    overflow: hidden;
-    font-size: 13px;
-    font-weight: 600;
-    color: #1a1a1a;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.import-file-meta {
-    font-size: 12px;
-    color: #6B7480;
+.import-template-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
 }
 
 .import-error {
@@ -6642,19 +6613,28 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-size: 13px;
 }
 
-/* Import Log: reading and the preview before anything is replaced */
-.import-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 32px 0;
-    color: #475467;
-    font-size: 13px;
+/* Loading in the Import dialog, as on the live Feriiz (Baldy, 05-11-2026): a label with how far
+   it is, over a striped bar (Download template, and reading the chosen file). */
+.import-progress {
+    margin-top: 16px;
 }
 
-.import-loading[hidden] {
+.import-progress[hidden] {
     display: none;
+}
+
+.import-progress-label {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #344054;
+    font-variant-numeric: tabular-nums;
+}
+
+.import-progress .progress {
+    --bs-progress-height: 14px;
+    --bs-progress-bg: #EEF1F4;
+    --bs-progress-bar-bg: var(--feriiz-primary);
+    --bs-progress-border-radius: 4px;
 }
 
 .import-counts {
@@ -6676,7 +6656,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .import-count.is-changed {
-    background: var(--feriiz-import);
+    background: var(--feriiz-changed);
     color: #fff;
 }
 
@@ -6711,7 +6691,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .import-new {
-    color: var(--feriiz-import);
+    color: var(--feriiz-primary-dark);
     font-weight: 600;
 }
 
@@ -6786,28 +6766,6 @@ div.report-layout .report-search-wrap {
 
 div.report-layout .report-search-input {
     width: 100%;
-}
-
-/* Import XLSX menu (Download Log / Import Log), built like the Export menu */
-.report-import-menu {
-    display: none;
-}
-
-.report-import-menu.show {
-    display: block;
-}
-
-.report-import-menu .feriiz-u-129 {
-    width: 100%;
-    border: 0;
-    background: none;
-    text-align: left;
-}
-
-.report-import-menu .feriiz-u-129:hover,
-.report-import-menu .feriiz-u-129:focus-visible {
-    background: #f5f8fc;
-    outline: none;
 }
 
 /* Filter > Import: "Show system data only" and its "?" */

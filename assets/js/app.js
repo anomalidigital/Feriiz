@@ -524,7 +524,7 @@ function feriizLogout() {
         const el = document.createElement('div');
         el.className = 'dropdown occ-picker';
         el.innerHTML = `
-            <button type="button" class="occ-picker-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+            <button type="button" class="occ-picker-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
                 <span class="occ-picker-text">All Occupations</span>
                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </button>
@@ -567,6 +567,12 @@ function feriizLogout() {
                 items.map(item => rowHTML(item.value, item.name, total == null ? null : item.count)).join('');
             paint();
         }
+
+        // The list floats over the page (Popper "fixed"), so a filter that scrolls never cuts it
+        // off; it is as wide as its field.
+        el.addEventListener('show.bs.dropdown', () => {
+            menu.style.width = el.querySelector('.occ-picker-trigger').getBoundingClientRect().width + 'px';
+        });
 
         menu.addEventListener('change', event => {
             const value = event.target.value;
@@ -695,10 +701,39 @@ function feriizLogout() {
         return container ? container.querySelector('.filter-dropdown, .cal-filter-dropdown') : null;
     }
 
+    // A dropdown never runs off the screen (Baldy, 05-11-2026: on a laptop the Report filter's
+    // History box and Apply were hidden under the page's bottom bar). It stays inside the
+    // window's width, and when it is taller than the room under its button it scrolls inside,
+    // with Clear / Apply kept in view (style.css .is-scrolling).
+    function fitDropdown(dropdown) {
+        dropdown.style.maxHeight = '';
+        dropdown.style.maxWidth = '';
+        dropdown.style.transform = '';
+        dropdown.classList.remove('is-scrolling');
+        if (!dropdown.classList.contains('show')) return;
+        const gap = 8;
+        dropdown.style.maxWidth = (window.innerWidth - gap * 2) + 'px';
+        const rect = dropdown.getBoundingClientRect();
+        let shift = 0;
+        if (rect.right > window.innerWidth - gap) shift = window.innerWidth - gap - rect.right;
+        if (rect.left + shift < gap) shift = gap - rect.left;
+        if (shift) dropdown.style.transform = 'translateX(' + Math.round(shift) + 'px)';
+        const room = Math.floor(window.innerHeight - rect.top - gap);
+        if (rect.height > room) {
+            dropdown.style.maxHeight = Math.max(160, room) + 'px';
+            dropdown.classList.add('is-scrolling');
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.filter-dropdown.show, .cal-filter-dropdown.show').forEach(fitDropdown);
+    });
+
     function closeDropdown(dropdown, toggle) {
         if (!dropdown) return;
         dropdown.classList.remove('show');
         dropdown.style.display = '';
+        fitDropdown(dropdown);
         if (toggle) toggle.classList.remove('active');
     }
 
@@ -724,6 +759,7 @@ function feriizLogout() {
             dropdown.style.display = '';
             dropdown.classList.toggle('show', !isOpen);
             toggle.classList.toggle('active', !isOpen);
+            fitDropdown(dropdown);
             return;
         }
 

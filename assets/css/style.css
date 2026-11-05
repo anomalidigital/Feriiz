@@ -7317,3 +7317,117 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     }
 }
 
+/* === Report on tablets and phones (Baldy, 05-11-2026: "harus suport di tablet, handphone,
+   leptop, layar pc"). Below 861px the header stacks, the title and then the actions on a
+   wrapping row, so the table keeps most of the screen (a 768px rule used to put every action
+   in one tall column and left the table about 70px). Phones show Columns, Import XLSX and
+   Print as icons, a narrower name column and a compact pager. === */
+@media (max-width: 860px) {
+    div.report-layout .fixed-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px;
+        padding: 20px 16px 12px !important;
+    }
+
+    div.report-layout .fixed-toolbar > div:first-child {
+        min-width: 0;
+    }
+
+    div.report-layout .report-actions {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        width: 100%;
+    }
+
+    div.report-layout .report-actions .btn-action {
+        width: auto !important;
+    }
+
+    /* A tablet keeps every action on one row: the search takes what is left. */
+    div.report-layout .report-search-wrap {
+        flex: 1 1 140px !important;
+        min-width: 120px !important;
+    }
+
+    div.report-layout .report-filter-indicator {
+        padding: 8px 16px;
+    }
+
+    div.report-layout .report-table-wrap {
+        margin: 0 !important;
+    }
+
+    div.report-layout .fixed-bottom-bar {
+        padding: 12px 16px;
+    }
+}
+
+/* From 768px down the menu button floats at the top left, so the header starts under it. */
+@media (max-width: 768px) {
+    div.report-layout .fixed-toolbar {
+        padding-top: 64px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    div.report-layout .report-actions .btn-action {
+        padding: 8px 12px;
+    }
+
+    /* A phone puts the search on its own row, then the buttons on one row under it. */
+    div.report-layout .report-search-wrap {
+        order: -1;
+        flex: 1 1 100% !important;
+    }
+
+    /* The label stays for screen readers; the icon and the button's title say what it does. */
+    div.report-layout .report-actions .report-action-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    div.report-layout .report-table {
+        --report-sticky-name-width: 150px;
+    }
+
+    div.report-layout .selectable-report-table tbody td.col-name {
+        padding-left: 12px !important;
+    }
+
+    div.report-layout .filter-indicator-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    div.report-layout .filter-indicator-chip {
+        white-space: nowrap;
+    }
+
+    div.report-layout .fixed-bottom-bar {
+        gap: 4px;
+        padding: 8px 12px;
+    }
+
+    .report-pagination {
+        gap: 4px;
+    }
+
+    .report-pagination .pager-word {
+        display: none;
+    }
+}
+
+/* Under 401px the page is padded 10px, not 14px, so the tables that run to the screen edges
+   move in to match (they started 4px off the left edge). */
+@media (max-width: 400px) {
+    .table-container {
+        margin: 0 -10px !important;
+        padding: 0 10px !important;
+    }
+}

@@ -712,13 +712,21 @@ function feriizLogout() {
         dropdown.classList.remove('is-scrolling');
         if (!dropdown.classList.contains('show')) return;
         const gap = 8;
-        dropdown.style.maxWidth = (window.innerWidth - gap * 2) + 'px';
-        const rect = dropdown.getBoundingClientRect();
-        let shift = 0;
-        if (rect.right > window.innerWidth - gap) shift = window.innerWidth - gap - rect.right;
-        if (rect.left + shift < gap) shift = gap - rect.left;
-        if (shift) dropdown.style.transform = 'translateX(' + Math.round(shift) + 'px)';
-        const room = Math.floor(window.innerHeight - rect.top - gap);
+        let rect = dropdown.getBoundingClientRect();
+        // From 768px down the filters are sheets fixed to the bottom of the screen (style.css):
+        // full width, and they may grow up to the menu button.
+        const sheet = getComputedStyle(dropdown).position === 'fixed' && rect.bottom >= window.innerHeight - 1;
+        if (!sheet) {
+            if (rect.width > window.innerWidth - gap * 2) {
+                dropdown.style.maxWidth = (window.innerWidth - gap * 2) + 'px';
+                rect = dropdown.getBoundingClientRect();
+            }
+            let shift = 0;
+            if (rect.right > window.innerWidth - gap) shift = window.innerWidth - gap - rect.right;
+            if (rect.left + shift < gap) shift = gap - rect.left;
+            if (shift && rect.width <= window.innerWidth - gap * 2) dropdown.style.transform = 'translateX(' + Math.round(shift) + 'px)';
+        }
+        const room = sheet ? window.innerHeight - 64 : Math.floor(window.innerHeight - rect.top - gap);
         if (rect.height > room) {
             dropdown.style.maxHeight = Math.max(160, room) + 'px';
             dropdown.classList.add('is-scrolling');

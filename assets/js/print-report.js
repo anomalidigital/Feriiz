@@ -710,7 +710,7 @@
         if (printButton) {
             printButton.disabled = false;
             printButton.classList.remove('is-preparing');
-            printButton.innerHTML = '<i class="fa-solid fa-print"></i><span>Print</span>';
+            printButton.innerHTML = '<i class="fa-solid fa-print"></i><span class="report-action-label">Print</span>';
         }
     }
 
@@ -730,7 +730,7 @@
         if (printButton) {
             printButton.disabled = true;
             printButton.classList.add('is-preparing');
-            printButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Preparing...</span>';
+            printButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span class="report-action-label">Preparing...</span>';
         }
 
         prepareForPrint();

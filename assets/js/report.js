@@ -1193,7 +1193,7 @@
         box.innerHTML = '';
         var prev = document.createElement('button');
         prev.type = 'button';
-        prev.textContent = '< Previous';
+        prev.innerHTML = '&lt; <span class="pager-word">Previous</span>';
         prev.disabled = reportPage === 1;
         prev.addEventListener('click', function () { goToPage(reportPage - 1); });
         box.appendChild(prev);
@@ -1221,7 +1221,7 @@
         });
         var next = document.createElement('a');
         next.href = '#';
-        next.textContent = 'Next >';
+        next.innerHTML = '<span class="pager-word">Next</span> &gt;';
         next.hidden = reportPage === pages;
         next.addEventListener('click', function (e) { e.preventDefault(); goToPage(reportPage + 1); });
         box.appendChild(next);

@@ -113,7 +113,8 @@
          Default Hours it is the whole Working Time.
        - The hour between them (8h to 9h) is the break: neither hours nor overtime.
        - The Working Time is the person's own, else the project's.
-       A project with Default Hours counts those in the first view (see DEFAULT HOURS).
+       Every day counts the hours its times make, in both views (Baldy, 05-11-2026: a day
+       nobody changed counts its real times, a changed day its newest version's times).
        ============================================= */
     function toSeconds(t) {
         var p = String(t || '').split(':').map(Number);
@@ -161,12 +162,12 @@
     /* =============================================
        DEFAULT HOURS (Baldy, 02-11-2026)
        A project sets the Hours and Overtime of its working day, for every day or per
-       weekday (Projects > Project Detail > Default Hours; Arcon's "8/2" = 8 hours and
-       2 hours of overtime). A day with a log in and a log out then counts exactly
-       that, whatever the clock says. Its log in / log out are always the machine's
-       (Baldy, 04-11-2026; it showed the Working Time before). This is the Report's
-       first view. Filter > Show history counts the hours the real logs make; an import
-       turns it on, so each changed day shows its newest version next to the original.
+       weekday (Projects > Project Detail > Default Hours; Arcon's "8/2"). The Hours are the
+       day's Time Period: the hours a full day (Daily 1) needs. From 02-11 to 05-11-2026 a
+       complete day counted the default Hours and Overtime whatever the clock said; since
+       05-11 every day counts its real times (Baldy: "pake waktu yang aseli"), as the live
+       Feriiz does, so the default Overtime is not added any more. Filter > Show history only
+       puts each changed day's newest version next to its original; it changes no number.
        ============================================= */
     // { work, ot } in hours for one weekday ('Mon'), or null: no default, so the real logs count.
     function defaultFor(dayName) {
@@ -178,8 +179,6 @@
     }
 
     function dayDefault(date) { return defaultFor(DAY_NAMES[fromISO(date).getDay()]); }
-
-    function hasDefaults() { return DAY_NAMES.some(defaultFor); }
 
     // The hours of a default day when every weekday has the same (Download Log's Period), else null.
     function defaultWorkHours() {
@@ -193,19 +192,9 @@
 
     function showOriginal() { return appliedReportFilters.original; }
 
-    // What a day of system logs shows: always its real log in / log out. With a default the
-    // hours are the default's; otherwise (no default, or Show history) the hours the logs make.
-    // counted: what the day counts, whatever the view (the default when there is one).
-    function dayView(code, date, inTime, outTime, counted) {
-        var def = showOriginal() && !counted ? null : dayDefault(date);
-        if (def) {
-            var complete = Boolean(inTime && outTime);
-            return {
-                inTime: inTime,
-                outTime: outTime,
-                hours: complete ? { work: def.work, ot: def.ot } : { work: 0, ot: 0 }
-            };
-        }
+    // What a day's logs show: its log in / log out and the hours they make, the same in both
+    // views (Baldy, 05-11-2026: the numbers follow the newest times, never a view switch).
+    function dayView(code, date, inTime, outTime) {
         return { inTime: inTime, outTime: outTime, hours: cellHours(code, date, inTime, outTime) };
     }
 
@@ -365,7 +354,7 @@
                 s.numbers = null;
                 s.filled = false;
             } else {
-                if (Number(c.daily) === 1 && logCount(code, date, s.inTime, s.outTime, true).daily < 1) {
+                if (Number(c.daily) === 1 && logCount(code, date, s.inTime, s.outTime).daily < 1) {
                     var workTime = workTimeOf(code);
                     s.inTime = c.start || workTime.start;
                     s.outTime = c.end || workTime.end;
@@ -382,12 +371,11 @@
 
     // What a day's logs count, by the live Feriiz's rule (Baldy, 05-11-2026): Daily 1 when the day
     // meets the project's hours, 0.5 when someone came but did not (7 of 8 hours, or only one
-    // log), 0 when nobody came. Hours and overtime need both logs. The default when the project
-    // has one (counted: also with Show history), else the real logs.
-    function logCount(code, date, inTime, outTime, counted) {
+    // log), 0 when nobody came. Hours and overtime need both logs and come from their times.
+    function logCount(code, date, inTime, outTime) {
         if (!inTime && !outTime) return { daily: 0, work: 0, ot: 0 };
         if (!inTime || !outTime) return { daily: 0.5, work: 0, ot: 0 };
-        var view = dayView(code, date, inTime, outTime, counted);
+        var view = dayView(code, date, inTime, outTime);
         var work = round2(view.hours.work);
         return { daily: work >= round2(periodOf(code, date)) ? 1 : 0.5, work: work, ot: round2(view.hours.ot) };
     }
@@ -395,8 +383,8 @@
     // What a day shows and counts now: the newest import's numbers, else its logs'. A Daily the
     // import left as it was keeps the hours the logs make, so a plain download and import
     // changes nothing on screen; a changed Daily counts Daily x the file's Period.
-    function stateCount(employee, date, s, counted) {
-        var logs = logCount(employee.code, date, s.inTime, s.outTime, counted);
+    function stateCount(employee, date, s) {
+        var logs = logCount(employee.code, date, s.inTime, s.outTime);
         var imp = s.numbers;
         if (!imp) return logs;
         return {
@@ -413,7 +401,7 @@
         if (!s.last) return false;
         var o = dayState(employee.code, date, null);
         if (s.inTime !== o.inTime || s.outTime !== o.outTime) return true;
-        return Boolean(s.numbers) && differs(s.numbers, logCount(employee.code, date, s.inTime, s.outTime, true));
+        return Boolean(s.numbers) && differs(s.numbers, logCount(employee.code, date, s.inTime, s.outTime));
     }
 
     // "Daily 1 · OT 1.47h", in the words of the Excel columns.
@@ -486,14 +474,14 @@
     // What a person's day shows after a version, to compare one version with the one before.
     function snapshot(employee, date, upTo) {
         var s = dayState(employee.code, date, upTo);
-        var c = stateCount(employee, date, s, true);
+        var c = stateCount(employee, date, s);
         return s.inTime + '|' + s.outTime + '|' + c.daily + '|' + c.work + '|' + c.ot;
     }
 
     function historyValueHTML(employee, date, b) {
         if (!b.cells[employee.code + '|' + date]) return '<span class="import-history-none">–</span>';
         var s = dayState(employee.code, date, b);
-        var c = stateCount(employee, date, s, true);
+        var c = stateCount(employee, date, s);
         return '<div class="day-half day-half--changed">' + badgesHTML(c.work, c.ot) + logLinesHTML(s) + '</div>';
     }
 
@@ -1977,7 +1965,7 @@
                 if (ot === null) ot = 0;
                 if (!(ot >= 0 && ot <= 24)) { plan.problems.push({ line: line, who: emp.name, why: 'Overtime' + on + ' must be hours between 0 and 24' }); return; }
                 var key = emp.code + '|' + d.date;
-                var now = stateCount(emp, d.date, dayState(emp.code, d.date), true);
+                var now = stateCount(emp, d.date, dayState(emp.code, d.date));
                 var next = { daily: daily, ot: round2(ot) };
                 plan.cells.push({ key: key, daily: next.daily, ot: next.ot, start: start, end: end, period: period });
                 if (differs(now, next)) plan.changed.push({ name: emp.name, date: d.date, now: now, next: next });
@@ -2030,8 +2018,8 @@
         applyReportFilters();
     }
 
-    // Show history changes something once the project has Default Hours or a change.
-    function originalAvailable() { return hasDefaults() || hasImports(); }
+    // Show history has something to show once a day has a change (an import, Add Log or Delete Log).
+    function originalAvailable() { return hasImports(); }
 
     function syncDataFilter() {
         var block = document.getElementById('reportDataFilter');

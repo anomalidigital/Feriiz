@@ -755,7 +755,8 @@
        ("Uang Makan") on a line of their own under the day (Baldy, 04-11-2026: "taro di
        bawahnya", not next to the hours and overtime; they were initials in the badge row
        before). They are labels: a request is assigned and removed with Batch Update (Baldy,
-       04-11-2026: "jangan di tabel nya"). Print leaves them out. */
+       04-11-2026: "jangan di tabel nya"). Print leaves them out, but reads the template and
+       amount of each, so a day the Print preview blanks leaves its columns too. */
     var requestDayIndex = {};   // FeriizTemplates.dayIndex for the days on screen
 
     function requestDayChips(code, date) {
@@ -763,7 +764,8 @@
         if (!items || !items.length) return '';
         return items.map(function (it) {
             var tip = it.name + ' · ' + formatIDR(it.amount) + (it.note ? ' · ' + it.note : '');
-            return '<span class="req-chip" title="' + escapeHTML(tip) + '">' + escapeHTML(it.name) + '</span>';
+            return '<span class="req-chip" title="' + escapeHTML(tip) + '" data-template="' + escapeHTML(it.templateId) + '" data-amount="' + (Number(it.amount) || 0) + '">' +
+                escapeHTML(it.name) + '</span>';
         }).join('');
     }
 

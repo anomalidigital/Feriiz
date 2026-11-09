@@ -57,7 +57,7 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        missingTypes: [],      // the logs unticked under Log Status: the days missing exactly these
+        logStatus: 'all',      // Log Status: 'all', 'complete', 'in', 'out' or 'both' (LOG_STATUS)
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -1209,40 +1209,38 @@
     /* =============================================
        FILTERS
        ============================================= */
-    // The logs unticked under Log Status.
-    function getDraftMissingTypes() {
-        return Array.from(document.querySelectorAll('.filter-log:not(:checked)')).map(function (i) { return i.value; });
+    /* Log Status is one choice (Baldy, 09-11-2026: "yang admin mau yang log in dan log out, dan
+       yang missing itu jadi terhide… gimana yang simple?"). Two Log In / Log Out boxes give four
+       cases, and the admin needs five, so it is one pick of five, none of them a contradiction:
+       every day (the default), the days with their log in and log out (the missing ones hidden),
+       or the days missing exactly their log in, their log out, or both (the live Feriiz rule).
+       Meeting 05-11-2026, 59:23 / 1:00:46: the options do what they say. */
+    var LOG_STATUS = {
+        all: 'All days',
+        complete: 'Log in and log out',
+        'in': 'Missing log in',
+        out: 'Missing log out',
+        both: 'Missing both logs'
+    };
+
+    function getDraftLogStatus() {
+        var picked = document.querySelector('.filter-log:checked');
+        return picked && LOG_STATUS[picked.value] ? picked.value : 'all';
     }
 
-    function getSelectedMissingTypes() {
-        return appliedReportFilters.missingTypes.slice();
+    function setLogStatusDraft(value) {
+        document.querySelectorAll('.filter-log').forEach(function (r) { r.checked = r.value === value; });
     }
 
-    // The ticked boxes must equal exactly what the cell is missing:
-    //   Log In only        -> cells missing only the log in
-    //   Log Out only       -> cells missing only the log out
-    //   Log In + Log Out   -> cells missing both (one-sided cells stay hidden)
-    // Same rule as the live Feriiz report.
-    function cellMatchesMissing(cellMissing, types) {
-        var wantIn = types.indexOf('in') >= 0;
-        var wantOut = types.indexOf('out') >= 0;
-        if (cellMissing === 'both') return wantIn && wantOut;
-        if (cellMissing === 'in') return wantIn && !wantOut;
-        if (cellMissing === 'out') return wantOut && !wantIn;
-        return false;
-    }
-
-    // Log Status alone (Baldy, 09-11-2026: "status log aja pun udah cukup"; the meeting of
-    // 05-11-2026, 59:23: "dari awal kecentang dua-duanya… kalau gak kecentang… gak punya"): a
-    // ticked log is there, an unticked one is missing. Both ticked (the default) shows every
-    // day; Log In unticked shows the days missing their log in (their log out there), both
-    // unticked the days missing both (cellMatchesMissing).
     function logFiltersOn() {
-        return appliedReportFilters.missingTypes.length > 0;
+        return appliedReportFilters.logStatus !== 'all';
     }
 
+    // A day without logs that an accepted request covers is not missing anything (dayIssue).
     function cellMatchesLogFilters(cell) {
-        return cellMatchesMissing(cell.dataset.missing || '', appliedReportFilters.missingTypes);
+        var status = appliedReportFilters.logStatus;
+        if (status === 'complete') return Boolean(cell.dataset.inTime && cell.dataset.outTime);
+        return status === 'all' || (cell.dataset.missing || '') === status;
     }
 
     function rowMatchesLogFilters(row) {
@@ -1311,7 +1309,7 @@
     function paginateRows() {
         // A new search or filter starts again on the first page.
         var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
-            appliedReportFilters.occupations, getSelectedMissingTypes()]);
+            appliedReportFilters.occupations, appliedReportFilters.logStatus]);
         if (key !== pageFilterKey) {
             pageFilterKey = key;
             reportPage = 1;
@@ -1474,11 +1472,11 @@
             html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(name) +
                 '<button class="filter-chip-close" data-filter-type="occupation" data-value="' + escapeHTML(value) + '" aria-label="Remove ' + escapeHTML(name) + ' from the occupation filter">&times;</button></span>';
         });
-        var labels = { 'in': 'Missing log in', 'out': 'Missing log out' };
-        getSelectedMissingTypes().forEach(function (t) {
-            html += '<span class="filter-indicator-chip">' + labels[t] +
-                '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + labels[t] + ' filter">&times;</button></span>';
-        });
+        if (logFiltersOn()) {
+            var status = LOG_STATUS[appliedReportFilters.logStatus];
+            html += '<span class="filter-indicator-chip">' + status +
+                '<button class="filter-chip-close" data-filter-type="log" aria-label="Remove the ' + status + ' filter">&times;</button></span>';
+        }
         if (appliedReportFilters.original) {
             html += '<span class="filter-indicator-chip">Show history' +
                 '<button class="filter-chip-close" data-filter-type="original" aria-label="Show the default hours again">&times;</button></span>';
@@ -1502,14 +1500,9 @@
                         appliedReportFilters.occupationLabels.splice(at, 1);
                     }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
-                } else {
-                    // The log counts as there again: its Log Status box is ticked.
-                    document.querySelectorAll('.filter-log').forEach(function (cb) {
-                        if (cb.value === type) cb.checked = true;
-                    });
-                    appliedReportFilters.missingTypes = appliedReportFilters.missingTypes.filter(function (item) {
-                        return item !== type;
-                    });
+                } else if (type === 'log') {
+                    setLogStatusDraft('all');
+                    appliedReportFilters.logStatus = 'all';
                 }
                 applyReportFilters();
             });
@@ -2489,7 +2482,7 @@
                 var wasOriginal = appliedReportFilters.original;
                 var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
-                appliedReportFilters.missingTypes = getDraftMissingTypes();
+                appliedReportFilters.logStatus = getDraftLogStatus();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
@@ -2509,10 +2502,10 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                document.querySelectorAll('.filter-log').forEach(function (i) { i.checked = true; });
+                setLogStatusDraft('all');
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
-                appliedReportFilters.missingTypes = [];
+                appliedReportFilters.logStatus = 'all';
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];
                 appliedReportFilters.range = null;
@@ -2523,7 +2516,7 @@
             });
         }
 
-        // Log Status's "?" says what an unticked log shows.
+        // Log Status's "?" says what each choice shows.
         if (window.bootstrap && window.bootstrap.Tooltip) {
             document.querySelectorAll('.log-filter-head [data-bs-toggle="tooltip"]').forEach(function (el) {
                 window.bootstrap.Tooltip.getOrCreateInstance(el);

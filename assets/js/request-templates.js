@@ -15,8 +15,8 @@
      project's Templates page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project…
      ada add time juga tanggal berapa dan amount nya berapa"; meeting 05-11-2026, 0:38:14 and
      1:04:16: "namain dulu, ini hari apa, tanggal berapa, terus… harganya"). They carry the
-     project's code and their dates, each date with a name and its own amount (empty = the
-     template's Amount), as the One-time templates had (03-11-2026). Assign Request gives
+     project's code and their dates, each date with a name and its amount (the template has
+     no Amount of its own: "udah ada di perhari nya", Baldy 09-11-2026). Assign Request gives
      them only on the ticked days that are one of their dates, with or without a log: the
      Report's Log Status filter says whether only the people who came in get it. A template
      can be copied, to this project or another, so its dates are not typed again.
@@ -108,7 +108,8 @@
     // A project's own template is given on its dates; the others per day.
     function onDates(t) { return Boolean(t && t.projectCode); }
 
-    // What a project's template pays on one of its dates: the date's own amount, else its Amount.
+    // What a project's template pays on one of its dates: the date's amount (a template saved
+    // while it still had an Amount of its own falls back to it).
     function amountOn(t, date) {
         var d = (t.dates || []).filter(function (x) { return x.date === date; })[0];
         return d && Number(d.amount) > 0 ? Number(d.amount) : Number(t.amount) || 0;

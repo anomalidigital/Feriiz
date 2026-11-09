@@ -4,23 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feriiz - Holiday Pay</title>
+    <title>Feriiz - Benefits</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.75">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.75">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.76">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.76">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.75" defer></script>
-    <script src="assets/js/app.js?v=3.7.75" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.75" defer></script>
+    <script src="assets/js/data.js?v=3.7.76" defer></script>
+    <script src="assets/js/app.js?v=3.7.76" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.76" defer></script>
 </head>
 
-<!-- A project's Holiday Pay: THR and pay for the red dates (Baldy, 09-11-2026: "taro nya paling
-     ideal yang itu di project", not called a template there, "pake nama lain… profesional", and
-     each one just "tanggal berapa dan berapa amount nya… ga perlu ada add date"; meeting
-     05-11-2026, 0:38:14 and 1:04:16). Name, Date, Amount, Note. Copy makes a new one from it, in
-     this project or another. -->
-<body data-page="project-holiday-pay">
+<!-- A project's Benefits: THR, pay for the red dates and other one-off amounts (Baldy, 09-11-2026:
+     "taro nya paling ideal yang itu di project", not called a template there, and a professional
+     name that does not say "pay": "jangan berbau pay… tapi emang fungsinya buat pembayaran"; each
+     one just "tanggal berapa dan berapa amount nya… ga perlu ada add date"; meeting 05-11-2026,
+     0:38:14 and 1:04:16). Name, Date, Amount, Note, with no note under the title (crossed out).
+     Copy makes a new one from it, in this project or another. -->
+<body data-page="project-benefits">
     <!-- Sidebar -->
     <aside class="sidebar"></aside>
 
@@ -32,19 +33,18 @@
                     <span>&gt;</span>
                     <a href="project_employees.html" id="payProjectLink" data-project-name>Project</a>
                     <span>&gt;</span>
-                    <span class="feriiz-u-057">Holiday Pay</span>
+                    <span class="feriiz-u-057">Benefits</span>
                 </div>
-                <h1 class="page-title">Holiday Pay</h1>
-                <p class="tpl-page-note">THR and pay for the red dates in this project, each on its date. Give it in the Report on that date with Batch Update &gt; Assign Request. Allowances paid per day in every project are on <a href="request_templates.html">Request Templates</a>.</p>
+                <h1 class="page-title">Benefits</h1>
             </div>
             <div class="page-actions">
                 <button class="btn btn-primary" type="button" id="addPayBtn">
                     <i class="fa-solid fa-plus"></i>
-                    Add Holiday Pay
+                    Add Benefit
                 </button>
                 <div class="feriiz-u-020">
                     <i class="fa-solid fa-magnifying-glass feriiz-u-067"></i>
-                    <input type="text" id="paySearch" placeholder="Search" class="feriiz-u-068" aria-label="Search holiday pay">
+                    <input type="text" id="paySearch" placeholder="Search" class="feriiz-u-068" aria-label="Search benefits">
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                 <tbody id="payTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.75</div>
+        <div class="feriiz-u-032">version : 3.7.76</div>
     </main>
 
     <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalTitle" aria-hidden="true">
@@ -70,7 +70,7 @@
             <form class="modal-content" id="payForm" novalidate>
                 <div class="modal-header">
                     <div>
-                        <h2 class="modal-title" id="payModalTitle">Add Holiday Pay</h2>
+                        <h2 class="modal-title" id="payModalTitle">Add Benefit</h2>
                         <p class="tpl-subtitle" id="payModalContext"></p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -110,8 +110,8 @@
         (function () {
             var project = null;
             var projects = [];
-            var editing = null;   // the Holiday Pay being edited
-            var source = null;    // the Holiday Pay being copied
+            var editing = null;   // the benefit being edited
+            var source = null;    // the benefit being copied
 
             function esc(v) {
                 return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -133,7 +133,7 @@
                 }).sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
                 if (!rows.length) {
                     tbody.innerHTML = '<tr><td colspan="4" class="tpl-empty">' +
-                        (q ? 'No holiday pay matches your search.' : 'This project has no holiday pay yet. Add the first one, for example THR Idul Fitri 2026.') + '</td></tr>';
+                        (q ? 'No benefit matches your search.' : 'This project has no benefits yet. Add the first one, for example THR Idul Fitri 2026.') + '</td></tr>';
                     return;
                 }
                 tbody.innerHTML = rows.map(function (t) {
@@ -163,7 +163,7 @@
             function openForm(t, copying) {
                 editing = copying ? null : (t || null);
                 source = copying ? t : null;
-                document.getElementById('payModalTitle').textContent = copying ? 'Copy Holiday Pay' : t ? 'Edit Holiday Pay' : 'Add Holiday Pay';
+                document.getElementById('payModalTitle').textContent = copying ? 'Copy Benefit' : t ? 'Edit Benefit' : 'Add Benefit';
                 document.getElementById('payModalContext').textContent = copying ? 'From ' + project.name : project.name;
                 document.getElementById('payProjectBlock').hidden = !copying;
                 if (copying) {
@@ -181,7 +181,7 @@
             }
 
             function warn(text) {
-                if (window.FeriizNotify) FeriizNotify.warning(text, 'Holiday Pay not saved');
+                if (window.FeriizNotify) FeriizNotify.warning(text, 'Benefit not saved');
             }
 
             function saveForm(e) {
@@ -192,8 +192,8 @@
                 var value = digits(amount.value);
                 var code = targetCode();
                 // The name is also the column title in the project's Report: it may not repeat a
-                // template for every project or another Holiday Pay of that project. "Transport" is
-                // the Report's automatic column.
+                // template for every project or another benefit of that project. "Transport" is the
+                // Report's automatic column.
                 var same = T().findByName(name.value, code);
                 var reserved = T().reservedName(name.value);
                 var taken = reserved || (same && (!editing || same.id !== editing.id));
@@ -202,14 +202,14 @@
                 amount.classList.toggle('is-invalid', !value);
                 if (!name.value.trim() || taken) {
                     name.focus();
-                    warn(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no Holiday Pay.'
+                    warn(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no benefit.'
                         : taken && !same.projectCode ? 'Request Templates already has ' + same.name + ' for every project.'
-                        : taken ? 'That project already has ' + same.name + '.' : 'Holiday Pay needs a name.');
+                        : taken ? 'That project already has ' + same.name + '.' : 'A benefit needs a name.');
                     return;
                 }
                 if (!date.value || !value) {
                     (date.value ? amount : date).focus();
-                    warn('Holiday Pay needs a date and an amount.');
+                    warn('A benefit needs a date and an amount.');
                     return;
                 }
                 var saved = T().save({
@@ -225,12 +225,12 @@
                 if (!window.FeriizNotify) return;
                 if (source && code !== project.code) {
                     var to = projects.filter(function (p) { return p.code === code; })[0];
-                    FeriizNotify.success(saved.name + ' was copied to ' + (to ? to.name : code) + '.', 'Holiday Pay copied');
+                    FeriizNotify.success(saved.name + ' was copied to ' + (to ? to.name : code) + '.', 'Benefit copied');
                 } else if (editing) {
-                    FeriizNotify.success(saved.name + ' was updated.', 'Holiday Pay updated');
+                    FeriizNotify.success(saved.name + ' was updated.', 'Benefit updated');
                 } else {
                     FeriizNotify.success(saved.name + (source ? ' was copied.' : ' was added.') + ' Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.',
-                        source ? 'Holiday Pay copied' : 'Holiday Pay added');
+                        source ? 'Benefit copied' : 'Benefit added');
                 }
             }
 
@@ -268,7 +268,7 @@
                     var link = document.getElementById('payProjectLink');
                     link.textContent = project.name;
                     link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);
-                    document.title = 'Feriiz - ' + project.name + ' - Holiday Pay';
+                    document.title = 'Feriiz - ' + project.name + ' - Benefits';
                     render();
                 });
             });

@@ -11,14 +11,14 @@
    - A template made here is per day: each ticked day gets its Amount. The Daily / One time
      choice and the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026:
      "secara logika agak bingung").
-   - One-off payments of ONE project (THR, pay for a red date) are its Holiday Pay, made on
-     that project's Holiday Pay page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di
-     project", not called a template there, and each is just "tanggal berapa dan berapa amount
-     nya… ga perlu ada add date"; meeting 05-11-2026, 0:38:14 and 1:04:16: "namain dulu, ini hari
-     apa, tanggal berapa, terus… harganya"). A Holiday Pay is a template with the project's code
-     and one date: Name, Date, Amount, Note. Assign Request gives it only on the ticked days on
-     its date, with or without a log: the Report's Log Status filter says whether only the people
-     who came in get it. It can be copied, to this project or another.
+   - One-off payments of ONE project (THR, pay for a red date) are its Benefits, made on that
+     project's Benefits page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project", not
+     called a template there nor "pay", and each is just "tanggal berapa dan berapa amount nya…
+     ga perlu ada add date"; meeting 05-11-2026, 0:38:14 and 1:04:16: "namain dulu, ini hari apa,
+     tanggal berapa, terus… harganya"). A benefit is a template with the project's code and one
+     date: Name, Date, Amount, Note. Assign Request gives it only on the ticked days on its date,
+     with or without a log: the Report's Log Status filter says whether only the people who came
+     in get it. It can be copied, to this project or another.
    - The Amount can be changed in Assign Request, for that Assign only (Baldy, 09-11-2026: "ada
      custom amount… soal nya belum pasti"; meeting 05-11-2026, 0:41:32-0:43:45: people of another
      occupation are filtered, ticked and given their own).
@@ -35,10 +35,10 @@
      line under the day.
 
    Prototype only: everything is kept in this browser (localStorage) so the Request
-   Templates and Holiday Pay pages and the Report see the same data. The API replaces this.
+   Templates and Benefits pages and the Report see the same data. The API replaces this.
 
    FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
-   FeriizTemplates.isHolidayPay(template)   a project's own one-date payment
+   FeriizTemplates.isBenefit(template)   a project's own one-date benefit
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -80,7 +80,7 @@
     // The old Transport sample goes too: transport is paid automatically now.
     var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false && t.id !== OLD_TRANSPORT_ID; });
     // Templates for every project saved before 04-11-2026 may still say Daily / One time and carry
-    // dates: they are all per day now. A project's Holiday Pay saved on 09-11-2026 while it held a
+    // dates: they are all per day now. A project's benefit saved on 09-11-2026 while it held a
     // list of dates keeps its first date, with that date's amount.
     templates.forEach(function (t) {
         if (t.projectCode && t.dates) {
@@ -111,8 +111,8 @@
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
 
-    // A project's own template is its Holiday Pay, given on its one date; the others per day.
-    function isHolidayPay(t) { return Boolean(t && t.projectCode); }
+    // A project's own template is one of its Benefits, given on its one date; the others per day.
+    function isBenefit(t) { return Boolean(t && t.projectCode); }
 
     function shared() { return templates.filter(function (t) { return !t.projectCode; }); }
 
@@ -225,12 +225,12 @@
     function templateOptions(projectCode) {
         var option = function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' +
-                (isHolidayPay(t) ? (t.date ? fmtDate(t.date) : 'no date') + ' · ' + rupiah(t.amount) : rupiah(t.amount) + ' a day') + '</option>';
+                (isBenefit(t) ? (t.date ? fmtDate(t.date) : 'no date') + ' · ' + rupiah(t.amount) : rupiah(t.amount) + ' a day') + '</option>';
         };
         var own = ofProject(projectCode).slice().sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
         if (!own.length) return shared().map(option).join('');
         return '<optgroup label="Every project, a day">' + shared().map(option).join('') + '</optgroup>' +
-            '<optgroup label="This project\'s Holiday Pay">' + own.map(option).join('') + '</optgroup>';
+            '<optgroup label="This project\'s benefits">' + own.map(option).join('') + '</optgroup>';
     }
 
     function noTemplates(projectCode) {
@@ -256,8 +256,8 @@
        - The Amount starts at the template's and can be changed for this Assign only (Baldy,
          09-11-2026: "soal nya belum pasti").
        - A per-day template: each ticked day the person came in gets the Amount.
-       - A project's Holiday Pay: each ticked day on its date gets the Amount, log or not (the
-         Log Status filter decides who); other ticked days are left.
+       - A project's benefit: each ticked day on its date gets the Amount, log or not (the Log
+         Status filter decides who); other ticked days are left.
        - A day that already has the template is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
@@ -329,12 +329,12 @@
         var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0, notDate: 0 };
         var amount = currentAmount();
         if (!t || !amount) return out;
-        var holiday = isHolidayPay(t);
+        var benefit = isBenefit(t);
         var given = givenIndex(t);
         ctx.cells.forEach(function (c) {
-            if (holiday && c.date !== t.date) { out.notDate++; return; }
+            if (benefit && c.date !== t.date) { out.notDate++; return; }
             if (given[c.code + '|' + c.date]) { out.already++; return; }
-            if (!holiday && !cameIn(c.code, c.date)) { out.noLog++; return; }
+            if (!benefit && !cameIn(c.code, c.date)) { out.noLog++; return; }
             out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
             out.total += amount;
             out.people[c.code] = true;
@@ -347,13 +347,13 @@
         var t = currentTemplate();
         if (!t) return;
         modal.querySelector('#assignAmount').value = typed(t.amount);
-        modal.querySelector('#assignAmountUnit').textContent = isHolidayPay(t) ? 'once' : 'a day';
+        modal.querySelector('#assignAmountUnit').textContent = isBenefit(t) ? 'once' : 'a day';
         refreshSummary();
     }
 
-    // Where a Holiday Pay goes: its date, when it is ticked.
-    function holidayLine(t) {
-        if (!t.date) return 'It has no date yet: give it one on the project\'s Holiday Pay page.';
+    // Where a benefit goes: its date, when it is ticked.
+    function benefitLine(t) {
+        if (!t.date) return 'It has no date yet: give it one on the project\'s Benefits page.';
         var ticked = ctx.cells.some(function (c) { return c.date === t.date; });
         return ticked ? 'Only on ' + fmtDate(t.date) + ', with or without a log.'
             : 'For ' + fmtDate(t.date) + ': tick that date in the Report to give it.';
@@ -362,10 +362,10 @@
     function refreshSummary() {
         var t = currentTemplate();
         if (!t) return;
-        var holiday = isHolidayPay(t);
+        var benefit = isBenefit(t);
         var amount = currentAmount();
-        var info = (holiday ? holidayLine(t) : 'Only on the ticked days each person came in.') +
-            (amount && amount !== Number(t.amount) ? ' ' + (holiday ? 'The Holiday Pay' : 'The template') + ' says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
+        var info = (benefit ? benefitLine(t) : 'Only on the ticked days each person came in.') +
+            (amount && amount !== Number(t.amount) ? ' ' + (benefit ? 'The benefit' : 'The template') + ' says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
         modal.querySelector('#assignTemplateInfo').textContent = info + (t.note ? ' ' + t.note : '');
         var p = planned();
         var people = Object.keys(p.people).length;
@@ -394,7 +394,7 @@
         window.bootstrap.Modal.getInstance(modal).hide();
         var people = Object.keys(p.people).length;
         if (window.FeriizNotify) {
-            window.FeriizNotify.success((isHolidayPay(t)
+            window.FeriizNotify.success((isBenefit(t)
                 ? rupiah(p.rows[0].amount) + ' for ' + plural(people, 'person', 'people') + ' on ' + fmtDate(t.date)
                 : rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people')) +
                 ', ' + rupiah(p.total) + ' in all. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
@@ -523,7 +523,7 @@
         all: shared,
         ofProject: ofProject,
         get: get,
-        isHolidayPay: isHolidayPay,
+        isBenefit: isBenefit,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

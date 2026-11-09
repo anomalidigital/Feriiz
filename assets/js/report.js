@@ -1216,9 +1216,10 @@
        or the days missing exactly their log in, their log out, or both (the live Feriiz rule).
        Meeting 05-11-2026, 59:23 / 1:00:46: the options do what they say. */
     // Without the word "log", and the days missing both say "Missing" too (Baldy, 09-11-2026:
-    // "jangan pake logs… yang missing in and out itu ada kata 'missing' nya").
+    // "jangan pake logs… yang missing in and out itu ada kata 'missing' nya"). The first is
+    // "All logs", not "All days", which sounded like the day columns (Baldy, the same day).
     var LOG_STATUS = {
-        all: 'All days',
+        all: 'All logs',
         complete: 'In and out',
         'in': 'Missing in',
         out: 'Missing out',

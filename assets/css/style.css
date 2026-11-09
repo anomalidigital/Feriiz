@@ -2752,31 +2752,6 @@ div.report-layout .report-actions {
     background: #EDF2F7 !important;
 }
 
-/* --- "Jumlah Orang Per Hari" under the table (meeting 05-11-2026, 1:32): it stays at the
-   bottom of the scrolling table, as the header stays at the top. --- */
-.report-table tfoot td {
-    position: sticky;
-    bottom: 0;
-    z-index: 15;
-    padding: 8px 10px !important;
-    border-top: 1.5px solid var(--border-color) !important;
-    border-right: 1px solid var(--border-color) !important;
-    background: var(--header-spanned-bg) !important;
-    color: #1a1a1a;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.report-table tfoot td.sticky-col {
-    z-index: 25 !important;
-    border-right: 1.5px solid var(--border-color) !important;
-}
-
-.report-table tfoot td.people-row-count {
-    font-variant-numeric: tabular-nums;
-}
-
 /* --- Scroll shadow for sticky column --- */
 .report-table-wrap.table-scrolled .report-table .sticky-col {
     box-shadow: 5px 0 14px -4px rgba(0, 0, 0, 0.08) !important;

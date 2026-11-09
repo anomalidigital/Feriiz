@@ -1120,46 +1120,11 @@
             updateFieldsVisibility();
         }
         updateVisibleTotals(currentVisibleDates);
-        renderPeopleRow();
     }
 
-    // "Jumlah Orang Per Hari" under the table too, not only on paper (meeting 05-11-2026,
-    // 1:32:08: "kamu juga bikin di tabelnya juga keluarin aja"): how many of the people the
-    // filters show came in on each date, every page counted, by the rule of Total Days; their
-    // sum under Total Days. Its cells follow the columns of the rows, hidden ones included.
-    function renderPeopleRow() {
-        var table = document.querySelector('.report-table');
-        var first = document.querySelector('#reportTableBody tr');
-        if (!table) return;
-        var foot = table.querySelector('tfoot');
-        if (!foot) foot = table.appendChild(document.createElement('tfoot'));
-        if (!first) {
-            foot.innerHTML = '';
-            return;
-        }
-        var rows = Array.prototype.filter.call(document.querySelectorAll('#reportTableBody tr'), rowInFilter);
-        var counts = {}, total = 0;
-        currentVisibleDates.forEach(function (date) {
-            counts[date] = rows.filter(function (row) {
-                var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
-                return cell && workedCell(cell);
-            }).length;
-            total += counts[date];
-        });
-        var cells = Array.prototype.map.call(first.children, function (td) {
-            var cls = Array.prototype.filter.call(td.classList, function (c) {
-                return c.indexOf('col-') === 0 || c === 'sticky-col' || c === 'day-col-hidden';
-            });
-            if (td.classList.contains('col-name')) {
-                return '<td class="' + cls.join(' ') + ' people-row-label" title="People who came in on each date, from everyone the filters show">Jumlah Orang Per Hari</td>';
-            }
-            if (td.classList.contains('day-col')) {
-                return '<td class="day-col people-row-count" data-date="' + td.dataset.date + '">' + (counts[td.dataset.date] || 0) + '</td>';
-            }
-            return '<td class="' + cls.join(' ') + '">' + (td.classList.contains('col-totaldays') ? total : '') + '</td>';
-        });
-        foot.innerHTML = '<tr class="people-row">' + cells.join('') + '</tr>';
-    }
+    // "Jumlah Orang Per Hari" is on paper only, in the print preview and the printed sheet
+    // (print-report.js). It was under this table too from 3.7.67 until Baldy took it off on
+    // 09-11-2026: "ini kayanya ga di report… di proses print dan di hasil print nya".
 
     /* =============================================
        TOTALS
@@ -1296,7 +1261,6 @@
         paginateRows();
         updateCellSelectionUI();
         updateFilterIndicator();
-        renderPeopleRow();
     }
 
     /* =============================================

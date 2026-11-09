@@ -14,9 +14,8 @@
    project's next print, for each of Internal and Client; single dates and people are not.
    For: Internal | Client (meeting 05-11-2026, 0:34:01: "ada yang buat klien, ada yang buat
    internal"): Client prints every day with data at the Set Default, Daily 1 with the
-   person's default hours and overtime of that weekday (the project's Default Hours, or their
-   own in Project > Employees > Hours), without changing the Report; it starts without the
-   Employee group, the workers' pay. Local only for now (Baldy, 06-11-2026: "di local dulu
+   project's Default Hours and overtime of that weekday, without changing the Report; it
+   starts without the Employee group, the workers' pay. Local only for now (Baldy, 06-11-2026: "di local dulu
    aja"; 09-11-2026: the meeting's items, local).
    ============================================= */
 (function () {

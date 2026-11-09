@@ -31,14 +31,6 @@
     var projectEdits = {};
     try { projectEdits = JSON.parse(localStorage.getItem(PROJECT_KEY) || '{}') || {}; } catch (e) { projectEdits = {}; }
 
-    // A person's own Default Hours in one project (Project > Employees > Hours): stronger than
-    // the project's, as the mandor's 8/3 (meeting 05-11-2026, 0:16:08: employee < project <
-    // project-user). Same shape as a project's defaultHours, keyed 'PROJECT|EMPLOYEE'. Kept in
-    // this browser until the API exists.
-    var PERSON_HOURS_KEY = 'feriiz_project_user_hours_v1';
-    var personHours = {};
-    try { personHours = JSON.parse(localStorage.getItem(PERSON_HOURS_KEY) || '{}') || {}; } catch (e) { personHours = {}; }
-
     // Request quotas: Projects > Activity > an employee > Assigned Requests, the old Feriiz
     // "List Assigned Request" (Baldy, 03-11-2026). The admin gives each person how much of a
     // request type they may use, e.g. Remote Work 20 days a year; employees ask for it in the
@@ -221,17 +213,6 @@
             var project = this._projByCode[code];
             if (project) Object.keys(edit).forEach(function (k) { project[k] = edit[k]; });
             try { localStorage.setItem(PROJECT_KEY, JSON.stringify(projectEdits)); } catch (e) { /* kept for this page only */ }
-        },
-        // { custom, daily: { work, ot }, days: { Sun: { work, ot }, ... } } a person has in a
-        // project, or null: they follow the project's Default Hours.
-        projectUserHours: function (projectCode, employeeCode) {
-            return personHours[projectCode + '|' + employeeCode] || null;
-        },
-        saveProjectUserHours: function (projectCode, employeeCode, set) {
-            var key = projectCode + '|' + employeeCode;
-            if (set) personHours[key] = set;
-            else delete personHours[key];
-            try { localStorage.setItem(PERSON_HOURS_KEY, JSON.stringify(personHours)); } catch (e) { /* kept for this page only */ }
         },
         initialsAvatar: function (name) { return buildInitialsAvatar(name); },
         avatarSrc: function (employee) {

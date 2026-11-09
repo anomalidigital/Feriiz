@@ -203,7 +203,7 @@
             e.d = Number(dayTd.dataset.daily) || 0;
             e.ot = Number(dayTd.dataset.otTotal) || 0;
             e.w = e.d > 0;
-            var def = (e.d > 0 || e.ot > 0) && window.FeriizReport ? window.FeriizReport.setDefaultFor(tr.dataset.employeeCode, date) : null;
+            var def = (e.d > 0 || e.ot > 0) && window.FeriizReport ? window.FeriizReport.setDefaultFor(date) : null;
             if (def) e.s = [def.work, def.ot];
         }
         if (dayOff || dayTd.classList.contains('holiday-off-cell')) return e;
@@ -299,7 +299,7 @@
        'pay:emp', 'pay:cli'), blank { 'YYYY-MM-DD': true } for dates printed with their header
        but nothing under it, rowsOff { CODE: true } for people left out, client: the client
        print, where every day with data prints and counts the Set Default (Daily 1 with the
-       person's default hours and overtime of that weekday, the meeting of 05-11-2026: "ketika
+       project's default hours and overtime of that weekday, the meeting of 05-11-2026: "ketika
        udah di print… semuanya itu harus 8 per 2", 0:05:07), and controls: the
        Print preview's own view, where what is left out stays in sight, faded, with the
        buttons that leave it out or bring it back. A date left out or blanked, and a person

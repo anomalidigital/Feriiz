@@ -7,14 +7,14 @@
     <title>Feriiz - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.67">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.67">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.68">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.68">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.67" defer></script>
-    <script src="assets/js/app.js?v=3.7.67" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.67" defer></script>
-    <script src="assets/js/report.js?v=3.7.67" defer></script>
-    <script src="assets/js/print-report.js?v=3.7.67" defer></script>
+    <script src="assets/js/data.js?v=3.7.68" defer></script>
+    <script src="assets/js/app.js?v=3.7.68" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.68" defer></script>
+    <script src="assets/js/report.js?v=3.7.68" defer></script>
+    <script src="assets/js/print-report.js?v=3.7.68" defer></script>
 </head>
 
 <body data-page="employee-report">
@@ -109,20 +109,26 @@
                             <option>3D Artist</option>
                         </select>
 
-                        <!-- Log Status: the days that have these logs; Missing Log: the days missing them (meeting 05-11-2026, 1:00) -->
-                        <label class="feriiz-u-110">Log Status</label>
+                        <!-- Log Status and Missing Log are one choice per log: there or missing, never both; both under Log Status (the default) shows every day (Baldy, 09-11-2026) -->
+                        <div class="log-filter-head">
+                            <label class="feriiz-u-110">Log Status</label>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Linked with Missing Log: each log is ticked in one of the two lists, never both. Both ticked here (the default) shows every day. A log ticked under Missing Log goes off here by itself." aria-label="About Log Status"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                        </div>
                         <div class="missing-filter-group">
                             <label class="missing-filter-option">
-                                <input type="checkbox" class="filter-has" value="in">
+                                <input type="checkbox" class="filter-has" value="in" checked>
                                 <span>Log In</span>
                             </label>
                             <label class="missing-filter-option">
-                                <input type="checkbox" class="filter-has" value="out">
+                                <input type="checkbox" class="filter-has" value="out" checked>
                                 <span>Log Out</span>
                             </label>
                         </div>
 
-                        <label class="feriiz-u-110">Missing Log</label>
+                        <div class="log-filter-head">
+                            <label class="feriiz-u-110">Missing Log</label>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Linked with Log Status: tick Log In for the days missing their log in, Log Out for the days missing their log out, both for the days missing both logs. The same log goes off under Log Status by itself." aria-label="About Missing Log"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                        </div>
                         <div class="missing-filter-group">
                             <label class="missing-filter-option">
                                 <input type="checkbox" class="filter-missing" value="in">
@@ -279,7 +285,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.7.67</div>
+            <div class="version-text">version : 3.7.68</div>
             <!-- 20 people a page, like Employees and Activity (Baldy, 04-11-2026) -->
             <div class="pagination report-pagination">
                 <div class="pagination-info" id="reportPageInfo"></div>

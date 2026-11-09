@@ -57,8 +57,7 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        hasTypes: [],          // Log Status: days that have these logs ('in', 'out')
-        missingTypes: [],      // Missing Log: days missing exactly these logs
+        missingTypes: [],      // Missing Log: days missing exactly these logs; Log Status shows the others
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -138,12 +137,11 @@
         return end > start ? (end - start) / 3600 : 0;
     }
 
-    // The Time Period: the Default Hours of that day's weekday (the person's own in this
-    // project, else the project's); without a date, the Default Hours when every weekday has
-    // the same. Else the whole Working Time.
+    // The Time Period: the Default Hours of that day's weekday; without a date, the Default
+    // Hours when every weekday has the same. Else the whole Working Time.
     function periodOf(code, date) {
-        var def = date ? dayDefault(date, code) : null;
-        var hours = def ? def.work : date ? null : defaultWorkHours(code);
+        var def = date ? dayDefault(date) : null;
+        var hours = def ? def.work : date ? null : defaultWorkHours();
         return hours || spanOf(code);
     }
 
@@ -171,48 +169,35 @@
        Feriiz does, so the default Overtime is not added any more. Filter > Show history only
        puts each changed day's newest version next to its original; it changes no number.
        ============================================= */
-    // { work, ot } in hours for one weekday ('Mon') of a Default Hours set, or null: no
-    // default, so the real logs count.
-    function defaultFromSet(set, dayName) {
+    // { work, ot } in hours for one weekday ('Mon'), or null: no default, so the real logs count.
+    // Everyone in the project has the same; a person who differs is set with an import (Baldy,
+    // 09-11-2026, who took per-person hours out again: "alternatifnya pake import").
+    function defaultFor(dayName) {
+        var set = projectContext && projectContext.defaultHours;
         if (!set) return null;
         var day = set.custom ? (set.days || {})[dayName] : set.daily;
         var work = day ? Number(day.work) || 0 : 0;
         return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
     }
 
-    // A person's own hours in this project (Project > Employees > Hours), the strongest of the
-    // three settings: employee < project < the person in the project (meeting 05-11-2026,
-    // 0:16:08: "project user setting… ini yang paling kuat"). null = the project's.
-    function ownHoursOf(code) {
-        return code && projectContext && window.FERIIZ_DATA && window.FERIIZ_DATA.projectUserHours
-            ? window.FERIIZ_DATA.projectUserHours(projectContext.code, code) : null;
-    }
-
-    // The Default Hours of one weekday for a person (their own in this project, else the
-    // project's), or the project's when no person is given.
-    function defaultFor(dayName, code) {
-        var own = ownHoursOf(code);
-        return defaultFromSet(own || (projectContext && projectContext.defaultHours), dayName);
-    }
-
-    function dayDefault(date, code) { return defaultFor(DAY_NAMES[fromISO(date).getDay()], code); }
+    function dayDefault(date) { return defaultFor(DAY_NAMES[fromISO(date).getDay()]); }
 
     // The hours of a default day when every weekday has the same (Download Log's Period), else null.
-    function defaultWorkHours(code) {
+    function defaultWorkHours() {
         var hours = [];
         DAY_NAMES.forEach(function (n) {
-            var d = defaultFor(n, code);
+            var d = defaultFor(n);
             if (d && hours.indexOf(d.work) < 0) hours.push(d.work);
         });
         return hours.length === 1 ? hours[0] : null;
     }
 
     // What the client print gives a day that has data (Set Default, meeting 05-11-2026, 0:05:07:
-    // "ketika udah di print… semuanya itu harus 8 per 2"): the person's hours and overtime of
+    // "ketika udah di print… semuanya itu harus 8 per 2"): the project's hours and overtime of
     // that weekday, or null when that weekday has no default hours (its real data prints, as
     // "0 hours: the real logs count" says in Default Hours).
-    function setDefaultFor(code, date) {
-        var def = dayDefault(date, code);
+    function setDefaultFor(date) {
+        var def = dayDefault(date);
         return def ? { work: def.work, ot: def.ot } : null;
     }
 
@@ -1039,7 +1024,6 @@
                     '<div class="emp-name-cell">' + escapeHTML(employee.name) + '</div>' +
                     '<div class="emp-occupation-cell">' + escapeHTML(employee.occupation) + '</div>' +
                     '<div class="emp-pin-cell">Pin: ' + escapeHTML(employee.pin) + '</div>' +
-                    (ownHoursOf(employee.code) ? '<div class="emp-own-hours" title="This person has their own hours in this project (Project > Employees > Hours)">Own hours</div>' : '') +
                 '</div>' +
             '</td>' +
             '<td class="col-inouthour">' + escapeHTML(workTime.start) + '</td>' +
@@ -1229,10 +1213,6 @@
         return Array.from(document.querySelectorAll('.filter-missing:checked')).map(function (i) { return i.value; });
     }
 
-    function getDraftHasTypes() {
-        return Array.from(document.querySelectorAll('.filter-has:checked')).map(function (i) { return i.value; });
-    }
-
     function getSelectedMissingTypes() {
         return appliedReportFilters.missingTypes.slice();
     }
@@ -1251,24 +1231,18 @@
         return false;
     }
 
-    // Log Status does what its words say (meeting 05-11-2026, 1:00:46: "function-nya harus
-    // ngikutin sesuai title-nya"): Log In = days with a log in, Log Out = days with a log out,
-    // both = days with both, e.g. to give Transport only to those who came (1:01:23). Missing Log
-    // is the old filter (1:01:49: "kita harus tambah satu filter lagi… mana yang hilang"). Ticked
-    // together, a day must pass both: a log in but no log out.
-    function cellHasLogs(cell, types) {
-        if (types.indexOf('in') >= 0 && !cell.dataset.inTime) return false;
-        if (types.indexOf('out') >= 0 && !cell.dataset.outTime) return false;
-        return true;
-    }
-
+    // Log Status and Missing Log are one choice per log (Baldy, 09-11-2026: "keduanya ga boleh
+    // aktif, harus salah satu"): a log is either there (Log Status, both ticked by default) or
+    // missing (Missing Log), never both, so the filter never comes up empty for a contradiction.
+    // Both under Log Status shows every day; the logs ticked under Missing Log pick the days
+    // missing exactly those, with the other log there (cellMatchesMissing). Ticking one box of a
+    // pair clears the other (init). Meeting 05-11-2026, 1:00:46: the boxes do what they say.
     function logFiltersOn() {
-        return appliedReportFilters.hasTypes.length > 0 || appliedReportFilters.missingTypes.length > 0;
+        return appliedReportFilters.missingTypes.length > 0;
     }
 
     function cellMatchesLogFilters(cell) {
-        var has = appliedReportFilters.hasTypes, missing = appliedReportFilters.missingTypes;
-        return (!has.length || cellHasLogs(cell, has)) && (!missing.length || cellMatchesMissing(cell.dataset.missing || '', missing));
+        return cellMatchesMissing(cell.dataset.missing || '', appliedReportFilters.missingTypes);
     }
 
     function rowMatchesLogFilters(row) {
@@ -1337,7 +1311,7 @@
     function paginateRows() {
         // A new search or filter starts again on the first page.
         var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
-            appliedReportFilters.occupations, appliedReportFilters.hasTypes, getSelectedMissingTypes()]);
+            appliedReportFilters.occupations, getSelectedMissingTypes()]);
         if (key !== pageFilterKey) {
             pageFilterKey = key;
             reportPage = 1;
@@ -1500,8 +1474,8 @@
             html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(name) +
                 '<button class="filter-chip-close" data-filter-type="occupation" data-value="' + escapeHTML(value) + '" aria-label="Remove ' + escapeHTML(name) + ' from the occupation filter">&times;</button></span>';
         });
-        var labels = { 'has-in': 'Has log in', 'has-out': 'Has log out', 'in': 'Missing log in', 'out': 'Missing log out' };
-        appliedReportFilters.hasTypes.map(function (t) { return 'has-' + t; }).concat(getSelectedMissingTypes()).forEach(function (t) {
+        var labels = { 'in': 'Missing log in', 'out': 'Missing log out' };
+        getSelectedMissingTypes().forEach(function (t) {
             html += '<span class="filter-indicator-chip">' + labels[t] +
                 '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + labels[t] + ' filter">&times;</button></span>';
         });
@@ -1528,17 +1502,10 @@
                         appliedReportFilters.occupationLabels.splice(at, 1);
                     }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
-                } else if (type.indexOf('has-') === 0) {
-                    var has = type.slice(4);
-                    document.querySelectorAll('.filter-has').forEach(function (cb) {
-                        if (cb.value === has) cb.checked = false;
-                    });
-                    appliedReportFilters.hasTypes = appliedReportFilters.hasTypes.filter(function (item) {
-                        return item !== has;
-                    });
                 } else {
-                    document.querySelectorAll('.filter-missing').forEach(function (cb) {
-                        if (cb.value === type) cb.checked = false;
+                    // The log counts as there again: its Log Status box comes back.
+                    document.querySelectorAll('.filter-missing, .filter-has').forEach(function (cb) {
+                        if (cb.value === type) cb.checked = cb.classList.contains('filter-has');
                     });
                     appliedReportFilters.missingTypes = appliedReportFilters.missingTypes.filter(function (item) {
                         return item !== type;
@@ -2522,7 +2489,6 @@
                 var wasOriginal = appliedReportFilters.original;
                 var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
-                appliedReportFilters.hasTypes = getDraftHasTypes();
                 appliedReportFilters.missingTypes = getDraftMissingTypes();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
@@ -2543,10 +2509,10 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                document.querySelectorAll('.filter-missing, .filter-has').forEach(function (i) { i.checked = false; });
+                document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
+                document.querySelectorAll('.filter-has').forEach(function (i) { i.checked = true; });
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
-                appliedReportFilters.hasTypes = [];
                 appliedReportFilters.missingTypes = [];
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];
@@ -2555,6 +2521,22 @@
                 deselectAllCells();
                 showDays(datesInRange(), wasOriginal);
                 applyReportFilters();
+            });
+        }
+
+        // Log Status and Missing Log: one box of each pair at a time (Baldy, 09-11-2026). Ticking a
+        // log in one list clears it in the other, clearing it ticks the other.
+        document.querySelectorAll('.filter-has, .filter-missing').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                var pair = cb.classList.contains('filter-has') ? '.filter-missing' : '.filter-has';
+                var other = document.querySelector(pair + '[value="' + cb.value + '"]');
+                if (other) other.checked = !cb.checked;
+            });
+        });
+        // Their "?" says that they work together.
+        if (window.bootstrap && window.bootstrap.Tooltip) {
+            document.querySelectorAll('.log-filter-head [data-bs-toggle="tooltip"]').forEach(function (el) {
+                window.bootstrap.Tooltip.getOrCreateInstance(el);
             });
         }
 

@@ -2777,18 +2777,6 @@ div.report-layout .report-actions {
     font-variant-numeric: tabular-nums;
 }
 
-/* Someone with their own hours in this project (Project > Employees > Hours). */
-.report-identity-content .emp-own-hours {
-    display: inline-block;
-    margin-top: 4px;
-    padding: 1px 8px;
-    border-radius: 999px;
-    background: var(--feriiz-primary-soft);
-    color: var(--feriiz-primary-dark);
-    font-size: 11px;
-    font-weight: 600;
-}
-
 /* --- Scroll shadow for sticky column --- */
 .report-table-wrap.table-scrolled .report-table .sticky-col {
     box-shadow: 5px 0 14px -4px rgba(0, 0, 0, 0.08) !important;
@@ -3685,137 +3673,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-287 { color:#aaa; font-size:12px; }
 /* Manage Employee: each person's occupation at the end of the row (meeting 05-11-2026, 1:10:04). */
 .manage-emp-occ { margin-left:auto; padding-left:12px; color:var(--feriiz-text-hint); font-size:12px; text-align:right; }
-
-/* Project > Employees > Hours: "Project default", or the person's own hours (09-11-2026). */
-.pe-hours-btn {
-    padding: 2px 10px;
-    border: 1px solid var(--feriiz-border);
-    border-radius: 999px;
-    background: #fff;
-    color: var(--feriiz-text-hint);
-    font: inherit;
-    font-size: 12px;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-.pe-hours-btn:hover,
-.pe-hours-btn:focus-visible {
-    border-color: var(--feriiz-primary);
-    color: var(--feriiz-primary-dark);
-}
-
-.pe-hours-btn.is-own {
-    border-color: var(--feriiz-primary);
-    background: var(--feriiz-primary-soft);
-    color: var(--feriiz-primary-dark);
-    font-weight: 600;
-}
-
-/* Hours in this project: the person's own Default Hours, in Project Detail's look. */
-#personHoursModal .person-hours-choice {
-    display: grid;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-#personHoursModal .person-hours-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px;
-    border: 1px solid var(--feriiz-border-soft);
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-#personHoursModal .person-hours-option:has(input:checked) {
-    border-color: var(--feriiz-primary);
-    background: var(--feriiz-primary-soft);
-}
-
-#personHoursModal .person-hours-option input {
-    flex-shrink: 0;
-    margin: 3px 0 0;
-}
-
-#personHoursModal .person-hours-option strong {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-#personHoursModal .person-hours-option small {
-    display: block;
-    color: var(--feriiz-text-hint);
-    font-size: 12px;
-}
-
-#personHoursModal .person-hours-own {
-    display: grid;
-    gap: 12px;
-}
-
-#personHoursModal .person-hours-own[hidden],
-#personHoursModal .project-overtime-table[hidden] {
-    display: none !important;
-}
-
-#personHoursModal .project-overtime-table {
-    display: grid;
-    grid-template-columns: minmax(88px, 1fr) 82px 82px;
-    gap: 8px 12px;
-    align-items: center;
-    padding: 12px;
-    border: 1px solid #E7E7E7;
-    border-radius: 8px;
-    background: #fff;
-}
-
-#personHoursModal .project-overtime-head {
-    color: #333;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-#personHoursModal .project-overtime-day {
-    color: #1a1a1a;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-#personHoursModal .project-overtime-table input {
-    width: 100%;
-    min-height: 36px;
-    padding: 7px 8px;
-    border: 1px solid #D4D4D4;
-    border-radius: 7px;
-    outline: none;
-    font-size: 12px;
-    text-align: center;
-}
-
-#personHoursModal .project-overtime-custom-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    width: fit-content;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-#personHoursModal .project-overtime-custom-toggle input {
-    margin: 0;
-}
-
-#personHoursModal .project-default-hint {
-    margin: 0;
-    color: var(--feriiz-text-hint);
-    font-size: 12px;
-    line-height: 1.5;
-}
 .feriiz-u-288 { display:none; flex-direction:column; height:100%; }
 .feriiz-u-289 { flex:1; width:100%; border:1px solid #e5e5e5; border-radius:10px; padding:20px; font-family:monospace; font-size:13px; color:#333; resize:none; outline:none; margin-bottom:16px; }
 .feriiz-u-290 { display:none; color:#de3a46; font-size:12px; background:#fff2f4; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #ffccd3; }
@@ -7452,6 +7309,18 @@ div.report-layout .report-search-input {
 .tpl-help:hover,
 .tpl-help:focus-visible {
     color: #2975BB;
+}
+
+/* Log Status / Missing Log: the heading with its "?" (they work as pairs, 09-11-2026). */
+.log-filter-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.log-filter-head .feriiz-u-110 {
+    margin-bottom: 0;
 }
 
 .tpl-people-head {

@@ -1282,7 +1282,12 @@
                     cell.classList.remove('filtered-out-cell');
                     return;
                 }
-                cell.classList.toggle('filtered-out-cell', !cellMatchesLogFilters(cell));
+                var out = !cellMatchesLogFilters(cell);
+                cell.classList.toggle('filtered-out-cell', out);
+                // A dimmed day leaves the selection too, so a template never lands on a day the
+                // filter hides (meeting 05-11-2026, 1:02:31: "yang missing-missing itu gak terselect").
+                var picked = out && cell.querySelector('.day-cell-select:checked');
+                if (picked) picked.checked = false;
             });
         });
         paginateRows();

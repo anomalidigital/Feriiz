@@ -129,7 +129,8 @@
         if (appliedChips.length) values.push(appliedChips.join(' | '));
         if (searchInput && searchInput.value.trim()) values.push('Search: "' + searchInput.value.trim() + '"');
 
-        return values.length ? values.join(' • ') : 'All active data (No filter)';
+        // No filter, no "Active Filter" line on the print (Baldy, 09-11-2026).
+        return values.join(' • ');
     }
 
     function escapeHTML(str) {
@@ -453,7 +454,10 @@
         html += '    </div>';
         html += '  </div>';
         html += '</div>';
-        html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(job.filter) + '</div>';
+        // Only when a filter is on; a job saved before 3.7.71 still says "All active data (No filter)".
+        if (job.filter && job.filter !== 'All active data (No filter)') {
+            html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(job.filter) + '</div>';
+        }
         html += '</div>';
 
         // Single Unified Wide Table (Old Feriiz Structure + New Design)

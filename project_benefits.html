@@ -7,12 +7,12 @@
     <title>Feriiz - Benefits</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.78">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.78">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.79">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.79">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.78" defer></script>
-    <script src="assets/js/app.js?v=3.7.78" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.78" defer></script>
+    <script src="assets/js/data.js?v=3.7.79" defer></script>
+    <script src="assets/js/app.js?v=3.7.79" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.79" defer></script>
 </head>
 
 <!-- A project's Benefits: THR, pay for the red dates and other one-off amounts (Baldy, 09-11-2026:
@@ -20,7 +20,7 @@
      name that does not say "pay": "jangan berbau pay… tapi emang fungsinya buat pembayaran"; each
      one just "tanggal berapa dan berapa amount nya… ga perlu ada add date"; meeting 05-11-2026,
      0:38:14 and 1:04:16). Name, Date, Amount, Note, with no note under the title (crossed out).
-     Copy makes a new one from it, in this project or another. -->
+     No Copy (Baldy, the same day: "copy nya di ilangin"). -->
 <body data-page="project-benefits">
     <!-- Sidebar -->
     <aside class="sidebar"></aside>
@@ -62,7 +62,7 @@
                 <tbody id="payTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.78</div>
+        <div class="feriiz-u-032">version : 3.7.79</div>
     </main>
 
     <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalTitle" aria-hidden="true">
@@ -76,10 +76,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="payProjectBlock" hidden>
-                        <label class="form-label" for="payProject">Copy to</label>
-                        <select class="form-select mb-3" id="payProject"></select>
-                    </div>
                     <label class="form-label" for="payName">Name</label>
                     <input type="text" class="form-control" id="payName" placeholder="For example: THR Idul Fitri 2026" autocomplete="off">
                     <div class="row g-3 mt-0">
@@ -109,9 +105,7 @@
     <script>
         (function () {
             var project = null;
-            var projects = [];
             var editing = null;   // the benefit being edited
-            var source = null;    // the benefit being copied
 
             function esc(v) {
                 return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -140,7 +134,6 @@
                     return '<tr>' +
                         '<td><div class="action-cell">' +
                             '<a href="#" class="btn-icon" title="Edit" aria-label="Edit ' + esc(t.name) + '" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
-                            '<a href="#" class="btn-icon" title="Copy" aria-label="Copy ' + esc(t.name) + '" data-copy="' + esc(t.id) + '"><i class="fa-regular fa-copy"></i></a>' +
                         '</div></td>' +
                         '<td><div class="fw-semibold">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
                         '<td class="tpl-nowrap">' + (t.date ? T().fmtDate(t.date) : '<span class="tpl-sub">No date yet</span>') + '</td>' +
@@ -149,33 +142,15 @@
                 }).join('');
             }
 
-            /* ---------- add / edit / copy ---------- */
-            // Where it is saved: the chosen project when copying, else this one.
-            function targetCode() {
-                return source ? document.getElementById('payProject').value : project.code;
-            }
-
-            // A copy keeps its name in another project, and takes " (copy)" where the name is taken.
-            function copyName() {
-                return T().findByName(source.name, targetCode()) ? source.name + ' (copy)' : source.name;
-            }
-
-            function openForm(t, copying) {
-                editing = copying ? null : (t || null);
-                source = copying ? t : null;
-                document.getElementById('payModalTitle').textContent = copying ? 'Copy Benefit' : t ? 'Edit Benefit' : 'Add Benefit';
-                document.getElementById('payModalContext').textContent = copying ? 'From ' + project.name : project.name;
-                document.getElementById('payProjectBlock').hidden = !copying;
-                if (copying) {
-                    document.getElementById('payProject').innerHTML = projects.map(function (p) {
-                        return '<option value="' + esc(p.code) + '"' + (p.code === project.code ? ' selected' : '') + '>' + esc(p.name) + '</option>';
-                    }).join('');
-                }
-                document.getElementById('payName').value = copying ? copyName() : (t ? t.name : '');
+            /* ---------- add / edit ---------- */
+            function openForm(t) {
+                editing = t || null;
+                document.getElementById('payModalTitle').textContent = t ? 'Edit Benefit' : 'Add Benefit';
+                document.getElementById('payModalContext').textContent = project.name;
+                document.getElementById('payName').value = t ? t.name : '';
                 document.getElementById('payDate').value = t ? (t.date || '') : '';
                 document.getElementById('payAmount').value = t ? typed(t.amount) : '';
                 document.getElementById('payNote').value = t ? (t.note || '') : '';
-                document.getElementById('paySave').textContent = copying ? 'Save Copy' : 'Save';
                 document.querySelectorAll('#payForm .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
                 window.bootstrap.Modal.getOrCreateInstance(document.getElementById('payModal')).show();
             }
@@ -190,11 +165,10 @@
                 var date = document.getElementById('payDate');
                 var amount = document.getElementById('payAmount');
                 var value = digits(amount.value);
-                var code = targetCode();
                 // The name is also the column title in the project's Report: it may not repeat a
-                // template for every project or another benefit of that project. "Transport" is the
+                // template for every project or another benefit of this project. "Transport" is the
                 // Report's automatic column.
-                var same = T().findByName(name.value, code);
+                var same = T().findByName(name.value, project.code);
                 var reserved = T().reservedName(name.value);
                 var taken = reserved || (same && (!editing || same.id !== editing.id));
                 name.classList.toggle('is-invalid', !name.value.trim() || !!taken);
@@ -204,7 +178,7 @@
                     name.focus();
                     warn(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no benefit.'
                         : taken && !same.projectCode ? 'Request Templates already has ' + same.name + ' for every project.'
-                        : taken ? 'That project already has ' + same.name + '.' : 'A benefit needs a name.');
+                        : taken ? 'This project already has ' + same.name + '.' : 'A benefit needs a name.');
                     return;
                 }
                 if (!date.value || !value) {
@@ -214,7 +188,7 @@
                 }
                 var saved = T().save({
                     id: editing ? editing.id : '',
-                    projectCode: code,
+                    projectCode: project.code,
                     name: name.value.trim(),
                     date: date.value,
                     amount: value,
@@ -223,19 +197,12 @@
                 window.bootstrap.Modal.getInstance(document.getElementById('payModal')).hide();
                 render();
                 if (!window.FeriizNotify) return;
-                if (source && code !== project.code) {
-                    var to = projects.filter(function (p) { return p.code === code; })[0];
-                    FeriizNotify.success(saved.name + ' was copied to ' + (to ? to.name : code) + '.', 'Benefit copied');
-                } else if (editing) {
-                    FeriizNotify.success(saved.name + ' was updated.', 'Benefit updated');
-                } else {
-                    FeriizNotify.success(saved.name + (source ? ' was copied.' : ' was added.') + ' Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.',
-                        source ? 'Benefit copied' : 'Benefit added');
-                }
+                if (editing) FeriizNotify.success(saved.name + ' was updated.', 'Benefit updated');
+                else FeriizNotify.success(saved.name + ' was added. Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.', 'Benefit added');
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                document.getElementById('addPayBtn').addEventListener('click', function () { if (project) openForm(null, false); });
+                document.getElementById('addPayBtn').addEventListener('click', function () { if (project) openForm(null); });
                 document.getElementById('payForm').addEventListener('submit', saveForm);
                 document.getElementById('payAmount').addEventListener('input', function (e) {
                     e.target.value = typed(digits(e.target.value));
@@ -244,14 +211,9 @@
                 ['payName', 'payDate'].forEach(function (id) {
                     document.getElementById(id).addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
                 });
-                document.getElementById('payProject').addEventListener('change', function () {
-                    if (source) document.getElementById('payName').value = copyName();
-                });
                 document.getElementById('payTableBody').addEventListener('click', function (e) {
                     var edit = e.target.closest('[data-edit]');
-                    var copy = e.target.closest('[data-copy]');
-                    if (edit) { e.preventDefault(); openForm(T().get(edit.dataset.edit), false); }
-                    if (copy) { e.preventDefault(); openForm(T().get(copy.dataset.copy), true); }
+                    if (edit) { e.preventDefault(); openForm(T().get(edit.dataset.edit)); }
                 });
                 var timer;
                 document.getElementById('paySearch').addEventListener('input', function () {
@@ -264,7 +226,6 @@
                 window.FERIIZ_DATA.ready.then(function (data) {
                     project = (code && data.findProjectByCode(code)) || data.projects[0];
                     if (!project) return;
-                    projects = data.projects.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
                     var link = document.getElementById('payProjectLink');
                     link.textContent = project.name;
                     link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);

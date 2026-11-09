@@ -18,7 +18,7 @@
      tanggal berapa, terus… harganya"). A benefit is a template with the project's code and one
      date: Name, Date, Amount, Note. Assign Request gives it only on the ticked days on its date,
      with or without a log: the Report's Log Status filter says whether only the people who came
-     in get it. It can be copied, to this project or another.
+     in get it. There is no Copy ("copy nya di ilangin", Baldy, the same day).
    - The Amount can be changed in Assign Request, for that Assign only (Baldy, 09-11-2026: "ada
      custom amount… soal nya belum pasti"; meeting 05-11-2026, 0:41:32-0:43:45: people of another
      occupation are filtered, ticked and given their own).

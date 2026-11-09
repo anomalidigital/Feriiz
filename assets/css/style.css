@@ -7277,6 +7277,53 @@ div.report-layout .report-search-input {
     white-space: nowrap;
 }
 
+/* A project's one-time templates (09-11-2026): the dates they are for, each with its name and
+   amount, as the One-time templates had on 03-11-2026. */
+.tpl-date-list {
+    display: grid;
+    gap: 2px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.tpl-date-list span {
+    color: var(--feriiz-text-hint);
+}
+
+.tpl-dates {
+    display: grid;
+    gap: 8px;
+}
+
+/* Date | name of the day | its own amount | remove; the dialog is a little wider for it. */
+.tpl-date-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 140px 38px;
+    gap: 8px;
+}
+
+@media (min-width: 576px) {
+    .tpl-dates-modal .modal-dialog {
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .tpl-date-row {
+        grid-template-columns: 1fr 38px;
+    }
+
+    .tpl-date-row > input[type="text"] {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .tpl-date-row .tpl-date-amount {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+}
+
 .tpl-optional {
     color: #8A94A3;
     font-weight: 400;

@@ -8,9 +8,21 @@
 
    As drawn on the whiteboard of the Arcon meeting (20-10-2026):
    - A template is made once for every project and reused (1:39): Name, Amount, Note.
-   - Every template is per day: each ticked day gets its Amount. The Daily / One time
-     choice and the One-time dates with their own amounts are gone (Baldy, 04-11-2026:
-     "secara logika agak bingung"); how to handle one-off payments is still open.
+   - A template made here is per day: each ticked day gets its Amount. The Daily / One time
+     choice and the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026:
+     "secara logika agak bingung").
+   - One-off payments (THR, the red dates) are templates of ONE project, made on that
+     project's Templates page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project…
+     ada add time juga tanggal berapa dan amount nya berapa"; meeting 05-11-2026, 0:38:14 and
+     1:04:16: "namain dulu, ini hari apa, tanggal berapa, terus… harganya"). They carry the
+     project's code and their dates, each date with a name and its own amount (empty = the
+     template's Amount), as the One-time templates had (03-11-2026). Assign Request gives
+     them only on the ticked days that are one of their dates, with or without a log: the
+     Report's Log Status filter says whether only the people who came in get it. A template
+     can be copied, to this project or another, so its dates are not typed again.
+   - A per-day template's Amount can be changed in Assign Request, for that Assign only
+     (Baldy, 09-11-2026: "ada custom amount… soal nya belum pasti"; meeting 05-11-2026,
+     0:41:32-0:43:45: people of another occupation are filtered, ticked and given their own).
    - "Assign Request" in the project Report hands it out (1:43). Each template
      then has its own column in the Report's Client group, shown only when
      someone has it in the period (2:01-2:04).
@@ -26,7 +38,8 @@
    Prototype only: everything is kept in this browser (localStorage) so the
    Templates page and the Report see the same data. The API replaces this.
 
-   FeriizTemplates.all(), get(id), findByName(name), save(template)
+   FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
+   FeriizTemplates.onDates(template), amountOn(template, date)   a project's own template and its dates
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -67,8 +80,13 @@
     // Archiving was dropped (2026-10-26); templates archived before that are left out.
     // The old Transport sample goes too: transport is paid automatically now.
     var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false && t.id !== OLD_TRANSPORT_ID; });
-    // Templates saved before 04-11-2026 may still say Daily / One time and carry dates: all per day now.
-    templates.forEach(function (t) { delete t.unit; delete t.dates; });
+    // Templates for every project saved before 04-11-2026 may still say Daily / One time and carry
+    // dates: they are all per day now. Only a project's own templates keep dates.
+    templates.forEach(function (t) {
+        if (t.projectCode) return;
+        delete t.unit;
+        delete t.dates;
+    });
     var assigned = load(KEY_ASSIGNED, []);
     if (assigned.some(function (a) { return a.templateId === OLD_TRANSPORT_ID; })) {
         assigned = assigned.filter(function (a) { return a.templateId !== OLD_TRANSPORT_ID; });
@@ -87,10 +105,28 @@
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
 
-    // The name is also the Report column title, so two templates may not share it.
-    function findByName(name) {
+    // A project's own template is given on its dates; the others per day.
+    function onDates(t) { return Boolean(t && t.projectCode); }
+
+    // What a project's template pays on one of its dates: the date's own amount, else its Amount.
+    function amountOn(t, date) {
+        var d = (t.dates || []).filter(function (x) { return x.date === date; })[0];
+        return d && Number(d.amount) > 0 ? Number(d.amount) : Number(t.amount) || 0;
+    }
+
+    function shared() { return templates.filter(function (t) { return !t.projectCode; }); }
+
+    function ofProject(code) { return templates.filter(function (t) { return t.projectCode === code; }); }
+
+    // The name is also the Report column title, so two templates a Report can show may not
+    // share it: a template for every project clashes with any other, a project's own only with
+    // the shared ones and that project's.
+    function findByName(name, projectCode) {
         var key = String(name || '').trim().toLowerCase();
-        return templates.filter(function (t) { return t.name.trim().toLowerCase() === key; })[0] || null;
+        return templates.filter(function (t) {
+            if (t.name.trim().toLowerCase() !== key) return false;
+            return !projectCode || !t.projectCode || t.projectCode === projectCode;
+        })[0] || null;
     }
 
     function save(t) {
@@ -185,17 +221,27 @@
 
     function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
-    function templateOptions() {
-        return templates.map(function (t) {
-            return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + '</option>';
-        }).join('');
+    // The templates a project's Report can give: the shared ones, then the project's own.
+    function templateOptions(projectCode) {
+        var option = function (t) {
+            return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' +
+                (onDates(t) ? plural((t.dates || []).length, 'date', 'dates') : rupiah(t.amount) + ' a day') + '</option>';
+        };
+        var own = ofProject(projectCode);
+        if (!own.length) return shared().map(option).join('');
+        return '<optgroup label="Every project, a day">' + shared().map(option).join('') + '</optgroup>' +
+            '<optgroup label="This project, on its dates">' + own.map(option).join('') + '</optgroup>';
     }
 
-    function noTemplates() {
-        if (templates.length) return false;
+    function noTemplates(projectCode) {
+        if (shared().length || ofProject(projectCode).length) return false;
         if (window.FeriizNotify) window.FeriizNotify.warning('Make a template on the Request Templates page first.', 'No template');
         return true;
     }
+
+    // "25.000" while typing, the number when read.
+    function digits(value) { return Number(String(value || '').replace(/\D/g, '')) || 0; }
+    function typed(n) { return n ? Number(n).toLocaleString('id-ID') : ''; }
 
     /* ---------- Assign Request (Report: Batch Update > Assign Request) ----------
        context = {
@@ -205,10 +251,14 @@
          onDone: function (count)
        }
        The Report's own filters and ticks already say who and which days, so the dialog only
-       asks which template, then Apply (Baldy, 04-11-2026: the toolbar dialog made the admin
-       pick people and days a second time).
-       - Each ticked day the person came in gets the template's Amount.
-       - A day that already has it is skipped.
+       asks which template and how much, then Apply (Baldy, 04-11-2026: the toolbar dialog
+       made the admin pick people and days a second time).
+       - A per-day template: each ticked day the person came in gets the Amount, which starts
+         at the template's and can be changed for this Assign only (Baldy, 09-11-2026: "soal
+         nya belum pasti").
+       - A project's own template: each ticked day that is one of its dates gets that date's
+         amount, log or not (the Log Status filter decides who); other ticked days are left.
+       - A day that already has the template is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
     var ctx = null;
@@ -233,6 +283,15 @@
                     '<div class="modal-body">' +
                         '<label class="form-label" for="assignTemplateSelect">Select Template</label>' +
                         '<select class="form-select" id="assignTemplateSelect"></select>' +
+                        // A project's own template pays its dates' amounts, so it has no Amount here.
+                        '<div id="assignAmountBlock">' +
+                            '<label class="form-label mt-3" for="assignAmount">Amount</label>' +
+                            '<div class="input-group">' +
+                                '<span class="input-group-text">Rp</span>' +
+                                '<input type="text" inputmode="numeric" class="form-control" id="assignAmount" placeholder="0" autocomplete="off" aria-describedby="assignTemplateInfo">' +
+                                '<span class="input-group-text">a day</span>' +
+                            '</div>' +
+                        '</div>' +
                         '<div class="form-text" id="assignTemplateInfo"></div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
@@ -243,20 +302,26 @@
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
-        el.querySelector('#assignTemplateSelect').addEventListener('change', refreshSummary);
+        el.querySelector('#assignTemplateSelect').addEventListener('change', takeTemplateAmount);
+        el.querySelector('#assignAmount').addEventListener('input', function (e) {
+            e.target.value = typed(digits(e.target.value));
+            refreshSummary();
+        });
         el.querySelector('#assignSubmit').addEventListener('click', submit);
         return el;
     }
 
     function currentTemplate() { return get(modal.querySelector('#assignTemplateSelect').value); }
 
+    function currentAmount() { return digits(modal.querySelector('#assignAmount').value); }
+
     function cameIn(code, date) { return !ctx.workedOn || ctx.workedOn(code, date); }
 
     // { 'CODE|YYYY-MM-DD': true } for every day someone already has this template in the project.
-    function givenIndex(templateId) {
+    function givenIndex(t) {
         var index = {};
         assigned.forEach(function (a) {
-            if (a.templateId === templateId && a.projectCode === ctx.project.code) index[a.employeeCode + '|' + a.date] = true;
+            if (a.templateId === t.id && a.projectCode === ctx.project.code) index[a.employeeCode + '|' + a.date] = true;
         });
         return index;
     }
@@ -264,34 +329,69 @@
     // What Apply gives: one row per ticked day that gets the template, and what it skips.
     function planned() {
         var t = currentTemplate();
-        var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0 };
+        var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0, notDate: 0 };
         if (!t) return out;
-        var given = givenIndex(t.id);
-        var amount = Number(t.amount) || 0;
-        if (!amount) return out;
+        var dated = onDates(t);
+        var amount = currentAmount();
+        if (!dated && !amount) return out;
+        var given = givenIndex(t);
+        var dates = {};
+        (t.dates || []).forEach(function (d) { dates[d.date] = true; });
         ctx.cells.forEach(function (c) {
+            if (dated && !dates[c.date]) { out.notDate++; return; }
             if (given[c.code + '|' + c.date]) { out.already++; return; }
-            if (!cameIn(c.code, c.date)) { out.noLog++; return; }
-            out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
-            out.total += amount;
+            if (!dated && !cameIn(c.code, c.date)) { out.noLog++; return; }
+            var pay = dated ? amountOn(t, c.date) : amount;
+            out.rows.push({ code: c.code, name: c.name, date: c.date, amount: pay });
+            out.total += pay;
             out.people[c.code] = true;
         });
         return out;
     }
 
+    // A per-day template brings its own Amount, which the admin can change for this Assign;
+    // a project's own template pays its dates' amounts.
+    function takeTemplateAmount() {
+        var t = currentTemplate();
+        if (!t) return;
+        modal.querySelector('#assignAmountBlock').hidden = onDates(t);
+        if (!onDates(t)) modal.querySelector('#assignAmount').value = typed(t.amount);
+        refreshSummary();
+    }
+
+    // "17 Aug 2026 (HUT RI) · Rp 100.000, …" for a project's template: its dates among the
+    // ticked days, or all of them when none is ticked.
+    function datesLine(t) {
+        var ticked = {};
+        ctx.cells.forEach(function (c) { ticked[c.date] = true; });
+        var all = t.dates || [];
+        var hit = all.filter(function (d) { return ticked[d.date]; });
+        var shown = hit.length ? hit : all;
+        var line = shown.slice(0, 4).map(function (d) {
+            return fmtDate(d.date) + (d.name ? ' (' + d.name + ')' : '') + ' · ' + rupiah(amountOn(t, d.date));
+        }).join(', ') + (shown.length > 4 ? ' and ' + plural(shown.length - 4, 'more date', 'more dates') : '');
+        return (hit.length ? 'Given on its dates, with or without a log: ' : 'None of the ticked days is one of its dates: ') + line + '.';
+    }
+
     function refreshSummary() {
         var t = currentTemplate();
         if (!t) return;
-        modal.querySelector('#assignTemplateInfo').textContent = rupiah(t.amount) + ' a day, only on the ticked days each person came in' +
-            (t.note ? ' · ' + t.note : '');
+        var dated = onDates(t);
+        var amount = currentAmount();
+        var info = dated ? datesLine(t)
+            : 'Only on the ticked days each person came in.' +
+              (amount !== Number(t.amount) ? ' The template says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
+        modal.querySelector('#assignTemplateInfo').textContent = info + (t.note ? ' ' + t.note : '');
         var p = planned();
         var people = Object.keys(p.people).length;
         var skips = [];
+        // Other ticked days are only worth a word when nothing is given.
+        if (p.notDate && !p.rows.length) skips.push(plural(p.notDate, 'ticked day is', 'ticked days are') + ' not its dates');
         if (p.noLog) skips.push(plural(p.noLog, 'day has', 'days have') + ' no log');
         if (p.already) skips.push(plural(p.already, 'day has', 'days have') + ' it already');
-        modal.querySelector('#assignSummary').textContent = (p.rows.length
-            ? plural(p.rows.length, 'day', 'days') + ' · ' + plural(people, 'person', 'people') + ' · ' + rupiah(p.total) : 'Nothing to give') +
-            (skips.length ? ' (' + skips.join(', ') + ')' : '');
+        modal.querySelector('#assignSummary').textContent = (!dated && !amount ? 'Enter an amount'
+            : p.rows.length ? plural(p.rows.length, 'day', 'days') + ' · ' + plural(people, 'person', 'people') + ' · ' + rupiah(p.total) : 'Nothing to give') +
+            ((dated || amount) && skips.length ? ' (' + skips.join(', ') + ')' : '');
         modal.querySelector('#assignSubmit').disabled = !p.rows.length;
     }
 
@@ -309,7 +409,11 @@
         window.bootstrap.Modal.getInstance(modal).hide();
         var people = Object.keys(p.people).length;
         if (window.FeriizNotify) {
-            window.FeriizNotify.success(rupiah(p.total) + ' given to ' + plural(people, 'person', 'people') +
+            var days = {};
+            p.rows.forEach(function (r) { days[r.date] = true; });
+            window.FeriizNotify.success((onDates(t)
+                ? rupiah(p.total) + ' given to ' + plural(people, 'person', 'people') + ' on ' + plural(Object.keys(days).length, 'date', 'dates')
+                : rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people') + ', ' + rupiah(p.total) + ' in all') +
                 '. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
         }
         if (ctx.onDone) ctx.onDone(p.rows.length);
@@ -317,11 +421,11 @@
 
     function openAssign(context) {
         ctx = context;
-        if (noTemplates()) return;
+        if (noTemplates(ctx.project.code)) return;
         if (!modal) modal = buildModal();
         modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + ctx.cells.length + ' selected';
-        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
-        refreshSummary();
+        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions(ctx.project.code);
+        takeTemplateAmount();
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
@@ -432,8 +536,12 @@
     window.FeriizTemplates = {
         rupiah: rupiah,
         fmtDate: fmtDate,
-        all: function () { return templates.slice(); },
+        // The templates for every project (the Request Templates page); a project's own are ofProject.
+        all: shared,
+        ofProject: ofProject,
         get: get,
+        onDates: onDates,
+        amountOn: amountOn,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

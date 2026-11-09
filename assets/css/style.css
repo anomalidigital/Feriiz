@@ -7311,7 +7311,7 @@ div.report-layout .report-search-input {
     color: #2975BB;
 }
 
-/* Log Status / Missing Log: the heading with its "?" (they work as pairs, 09-11-2026). */
+/* Log Status: the heading with its "?" (09-11-2026). */
 .log-filter-head {
     display: flex;
     align-items: center;

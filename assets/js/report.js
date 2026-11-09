@@ -57,7 +57,7 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        missingTypes: [],      // Missing Log: days missing exactly these logs; Log Status shows the others
+        missingTypes: [],      // the logs unticked under Log Status: the days missing exactly these
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -1209,8 +1209,9 @@
     /* =============================================
        FILTERS
        ============================================= */
+    // The logs unticked under Log Status.
     function getDraftMissingTypes() {
-        return Array.from(document.querySelectorAll('.filter-missing:checked')).map(function (i) { return i.value; });
+        return Array.from(document.querySelectorAll('.filter-log:not(:checked)')).map(function (i) { return i.value; });
     }
 
     function getSelectedMissingTypes() {
@@ -1231,12 +1232,11 @@
         return false;
     }
 
-    // Log Status and Missing Log are one choice per log (Baldy, 09-11-2026: "keduanya ga boleh
-    // aktif, harus salah satu"): a log is either there (Log Status, both ticked by default) or
-    // missing (Missing Log), never both, so the filter never comes up empty for a contradiction.
-    // Both under Log Status shows every day; the logs ticked under Missing Log pick the days
-    // missing exactly those, with the other log there (cellMatchesMissing). Ticking one box of a
-    // pair clears the other (init). Meeting 05-11-2026, 1:00:46: the boxes do what they say.
+    // Log Status alone (Baldy, 09-11-2026: "status log aja pun udah cukup"; the meeting of
+    // 05-11-2026, 59:23: "dari awal kecentang dua-duanya… kalau gak kecentang… gak punya"): a
+    // ticked log is there, an unticked one is missing. Both ticked (the default) shows every
+    // day; Log In unticked shows the days missing their log in (their log out there), both
+    // unticked the days missing both (cellMatchesMissing).
     function logFiltersOn() {
         return appliedReportFilters.missingTypes.length > 0;
     }
@@ -1503,9 +1503,9 @@
                     }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
                 } else {
-                    // The log counts as there again: its Log Status box comes back.
-                    document.querySelectorAll('.filter-missing, .filter-has').forEach(function (cb) {
-                        if (cb.value === type) cb.checked = cb.classList.contains('filter-has');
+                    // The log counts as there again: its Log Status box is ticked.
+                    document.querySelectorAll('.filter-log').forEach(function (cb) {
+                        if (cb.value === type) cb.checked = true;
                     });
                     appliedReportFilters.missingTypes = appliedReportFilters.missingTypes.filter(function (item) {
                         return item !== type;
@@ -2509,8 +2509,7 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
-                document.querySelectorAll('.filter-has').forEach(function (i) { i.checked = true; });
+                document.querySelectorAll('.filter-log').forEach(function (i) { i.checked = true; });
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
                 appliedReportFilters.missingTypes = [];
@@ -2524,16 +2523,7 @@
             });
         }
 
-        // Log Status and Missing Log: one box of each pair at a time (Baldy, 09-11-2026). Ticking a
-        // log in one list clears it in the other, clearing it ticks the other.
-        document.querySelectorAll('.filter-has, .filter-missing').forEach(function (cb) {
-            cb.addEventListener('change', function () {
-                var pair = cb.classList.contains('filter-has') ? '.filter-missing' : '.filter-has';
-                var other = document.querySelector(pair + '[value="' + cb.value + '"]');
-                if (other) other.checked = !cb.checked;
-            });
-        });
-        // Their "?" says that they work together.
+        // Log Status's "?" says what an unticked log shows.
         if (window.bootstrap && window.bootstrap.Tooltip) {
             document.querySelectorAll('.log-filter-head [data-bs-toggle="tooltip"]').forEach(function (el) {
                 window.bootstrap.Tooltip.getOrCreateInstance(el);

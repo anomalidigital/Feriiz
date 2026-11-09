@@ -7399,19 +7399,21 @@ div.report-layout .report-table [class*="col-cli-"] {
     width: 1px !important;
 }
 
-/* So do the day columns (Arcon via Baldy, 04-11-2026: "di dempetin aja bener bener fit"):
-   the table no longer spreads them over the page, and a day with a long request name just
-   gets wider. Each day is at least 168px, a little room so every day is as wide (Baldy, the
-   same day: "kasih space dikit biar semuanya sama dan rapi"). The checkboxes keep their room
+/* The day columns are as narrow as what they hold (Arcon via Baldy, 04-11-2026: "di dempetin
+   aja bener bener fit"), at least 168px so every day is as wide ("kasih space dikit biar
+   semuanya sama dan rapi"), and a day with a long request name just gets wider. When the days
+   are few, the table still fills the page and they share what is left, so no empty space stays
+   on the right (Baldy, 09-11-2026: "di kanan nya itu kaya tampak kosong… mending menyesuaikan
+   aja… tapi jangan sampe ada space"); when they are many, they stay that narrow and the table
+   scrolls. The name and summary columns keep their own widths. The checkboxes keep their room
    on the right. */
 div.report-layout .report-table {
     width: auto !important;
-    min-width: 0 !important;
+    min-width: 100% !important;
 }
 
 div.report-layout .report-table th.day-col,
 div.report-layout .report-table td.day-col {
-    width: 1px !important;
     min-width: 168px;
     white-space: nowrap;
 }

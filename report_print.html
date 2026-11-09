@@ -7,10 +7,10 @@
     <title>Feriiz - Print preview</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.66">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.66">
-    <script src="assets/js/print-report.js?v=3.7.66" defer></script>
-    <script src="assets/js/print-preview.js?v=3.7.66" defer></script>
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.67">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.67">
+    <script src="assets/js/print-report.js?v=3.7.67" defer></script>
+    <script src="assets/js/print-preview.js?v=3.7.67" defer></script>
 </head>
 
 <!-- The Report's Print opens this tab (06-11-2026): the sheet as it will print, where columns,
@@ -22,6 +22,11 @@
             <p id="ppContext"></p>
         </div>
         <div class="pp-actions">
+            <div class="pp-mode" id="ppMode" role="group" aria-label="Print for">
+                <span class="pp-days-label">For</span>
+                <button type="button" class="pp-day" data-mode="internal" aria-pressed="true">Internal</button>
+                <button type="button" class="pp-day" data-mode="client" aria-pressed="false">Client</button>
+            </div>
             <div class="pp-days" id="ppDays" role="group" aria-label="Blank days"></div>
             <label class="pp-check" id="ppResultWrap">
                 <input type="checkbox" class="form-check-input" id="ppResult"> Show print result

@@ -611,6 +611,11 @@ function feriizLogout() {
             reset() {
                 chosen = [];
                 paint();
+            },
+            // One occupation off, the others stay ticked (the Report's chip x).
+            remove(value) {
+                chosen = chosen.filter(v => v !== value);
+                paint();
             }
         };
     }
@@ -643,6 +648,13 @@ function feriizLogout() {
         const select = (root || document).querySelector('.filter-occ');
         if (!select) return;
         pickerFor(select).reset();
+        writeSelect(select);
+    }
+
+    function removeOccupationValue(root, value) {
+        const select = (root || document).querySelector('.filter-occ');
+        if (!select) return;
+        pickerFor(select).remove(normalizeOccupation(value));
         writeSelect(select);
     }
 
@@ -682,6 +694,7 @@ function feriizLogout() {
 
     window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {
         getOccupationValues,
+        removeOccupationValue,
         resetOccupationFilter,
         setOccupationPeople
     });

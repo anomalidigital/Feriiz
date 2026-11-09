@@ -184,7 +184,8 @@
 
     // One person's day: what the sheet prints (p = the hours, o = the overtime, as the badges
     // say) and what it counts (d = Daily, ot = overtime hours, w = came in, so Transport
-    // pays it), plus the requests given that day (Uang Makan…) for their columns.
+    // pays it), plus the requests given that day (Uang Makan…) for their columns, and for a
+    // day with data s = [hours, overtime] of the client print's Set Default.
     function dayEntry(tr, date, idx) {
         var e = { p: '-', o: '-', d: 0, ot: 0, w: false, req: [] };
         var dayTd = tr.querySelector('td.day-col[data-date="' + date + '"]');
@@ -202,6 +203,8 @@
             e.d = Number(dayTd.dataset.daily) || 0;
             e.ot = Number(dayTd.dataset.otTotal) || 0;
             e.w = e.d > 0;
+            var def = (e.d > 0 || e.ot > 0) && window.FeriizReport ? window.FeriizReport.setDefaultFor(tr.dataset.employeeCode, date) : null;
+            if (def) e.s = [def.work, def.ot];
         }
         if (dayOff || dayTd.classList.contains('holiday-off-cell')) return e;
 
@@ -294,7 +297,10 @@
        ('date:YYYY-MM-DD', 'tot:days', 'tot:ot', 'emp', 'emp:daily', 'emp:rateOT', 'emp:totalR',
        'emp:totalOT', 'emp:sub', 'cli', 'cli:…', 'cli:add:ID', 'cli:addtotal', 'cli:sub',
        'pay:emp', 'pay:cli'), blank { 'YYYY-MM-DD': true } for dates printed with their header
-       but nothing under it, rowsOff { CODE: true } for people left out, and controls: the
+       but nothing under it, rowsOff { CODE: true } for people left out, client: the client
+       print, where every day with data prints and counts the Set Default (Daily 1 with the
+       person's default hours and overtime of that weekday, the meeting of 05-11-2026: "ketika
+       udah di print… semuanya itu harus 8 per 2", 0:05:07), and controls: the
        Print preview's own view, where what is left out stays in sight, faded, with the
        buttons that leave it out or bring it back. A date left out or blanked, and a person
        left out, no longer count in the totals: the sheet adds up what it prints (Baldy,
@@ -355,12 +361,20 @@
         return job.dates.filter(function (d) { return !hidden['date:' + d.date] && !blank[d.date]; }).map(function (d) { return d.date; });
     }
 
+    // A day as the sheet prints and counts it: as the Report has it, or in the client print a
+    // day with data at its Set Default.
+    function sheetDay(row, date, client) {
+        var e = row.days[date];
+        if (!e || !client || !e.s) return e;
+        return { p: String(Math.round(e.s[0] * 100) / 100), o: formatHour(e.s[1]), d: 1, ot: e.s[1], w: true, req: e.req };
+    }
+
     // One person's figures over the counted dates, by the Report's rules: pay is per day
     // (Total Rate = Daily Rate x days), overtime per hour, Transport on the days they came in.
-    function rowFigures(row, counted) {
+    function rowFigures(row, counted, client) {
         var days = 0, ot = 0, paid = 0, req = {}, reqTotal = 0;
         counted.forEach(function (date) {
-            var e = row.days[date];
+            var e = sheetDay(row, date, client);
             if (!e) return;
             days += e.d;
             ot += e.ot;
@@ -397,6 +411,7 @@
     function renderPrintSheet(job, view) {
         view = view || {};
         var ctl = Boolean(view.controls);
+        var client = Boolean(view.client);
         var blank = view.blank || {};
         var rowsOff = view.rowsOff || {};
         var cols = sheetColumns(job, view);
@@ -499,7 +514,7 @@
         html += '</thead><tbody>';
 
         var figures = {};
-        job.rows.forEach(function (row) { figures[row.code] = rowFigures(row, counted); });
+        job.rows.forEach(function (row) { figures[row.code] = rowFigures(row, counted, client); });
 
         // A money cell of a person: the rates and totals as the Report writes them, the
         // additional columns blank ("-") when there is nothing to pay.
@@ -531,7 +546,7 @@
                 (row.occupation ? '<div class="print-emp-sub">' + escapeHTML(row.occupation) + '</div>' : '') +
                 (ctl && rowOff ? tag('Not printed') : '') + '</td>';
             cols.dates.forEach(function (c) {
-                var e = row.days[c.date] || { p: '-', o: '-' };
+                var e = sheetDay(row, c.date, client) || { p: '-', o: '-' };
                 var cls = cellOff(c) + (blank[c.date] && ctl ? ' pp-blank' : '');
                 var p = blank[c.date] ? '' : escapeHTML(e.p);
                 var o = blank[c.date] ? '' : escapeHTML(e.o);
@@ -562,7 +577,7 @@
             html += '<tr class="tr-people-row"><td colspan="2" class="td-total-label">Jumlah Orang Per Hari</td>';
             cols.dates.forEach(function (c) {
                 var counts = !c.off && !blank[c.date];
-                var count = printedRows.filter(function (row) { var e = row.days[c.date]; return e && e.w; }).length;
+                var count = printedRows.filter(function (row) { var e = sheetDay(row, c.date, client); return e && e.w; }).length;
                 if (counts) personDays += count;
                 html += '<td colspan="2" class="td-people-count' + offCls(c) + (blank[c.date] && ctl ? ' pp-blank' : '') + '">' + (blank[c.date] ? '' : count) + '</td>';
             });

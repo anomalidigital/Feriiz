@@ -11,8 +11,13 @@
      Minggunya tetap ada"). It works for any day and any project.
    What is left out stays in sight, faded, until "Show print result". The sheet adds up
    only what it prints. The columns left out and the blanked weekdays are kept for the
-   project's next print; single dates and people are not. Local only for now (Baldy,
-   06-11-2026: "di local dulu aja").
+   project's next print, for each of Internal and Client; single dates and people are not.
+   For: Internal | Client (meeting 05-11-2026, 0:34:01: "ada yang buat klien, ada yang buat
+   internal"): Client prints every day with data at the Set Default, Daily 1 with the
+   person's default hours and overtime of that weekday (the project's Default Hours, or their
+   own in Project > Employees > Hours), without changing the Report; it starts without the
+   Employee group, the workers' pay. Local only for now (Baldy, 06-11-2026: "di local dulu
+   aja"; 09-11-2026: the meeting's items, local).
    ============================================= */
 (function () {
     'use strict';
@@ -30,27 +35,46 @@
         try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch (e) { return {}; }
     }
 
-    function projectPrefs() { return readPrefs()[job.project.code] || {}; }
+    // { internal: { cols, days }, client: { cols, days } } kept for the project (06-11 kept one set: Internal).
+    function projectPrefs() {
+        var p = readPrefs()[job.project.code] || {};
+        return p.internal || p.client ? p : { internal: p };
+    }
 
-    function keptCount(p) { return (p.cols || []).length + (p.days || []).length; }
+    function modePrefs(mode) { return projectPrefs()[mode] || null; }
+
+    function keptCount(p) { return p ? (p.cols || []).length + (p.days || []).length : 0; }
 
     function savePrefs() {
         var all = readPrefs();
+        var mine = projectPrefs();
         var cols = Object.keys(state.hidden).filter(function (k) { return state.hidden[k] && k.indexOf('date:') !== 0; });
         var days = Object.keys(state.days).filter(function (d) { return state.days[d]; }).map(Number);
-        if (cols.length || days.length) all[job.project.code] = { cols: cols, days: days };
-        else delete all[job.project.code];
+        mine[state.mode] = { cols: cols, days: days };
+        all[job.project.code] = mine;
         try { localStorage.setItem(PREFS_KEY, JSON.stringify(all)); } catch (e) { /* kept for this tab only */ }
     }
 
-    // hidden: columns left out; days: blanked weekdays; dates: a single date blanked (true) or
-    // kept although its weekday is blanked (false); rows: people left out.
-    function freshState(withPrefs) {
-        var p = withPrefs ? projectPrefs() : {};
-        var s = { hidden: {}, days: {}, dates: {}, rows: {}, result: false };
-        (p.cols || []).forEach(function (k) { s.hidden[k] = true; });
-        (p.days || []).forEach(function (d) { s.days[d] = true; });
+    // What a mode starts with: what was kept for it, else nothing left out, but the client
+    // print leaves out the Employee group, the workers' pay.
+    function modeColumns(mode) {
+        var p = modePrefs(mode);
+        var s = { hidden: {}, days: {} };
+        if (p) {
+            (p.cols || []).forEach(function (k) { s.hidden[k] = true; });
+            (p.days || []).forEach(function (d) { s.days[d] = true; });
+        } else if (mode === 'client') {
+            s.hidden.emp = true;
+        }
         return s;
+    }
+
+    // mode: 'internal' or 'client'; hidden: columns left out; days: blanked weekdays; dates: a
+    // single date blanked (true) or kept although its weekday is blanked (false); rows: people
+    // left out.
+    function freshState(mode, withPrefs) {
+        var cols = withPrefs ? modeColumns(mode) : { hidden: {}, days: {} };
+        return { mode: mode, hidden: cols.hidden, days: cols.days, dates: {}, rows: {}, result: false };
     }
 
     function isBlank(d) {
@@ -60,7 +84,7 @@
     function view(controls) {
         var blank = {};
         job.dates.forEach(function (d) { if (isBlank(d)) blank[d.date] = true; });
-        return { hidden: state.hidden, blank: blank, rowsOff: state.rows, controls: controls };
+        return { hidden: state.hidden, blank: blank, rowsOff: state.rows, controls: controls, client: state.mode === 'client' };
     }
 
     function weekdays() {
@@ -79,6 +103,9 @@
 
     function summary() {
         if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Bring someone back with the eye by their name, or Reset.';
+        var mode = state.mode === 'client'
+            ? 'For the client: every day with data prints the Set Default, Daily 1 with its default hours and overtime. '
+            : 'Internal: the Report\'s own data. ';
         var parts = [];
         var blankDays = weekdays().filter(function (d) {
             return state.days[d] && job.dates.some(function (x) { return x.dow === d && isBlank(x); });
@@ -91,10 +118,16 @@
         var people = count(state.rows);
         if (people) parts.push(people + (people === 1 ? ' person' : ' people') + ' left out');
         if (!parts.length) {
-            return 'Everything on the Report prints. Use the eye in a header or by a name to leave it out, or the eraser on a date to print its header only.';
+            return mode + 'Use the eye in a header or by a name to leave it out, or the eraser on a date to print its header only.';
         }
-        return parts.join(' · ') + '. The totals count only what prints.' +
-            (keptCount(projectPrefs()) ? ' Columns and days left out are kept for this project\'s next print.' : '');
+        return mode + parts.join(' · ') + '. The totals count only what prints.' +
+            (keptCount(modePrefs(state.mode)) ? ' Columns and days left out are kept for this project\'s next ' + (state.mode === 'client' ? 'client' : 'internal') + ' print.' : '');
+    }
+
+    function renderMode() {
+        $('ppMode').querySelectorAll('button[data-mode]').forEach(function (btn) {
+            btn.setAttribute('aria-pressed', String(btn.dataset.mode === state.mode));
+        });
     }
 
     function renderDays() {
@@ -113,6 +146,7 @@
         $('ppStage').classList.toggle('is-result', state.result);
         $('ppResult').checked = state.result;
         savePrefs();
+        renderMode();
         renderDays();
         $('ppSummary').textContent = summary();
         $('ppSummary').classList.toggle('is-warning', nothingLeft());
@@ -151,6 +185,19 @@
         refocus($('ppDays'), 'button[data-day="' + day + '"]');
     }
 
+    // Another mode keeps the people and dates left out, and takes its own columns and days.
+    function onModeClick(e) {
+        var btn = e.target.closest('button[data-mode]');
+        if (!btn || btn.dataset.mode === state.mode) return;
+        var cols = modeColumns(btn.dataset.mode);
+        state.mode = btn.dataset.mode;
+        state.hidden = cols.hidden;
+        state.days = cols.days;
+        state.dates = {};
+        render();
+        refocus($('ppMode'), 'button[data-mode="' + state.mode + '"]');
+    }
+
     function printSheet() {
         if (nothingLeft()) {
             $('ppSummary').focus();
@@ -169,7 +216,7 @@
 
     function fail(message) {
         $('ppState').textContent = message;
-        ['ppDays', 'ppResultWrap', 'ppReset', 'ppPrint'].forEach(function (id) { $(id).hidden = true; });
+        ['ppMode', 'ppDays', 'ppResultWrap', 'ppReset', 'ppPrint'].forEach(function (id) { $(id).hidden = true; });
         $('ppSummary').textContent = '';
     }
 
@@ -189,15 +236,16 @@
         document.title = pageTitle;
         $('ppContext').textContent = (job.employeePage ? job.subtitle.split(' • ')[0] + ' · ' : '') + job.title + ' · ' + job.period;
         $('ppSummary').tabIndex = -1;
-        state = freshState(true);
+        state = freshState('internal', true);
         render();
         $('ppState').hidden = true;
         $('ppPaper').hidden = false;
 
         $('ppSheet').addEventListener('click', onSheetClick);
         $('ppDays').addEventListener('click', onDayClick);
+        $('ppMode').addEventListener('click', onModeClick);
         $('ppResult').addEventListener('change', function () { state.result = this.checked; render(); });
-        $('ppReset').addEventListener('click', function () { state = freshState(false); render(); });
+        $('ppReset').addEventListener('click', function () { state = freshState(state.mode, false); render(); });
         $('ppPrint').addEventListener('click', printSheet);
         // "Save as PDF" names the file after the sheet, as the Report's print did.
         window.addEventListener('beforeprint', function () { document.title = window.FeriizPrintSheet.identifier(job, view(false)); });

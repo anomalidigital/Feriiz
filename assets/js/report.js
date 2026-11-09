@@ -57,7 +57,8 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        missingTypes: [],
+        hasTypes: [],          // Log Status: days that have these logs ('in', 'out')
+        missingTypes: [],      // Missing Log: days missing exactly these logs
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -137,11 +138,12 @@
         return end > start ? (end - start) / 3600 : 0;
     }
 
-    // The Time Period: the Default Hours of that day's weekday; without a date, the Default
-    // Hours when every weekday has the same. Else the whole Working Time.
+    // The Time Period: the Default Hours of that day's weekday (the person's own in this
+    // project, else the project's); without a date, the Default Hours when every weekday has
+    // the same. Else the whole Working Time.
     function periodOf(code, date) {
-        var def = date ? dayDefault(date) : null;
-        var hours = def ? def.work : date ? null : defaultWorkHours();
+        var def = date ? dayDefault(date, code) : null;
+        var hours = def ? def.work : date ? null : defaultWorkHours(code);
         return hours || spanOf(code);
     }
 
@@ -169,26 +171,52 @@
        Feriiz does, so the default Overtime is not added any more. Filter > Show history only
        puts each changed day's newest version next to its original; it changes no number.
        ============================================= */
-    // { work, ot } in hours for one weekday ('Mon'), or null: no default, so the real logs count.
-    function defaultFor(dayName) {
-        var set = projectContext && projectContext.defaultHours;
+    // { work, ot } in hours for one weekday ('Mon') of a Default Hours set, or null: no
+    // default, so the real logs count.
+    function defaultFromSet(set, dayName) {
         if (!set) return null;
         var day = set.custom ? (set.days || {})[dayName] : set.daily;
         var work = day ? Number(day.work) || 0 : 0;
         return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
     }
 
-    function dayDefault(date) { return defaultFor(DAY_NAMES[fromISO(date).getDay()]); }
+    // A person's own hours in this project (Project > Employees > Hours), the strongest of the
+    // three settings: employee < project < the person in the project (meeting 05-11-2026,
+    // 0:16:08: "project user setting… ini yang paling kuat"). null = the project's.
+    function ownHoursOf(code) {
+        return code && projectContext && window.FERIIZ_DATA && window.FERIIZ_DATA.projectUserHours
+            ? window.FERIIZ_DATA.projectUserHours(projectContext.code, code) : null;
+    }
+
+    // The Default Hours of one weekday for a person (their own in this project, else the
+    // project's), or the project's when no person is given.
+    function defaultFor(dayName, code) {
+        var own = ownHoursOf(code);
+        return defaultFromSet(own || (projectContext && projectContext.defaultHours), dayName);
+    }
+
+    function dayDefault(date, code) { return defaultFor(DAY_NAMES[fromISO(date).getDay()], code); }
 
     // The hours of a default day when every weekday has the same (Download Log's Period), else null.
-    function defaultWorkHours() {
+    function defaultWorkHours(code) {
         var hours = [];
         DAY_NAMES.forEach(function (n) {
-            var d = defaultFor(n);
+            var d = defaultFor(n, code);
             if (d && hours.indexOf(d.work) < 0) hours.push(d.work);
         });
         return hours.length === 1 ? hours[0] : null;
     }
+
+    // What the client print gives a day that has data (Set Default, meeting 05-11-2026, 0:05:07:
+    // "ketika udah di print… semuanya itu harus 8 per 2"): the person's hours and overtime of
+    // that weekday, or null when that weekday has no default hours (its real data prints, as
+    // "0 hours: the real logs count" says in Default Hours).
+    function setDefaultFor(code, date) {
+        var def = dayDefault(date, code);
+        return def ? { work: def.work, ot: def.ot } : null;
+    }
+
+    window.FeriizReport = { setDefaultFor: setDefaultFor };
 
     function showOriginal() { return appliedReportFilters.original; }
 
@@ -368,16 +396,18 @@
     }
 
     // A day after its versions, oldest first, up to and with `upTo` (null: none, the machine's
-    // original). The newest decides: an import sets the numbers, and a day it raises to Daily 1
-    // takes the working time as its logs (filled); Add Log sets logs and Delete Log empties
-    // them, after which the numbers come from the logs again. A day off ignores the machine's
-    // logs, as it always did; Add Log can still give it some.
+    // original). The newest decides: an import sets the numbers and leaves the log in and log
+    // out as the machine recorded them (meeting 05-11-2026, 1:50:56: "langsung ganti yang
+    // itunya tanpa ngeganti jam kerjanya mereka"; until then a day it raised to Daily 1 took the
+    // working time as its logs); Add Log sets logs and Delete Log empties them, after which the
+    // numbers come from the logs again. A day off ignores the machine's logs, as it always
+    // did; Add Log can still give it some.
     function dayState(code, date, upTo) {
         var key = code + '|' + date;
         var rec = attendanceIndex[key] || {};
         var off = dayOffFor(code, date);
         var s = { off: off, inTime: off ? '' : rec.inTime || '', outTime: off ? '' : rec.outTime || '',
-                  inNote: off ? '' : rec.inNote || '', outNote: off ? '' : rec.outNote || '', numbers: null, last: null, filled: false };
+                  inNote: off ? '' : rec.inNote || '', outNote: off ? '' : rec.outNote || '', numbers: null, last: null };
         if (upTo === null) return s;
         var batches = projectImports().batches;
         for (var i = 0; i < batches.length; i++) {
@@ -396,19 +426,10 @@
             if (c.inTime) { s.inTime = c.inTime; s.inNote = b.note || ''; }
             if (c.outTime) { s.outTime = c.outTime; s.outNote = b.note || ''; }
             s.numbers = null;
-            s.filled = false;
         } else if (kind === 'delete') {
             s.inTime = s.outTime = s.inNote = s.outNote = '';
             s.numbers = null;
-            s.filled = false;
         } else {
-            if (Number(c.daily) === 1 && logCount(code, date, s.inTime, s.outTime).daily < 1) {
-                var workTime = workTimeOf(code);
-                s.inTime = c.start || workTime.start;
-                s.outTime = c.end || workTime.end;
-                s.inNote = s.outNote = '';
-                s.filled = true;
-            }
             s.numbers = c;
         }
         s.last = b;
@@ -821,7 +842,7 @@
         var shown = versionShown(employee, date, s);
         var now = dayContent(employee, date, s);
         var cls = now.cls ? ' ' + now.cls : '';
-        var title = shown ? ' title="' + escapeHTML(versionText(s.last) + (s.filled ? ' Daily 1: the log in and log out follow the working time.' : '')) + '"' : '';
+        var title = shown ? ' title="' + escapeHTML(versionText(s.last)) + '"' : '';
         if (splitDates[date] && !(now.off && !shown)) {
             var halves = shown
                 ? '<div class="day-half day-half--changed"' + title + '>' + now.content + '</div>' +
@@ -1018,6 +1039,7 @@
                     '<div class="emp-name-cell">' + escapeHTML(employee.name) + '</div>' +
                     '<div class="emp-occupation-cell">' + escapeHTML(employee.occupation) + '</div>' +
                     '<div class="emp-pin-cell">Pin: ' + escapeHTML(employee.pin) + '</div>' +
+                    (ownHoursOf(employee.code) ? '<div class="emp-own-hours" title="This person has their own hours in this project (Project > Employees > Hours)">Own hours</div>' : '') +
                 '</div>' +
             '</td>' +
             '<td class="col-inouthour">' + escapeHTML(workTime.start) + '</td>' +
@@ -1114,6 +1136,45 @@
             updateFieldsVisibility();
         }
         updateVisibleTotals(currentVisibleDates);
+        renderPeopleRow();
+    }
+
+    // "Jumlah Orang Per Hari" under the table too, not only on paper (meeting 05-11-2026,
+    // 1:32:08: "kamu juga bikin di tabelnya juga keluarin aja"): how many of the people the
+    // filters show came in on each date, every page counted, by the rule of Total Days; their
+    // sum under Total Days. Its cells follow the columns of the rows, hidden ones included.
+    function renderPeopleRow() {
+        var table = document.querySelector('.report-table');
+        var first = document.querySelector('#reportTableBody tr');
+        if (!table) return;
+        var foot = table.querySelector('tfoot');
+        if (!foot) foot = table.appendChild(document.createElement('tfoot'));
+        if (!first) {
+            foot.innerHTML = '';
+            return;
+        }
+        var rows = Array.prototype.filter.call(document.querySelectorAll('#reportTableBody tr'), rowInFilter);
+        var counts = {}, total = 0;
+        currentVisibleDates.forEach(function (date) {
+            counts[date] = rows.filter(function (row) {
+                var cell = row.querySelector('td.day-col[data-date="' + date + '"]');
+                return cell && workedCell(cell);
+            }).length;
+            total += counts[date];
+        });
+        var cells = Array.prototype.map.call(first.children, function (td) {
+            var cls = Array.prototype.filter.call(td.classList, function (c) {
+                return c.indexOf('col-') === 0 || c === 'sticky-col' || c === 'day-col-hidden';
+            });
+            if (td.classList.contains('col-name')) {
+                return '<td class="' + cls.join(' ') + ' people-row-label" title="People who came in on each date, from everyone the filters show">Jumlah Orang Per Hari</td>';
+            }
+            if (td.classList.contains('day-col')) {
+                return '<td class="day-col people-row-count" data-date="' + td.dataset.date + '">' + (counts[td.dataset.date] || 0) + '</td>';
+            }
+            return '<td class="' + cls.join(' ') + '">' + (td.classList.contains('col-totaldays') ? total : '') + '</td>';
+        });
+        foot.innerHTML = '<tr class="people-row">' + cells.join('') + '</tr>';
     }
 
     /* =============================================
@@ -1168,6 +1229,10 @@
         return Array.from(document.querySelectorAll('.filter-missing:checked')).map(function (i) { return i.value; });
     }
 
+    function getDraftHasTypes() {
+        return Array.from(document.querySelectorAll('.filter-has:checked')).map(function (i) { return i.value; });
+    }
+
     function getSelectedMissingTypes() {
         return appliedReportFilters.missingTypes.slice();
     }
@@ -1186,14 +1251,31 @@
         return false;
     }
 
-    function rowHasMissingType(row, types) {
-        if (types.length === 0) return true;
+    // Log Status does what its words say (meeting 05-11-2026, 1:00:46: "function-nya harus
+    // ngikutin sesuai title-nya"): Log In = days with a log in, Log Out = days with a log out,
+    // both = days with both, e.g. to give Transport only to those who came (1:01:23). Missing Log
+    // is the old filter (1:01:49: "kita harus tambah satu filter lagi… mana yang hilang"). Ticked
+    // together, a day must pass both: a log in but no log out.
+    function cellHasLogs(cell, types) {
+        if (types.indexOf('in') >= 0 && !cell.dataset.inTime) return false;
+        if (types.indexOf('out') >= 0 && !cell.dataset.outTime) return false;
+        return true;
+    }
+
+    function logFiltersOn() {
+        return appliedReportFilters.hasTypes.length > 0 || appliedReportFilters.missingTypes.length > 0;
+    }
+
+    function cellMatchesLogFilters(cell) {
+        var has = appliedReportFilters.hasTypes, missing = appliedReportFilters.missingTypes;
+        return (!has.length || cellHasLogs(cell, has)) && (!missing.length || cellMatchesMissing(cell.dataset.missing || '', missing));
+    }
+
+    function rowMatchesLogFilters(row) {
+        if (!logFiltersOn()) return true;
         var cells = row.querySelectorAll('td.day-col');
         for (var i = 0; i < cells.length; i++) {
-            if (currentVisibleDates.indexOf(cells[i].dataset.date) >= 0 &&
-                cellMatchesMissing(cells[i].dataset.missing || '', types)) {
-                return true;
-            }
+            if (currentVisibleDates.indexOf(cells[i].dataset.date) >= 0 && cellMatchesLogFilters(cells[i])) return true;
         }
         return false;
     }
@@ -1213,30 +1295,28 @@
     }
 
     function applyReportFilters() {
-        var types = getSelectedMissingTypes();
-        var hasFilter = types.length > 0;
+        var hasFilter = logFiltersOn();
 
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
-            var vis = rowMatchesSearch(row) && rowMatchesOccupation(row) && rowHasMissingType(row, types);
+            var vis = rowMatchesSearch(row) && rowMatchesOccupation(row) && rowMatchesLogFilters(row);
             row.hidden = !vis;
             if (!vis) {
                 row.querySelectorAll('.day-cell-select:checked').forEach(function (cb) { cb.checked = false; });
             }
 
-            // When filter active: only show cells that ARE missing the selected type
-            // All other cells (normal + different missing type) get hidden
+            // With a log filter only the days it picks stay; the others are dimmed and cannot be ticked.
             row.querySelectorAll('td.day-col').forEach(function (cell) {
                 if (!hasFilter) {
                     cell.classList.remove('filtered-out-cell');
                     return;
                 }
-                var isMatch = cellMatchesMissing(cell.dataset.missing || '', types);
-                cell.classList.toggle('filtered-out-cell', !isMatch);
+                cell.classList.toggle('filtered-out-cell', !cellMatchesLogFilters(cell));
             });
         });
         paginateRows();
         updateCellSelectionUI();
         updateFilterIndicator();
+        renderPeopleRow();
     }
 
     /* =============================================
@@ -1257,7 +1337,7 @@
     function paginateRows() {
         // A new search or filter starts again on the first page.
         var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
-            appliedReportFilters.occupations, getSelectedMissingTypes()]);
+            appliedReportFilters.occupations, appliedReportFilters.hasTypes, getSelectedMissingTypes()]);
         if (key !== pageFilterKey) {
             pageFilterKey = key;
             reportPage = 1;
@@ -1413,15 +1493,17 @@
 
         var range = appliedRange();
         var html = '<span class="filter-indicator-chip filter-indicator-chip--range">Date Range: ' + shortDate(range.start) + ' - ' + shortDate(range.end) + '</span>';
-        if (appliedReportFilters.occupations.length) {
-            var occ = appliedReportFilters.occupationLabels.length ? appliedReportFilters.occupationLabels : appliedReportFilters.occupations;
-            html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(occ.join(', ')) +
-                '<button class="filter-chip-close" data-filter-type="occupation" aria-label="Remove the occupation filter">&times;</button></span>';
-        }
-        var labels = { 'in': 'Log In', 'out': 'Log Out' };
-        getSelectedMissingTypes().forEach(function (t) {
-            html += '<span class="filter-indicator-chip">' + (labels[t] || t) +
-                '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + (labels[t] || t) + ' filter">&times;</button></span>';
+        // One chip per occupation, so one can go and the others stay (meeting 05-11-2026,
+        // 1:33:56: "biar kalau di-kill nggak semuanya hilang").
+        appliedReportFilters.occupations.forEach(function (value, i) {
+            var name = appliedReportFilters.occupationLabels[i] || value;
+            html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(name) +
+                '<button class="filter-chip-close" data-filter-type="occupation" data-value="' + escapeHTML(value) + '" aria-label="Remove ' + escapeHTML(name) + ' from the occupation filter">&times;</button></span>';
+        });
+        var labels = { 'has-in': 'Has log in', 'has-out': 'Has log out', 'in': 'Missing log in', 'out': 'Missing log out' };
+        appliedReportFilters.hasTypes.map(function (t) { return 'has-' + t; }).concat(getSelectedMissingTypes()).forEach(function (t) {
+            html += '<span class="filter-indicator-chip">' + labels[t] +
+                '<button class="filter-chip-close" data-filter-type="' + t + '" aria-label="Remove the ' + labels[t] + ' filter">&times;</button></span>';
         });
         if (appliedReportFilters.original) {
             html += '<span class="filter-indicator-chip">Show history' +
@@ -1439,10 +1521,21 @@
                     if (originalBox) originalBox.checked = false;
                     showDays(currentVisibleDates.slice(), true);
                 } else if (type === 'occupation') {
-                    if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
-                    appliedReportFilters.occupations = [];
-                    appliedReportFilters.occupationLabels = [];
+                    var at = appliedReportFilters.occupations.indexOf(btn.dataset.value);
+                    if (window.FeriizFilters && window.FeriizFilters.removeOccupationValue) window.FeriizFilters.removeOccupationValue(document, btn.dataset.value);
+                    if (at >= 0) {
+                        appliedReportFilters.occupations.splice(at, 1);
+                        appliedReportFilters.occupationLabels.splice(at, 1);
+                    }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
+                } else if (type.indexOf('has-') === 0) {
+                    var has = type.slice(4);
+                    document.querySelectorAll('.filter-has').forEach(function (cb) {
+                        if (cb.value === has) cb.checked = false;
+                    });
+                    appliedReportFilters.hasTypes = appliedReportFilters.hasTypes.filter(function (item) {
+                        return item !== has;
+                    });
                 } else {
                     document.querySelectorAll('.filter-missing').forEach(function (cb) {
                         if (cb.value === type) cb.checked = false;
@@ -2109,6 +2202,10 @@
             stored.batches.push(batch);
         }
         plan.rates.forEach(function (r) {
+            if (batch) {
+                batch.ratesBefore = batch.ratesBefore || {};
+                batch.ratesBefore[r.code] = stored.rates[r.code] ? JSON.parse(JSON.stringify(stored.rates[r.code])) : null;
+            }
             var merged = stored.rates[r.code] || {};
             Object.keys(r.rate).forEach(function (k) { merged[k] = r.rate[k]; });
             merged.file = plan.file;
@@ -2200,7 +2297,7 @@
         }
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
-                'A day the file raises to Daily 1 takes the working time as its log in and log out; the other days keep their logs. Set other times with Add Log. ' +
+                'An import changes Daily and Overtime only: the log in and log out stay as the machine recorded them. Set other times with Add Log. ' +
                 'Only the changed days are imported: Show history puts each next to its original, what changed in yellow.' +
                 (plan.same ? ' The days the same as now stay as they are, with no History.' : '') + '</p>';
         }
@@ -2285,6 +2382,7 @@
                                 '<div class="progress-bar progress-bar-striped progress-bar-animated" id="importProgressBar"></div>' +
                             '</div>' +
                         '</div>' +
+                        '<div class="import-recent" id="importRecent" hidden></div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
@@ -2302,6 +2400,7 @@
             if (!plan || !(plan.cells.length || plan.rates.length)) return;
             window.bootstrap.Modal.getInstance(el).hide();
             commitImport(plan);
+            renderRecentImports();
             if (window.FeriizNotify) {
                 var days = plan.cells.length, rates = plan.rateChanges.length, people = {};
                 plan.cells.forEach(function (c) { people[c.key.split('|')[0]] = true; });
@@ -2317,8 +2416,78 @@
         return el;
     }
 
+    /* ---------- Recent imports (meeting 05-11-2026, 2:04:14: "kamu sih selalu bikin juga batch
+       ID… kalau misalkan dia salah import… rollback"): every import is one batch, and a wrong
+       one comes off whole. Its days go back to what they were before it (the machine's logs, or
+       an earlier version), and the rates it changed come back unless a later import changed
+       them again. Add Log / Delete Log stay as they are. ---------- */
+    var IMPORTS_LISTED = 5;
+
+    function renderRecentImports() {
+        var box = importModal.querySelector('#importRecent');
+        var imports = projectImports().batches.filter(function (b) { return kindOf(b) === 'import'; }).slice(-IMPORTS_LISTED).reverse();
+        box.hidden = !imports.length;
+        box.innerHTML = imports.length ? '<h3 class="import-section-title">Recent imports</h3>' + imports.map(function (b) {
+            var who = accountOf(b.by, b.role);
+            var days = Object.keys(b.cells).length;
+            return '<div class="import-recent-row" data-batch="' + escapeHTML(b.id) + '">' +
+                '<div class="import-recent-what"><strong>' + escapeHTML(b.file || 'Import') + '</strong>' +
+                    '<small>' + escapeHTML(stampText(b.at)) + ' · ' + escapeHTML(who.name) + ' · ' + days + (days === 1 ? ' day' : ' days') + '</small></div>' +
+                '<div class="import-recent-actions">' +
+                    '<button type="button" class="btn btn-outline btn-sm" data-undo="ask">Undo</button>' +
+                '</div>' +
+            '</div>';
+        }).join('') : '';
+    }
+
+    // Undo asks once, in its own row: "Undo this import?" Yes / Keep.
+    function onRecentClick(e) {
+        var btn = e.target.closest('button[data-undo]');
+        if (!btn) return;
+        var row = btn.closest('.import-recent-row');
+        var actions = row.querySelector('.import-recent-actions');
+        if (btn.dataset.undo === 'ask') {
+            actions.innerHTML = '<span class="import-recent-ask">Undo this import?</span>' +
+                '<button type="button" class="btn btn-outline btn-sm" data-undo="keep">Keep</button>' +
+                '<button type="button" class="btn btn-danger btn-sm" data-undo="yes">Yes, undo</button>';
+            actions.querySelector('[data-undo="keep"]').focus();
+        } else if (btn.dataset.undo === 'keep') {
+            renderRecentImports();
+        } else {
+            undoImport(row.dataset.batch);
+        }
+    }
+
+    function undoImport(id) {
+        var stored = projectImports();
+        var batch = stored.batches.filter(function (b) { return b.id === id; })[0];
+        if (!batch) return;
+        stored.batches = stored.batches.filter(function (b) { return b !== batch; });
+        Object.keys(batch.ratesBefore || {}).forEach(function (code) {
+            var now = stored.rates[code];
+            if (!now || now.at !== batch.at) return;   // a later import changed them again
+            if (batch.ratesBefore[code]) stored.rates[code] = batch.ratesBefore[code];
+            else delete stored.rates[code];
+        });
+        saveImports();
+        syncDataFilter();
+        deselectAllCells();
+        showDays(currentVisibleDates.slice(), true);
+        applyReportFilters();
+        renderRecentImports();
+        var days = Object.keys(batch.cells).length;
+        if (window.FeriizNotify) {
+            FeriizNotify.success((batch.file || 'The import') + ' is undone: ' + days + (days === 1 ? ' day is back to what it was' : ' days are back to what they were') +
+                ' before it.', 'Import undone');
+        }
+    }
+
     function openImportLog() {
-        if (!importModal) importModal = buildImportModal();
+        if (!importModal) {
+            importModal = buildImportModal();
+            importModal.querySelector('#importRecent').addEventListener('click', onRecentClick);
+        }
+        renderRecentImports();
         readImportFile(null);
         window.bootstrap.Modal.getOrCreateInstance(importModal).show();
         loadXLSX().catch(function () { /* reported when the file is read */ });
@@ -2353,6 +2522,7 @@
                 var wasOriginal = appliedReportFilters.original;
                 var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
+                appliedReportFilters.hasTypes = getDraftHasTypes();
                 appliedReportFilters.missingTypes = getDraftMissingTypes();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
@@ -2373,9 +2543,10 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                document.querySelectorAll('.filter-missing').forEach(function (i) { i.checked = false; });
+                document.querySelectorAll('.filter-missing, .filter-has').forEach(function (i) { i.checked = false; });
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
+                appliedReportFilters.hasTypes = [];
                 appliedReportFilters.missingTypes = [];
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];

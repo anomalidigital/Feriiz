@@ -377,7 +377,7 @@ function feriizLogout() {
         'project-calendar':          { main: 'calendar' },
         'project-requests':          { main: 'projects-group', sub: 'requests' },
         'project-closing':           { main: 'projects-group', sub: 'closing' },
-        'project-templates':         { main: 'projects-group', sub: 'templates' },
+        'project-holiday-pay':       { main: 'projects-group', sub: 'holiday-pay' },
         'employee-detail':           { main: 'employees' },
         'employee-attendance':       { main: 'employees' },
         'employee-projects':         { main: 'employees' },
@@ -426,10 +426,10 @@ function feriizLogout() {
                         '<a href="project_closing.html' + projQuery + '"' + cls(cfg.sub === 'closing') + '>' +
                             '<i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Closing</span>' +
                         '</a>' +
-                        // The project's own one-time templates (THR, red dates), under Closing as the
-                        // meeting of 05-11-2026 placed its "Setting" (0:39:35).
-                        '<a href="project_templates.html' + projQuery + '"' + cls(cfg.sub === 'templates') + '>' +
-                            '<i class="fa-solid fa-hand-holding-dollar"></i><span class="nav-label">Templates</span>' +
+                        // The project's Holiday Pay (THR, red dates), under Closing as the meeting of
+                        // 05-11-2026 placed its "Setting" (0:39:35).
+                        '<a href="project_holiday_pay.html' + projQuery + '"' + cls(cfg.sub === 'holiday-pay') + '>' +
+                            '<i class="fa-solid fa-hand-holding-dollar"></i><span class="nav-label">Holiday Pay</span>' +
                         '</a>' +
                     '</div>' +
                 '</div>' +

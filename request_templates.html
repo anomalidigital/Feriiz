@@ -7,12 +7,12 @@
     <title>Feriiz - Request Templates</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.74">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.74">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.75">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.75">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.74" defer></script>
-    <script src="assets/js/app.js?v=3.7.74" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.74" defer></script>
+    <script src="assets/js/data.js?v=3.7.75" defer></script>
+    <script src="assets/js/app.js?v=3.7.75" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.75" defer></script>
 </head>
 
 <body data-page="request-templates">
@@ -23,7 +23,7 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Request Templates</h1>
-                <p class="tpl-page-note">Made once for every project. Give them per day in a project's Report (Batch Update &gt; Assign Request), where each template has its own column. One-time payments for one project, such as THR, are made on that project's Templates page.</p>
+                <p class="tpl-page-note">Made once for every project. Give them per day in a project's Report (Batch Update &gt; Assign Request), where each template has its own column. THR and pay for the red dates of one project are on that project's Holiday Pay page.</p>
             </div>
             <div class="page-actions">
                 <button class="btn btn-primary" type="button" id="addTemplateBtn">
@@ -49,7 +49,7 @@
                 <tbody id="tplTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.74</div>
+        <div class="feriiz-u-032">version : 3.7.75</div>
     </main>
 
     <!-- Add / edit template: Name, Amount, Note, as on the meeting whiteboard (20-10-2026). Every
@@ -140,7 +140,7 @@
                     (name.value.trim() && !taken ? amount : name).focus();
                     if (window.FeriizNotify) {
                         FeriizNotify.warning(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no template.'
-                            : taken && same.projectCode ? 'Project ' + same.projectCode + ' already has a template called ' + same.name + '.'
+                            : taken && same.projectCode ? 'Project ' + same.projectCode + ' already has Holiday Pay called ' + same.name + '.'
                             : taken ? 'A template called ' + same.name + ' already exists.' : 'A template needs a name and an amount.', 'Template not saved');
                     }
                     return;

@@ -11,18 +11,17 @@
    - A template made here is per day: each ticked day gets its Amount. The Daily / One time
      choice and the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026:
      "secara logika agak bingung").
-   - One-off payments (THR, the red dates) are templates of ONE project, made on that
-     project's Templates page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project…
-     ada add time juga tanggal berapa dan amount nya berapa"; meeting 05-11-2026, 0:38:14 and
-     1:04:16: "namain dulu, ini hari apa, tanggal berapa, terus… harganya"). They carry the
-     project's code and their dates, each date with a name and its amount (the template has
-     no Amount of its own: "udah ada di perhari nya", Baldy 09-11-2026). Assign Request gives
-     them only on the ticked days that are one of their dates, with or without a log: the
-     Report's Log Status filter says whether only the people who came in get it. A template
-     can be copied, to this project or another, so its dates are not typed again.
-   - A per-day template's Amount can be changed in Assign Request, for that Assign only
-     (Baldy, 09-11-2026: "ada custom amount… soal nya belum pasti"; meeting 05-11-2026,
-     0:41:32-0:43:45: people of another occupation are filtered, ticked and given their own).
+   - One-off payments of ONE project (THR, pay for a red date) are its Holiday Pay, made on
+     that project's Holiday Pay page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di
+     project", not called a template there, and each is just "tanggal berapa dan berapa amount
+     nya… ga perlu ada add date"; meeting 05-11-2026, 0:38:14 and 1:04:16: "namain dulu, ini hari
+     apa, tanggal berapa, terus… harganya"). A Holiday Pay is a template with the project's code
+     and one date: Name, Date, Amount, Note. Assign Request gives it only on the ticked days on
+     its date, with or without a log: the Report's Log Status filter says whether only the people
+     who came in get it. It can be copied, to this project or another.
+   - The Amount can be changed in Assign Request, for that Assign only (Baldy, 09-11-2026: "ada
+     custom amount… soal nya belum pasti"; meeting 05-11-2026, 0:41:32-0:43:45: people of another
+     occupation are filtered, ticked and given their own).
    - "Assign Request" in the project Report hands it out (1:43). Each template
      then has its own column in the Report's Client group, shown only when
      someone has it in the period (2:01-2:04).
@@ -35,11 +34,11 @@
      A day shows what it was given as small chips with the template's name, on a
      line under the day.
 
-   Prototype only: everything is kept in this browser (localStorage) so the
-   Templates page and the Report see the same data. The API replaces this.
+   Prototype only: everything is kept in this browser (localStorage) so the Request
+   Templates and Holiday Pay pages and the Report see the same data. The API replaces this.
 
    FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
-   FeriizTemplates.onDates(template), amountOn(template, date)   a project's own template and its dates
+   FeriizTemplates.isHolidayPay(template)   a project's own one-date payment
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -81,10 +80,17 @@
     // The old Transport sample goes too: transport is paid automatically now.
     var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false && t.id !== OLD_TRANSPORT_ID; });
     // Templates for every project saved before 04-11-2026 may still say Daily / One time and carry
-    // dates: they are all per day now. Only a project's own templates keep dates.
+    // dates: they are all per day now. A project's Holiday Pay saved on 09-11-2026 while it held a
+    // list of dates keeps its first date, with that date's amount.
     templates.forEach(function (t) {
-        if (t.projectCode) return;
-        delete t.unit;
+        if (t.projectCode && t.dates) {
+            var first = t.dates[0];
+            if (first && !t.date) {
+                t.date = first.date;
+                if (Number(first.amount) > 0) t.amount = Number(first.amount);
+            }
+        }
+        if (!t.projectCode) delete t.unit;
         delete t.dates;
     });
     var assigned = load(KEY_ASSIGNED, []);
@@ -105,15 +111,8 @@
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
 
-    // A project's own template is given on its dates; the others per day.
-    function onDates(t) { return Boolean(t && t.projectCode); }
-
-    // What a project's template pays on one of its dates: the date's amount (a template saved
-    // while it still had an Amount of its own falls back to it).
-    function amountOn(t, date) {
-        var d = (t.dates || []).filter(function (x) { return x.date === date; })[0];
-        return d && Number(d.amount) > 0 ? Number(d.amount) : Number(t.amount) || 0;
-    }
+    // A project's own template is its Holiday Pay, given on its one date; the others per day.
+    function isHolidayPay(t) { return Boolean(t && t.projectCode); }
 
     function shared() { return templates.filter(function (t) { return !t.projectCode; }); }
 
@@ -226,12 +225,12 @@
     function templateOptions(projectCode) {
         var option = function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' +
-                (onDates(t) ? plural((t.dates || []).length, 'date', 'dates') : rupiah(t.amount) + ' a day') + '</option>';
+                (isHolidayPay(t) ? (t.date ? fmtDate(t.date) : 'no date') + ' · ' + rupiah(t.amount) : rupiah(t.amount) + ' a day') + '</option>';
         };
-        var own = ofProject(projectCode);
+        var own = ofProject(projectCode).slice().sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
         if (!own.length) return shared().map(option).join('');
         return '<optgroup label="Every project, a day">' + shared().map(option).join('') + '</optgroup>' +
-            '<optgroup label="This project, on its dates">' + own.map(option).join('') + '</optgroup>';
+            '<optgroup label="This project\'s Holiday Pay">' + own.map(option).join('') + '</optgroup>';
     }
 
     function noTemplates(projectCode) {
@@ -254,11 +253,11 @@
        The Report's own filters and ticks already say who and which days, so the dialog only
        asks which template and how much, then Apply (Baldy, 04-11-2026: the toolbar dialog
        made the admin pick people and days a second time).
-       - A per-day template: each ticked day the person came in gets the Amount, which starts
-         at the template's and can be changed for this Assign only (Baldy, 09-11-2026: "soal
-         nya belum pasti").
-       - A project's own template: each ticked day that is one of its dates gets that date's
-         amount, log or not (the Log Status filter decides who); other ticked days are left.
+       - The Amount starts at the template's and can be changed for this Assign only (Baldy,
+         09-11-2026: "soal nya belum pasti").
+       - A per-day template: each ticked day the person came in gets the Amount.
+       - A project's Holiday Pay: each ticked day on its date gets the Amount, log or not (the
+         Log Status filter decides who); other ticked days are left.
        - A day that already has the template is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
@@ -284,14 +283,11 @@
                     '<div class="modal-body">' +
                         '<label class="form-label" for="assignTemplateSelect">Select Template</label>' +
                         '<select class="form-select" id="assignTemplateSelect"></select>' +
-                        // A project's own template pays its dates' amounts, so it has no Amount here.
-                        '<div id="assignAmountBlock">' +
-                            '<label class="form-label mt-3" for="assignAmount">Amount</label>' +
-                            '<div class="input-group">' +
-                                '<span class="input-group-text">Rp</span>' +
-                                '<input type="text" inputmode="numeric" class="form-control" id="assignAmount" placeholder="0" autocomplete="off" aria-describedby="assignTemplateInfo">' +
-                                '<span class="input-group-text">a day</span>' +
-                            '</div>' +
+                        '<label class="form-label mt-3" for="assignAmount">Amount</label>' +
+                        '<div class="input-group">' +
+                            '<span class="input-group-text">Rp</span>' +
+                            '<input type="text" inputmode="numeric" class="form-control" id="assignAmount" placeholder="0" autocomplete="off" aria-describedby="assignTemplateInfo">' +
+                            '<span class="input-group-text" id="assignAmountUnit">a day</span>' +
                         '</div>' +
                         '<div class="form-text" id="assignTemplateInfo"></div>' +
                     '</div>' +
@@ -331,68 +327,56 @@
     function planned() {
         var t = currentTemplate();
         var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0, notDate: 0 };
-        if (!t) return out;
-        var dated = onDates(t);
         var amount = currentAmount();
-        if (!dated && !amount) return out;
+        if (!t || !amount) return out;
+        var holiday = isHolidayPay(t);
         var given = givenIndex(t);
-        var dates = {};
-        (t.dates || []).forEach(function (d) { dates[d.date] = true; });
         ctx.cells.forEach(function (c) {
-            if (dated && !dates[c.date]) { out.notDate++; return; }
+            if (holiday && c.date !== t.date) { out.notDate++; return; }
             if (given[c.code + '|' + c.date]) { out.already++; return; }
-            if (!dated && !cameIn(c.code, c.date)) { out.noLog++; return; }
-            var pay = dated ? amountOn(t, c.date) : amount;
-            out.rows.push({ code: c.code, name: c.name, date: c.date, amount: pay });
-            out.total += pay;
+            if (!holiday && !cameIn(c.code, c.date)) { out.noLog++; return; }
+            out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
+            out.total += amount;
             out.people[c.code] = true;
         });
         return out;
     }
 
-    // A per-day template brings its own Amount, which the admin can change for this Assign;
-    // a project's own template pays its dates' amounts.
+    // A new template brings its own Amount; the admin can change it for this Assign.
     function takeTemplateAmount() {
         var t = currentTemplate();
         if (!t) return;
-        modal.querySelector('#assignAmountBlock').hidden = onDates(t);
-        if (!onDates(t)) modal.querySelector('#assignAmount').value = typed(t.amount);
+        modal.querySelector('#assignAmount').value = typed(t.amount);
+        modal.querySelector('#assignAmountUnit').textContent = isHolidayPay(t) ? 'once' : 'a day';
         refreshSummary();
     }
 
-    // "17 Aug 2026 (HUT RI) · Rp 100.000, …" for a project's template: its dates among the
-    // ticked days, or all of them when none is ticked.
-    function datesLine(t) {
-        var ticked = {};
-        ctx.cells.forEach(function (c) { ticked[c.date] = true; });
-        var all = t.dates || [];
-        var hit = all.filter(function (d) { return ticked[d.date]; });
-        var shown = hit.length ? hit : all;
-        var line = shown.slice(0, 4).map(function (d) {
-            return fmtDate(d.date) + (d.name ? ' (' + d.name + ')' : '') + ' · ' + rupiah(amountOn(t, d.date));
-        }).join(', ') + (shown.length > 4 ? ' and ' + plural(shown.length - 4, 'more date', 'more dates') : '');
-        return (hit.length ? 'Given on its dates, with or without a log: ' : 'None of the ticked days is one of its dates: ') + line + '.';
+    // Where a Holiday Pay goes: its date, when it is ticked.
+    function holidayLine(t) {
+        if (!t.date) return 'It has no date yet: give it one on the project\'s Holiday Pay page.';
+        var ticked = ctx.cells.some(function (c) { return c.date === t.date; });
+        return ticked ? 'Only on ' + fmtDate(t.date) + ', with or without a log.'
+            : 'For ' + fmtDate(t.date) + ': tick that date in the Report to give it.';
     }
 
     function refreshSummary() {
         var t = currentTemplate();
         if (!t) return;
-        var dated = onDates(t);
+        var holiday = isHolidayPay(t);
         var amount = currentAmount();
-        var info = dated ? datesLine(t)
-            : 'Only on the ticked days each person came in.' +
-              (amount !== Number(t.amount) ? ' The template says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
+        var info = (holiday ? holidayLine(t) : 'Only on the ticked days each person came in.') +
+            (amount && amount !== Number(t.amount) ? ' ' + (holiday ? 'The Holiday Pay' : 'The template') + ' says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
         modal.querySelector('#assignTemplateInfo').textContent = info + (t.note ? ' ' + t.note : '');
         var p = planned();
         var people = Object.keys(p.people).length;
         var skips = [];
         // Other ticked days are only worth a word when nothing is given.
-        if (p.notDate && !p.rows.length) skips.push(plural(p.notDate, 'ticked day is', 'ticked days are') + ' not its dates');
+        if (p.notDate && !p.rows.length) skips.push(plural(p.notDate, 'ticked day is', 'ticked days are') + ' not on its date');
         if (p.noLog) skips.push(plural(p.noLog, 'day has', 'days have') + ' no log');
         if (p.already) skips.push(plural(p.already, 'day has', 'days have') + ' it already');
-        modal.querySelector('#assignSummary').textContent = (!dated && !amount ? 'Enter an amount'
+        modal.querySelector('#assignSummary').textContent = (!amount ? 'Enter an amount'
             : p.rows.length ? plural(p.rows.length, 'day', 'days') + ' · ' + plural(people, 'person', 'people') + ' · ' + rupiah(p.total) : 'Nothing to give') +
-            ((dated || amount) && skips.length ? ' (' + skips.join(', ') + ')' : '');
+            (amount && skips.length ? ' (' + skips.join(', ') + ')' : '');
         modal.querySelector('#assignSubmit').disabled = !p.rows.length;
     }
 
@@ -410,12 +394,10 @@
         window.bootstrap.Modal.getInstance(modal).hide();
         var people = Object.keys(p.people).length;
         if (window.FeriizNotify) {
-            var days = {};
-            p.rows.forEach(function (r) { days[r.date] = true; });
-            window.FeriizNotify.success((onDates(t)
-                ? rupiah(p.total) + ' given to ' + plural(people, 'person', 'people') + ' on ' + plural(Object.keys(days).length, 'date', 'dates')
-                : rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people') + ', ' + rupiah(p.total) + ' in all') +
-                '. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
+            window.FeriizNotify.success((isHolidayPay(t)
+                ? rupiah(p.rows[0].amount) + ' for ' + plural(people, 'person', 'people') + ' on ' + fmtDate(t.date)
+                : rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people')) +
+                ', ' + rupiah(p.total) + ' in all. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
         }
         if (ctx.onDone) ctx.onDone(p.rows.length);
     }
@@ -541,8 +523,7 @@
         all: shared,
         ofProject: ofProject,
         get: get,
-        onDates: onDates,
-        amountOn: amountOn,
+        isHolidayPay: isHolidayPay,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

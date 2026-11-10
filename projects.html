@@ -7,11 +7,11 @@
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.81">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.81">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.82">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.82">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.81" defer></script>
-    <script src="assets/js/app.js?v=3.7.81" defer></script>
+    <script src="assets/js/data.js?v=3.7.82" defer></script>
+    <script src="assets/js/app.js?v=3.7.82" defer></script>
 </head>
 
 <body data-page="projects">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.81</div>
+        <div class="feriiz-u-032">version : 3.7.82</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -153,7 +153,6 @@
                             <h3 class="feriiz-u-202">
                                 Default Hours</h3>
                             <p class="project-default-hint">A day with a log in and log out counts these hours, whatever the clock says. 0 hours: the real logs count.</p>
-                            <div class="project-default-scope">All occupations</div>
                             <div class="project-overtime-panel">
                                 <div class="project-overtime-table" id="projectOvertimeDefault"
                                     aria-label="Default hours for every day">
@@ -200,15 +199,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Default Hours of an occupation (Baldy, 10-11-2026: "ada beberapa set default
-                                 suatu occupation yang dia berbeda… untuk semua occupation dan ada… khusus untuk
-                                 occupation tertentu"; Arcon's sheet: "beberapa orang 8/3"). An occupation listed
-                                 here counts its own hours; every other one counts the hours above. -->
-                            <div class="project-occ-defaults-head">Other hours for an occupation</div>
-                            <p class="project-default-hint">Occupations listed here count their own hours instead of the ones above.</p>
-                            <div class="project-occ-defaults" id="projectOccDefaults"></div>
-                            <button type="button" class="btn btn-outline btn-sm project-occ-add" id="projectOccAdd"><i class="fa-solid fa-plus"></i> Add occupation</button>
                         </div>
                     </div>
                 </div>
@@ -363,7 +353,6 @@
             });
             document.getElementById('projectCustomizeOvertime').checked = Boolean(set.custom);
             toggleProjectOvertimeCustomize(Boolean(set.custom));
-            loadOccupationDefaults(project);
         }
 
         function toggleProjectOvertimeCustomize(isEnabled, fromToggle) {
@@ -399,17 +388,6 @@
             return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
         }
 
-        // { input, message } when a day's hours are wrong, else null.
-        function dayHoursError(name, workInput, otInput) {
-            const work = readHours(workInput);
-            const ot = readHours(otInput);
-            if (!(work >= 0 && work <= 24)) return { input: workInput, message: name + ': hours must be a number from 0 to 24.' };
-            if (!(ot >= 0 && ot <= 24)) return { input: otInput, message: name + ': overtime must be a number from 0 to 24.' };
-            if (work + ot > 24) return { input: otInput, message: name + ': hours and overtime add up to more than 24.' };
-            if (!work && ot) return { input: workInput, message: name + ' has overtime but no hours. Set its hours, or set both to 0.' };
-            return null;
-        }
-
         // { value } to save, or { input, message } for the first field that is wrong.
         function readProjectDefaultHours() {
             const custom = document.getElementById('projectCustomizeOvertime').checked;
@@ -420,139 +398,17 @@
                 const otInput = defaultInput(key, 'ot');
                 const work = readHours(workInput);
                 const ot = readHours(otInput);
+                const name = DEFAULT_DAY_NAMES[key];
                 // Only the table on screen is checked; the other keeps what it had.
                 if ((key === 'daily') !== custom) {
-                    const error = dayHoursError(DEFAULT_DAY_NAMES[key], workInput, otInput);
-                    if (error) return error;
+                    if (!(work >= 0 && work <= 24)) return { input: workInput, message: name + ': hours must be a number from 0 to 24.' };
+                    if (!(ot >= 0 && ot <= 24)) return { input: otInput, message: name + ': overtime must be a number from 0 to 24.' };
+                    if (work + ot > 24) return { input: otInput, message: name + ': hours and overtime add up to more than 24.' };
+                    if (!work && ot) return { input: workInput, message: name + ' has overtime but no hours. Set its hours, or set both to 0.' };
                 }
                 const day = { work: work >= 0 ? work : 0, ot: ot >= 0 ? ot : 0 };
                 if (key === 'daily') value.daily = day;
                 else value.days[key] = day;
-            }
-            const occupations = readOccupationDefaults();
-            if (occupations.input) return occupations;
-            value.occupations = occupations.value;
-            return { value: value };
-        }
-
-        /* Default Hours of an occupation (Baldy, 10-11-2026): an occupation whose day counts other
-           hours than the project's, e.g. Mandor 8/3 where every other occupation is 8/2 (Arcon's
-           sheet: "beberapa orang 8/3"). Each is a card: the occupation, then the same Daily
-           Default / Customize per day table as above, starting from the project's hours. Saved
-           with the project as defaultHours.occupations = [{ occupation, custom, daily, days }]. */
-        let occupationLists = { inProject: [], others: [] };
-
-        function escapeOccupation(text) {
-            return String(text == null ? '' : text).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        // The occupations of this project's employees first, then every other occupation.
-        function projectOccupationLists(project) {
-            const data = window.FERIIZ_DATA || {};
-            const here = {};
-            (data.employees || []).forEach(e => {
-                if (project && e.occupation && (e.projects || []).indexOf(project.code) >= 0) here[e.occupation] = true;
-            });
-            const all = (data.occupations || []).slice();
-            Object.keys(here).forEach(o => { if (all.indexOf(o) < 0) all.push(o); });
-            const byName = (a, b) => a.localeCompare(b);
-            return { inProject: all.filter(o => here[o]).sort(byName), others: all.filter(o => !here[o]).sort(byName) };
-        }
-
-        function occupationCard(entry) {
-            const option = o => '<option value="' + escapeOccupation(o) + '"' + (o === entry.occupation ? ' selected' : '') + '>' + escapeOccupation(o) + '</option>';
-            const group = (label, items) => items.length ? '<optgroup label="' + label + '">' + items.map(option).join('') + '</optgroup>' : '';
-            const head = '<div class="project-overtime-head">Day</div><div class="project-overtime-head">Hours</div><div class="project-overtime-head">Overtime</div>';
-            const row = (key, d) => '<div class="project-overtime-day">' + (key === 'daily' ? 'Daily Default' : key) + '</div>' +
-                '<div class="unit-input"><input type="text" inputmode="decimal" value="' + (Number(d.work) || 0) + '" data-occ-day="' + key + '" data-occ-field="work" aria-label="' + DEFAULT_DAY_NAMES[key] + ' hours"><span class="unit-input-suffix">h</span></div>' +
-                '<div class="unit-input"><input type="text" inputmode="decimal" value="' + (Number(d.ot) || 0) + '" data-occ-day="' + key + '" data-occ-field="ot" aria-label="' + DEFAULT_DAY_NAMES[key] + ' overtime"><span class="unit-input-suffix">h</span></div>';
-            const daily = entry.daily || { work: 0, ot: 0 };
-            const custom = Boolean(entry.custom);
-            return '<div class="project-occ-default">' +
-                '<div class="project-occ-default-head">' +
-                    '<select class="select feriiz-u-201 project-occ-select" aria-label="Occupation">' +
-                        '<option value="">Choose an occupation</option>' +
-                        group('In this project', occupationLists.inProject) + group('Other occupations', occupationLists.others) +
-                    '</select>' +
-                    '<button type="button" class="project-occ-remove" title="Remove" aria-label="Remove this occupation"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>' +
-                '</div>' +
-                '<div class="project-overtime-table" data-occ-table="daily"' + (custom ? ' hidden' : '') + '>' + head + row('daily', daily) + '</div>' +
-                '<label class="project-overtime-custom-toggle"><input type="checkbox" class="project-occ-custom"' + (custom ? ' checked' : '') + '><span>Customize per day</span></label>' +
-                '<div class="project-overtime-table" data-occ-table="days"' + (custom ? '' : ' hidden') + '>' + head +
-                    DEFAULT_DAYS.map(day => row(day, (entry.days || {})[day] || daily)).join('') +
-                '</div>' +
-            '</div>';
-        }
-
-        function loadOccupationDefaults(project) {
-            occupationLists = projectOccupationLists(project);
-            const set = (project && project.defaultHours) || {};
-            document.getElementById('projectOccDefaults').innerHTML = (set.occupations || []).map(occupationCard).join('');
-            syncOccupationOptions();
-        }
-
-        // An occupation already on another card cannot be picked again.
-        function syncOccupationOptions() {
-            const selects = Array.from(document.querySelectorAll('#projectOccDefaults .project-occ-select'));
-            const chosen = selects.map(s => s.value);
-            selects.forEach((select, i) => {
-                select.querySelectorAll('option').forEach(opt => {
-                    opt.disabled = Boolean(opt.value) && opt.value !== chosen[i] && chosen.indexOf(opt.value) >= 0;
-                });
-            });
-        }
-
-        // A new card starts from the project's hours, so only what differs has to change.
-        function addOccupationDefault() {
-            const hours = (day, field) => { const n = readHours(defaultInput(day, field)); return n >= 0 ? n : 0; };
-            const custom = document.getElementById('projectCustomizeOvertime').checked;
-            const daily = { work: hours('daily', 'work'), ot: hours('daily', 'ot') };
-            const entry = { occupation: '', custom: custom, daily: daily, days: {} };
-            DEFAULT_DAYS.forEach(day => { entry.days[day] = custom ? { work: hours(day, 'work'), ot: hours(day, 'ot') } : daily; });
-            const list = document.getElementById('projectOccDefaults');
-            list.insertAdjacentHTML('beforeend', occupationCard(entry));
-            syncOccupationOptions();
-            list.lastElementChild.querySelector('.project-occ-select').focus();
-        }
-
-        function toggleOccupationCustomize(card, isEnabled) {
-            const input = (day, field) => card.querySelector('[data-occ-day="' + day + '"][data-occ-field="' + field + '"]');
-            // Ticking it: days that were never set apart start from its Daily Default.
-            const same = field => DEFAULT_DAYS.every(day => input(day, field).value === input('Sun', field).value);
-            if (isEnabled && same('work') && same('ot')) {
-                DEFAULT_DAYS.forEach(day => {
-                    input(day, 'work').value = input('daily', 'work').value;
-                    input(day, 'ot').value = input('daily', 'ot').value;
-                });
-            }
-            card.querySelector('[data-occ-table="daily"]').hidden = isEnabled;
-            card.querySelector('[data-occ-table="days"]').hidden = !isEnabled;
-        }
-
-        // { value: [...] } to save, or { input, message } for the first field that is wrong.
-        function readOccupationDefaults() {
-            const value = [];
-            for (const card of document.querySelectorAll('#projectOccDefaults .project-occ-default')) {
-                const select = card.querySelector('.project-occ-select');
-                const occupation = select.value;
-                if (!occupation) return { input: select, message: 'Choose the occupation on every card under "Other hours for an occupation", or remove the card.' };
-                const custom = card.querySelector('.project-occ-custom').checked;
-                const entry = { occupation: occupation, custom: custom, daily: null, days: {} };
-                for (const key of ['daily'].concat(DEFAULT_DAYS)) {
-                    const workInput = card.querySelector('[data-occ-day="' + key + '"][data-occ-field="work"]');
-                    const otInput = card.querySelector('[data-occ-day="' + key + '"][data-occ-field="ot"]');
-                    if ((key === 'daily') !== custom) {
-                        const error = dayHoursError(occupation + ', ' + DEFAULT_DAY_NAMES[key], workInput, otInput);
-                        if (error) return error;
-                    }
-                    const work = readHours(workInput);
-                    const ot = readHours(otInput);
-                    const day = { work: work >= 0 ? work : 0, ot: ot >= 0 ? ot : 0 };
-                    if (key === 'daily') entry.daily = day;
-                    else entry.days[key] = day;
-                }
-                value.push(entry);
             }
             return { value: value };
         }
@@ -616,20 +472,6 @@
 
         document.getElementById('projectModal').addEventListener('click', function (e) {
             if (e.target === this) closeProjectModal();
-        });
-
-        document.getElementById('projectOccAdd').addEventListener('click', addOccupationDefault);
-        document.getElementById('projectOccDefaults').addEventListener('change', function (e) {
-            const card = e.target.closest('.project-occ-default');
-            if (!card) return;
-            if (e.target.classList.contains('project-occ-custom')) toggleOccupationCustomize(card, e.target.checked);
-            if (e.target.classList.contains('project-occ-select')) syncOccupationOptions();
-        });
-        document.getElementById('projectOccDefaults').addEventListener('click', function (e) {
-            const remove = e.target.closest('.project-occ-remove');
-            if (!remove) return;
-            remove.closest('.project-occ-default').remove();
-            syncOccupationOptions();
         });
     </script>
 

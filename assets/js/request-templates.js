@@ -12,7 +12,7 @@
      choice and the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026:
      "secara logika agak bingung").
    - One-off payments of ONE project (THR, pay for a red date) are its Benefits, made on that
-     project's Benefits page (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project", not
+     project's Settings page, left panel (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project", not
      called a template there nor "pay", and each is just "tanggal berapa dan berapa amount nya…
      ga perlu ada add date"; meeting 05-11-2026, 0:38:14 and 1:04:16: "namain dulu, ini hari apa,
      tanggal berapa, terus… harganya"). A benefit is a template with the project's code and one
@@ -35,7 +35,7 @@
      line under the day.
 
    Prototype only: everything is kept in this browser (localStorage) so the Request
-   Templates and Benefits pages and the Report see the same data. The API replaces this.
+   Templates and project Settings pages and the Report see the same data. The API replaces this.
 
    FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
    FeriizTemplates.isBenefit(template)   a project's own one-date benefit
@@ -353,7 +353,7 @@
 
     // Where a benefit goes: its date, when it is ticked.
     function benefitLine(t) {
-        if (!t.date) return 'It has no date yet: give it one on the project\'s Benefits page.';
+        if (!t.date) return 'It has no date yet: give it one on the project\'s Settings page.';
         var ticked = ctx.cells.some(function (c) { return c.date === t.date; });
         return ticked ? 'Only on ' + fmtDate(t.date) + ', with or without a log.'
             : 'For ' + fmtDate(t.date) + ': tick that date in the Report to give it.';

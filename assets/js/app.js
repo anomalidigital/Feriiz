@@ -377,7 +377,7 @@ function feriizLogout() {
         'project-calendar':          { main: 'calendar' },
         'project-requests':          { main: 'projects-group', sub: 'requests' },
         'project-closing':           { main: 'projects-group', sub: 'closing' },
-        'project-benefits':          { main: 'projects-group', sub: 'benefits' },
+        'project-settings':          { main: 'projects-group', sub: 'settings' },
         'employee-detail':           { main: 'employees' },
         'employee-attendance':       { main: 'employees' },
         'employee-projects':         { main: 'employees' },
@@ -426,10 +426,11 @@ function feriizLogout() {
                         '<a href="project_closing.html' + projQuery + '"' + cls(cfg.sub === 'closing') + '>' +
                             '<i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Closing</span>' +
                         '</a>' +
-                        // The project's Benefits (THR, red dates), under Closing as the meeting of
-                        // 05-11-2026 placed its "Setting" (0:39:35).
-                        '<a href="project_benefits.html' + projQuery + '"' + cls(cfg.sub === 'benefits') + '>' +
-                            '<i class="fa-solid fa-hand-holding-dollar"></i><span class="nav-label">Benefits</span>' +
+                        // The project's Settings: its Benefits (THR, red dates) and its Default Hours per
+                        // occupation, under Closing as the meeting of 05-11-2026 placed its "Setting"
+                        // (0:39:35; Baldy, 10-11-2026: "di ubah dari benefits jadi settings").
+                        '<a href="project_settings.html' + projQuery + '"' + cls(cfg.sub === 'settings') + '>' +
+                            '<i class="fa-solid fa-gear"></i><span class="nav-label">Settings</span>' +
                         '</a>' +
                     '</div>' +
                 '</div>' +

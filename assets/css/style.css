@@ -1626,71 +1626,6 @@ body {
             display: none !important;
         }
 
-        /* Default Hours of an occupation (Baldy, 10-11-2026): "All occupations" names the table
-           above; each occupation with other hours is a card with the same table. */
-        #projectModal .project-default-scope {
-            margin: 0 0 8px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--feriiz-text);
-        }
-
-        #projectModal .project-occ-defaults-head {
-            margin: 24px 0 4px;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--feriiz-text);
-        }
-
-        #projectModal .project-occ-defaults {
-            display: grid;
-            gap: 12px;
-        }
-
-        #projectModal .project-occ-defaults:empty {
-            display: none;
-        }
-
-        #projectModal .project-occ-default {
-            display: grid;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid var(--feriiz-border-soft);
-            border-radius: var(--feriiz-radius-lg);
-            background: var(--feriiz-bg);
-        }
-
-        #projectModal .project-occ-default-head {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        #projectModal .project-occ-default-head .project-occ-select {
-            flex: 1;
-            min-width: 0;
-        }
-
-        #projectModal .project-occ-remove {
-            flex: none;
-            width: 40px;
-            height: 40px;
-            display: grid;
-            place-items: center;
-            border: 1px solid var(--feriiz-border);
-            border-radius: var(--feriiz-radius);
-            background: var(--feriiz-card);
-            color: var(--feriiz-danger);
-            cursor: pointer;
-        }
-
-        #projectModal .project-occ-remove:hover {
-            background: var(--feriiz-flag-danger);
-        }
-
-        #projectModal .project-occ-add {
-            margin-top: 12px;
-        }
 
         #projectModal .project-config-toggle {
             width: 100%;
@@ -7316,6 +7251,165 @@ div.report-layout .report-search-input {
 .tpl-amount {
     font-weight: 600;
     white-space: nowrap;
+}
+
+/* Projects > Settings (Baldy, 10-11-2026: "taro nya di benefits… kiri nya buat yang masalah one
+   time, terus kanan nya buat yang set default nya… di ubah dari benefits jadi settings"): two
+   panels side by side, stacked on small screens. */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+.settings-panel {
+    min-width: 0;
+    background: var(--feriiz-card);
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: var(--feriiz-radius-lg);
+    overflow: hidden;
+}
+
+.settings-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--feriiz-border-soft);
+}
+
+.settings-panel-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--feriiz-text);
+}
+
+.settings-panel .table-container {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.settings-panel-foot {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 16px 16px;
+}
+
+/* Default Hours per Occupation: a row per occupation and a field per day written "8/2", as
+   Arcon's own sheet; the first row is the project's own Default Hours, set in Project Detail. */
+.occ-hours {
+    display: grid;
+    gap: 8px;
+    padding: 16px 16px 0;
+    overflow-x: auto;
+}
+
+.occ-hours-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) repeat(7, 56px) 28px;
+    gap: 6px;
+    align-items: center;
+    min-width: 560px;
+}
+
+.occ-hours-row.is-head span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--feriiz-text);
+    text-align: center;
+}
+
+.occ-hours-row.is-head span:first-child {
+    text-align: left;
+}
+
+/* The project's own row: read only, it is changed in Project Detail. */
+.occ-hours-row.is-project {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--feriiz-border-soft);
+}
+
+.occ-hours-row.is-project .occ-hours-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--feriiz-text);
+}
+
+.occ-hours-row.is-project .occ-hours-name small {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--feriiz-text-hint);
+}
+
+.occ-hours-value {
+    font-size: 13px;
+    text-align: center;
+    color: var(--feriiz-text-hint);
+    font-variant-numeric: tabular-nums;
+}
+
+.occ-hours-select,
+.occ-hours-day {
+    height: 36px;
+    border: 1px solid var(--feriiz-border);
+    border-radius: var(--feriiz-radius);
+    background: var(--feriiz-card);
+    color: var(--feriiz-text);
+    font-size: 13px;
+}
+
+.occ-hours-select {
+    width: 100%;
+    min-width: 0;
+    padding: 0 8px;
+    text-overflow: ellipsis;
+}
+
+.occ-hours-day {
+    width: 100%;
+    padding: 0 4px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.occ-hours-day.is-invalid,
+.occ-hours-select.is-invalid {
+    border-color: var(--feriiz-danger);
+}
+
+.occ-hours-remove {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--feriiz-text-hint);
+    cursor: pointer;
+}
+
+.occ-hours-remove:hover {
+    background: var(--feriiz-flag-danger);
+    color: var(--feriiz-danger);
+}
+
+.occ-hours-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--feriiz-text-hint);
+}
+
+@media (max-width: 1100px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 

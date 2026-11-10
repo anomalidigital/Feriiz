@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feriiz - Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.82">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.82">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+    <script src="assets/js/data.js?v=3.7.82" defer></script>
+    <script src="assets/js/app.js?v=3.7.82" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.82" defer></script>
+</head>
+
+<!-- A project's Settings (Baldy, 10-11-2026: "paling makesanse tuh taro nya di benefits… kiri nya
+     buat yang masalah one time, terus kanan nya buat yang set default nya… di ubah dari benefits jadi
+     settings"), two panels:
+     - Benefits: THR, pay for the red dates and other one-off amounts, each Name, Date, Amount, Note
+       (09-11-2026: one date and amount each, no Copy, no note under the title).
+     - Default Hours per Occupation: occupations whose day counts other hours than the project's,
+       e.g. Mandor 8/3 where the project is 8/2 (Arcon's sheet: "beberapa orang 8/3"), a row per
+       occupation and a field per day written hours/overtime, as their sheet. The project's own row
+       is shown first and set in Project Detail. Saved as defaultHours.occupations. -->
+<body data-page="project-settings">
+    <!-- Sidebar -->
+    <aside class="sidebar"></aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb feriiz-u-150">
+                    <a href="projects.html">Projects</a>
+                    <span>&gt;</span>
+                    <a href="project_employees.html" id="settingsProjectLink" data-project-name>Project</a>
+                    <span>&gt;</span>
+                    <span class="feriiz-u-057">Settings</span>
+                </div>
+                <h1 class="page-title">Settings</h1>
+            </div>
+        </div>
+
+        <div class="settings-grid">
+            <section class="settings-panel" aria-labelledby="benefitsTitle">
+                <div class="settings-panel-head">
+                    <h2 class="settings-panel-title" id="benefitsTitle">Benefits</h2>
+                    <button class="btn btn-outline btn-sm" type="button" id="addPayBtn">
+                        <i class="fa-solid fa-plus"></i>
+                        Add Benefit
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="feriiz-u-028"></th>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="settings-panel" aria-labelledby="occHoursTitle">
+                <div class="settings-panel-head">
+                    <h2 class="settings-panel-title" id="occHoursTitle">Default Hours per Occupation</h2>
+                    <button class="btn btn-outline btn-sm" type="button" id="occAddBtn">
+                        <i class="fa-solid fa-plus"></i>
+                        Add Occupation
+                    </button>
+                </div>
+                <div class="occ-hours" id="occHours"></div>
+                <div class="settings-panel-foot">
+                    <button class="btn btn-primary btn-sm" type="button" id="occSaveBtn">Save</button>
+                </div>
+            </section>
+        </div>
+        <div class="feriiz-u-032">version : 3.7.82</div>
+    </main>
+
+    <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" id="payForm" novalidate>
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title" id="payModalTitle">Add Benefit</h2>
+                        <p class="tpl-subtitle" id="payModalContext"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label" for="payName">Name</label>
+                    <input type="text" class="form-control" id="payName" placeholder="For example: THR Idul Fitri 2026" autocomplete="off">
+                    <div class="row g-3 mt-0">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="payDate">Date</label>
+                            <input type="date" class="form-control" id="payDate">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="payAmount">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" inputmode="numeric" class="form-control" id="payAmount" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                    <label class="form-label d-block mt-3" for="payNote">Note <span class="tpl-optional">(Optional)</span></label>
+                    <textarea class="form-control" id="payNote" rows="2" placeholder="Who gets it"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="paySave">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var project = null;
+            var editing = null;   // the benefit being edited
+
+            function esc(v) {
+                return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function T() { return window.FeriizTemplates; }
+
+            function digits(v) { return Number(String(v || '').replace(/\D/g, '')) || 0; }
+            function typed(n) { return n ? Number(n).toLocaleString('id-ID') : ''; }
+
+            /* ---------- Benefits ---------- */
+            // In date order, as on a calendar; one without a date comes last.
+            function renderBenefits() {
+                var tbody = document.getElementById('payTableBody');
+                if (!project) return;
+                var rows = T().ofProject(project.code).slice().sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="tpl-empty">No benefits yet. Add the first one, for example THR Idul Fitri 2026.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows.map(function (t) {
+                    return '<tr>' +
+                        '<td><div class="action-cell">' +
+                            '<a href="#" class="btn-icon" title="Edit" aria-label="Edit ' + esc(t.name) + '" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
+                        '</div></td>' +
+                        '<td><div class="fw-semibold">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
+                        '<td class="tpl-nowrap">' + (t.date ? T().fmtDate(t.date) : '<span class="tpl-sub">No date yet</span>') + '</td>' +
+                        '<td class="tpl-amount">' + T().rupiah(t.amount) + '</td>' +
+                    '</tr>';
+                }).join('');
+            }
+
+            function openForm(t) {
+                editing = t || null;
+                document.getElementById('payModalTitle').textContent = t ? 'Edit Benefit' : 'Add Benefit';
+                document.getElementById('payModalContext').textContent = project.name;
+                document.getElementById('payName').value = t ? t.name : '';
+                document.getElementById('payDate').value = t ? (t.date || '') : '';
+                document.getElementById('payAmount').value = t ? typed(t.amount) : '';
+                document.getElementById('payNote').value = t ? (t.note || '') : '';
+                document.querySelectorAll('#payForm .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+                window.bootstrap.Modal.getOrCreateInstance(document.getElementById('payModal')).show();
+            }
+
+            function warn(text, title) {
+                if (window.FeriizNotify) FeriizNotify.warning(text, title || 'Benefit not saved');
+            }
+
+            function saveForm(e) {
+                e.preventDefault();
+                var name = document.getElementById('payName');
+                var date = document.getElementById('payDate');
+                var amount = document.getElementById('payAmount');
+                var value = digits(amount.value);
+                // The name is also the column title in the project's Report: it may not repeat a
+                // template for every project or another benefit of this project. "Transport" is the
+                // Report's automatic column.
+                var same = T().findByName(name.value, project.code);
+                var reserved = T().reservedName(name.value);
+                var taken = reserved || (same && (!editing || same.id !== editing.id));
+                name.classList.toggle('is-invalid', !name.value.trim() || !!taken);
+                date.classList.toggle('is-invalid', !date.value);
+                amount.classList.toggle('is-invalid', !value);
+                if (!name.value.trim() || taken) {
+                    name.focus();
+                    warn(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no benefit.'
+                        : taken && !same.projectCode ? 'Request Templates already has ' + same.name + ' for every project.'
+                        : taken ? 'This project already has ' + same.name + '.' : 'A benefit needs a name.');
+                    return;
+                }
+                if (!date.value || !value) {
+                    (date.value ? amount : date).focus();
+                    warn('A benefit needs a date and an amount.');
+                    return;
+                }
+                var saved = T().save({
+                    id: editing ? editing.id : '',
+                    projectCode: project.code,
+                    name: name.value.trim(),
+                    date: date.value,
+                    amount: value,
+                    note: document.getElementById('payNote').value.trim()
+                });
+                window.bootstrap.Modal.getInstance(document.getElementById('payModal')).hide();
+                renderBenefits();
+                if (!window.FeriizNotify) return;
+                if (editing) FeriizNotify.success(saved.name + ' was updated.', 'Benefit updated');
+                else FeriizNotify.success(saved.name + ' was added. Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.', 'Benefit added');
+            }
+
+            /* ---------- Default Hours per Occupation ---------- */
+            var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            var DAY_NAMES = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
+            var occupationLists = { inProject: [], others: [] };
+
+            // The occupations of this project's employees first, then every other occupation.
+            function projectOccupationLists(data) {
+                var here = {};
+                (data.employees || []).forEach(function (e) {
+                    if (e.occupation && (e.projects || []).indexOf(project.code) >= 0) here[e.occupation] = true;
+                });
+                var all = (data.occupations || []).slice();
+                Object.keys(here).forEach(function (o) { if (all.indexOf(o) < 0) all.push(o); });
+                var byName = function (a, b) { return a.localeCompare(b); };
+                return {
+                    inProject: all.filter(function (o) { return here[o]; }).sort(byName),
+                    others: all.filter(function (o) { return !here[o]; }).sort(byName)
+                };
+            }
+
+            // The project's own hours of a weekday (Project Detail > Default Hours).
+            function projectDay(day) {
+                var set = project.defaultHours || {};
+                return (set.custom ? (set.days || {})[day] : set.daily) || { work: 0, ot: 0 };
+            }
+
+            // "8/2" -> { work: 8, ot: 2 }; "8" -> 8 and no overtime; empty -> 0; anything else -> null.
+            function readDayPair(text) {
+                var t = String(text || '').trim().replace(/,/g, '.');
+                if (!t) return { work: 0, ot: 0 };
+                var m = /^(\d+(?:\.\d+)?)(?:\s*\/\s*(\d+(?:\.\d+)?))?$/.exec(t);
+                return m ? { work: Number(m[1]), ot: m[2] ? Number(m[2]) : 0 } : null;
+            }
+
+            function dayPairText(d) {
+                var work = Number(d && d.work) || 0;
+                var ot = Number(d && d.ot) || 0;
+                return work ? work + (ot ? '/' + ot : '') : '0';
+            }
+
+            function occupationRow(entry) {
+                var option = function (o) {
+                    return '<option value="' + esc(o) + '"' + (o === entry.occupation ? ' selected' : '') + '>' + esc(o) + '</option>';
+                };
+                var group = function (label, items) {
+                    return items.length ? '<optgroup label="' + label + '">' + items.map(option).join('') + '</optgroup>' : '';
+                };
+                var days = entry.days || {};
+                return '<div class="occ-hours-row is-occupation">' +
+                    '<select class="occ-hours-select" aria-label="Occupation" title="' + esc(entry.occupation) + '">' +
+                        '<option value="">Choose an occupation</option>' +
+                        group('In this project', occupationLists.inProject) + group('Other occupations', occupationLists.others) +
+                    '</select>' +
+                    DAYS.map(function (day) {
+                        return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + dayPairText(days[day] || entry.daily) +
+                            '" placeholder="8/2" aria-label="' + DAY_NAMES[day] + ', hours/overtime">';
+                    }).join('') +
+                    '<button type="button" class="occ-hours-remove" title="Remove" aria-label="Remove this occupation"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
+                '</div>';
+            }
+
+            // The column titles, the project's own row (read only), then the occupations.
+            function renderOccupationHours() {
+                var set = project.defaultHours || {};
+                var head = '<div class="occ-hours-row is-head" aria-hidden="true"><span>Occupation</span>' +
+                    DAYS.map(function (d) { return '<span>' + d + '</span>'; }).join('') + '<span></span></div>';
+                var own = '<div class="occ-hours-row is-project" title="Set in Project Detail > Default Hours">' +
+                    '<div class="occ-hours-name">All occupations<small>Project Detail</small></div>' +
+                    DAYS.map(function (d) { return '<div class="occ-hours-value">' + dayPairText(projectDay(d)) + '</div>'; }).join('') +
+                    '<span></span></div>';
+                var rows = (set.occupations || []).map(occupationRow).join('');
+                // Shown while no occupation has a row (syncOccupationOptions).
+                var empty = '<p class="occ-hours-empty" id="occHoursEmpty">No occupation has its own hours yet: everyone counts the project\'s.</p>';
+                document.getElementById('occHours').innerHTML = head + own + rows + empty;
+                syncOccupationOptions();
+            }
+
+            // An occupation already on another row cannot be picked again.
+            function syncOccupationOptions() {
+                var selects = Array.prototype.slice.call(document.querySelectorAll('#occHours .occ-hours-select'));
+                var chosen = selects.map(function (s) { return s.value; });
+                selects.forEach(function (select, i) {
+                    select.title = select.value;
+                    select.querySelectorAll('option').forEach(function (opt) {
+                        opt.disabled = Boolean(opt.value) && opt.value !== chosen[i] && chosen.indexOf(opt.value) >= 0;
+                    });
+                });
+                var empty = document.getElementById('occHoursEmpty');
+                if (empty) empty.hidden = selects.length > 0;
+            }
+
+            // A new row starts from the project's hours, so only what differs has to change.
+            function addOccupation() {
+                var entry = { occupation: '', days: {} };
+                DAYS.forEach(function (day) { entry.days[day] = projectDay(day); });
+                var box = document.getElementById('occHours');
+                document.getElementById('occHoursEmpty').insertAdjacentHTML('beforebegin', occupationRow(entry));
+                syncOccupationOptions();
+                var rows = box.querySelectorAll('.occ-hours-row.is-occupation');
+                rows[rows.length - 1].querySelector('.occ-hours-select').focus();
+            }
+
+            // { value: [...] } to save, or { input, message } for the first field that is wrong.
+            function readOccupationHours() {
+                var value = [];
+                var rows = document.querySelectorAll('#occHours .occ-hours-row.is-occupation');
+                for (var r = 0; r < rows.length; r++) {
+                    var select = rows[r].querySelector('.occ-hours-select');
+                    var occupation = select.value;
+                    if (!occupation) return { input: select, message: 'Choose the occupation of every row, or remove the row.' };
+                    var entry = { occupation: occupation, custom: true, daily: null, days: {} };
+                    for (var i = 0; i < DAYS.length; i++) {
+                        var input = rows[r].querySelector('[data-day="' + DAYS[i] + '"]');
+                        var pair = readDayPair(input.value);
+                        var name = occupation + ', ' + DAY_NAMES[DAYS[i]];
+                        if (!pair) return { input: input, message: name + ': write it as hours/overtime, like 8/2.' };
+                        if (pair.work + pair.ot > 24) return { input: input, message: name + ': hours and overtime add up to more than 24.' };
+                        if (!pair.work && pair.ot) return { input: input, message: name + ' has overtime but no hours.' };
+                        entry.days[DAYS[i]] = pair;
+                    }
+                    entry.daily = entry.days.Mon;
+                    value.push(entry);
+                }
+                return { value: value };
+            }
+
+            function saveOccupationHours() {
+                document.querySelectorAll('#occHours .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+                var read = readOccupationHours();
+                if (read.input) {
+                    read.input.classList.add('is-invalid');
+                    read.input.focus();
+                    warn(read.message, 'Default hours not saved');
+                    return;
+                }
+                // Only the occupations change; the project's own hours stay as Project Detail has them.
+                var defaultHours = Object.assign({}, project.defaultHours || {}, { occupations: read.value });
+                if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {
+                    window.FERIIZ_DATA.saveProjectSettings(project.code, { defaultHours: defaultHours });
+                }
+                project.defaultHours = defaultHours;
+                renderOccupationHours();
+                if (window.FeriizNotify) {
+                    FeriizNotify.success(read.value.length
+                        ? read.value.length + (read.value.length === 1 ? ' occupation has' : ' occupations have') + ' its own default hours now.'
+                        : 'Every occupation counts the project\'s default hours.', 'Default hours saved');
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('addPayBtn').addEventListener('click', function () { if (project) openForm(null); });
+                document.getElementById('payForm').addEventListener('submit', saveForm);
+                document.getElementById('payAmount').addEventListener('input', function (e) {
+                    e.target.value = typed(digits(e.target.value));
+                    e.target.classList.remove('is-invalid');
+                });
+                ['payName', 'payDate'].forEach(function (id) {
+                    document.getElementById(id).addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
+                });
+                document.getElementById('payTableBody').addEventListener('click', function (e) {
+                    var edit = e.target.closest('[data-edit]');
+                    if (edit) { e.preventDefault(); openForm(T().get(edit.dataset.edit)); }
+                });
+
+                document.getElementById('occAddBtn').addEventListener('click', function () { if (project) addOccupation(); });
+                document.getElementById('occSaveBtn').addEventListener('click', function () { if (project) saveOccupationHours(); });
+                var occBox = document.getElementById('occHours');
+                occBox.addEventListener('change', function (e) {
+                    if (e.target.classList.contains('occ-hours-select')) syncOccupationOptions();
+                });
+                occBox.addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
+                occBox.addEventListener('click', function (e) {
+                    var remove = e.target.closest('.occ-hours-remove');
+                    if (!remove) return;
+                    remove.closest('.occ-hours-row').remove();
+                    syncOccupationOptions();
+                });
+
+                if (!window.FERIIZ_DATA) return;
+                var code = new URLSearchParams(location.search).get('project');
+                window.FERIIZ_DATA.ready.then(function (data) {
+                    project = (code && data.findProjectByCode(code)) || data.projects[0];
+                    if (!project) return;
+                    var link = document.getElementById('settingsProjectLink');
+                    link.textContent = project.name;
+                    link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);
+                    document.title = 'Feriiz - ' + project.name + ' - Settings';
+                    occupationLists = projectOccupationLists(data);
+                    renderBenefits();
+                    renderOccupationHours();
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -6447,50 +6447,6 @@ body[data-page="print-preview"] {
 }
 
 /* Everything in the file is the same as now: nothing wrong, nothing to do. */
-/* Recent imports, each can be undone whole (meeting 05-11-2026, 2:04:14). */
-.import-recent {
-    margin-top: 16px;
-}
-
-.import-recent-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 0;
-    border-top: 1px solid var(--feriiz-border-soft);
-}
-
-.import-recent-what {
-    min-width: 0;
-}
-
-.import-recent-what strong {
-    display: block;
-    overflow: hidden;
-    font-size: 13px;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.import-recent-what small {
-    color: var(--feriiz-text-hint);
-    font-size: 12px;
-}
-
-.import-recent-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.import-recent-ask {
-    font-size: 12px;
-    font-weight: 600;
-}
-
 .import-empty.is-same {
     background: #F2F4F7;
     color: #344054;

@@ -2099,10 +2099,6 @@
             stored.batches.push(batch);
         }
         plan.rates.forEach(function (r) {
-            if (batch) {
-                batch.ratesBefore = batch.ratesBefore || {};
-                batch.ratesBefore[r.code] = stored.rates[r.code] ? JSON.parse(JSON.stringify(stored.rates[r.code])) : null;
-            }
             var merged = stored.rates[r.code] || {};
             Object.keys(r.rate).forEach(function (k) { merged[k] = r.rate[k]; });
             merged.file = plan.file;
@@ -2279,7 +2275,6 @@
                                 '<div class="progress-bar progress-bar-striped progress-bar-animated" id="importProgressBar"></div>' +
                             '</div>' +
                         '</div>' +
-                        '<div class="import-recent" id="importRecent" hidden></div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
                         '<button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>' +
@@ -2297,7 +2292,6 @@
             if (!plan || !(plan.cells.length || plan.rates.length)) return;
             window.bootstrap.Modal.getInstance(el).hide();
             commitImport(plan);
-            renderRecentImports();
             if (window.FeriizNotify) {
                 var days = plan.cells.length, rates = plan.rateChanges.length, people = {};
                 plan.cells.forEach(function (c) { people[c.key.split('|')[0]] = true; });
@@ -2313,78 +2307,8 @@
         return el;
     }
 
-    /* ---------- Recent imports (meeting 05-11-2026, 2:04:14: "kamu sih selalu bikin juga batch
-       ID… kalau misalkan dia salah import… rollback"): every import is one batch, and a wrong
-       one comes off whole. Its days go back to what they were before it (the machine's logs, or
-       an earlier version), and the rates it changed come back unless a later import changed
-       them again. Add Log / Delete Log stay as they are. ---------- */
-    var IMPORTS_LISTED = 5;
-
-    function renderRecentImports() {
-        var box = importModal.querySelector('#importRecent');
-        var imports = projectImports().batches.filter(function (b) { return kindOf(b) === 'import'; }).slice(-IMPORTS_LISTED).reverse();
-        box.hidden = !imports.length;
-        box.innerHTML = imports.length ? '<h3 class="import-section-title">Recent imports</h3>' + imports.map(function (b) {
-            var who = accountOf(b.by, b.role);
-            var days = Object.keys(b.cells).length;
-            return '<div class="import-recent-row" data-batch="' + escapeHTML(b.id) + '">' +
-                '<div class="import-recent-what"><strong>' + escapeHTML(b.file || 'Import') + '</strong>' +
-                    '<small>' + escapeHTML(stampText(b.at)) + ' · ' + escapeHTML(who.name) + ' · ' + days + (days === 1 ? ' day' : ' days') + '</small></div>' +
-                '<div class="import-recent-actions">' +
-                    '<button type="button" class="btn btn-outline btn-sm" data-undo="ask">Undo</button>' +
-                '</div>' +
-            '</div>';
-        }).join('') : '';
-    }
-
-    // Undo asks once, in its own row: "Undo this import?" Yes / Keep.
-    function onRecentClick(e) {
-        var btn = e.target.closest('button[data-undo]');
-        if (!btn) return;
-        var row = btn.closest('.import-recent-row');
-        var actions = row.querySelector('.import-recent-actions');
-        if (btn.dataset.undo === 'ask') {
-            actions.innerHTML = '<span class="import-recent-ask">Undo this import?</span>' +
-                '<button type="button" class="btn btn-outline btn-sm" data-undo="keep">Keep</button>' +
-                '<button type="button" class="btn btn-danger btn-sm" data-undo="yes">Yes, undo</button>';
-            actions.querySelector('[data-undo="keep"]').focus();
-        } else if (btn.dataset.undo === 'keep') {
-            renderRecentImports();
-        } else {
-            undoImport(row.dataset.batch);
-        }
-    }
-
-    function undoImport(id) {
-        var stored = projectImports();
-        var batch = stored.batches.filter(function (b) { return b.id === id; })[0];
-        if (!batch) return;
-        stored.batches = stored.batches.filter(function (b) { return b !== batch; });
-        Object.keys(batch.ratesBefore || {}).forEach(function (code) {
-            var now = stored.rates[code];
-            if (!now || now.at !== batch.at) return;   // a later import changed them again
-            if (batch.ratesBefore[code]) stored.rates[code] = batch.ratesBefore[code];
-            else delete stored.rates[code];
-        });
-        saveImports();
-        syncDataFilter();
-        deselectAllCells();
-        showDays(currentVisibleDates.slice(), true);
-        applyReportFilters();
-        renderRecentImports();
-        var days = Object.keys(batch.cells).length;
-        if (window.FeriizNotify) {
-            FeriizNotify.success((batch.file || 'The import') + ' is undone: ' + days + (days === 1 ? ' day is back to what it was' : ' days are back to what they were') +
-                ' before it.', 'Import undone');
-        }
-    }
-
     function openImportLog() {
-        if (!importModal) {
-            importModal = buildImportModal();
-            importModal.querySelector('#importRecent').addEventListener('click', onRecentClick);
-        }
-        renderRecentImports();
+        if (!importModal) importModal = buildImportModal();
         readImportFile(null);
         window.bootstrap.Modal.getOrCreateInstance(importModal).show();
         loadXLSX().catch(function () { /* reported when the file is read */ });

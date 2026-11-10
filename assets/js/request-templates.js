@@ -17,9 +17,10 @@
      "benefits", and "tambahkan semua tanggal merah kalender pemerintah… apply ke semua project
      dan mereka sama"; meeting 05-11-2026, 0:38:14 and 1:04:16). A holiday is a template with the
      project's code and one date: Name, Date, Amount, Note. Every project starts with the year's
-     national holidays (ensureHolidays); the admin can change, add (THR, say) and give them.
-     Assign Request gives one only on the ticked days on its date, with or without a log: the
-     Report's Log Status filter says whether only the people who came in get it. No Copy.
+     national holidays (ensureHolidays); the admin can change and add them. Nobody assigns them:
+     the Report gives each to everyone who came in on its date, the same Amount for all (Baldy,
+     10-11-2026: "ini mah lansung ter assign otomatis karna udah terpasang sebagai di project
+     nya, jadi semua employee sama"), like Transport. No Copy.
    - The Amount can be changed in Assign Request, for that Assign only (Baldy, 09-11-2026: "ada
      custom amount… soal nya belum pasti"; meeting 05-11-2026, 0:41:32-0:43:45: people of another
      occupation are filtered, ticked and given their own).
@@ -41,9 +42,10 @@
    FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
    FeriizTemplates.isHoliday(template)   a project's own one-date holiday
    FeriizTemplates.ensureHolidays(codes)   the year's national holidays in each of these projects, once
-   FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
-   FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
-   FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
+   FeriizTemplates.additionalFor(employeeCode, projectCode, dates, workedOn)
+   FeriizTemplates.usedIn(projectCode, employeeCodes, dates, workedOn)
+   FeriizTemplates.dayIndex(projectCode, dates, employeeCodes, workedOn)   what each person got on each day: the Report's day chips
+     workedOn(code, date) -> true when the person came in: it gives the project's Public Holidays.
    FeriizTemplates.openAssign(context)   Assign Request in the Report (Batch Update: the ticked days)
    FeriizTemplates.openRemove(context)   Delete Request in the Report (Batch Update: the ticked days)
    ============================================================ */
@@ -98,6 +100,12 @@
     var assigned = load(KEY_ASSIGNED, []);
     if (assigned.some(function (a) { return a.templateId === OLD_TRANSPORT_ID; })) {
         assigned = assigned.filter(function (a) { return a.templateId !== OLD_TRANSPORT_ID; });
+        store(KEY_ASSIGNED, assigned);
+    }
+    // A project's Public Holidays give themselves since 10-11-2026, so holidays assigned by hand
+    // before then come off: they would be paid twice.
+    if (assigned.some(function (a) { return isHoliday(get(a.templateId)); })) {
+        assigned = assigned.filter(function (a) { return !isHoliday(get(a.templateId)); });
         store(KEY_ASSIGNED, assigned);
     }
 
@@ -192,8 +200,15 @@
         return existing || t;
     }
 
-    // { total, items: [{ templateId, name, count, amount, notes }] } for the given days.
-    function additionalFor(employeeCode, projectCode, dates) {
+    // The project's Public Holidays dated on one of these days ({ 'YYYY-MM-DD': true }), with an
+    // amount. Each goes to everyone who came in on its date (workedOn), the same Amount for all.
+    function holidaysIn(projectCode, inRange) {
+        return ofProject(projectCode).filter(function (t) { return t.date && inRange[t.date] && Number(t.amount) > 0; });
+    }
+
+    // { total, items: [{ templateId, name, count, amount, notes }] } for the given days: what was
+    // assigned, plus the project's holidays on the days the person came in.
+    function additionalFor(employeeCode, projectCode, dates, workedOn) {
         var inRange = {};
         (dates || []).forEach(function (d) { inRange[d] = true; });
         var byTemplate = {};
@@ -208,13 +223,21 @@
             total += a.amount;
             if (a.note && item.notes.indexOf(a.note) < 0) item.notes.push(a.note);
         });
+        if (workedOn) holidaysIn(projectCode, inRange).forEach(function (t) {
+            if (!workedOn(employeeCode, t.date)) return;
+            var item = byTemplate[t.id] || (byTemplate[t.id] = { templateId: t.id, name: t.name, count: 0, amount: 0, notes: [] });
+            item.count++;
+            item.amount += Number(t.amount);
+            total += Number(t.amount);
+        });
         return { total: total, items: Object.keys(byTemplate).map(function (k) { return byTemplate[k]; }) };
     }
 
-    // [{ id, name }] of the templates any of these people received in the project on these days:
-    // the Report's dynamic Client columns. Oldest template first, so a new one is added on the
-    // right instead of pushing the others along (the samples have no createdAt and come first).
-    function usedIn(projectCode, employeeCodes, dates) {
+    // [{ id, name }] of the templates any of these people received in the project on these days,
+    // a holiday when one of them came in on its date: the Report's dynamic Client columns. Oldest
+    // template first, so a new one is added on the right instead of pushing the others along
+    // (the samples have no createdAt and come first).
+    function usedIn(projectCode, employeeCodes, dates, workedOn) {
         var inRange = {};
         var people = {};
         var ids = {};
@@ -222,6 +245,9 @@
         (employeeCodes || []).forEach(function (c) { people[c] = true; });
         assigned.forEach(function (a) {
             if (a.projectCode === projectCode && inRange[a.date] && people[a.employeeCode]) ids[a.templateId] = true;
+        });
+        if (workedOn) holidaysIn(projectCode, inRange).forEach(function (t) {
+            if ((employeeCodes || []).some(function (c) { return workedOn(c, t.date); })) ids[t.id] = true;
         });
         var cols = templates.filter(function (t) { return ids[t.id]; })
             .sort(function (a, b) { return (a.createdAt || '').localeCompare(b.createdAt || ''); })
@@ -231,8 +257,9 @@
     }
 
     // { 'CODE|YYYY-MM-DD': [{ templateId, name, amount, note }] } for one project on these days,
-    // in the order of the Report's columns (oldest template first).
-    function dayIndex(projectCode, dates) {
+    // in the order of the Report's columns (oldest template first); a holiday on its date for
+    // each of these people who came in.
+    function dayIndex(projectCode, dates, employeeCodes, workedOn) {
         var inRange = {};
         var out = {};
         (dates || []).forEach(function (d) { inRange[d] = true; });
@@ -242,6 +269,14 @@
             var key = a.employeeCode + '|' + a.date;
             (out[key] || (out[key] = [])).push({ templateId: a.templateId, name: t.name, amount: a.amount, note: a.note,
                                                  order: t.createdAt || '' });
+        });
+        if (workedOn) holidaysIn(projectCode, inRange).forEach(function (t) {
+            (employeeCodes || []).forEach(function (code) {
+                if (!workedOn(code, t.date)) return;
+                var key = code + '|' + t.date;
+                (out[key] || (out[key] = [])).push({ templateId: t.id, name: t.name, amount: Number(t.amount), note: t.note || '',
+                                                     order: t.createdAt || '' });
+            });
         });
         Object.keys(out).forEach(function (key) {
             out[key].sort(function (a, b) { return a.order.localeCompare(b.order); });
@@ -270,20 +305,16 @@
 
     function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
-    // The templates a project's Report can give: the shared ones, then the project's own.
-    function templateOptions(projectCode) {
-        var option = function (t) {
-            return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' +
-                (isHoliday(t) ? (t.date ? fmtDate(t.date) : 'no date') + ' · ' + rupiah(t.amount) : rupiah(t.amount) + ' a day') + '</option>';
-        };
-        var own = ofProject(projectCode).slice().sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
-        if (!own.length) return shared().map(option).join('');
-        return '<optgroup label="Every project, a day">' + shared().map(option).join('') + '</optgroup>' +
-            '<optgroup label="This project\'s holidays">' + own.map(option).join('') + '</optgroup>';
+    // The templates Assign Request can give: those for every project, one list without a group
+    // name (Baldy, 10-11-2026). A project's holidays are not here: they give themselves.
+    function templateOptions() {
+        return shared().map(function (t) {
+            return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + ' a day</option>';
+        }).join('');
     }
 
-    function noTemplates(projectCode) {
-        if (shared().length || ofProject(projectCode).length) return false;
+    function noTemplates() {
+        if (shared().length) return false;
         if (window.FeriizNotify) window.FeriizNotify.warning('Make a template on the Request Templates page first.', 'No template');
         return true;
     }
@@ -304,10 +335,8 @@
        made the admin pick people and days a second time).
        - The Amount starts at the template's and can be changed for this Assign only (Baldy,
          09-11-2026: "soal nya belum pasti").
-       - A per-day template: each ticked day the person came in gets the Amount.
-       - A project's holiday: each ticked day on its date gets the Amount, log or not (the Log
-         Status filter decides who); other ticked days are left.
-       - A day that already has the template is skipped.
+       - Each ticked day the person came in gets the Amount; a day that already has the template
+         is skipped. A project's Public Holidays are not assigned: they give themselves.
        The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
     var ctx = null;
@@ -375,15 +404,13 @@
     // What Apply gives: one row per ticked day that gets the template, and what it skips.
     function planned() {
         var t = currentTemplate();
-        var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0, notDate: 0 };
+        var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0 };
         var amount = currentAmount();
         if (!t || !amount) return out;
-        var holiday = isHoliday(t);
         var given = givenIndex(t);
         ctx.cells.forEach(function (c) {
-            if (holiday && c.date !== t.date) { out.notDate++; return; }
             if (given[c.code + '|' + c.date]) { out.already++; return; }
-            if (!holiday && !cameIn(c.code, c.date)) { out.noLog++; return; }
+            if (!cameIn(c.code, c.date)) { out.noLog++; return; }
             out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
             out.total += amount;
             out.people[c.code] = true;
@@ -396,31 +423,19 @@
         var t = currentTemplate();
         if (!t) return;
         modal.querySelector('#assignAmount').value = typed(t.amount);
-        modal.querySelector('#assignAmountUnit').textContent = isHoliday(t) ? 'once' : 'a day';
         refreshSummary();
-    }
-
-    // Where a holiday goes: its date, when it is ticked.
-    function holidayLine(t) {
-        if (!t.date) return 'It has no date yet: give it one on the project\'s Settings page.';
-        var ticked = ctx.cells.some(function (c) { return c.date === t.date; });
-        return ticked ? 'Only on ' + fmtDate(t.date) + ', with or without a log.'
-            : 'For ' + fmtDate(t.date) + ': tick that date in the Report to give it.';
     }
 
     function refreshSummary() {
         var t = currentTemplate();
         if (!t) return;
-        var holiday = isHoliday(t);
         var amount = currentAmount();
-        var info = (holiday ? holidayLine(t) : 'Only on the ticked days each person came in.') +
-            (amount && amount !== Number(t.amount) ? ' ' + (holiday ? 'The holiday' : 'The template') + ' says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
+        var info = 'Only on the ticked days each person came in.' +
+            (amount && amount !== Number(t.amount) ? ' The template says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
         modal.querySelector('#assignTemplateInfo').textContent = info + (t.note ? ' ' + t.note : '');
         var p = planned();
         var people = Object.keys(p.people).length;
         var skips = [];
-        // Other ticked days are only worth a word when nothing is given.
-        if (p.notDate && !p.rows.length) skips.push(plural(p.notDate, 'ticked day is', 'ticked days are') + ' not on its date');
         if (p.noLog) skips.push(plural(p.noLog, 'day has', 'days have') + ' no log');
         if (p.already) skips.push(plural(p.already, 'day has', 'days have') + ' it already');
         modal.querySelector('#assignSummary').textContent = (!amount ? 'Enter an amount'
@@ -443,9 +458,7 @@
         window.bootstrap.Modal.getInstance(modal).hide();
         var people = Object.keys(p.people).length;
         if (window.FeriizNotify) {
-            window.FeriizNotify.success((isHoliday(t)
-                ? rupiah(p.rows[0].amount) + ' for ' + plural(people, 'person', 'people') + ' on ' + fmtDate(t.date)
-                : rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people')) +
+            window.FeriizNotify.success(rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people') +
                 ', ' + rupiah(p.total) + ' in all. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
         }
         if (ctx.onDone) ctx.onDone(p.rows.length);
@@ -453,11 +466,10 @@
 
     function openAssign(context) {
         ctx = context;
-        ensureHolidays(ctx.project.code);   // the project's Settings may not have been opened yet
-        if (noTemplates(ctx.project.code)) return;
+        if (noTemplates()) return;
         if (!modal) modal = buildModal();
         modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + ctx.cells.length + ' selected';
-        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions(ctx.project.code);
+        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
         takeTemplateAmount();
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }

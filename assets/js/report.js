@@ -887,7 +887,7 @@
 
     function computeAddColumns(dates) {
         var templates = window.FeriizTemplates && projectContext
-            ? window.FeriizTemplates.usedIn(projectContext.code, reportEmployees.map(function (e) { return e.code; }), dates) : [];
+            ? window.FeriizTemplates.usedIn(projectContext.code, reportEmployees.map(function (e) { return e.code; }), dates, workedOn) : [];
         var transport = reportEmployees.some(function (e) { return transportRateOf(e) > 0; });
         addColumns = (transport ? [{ id: TRANSPORT_COL, name: 'Transport' }] : []).concat(templates);
     }
@@ -896,7 +896,7 @@
 
     function addColumnCells(employeeCode, dates) {
         if (!addColumns.length) return '';
-        var add = window.FeriizTemplates ? window.FeriizTemplates.additionalFor(employeeCode, projectContext.code, dates) : { total: 0, items: [] };
+        var add = window.FeriizTemplates ? window.FeriizTemplates.additionalFor(employeeCode, projectContext.code, dates, workedOn) : { total: 0, items: [] };
         var byId = {};
         add.items.forEach(function (it) { byId[it.templateId] = it; });
         var cells = addColumns.map(function (col) {
@@ -962,7 +962,8 @@
     }
 
     // Did the person come in that day, as it stands now: a log, or an imported Daily above 0.
-    // Assign Request gives Daily templates only on these days.
+    // Assign Request gives templates only on these days, and a project's Public Holiday goes by
+    // itself to everyone who came in on its date (Baldy, 10-11-2026).
     function workedOn(code, date) {
         var s = dayState(code, date);
         return s.numbers ? s.numbers.daily > 0 : Boolean(s.inTime || s.outTime);
@@ -1094,7 +1095,8 @@
         var tbody = document.getElementById('reportTableBody');
         if (!tbody) return;
         computeSplitDates(dates);
-        requestDayIndex = window.FeriizTemplates && projectContext ? window.FeriizTemplates.dayIndex(projectContext.code, dates) : {};
+        requestDayIndex = window.FeriizTemplates && projectContext
+            ? window.FeriizTemplates.dayIndex(projectContext.code, dates, reportEmployees.map(function (e) { return e.code; }), workedOn) : {};
         renderDayHeaders(dates);
         computeAddColumns(dates);
         renderAddColumnHeaders();
@@ -2561,6 +2563,9 @@
         }
         projectContext = code ? data.findProjectByCode(code) : data.projects[0];
         if (!projectContext) projectContext = data.projects[0];
+        // The project's Public Holidays give themselves, so they must exist even when its
+        // Settings page was never opened.
+        if (projectContext && window.FeriizTemplates) window.FeriizTemplates.ensureHolidays(projectContext.code);
         if (projectContext && projectContext.code) {
             try { sessionStorage.setItem('feriiz_active_project', projectContext.code); } catch (e) {}
         }

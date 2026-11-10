@@ -7,12 +7,12 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.91">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.91">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.92">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.92">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.91" defer></script>
-    <script src="assets/js/app.js?v=3.7.91" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.91" defer></script>
+    <script src="assets/js/data.js?v=3.7.92" defer></script>
+    <script src="assets/js/app.js?v=3.7.92" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.92" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026: "paling makesanse tuh taro nya di benefits… kiri nya
@@ -20,8 +20,9 @@
      settings"), two panels:
      - Public Holidays: every national holiday of the year, the same in every project at first,
        each with the incentive for working on it (10-11-2026: "namanya jangan benefits… tambahkan
-       semua tanggal merah kalender pemerintah… apply ke semua project dan mereka sama"); THR or
-       another one-off amount can be added. Name, Date, Amount, Note; no Copy.
+       semua tanggal merah kalender pemerintah… apply ke semua project dan mereka sama"). Nobody assigns them: the
+       Report gives each by itself to everyone who comes in on its date, the same for all
+       (10-11-2026: "lansung ter assign otomatis"). Name, Date, Amount, Note; no Copy.
      - Default Hours ("Per occupations" taken off the title, 10-11-2026): every occupation of the employees assigned to the project, a
        row each and a field per day written hours/overtime, as Arcon's sheet (Baldy, 10-11-2026:
        "jangan all occupation… tunjukin semua aja… berdasarkan employee yang di assign di project").
@@ -82,7 +83,7 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.91</div>
+        <div class="feriiz-u-032">version : 3.7.92</div>
     </main>
 
     <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalTitle" aria-hidden="true">
@@ -97,7 +98,7 @@
                 </div>
                 <div class="modal-body">
                     <label class="form-label" for="payName">Name</label>
-                    <input type="text" class="form-control" id="payName" placeholder="For example: THR Idul Fitri 1447 H" autocomplete="off">
+                    <input type="text" class="form-control" id="payName" placeholder="For example: HUT Kota Jakarta" autocomplete="off">
                     <div class="row g-3 mt-0">
                         <div class="col-sm-6">
                             <label class="form-label" for="payDate">Date</label>
@@ -214,7 +215,7 @@
                 renderHolidays();
                 if (!window.FeriizNotify) return;
                 if (editing) FeriizNotify.success(saved.name + ' was updated.', 'Holiday updated');
-                else FeriizNotify.success(saved.name + ' was added. Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.', 'Holiday added');
+                else FeriizNotify.success(saved.name + ' was added. Everyone who comes in on ' + T().fmtDate(saved.date) + ' gets it in the Report, by itself.', 'Holiday added');
             }
 
             /* ---------- Default Hours per Occupation ---------- */

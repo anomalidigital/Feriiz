@@ -359,6 +359,60 @@ function feriizLogout() {
     };
 })();
 
+/* === Pagination ===
+   The pages of every list are Bootstrap's .pagination (Baldy, 10-11-2026: "ini pake boostrap
+   kan ya kamu sesuaikan deh dan di benerin di semua pages"): Previous, the first and the last
+   page, two pages either side of the current one with "…" between, Next. Previous and Next
+   stay in place and are disabled at the ends; on a narrow screen only their arrows show.
+   FeriizPager.render(nav, page, pages, onPage) fills the <nav>; onPage(n) gets the page asked for. */
+(function () {
+    function item(html, page, opts) {
+        var li = document.createElement('li');
+        li.className = 'page-item' + (opts.active ? ' active' : '') + (opts.disabled ? ' disabled' : '');
+        if (opts.active) li.setAttribute('aria-current', 'page');
+        var link = document.createElement(opts.dots ? 'span' : 'button');
+        link.className = 'page-link';
+        if (!opts.dots) {
+            link.type = 'button';
+            link.dataset.page = String(page);
+            link.disabled = Boolean(opts.disabled);
+            if (opts.label) link.setAttribute('aria-label', opts.label);
+        }
+        link.innerHTML = html;
+        li.appendChild(link);
+        return li;
+    }
+
+    window.FeriizPager = {
+        render: function (nav, page, pages, onPage) {
+            if (!nav) return;
+            pages = Math.max(1, pages || 1);
+            page = Math.min(Math.max(1, page || 1), pages);
+            var list = document.createElement('ul');
+            list.className = 'pagination pagination-feriiz';
+            list.appendChild(item('<i class="fa-solid fa-chevron-left" aria-hidden="true"></i><span class="pager-word">Previous</span>',
+                page - 1, { disabled: page === 1, label: 'Previous page' }));
+            var shown = [1];
+            for (var n = page - 2; n <= page + 2; n++) if (n > 1 && n < pages) shown.push(n);
+            if (pages > 1) shown.push(pages);
+            shown.forEach(function (n, i) {
+                if (i && n - shown[i - 1] > 1) list.appendChild(item('…', 0, { dots: true, disabled: true }));
+                list.appendChild(item(String(n), n, { active: n === page }));
+            });
+            list.appendChild(item('<span class="pager-word">Next</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i>',
+                page + 1, { disabled: page === pages, label: 'Next page' }));
+            nav.innerHTML = '';
+            nav.appendChild(list);
+            nav.onclick = function (e) {
+                var link = e.target.closest('button[data-page]');
+                if (!link || link.disabled || !onPage) return;
+                var asked = Number(link.dataset.page);
+                if (asked !== page && asked >= 1 && asked <= pages) onPage(asked);
+            };
+        }
+    };
+})();
+
 /* === Sidebar Renderer ===
    Single source for sidebar markup. Pages opt in by adding
    <body data-page="KEY"> and an empty <aside class="sidebar"></aside>. */

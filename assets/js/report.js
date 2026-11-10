@@ -1311,48 +1311,14 @@
         if (wrap) wrap.scrollTop = 0;
     }
 
-    // "Showing 1 - 20 of 134 results" and the page buttons, as on Employees.
+    // "Showing 1 - 20 of 134 results" and the pages (FeriizPager), as on Employees.
     function renderPager(total, pages, start) {
         var info = document.getElementById('reportPageInfo');
         var box = document.getElementById('reportPageButtons');
         if (!info || !box) return;
         info.textContent = total ? 'Showing ' + (start + 1) + ' - ' + Math.min(start + PAGE_SIZE, total) + ' of ' + total + ' results'
             : 'No employees match your filter';
-        box.innerHTML = '';
-        var prev = document.createElement('button');
-        prev.type = 'button';
-        prev.innerHTML = '&lt; <span class="pager-word">Previous</span>';
-        prev.disabled = reportPage === 1;
-        prev.addEventListener('click', function () { goToPage(reportPage - 1); });
-        box.appendChild(prev);
-        var shown = {};
-        shown[1] = shown[pages] = true;
-        for (var p = reportPage - 2; p <= reportPage + 2; p++) if (p > 1 && p < pages) shown[p] = true;
-        var last = 0;
-        Object.keys(shown).map(Number).sort(function (a, b) { return a - b; }).forEach(function (n) {
-            if (last && n - last > 1) {
-                var dots = document.createElement('span');
-                dots.className = 'page-dots';
-                dots.textContent = '...';
-                box.appendChild(dots);
-            }
-            var link = document.createElement('a');
-            link.href = '#';
-            link.textContent = n;
-            if (n === reportPage) {
-                link.className = 'active';
-                link.setAttribute('aria-current', 'page');
-            }
-            link.addEventListener('click', function (e) { e.preventDefault(); goToPage(n); });
-            box.appendChild(link);
-            last = n;
-        });
-        var next = document.createElement('a');
-        next.href = '#';
-        next.innerHTML = '<span class="pager-word">Next</span> &gt;';
-        next.hidden = reportPage === pages;
-        next.addEventListener('click', function (e) { e.preventDefault(); goToPage(reportPage + 1); });
-        box.appendChild(next);
+        FeriizPager.render(box, reportPage, pages, goToPage);
     }
 
     /* =============================================

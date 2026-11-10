@@ -539,11 +539,15 @@ body {
     color: #fff;
 }
 
-/* === PAGINATION === */
-.pagination {
+/* === PAGINATION ===
+   The bar under a list: "Showing 1 - 20 of 134 results" and the pages. The pages are
+   Bootstrap's .pagination (FeriizPager in app.js, 10-11-2026), styled through its variables:
+   separate rounded buttons, the current page blue. */
+.table-pager {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     padding: 16px 20px;
     border-top: 1px solid #D9D9D9;
     background: #fff;
@@ -551,12 +555,12 @@ body {
 
 /* Under a list the pages stay in view at the bottom of the screen while it scrolls, as on dev
    (Baldy, 04-11-2026). The list's card clips instead of hiding its overflow, so they can stick. */
-.table-container:has(> .pagination) {
+.table-container:has(> .table-pager) {
     overflow: clip;
 }
 
-.table-container > .pagination {
-    position: sticky !important;   /* over the old report rules' "position: relative !important" */
+.table-container > .table-pager {
+    position: sticky;
     bottom: 0;
     z-index: 5;
 }
@@ -566,57 +570,51 @@ body {
     color: #888;
 }
 
-.pagination-buttons {
-    display: flex;
-    align-items: center;
+.pagination-feriiz {
+    --bs-pagination-padding-x: 12px;
+    --bs-pagination-padding-y: 0;
+    --bs-pagination-font-size: 13px;
+    --bs-pagination-color: #555;
+    --bs-pagination-bg: #fff;
+    --bs-pagination-border-color: #D9D9D9;
+    --bs-pagination-border-radius: 8px;
+    --bs-pagination-hover-color: #333;
+    --bs-pagination-hover-bg: #F2F2F2;
+    --bs-pagination-hover-border-color: #BBB;
+    --bs-pagination-focus-color: #2975BB;
+    --bs-pagination-focus-bg: #fff;
+    --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.25);
+    --bs-pagination-active-color: #fff;
+    --bs-pagination-active-bg: #2975BB;
+    --bs-pagination-active-border-color: #2975BB;
+    --bs-pagination-disabled-color: #AAA;
+    --bs-pagination-disabled-bg: #fff;
+    --bs-pagination-disabled-border-color: #E5E5E5;
+    flex-wrap: wrap;
     gap: 6px;
+    margin: 0;
 }
 
-.pagination-buttons button,
-.pagination-buttons a,
-.pagination-buttons span {
+/* Separate buttons, each one rounded, instead of Bootstrap's joined group. */
+.pagination-feriiz .page-item .page-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 14px;
-    border: 1px solid #D9D9D9;
-    border-radius: 8px;
-    background: #fff;
-    font-size: 13px;
-    font-weight: 500;
-    color: #555;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.15s ease;
+    gap: 6px;
     min-width: 38px;
     height: 38px;
+    margin-left: 0;
+    border-radius: var(--bs-pagination-border-radius);
+    font-weight: 500;
     white-space: nowrap;
 }
 
-.pagination-buttons button:disabled {
-    opacity: 0.5;
-    cursor: default;
-}
-
-.pagination-buttons button:not(:disabled):hover,
-.pagination-buttons a:hover {
-    background: #F2F2F2;
-    border-color: #bbb;
-}
-
-.pagination-buttons .active {
-    background: #2975BB;
-    color: #fff;
-    border-color: #2975BB;
+.pagination-feriiz .page-item.active .page-link {
     font-weight: 600;
 }
 
-.pagination-buttons .page-dots {
-    border: 1px solid #D9D9D9;
-    color: #999;
-    cursor: default;
-    font-weight: 600;
-    letter-spacing: 2px;
+.pagination-feriiz .page-link i {
+    font-size: 11px;
 }
 
 /* === PARTNER PAGE === */
@@ -1956,11 +1954,6 @@ body {
             font-size: 12px;
             color: #bbb;
         }
-        .pagination {
-            position: relative !important; /* Override any absolute positioning if exist */
-            margin: 0 !important;
-        }
-
         /* Webkit Sticky: base settings only (Master Override handles the rest) */
         .day-col-hidden {
             display: none !important;
@@ -2517,12 +2510,6 @@ div.report-layout .report-actions {
             left: 40px;
             font-size: 12px;
             color: #bbb;
-        }
-
-        .pagination {
-            position: relative !important;
-            /* Override any absolute positioning if exist */
-            margin: 0 !important;
         }
 
         /* Webkit Sticky: base settings only (Master Override handles the rest) */
@@ -5828,27 +5815,21 @@ body[data-page="print-preview"] {
         justify-content: center !important;
     }
 
-    /* --- Pagination --- */
-    .pagination {
-        flex-direction: column !important;
-        gap: 10px !important;
-        align-items: center !important;
-        font-size: 12px !important;
+    /* --- Pagination: the count over the pages; Previous and Next keep only their arrows --- */
+    .table-pager {
+        flex-direction: column;
+        gap: 10px;
     }
 
-    .pagination-info { font-size: 12px !important; }
+    .pagination-info { font-size: 12px; }
 
-    .pagination-buttons {
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-        gap: 4px !important;
+    .table-pager .pagination-feriiz {
+        justify-content: center;
+        gap: 4px;
     }
 
-    .pagination-buttons .btn {
-        min-width: 34px !important;
-        height: 34px !important;
-        padding: 0 8px !important;
-        font-size: 12px !important;
+    .table-pager .pager-word {
+        display: none;
     }
 
     /* --- Logout nav item visibility --- */
@@ -7467,7 +7448,7 @@ div.report-layout .report-table tbody tr.page-off {
     display: none;
 }
 
-.report-pagination {
+.report-pager {
     gap: 16px;
     padding: 0;
     border-top: 0;
@@ -7487,13 +7468,12 @@ div.report-layout .report-table tbody tr.page-off {
         order: 1;
     }
 
-    .report-pagination {
+    .report-pager {
         flex-direction: column;
         gap: 8px;
     }
 
-    .report-pagination .pagination-buttons {
-        flex-wrap: wrap;
+    .report-pager .pagination-feriiz {
         justify-content: center;
     }
 }
@@ -7746,11 +7726,11 @@ div.report-layout .report-table thead th.col-cli-addtotal {
         padding: 8px 12px;
     }
 
-    .report-pagination {
+    .report-pager {
         gap: 4px;
     }
 
-    .report-pagination .pager-word {
+    .report-pager .pager-word {
         display: none;
     }
 }

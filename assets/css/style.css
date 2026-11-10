@@ -3465,9 +3465,10 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 }
 
 /* === Day marks on the whole cell (Baldy, 10-11-2026: "tanda nya lansung satu coloms aja deh
-   jangan coloms per text lagi"; on the log boxes from 05-11) === No blue: a day an import, Add
-   Log or Delete Log left different from the machine's original is yellow; otherwise a day missing
-   a log, one or both, is red. A tint with a bar, its log boxes on white; the colour stays on
+   jangan coloms per text lagi"; on the log boxes from 05-11) === No blue: a day missing a log,
+   one or both, is red, even after the admin changed it; otherwise a day an import, Add Log or
+   Delete Log left different from the machine's original, in its logs or its total, is yellow.
+   A tint with a bar, its log boxes on white; the colour stays on
    hover and when the day is ticked (the blue outline shows the tick). In a split day each half
    carries its own colour, as in the History window. */
 div.report-layout .report-table tbody td.day-col.day-changed,

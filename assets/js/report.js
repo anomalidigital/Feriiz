@@ -556,18 +556,21 @@
     }
 
     // A day's colour, on its whole cell (Baldy, 10-11-2026: "tanda nya lansung satu coloms aja
-    // deh jangan coloms per text lagi"; it was on the log boxes from 05-11): 'day-changed'
-    // (yellow) when a version (an import, Add Log or Delete Log) left the day different from the
-    // machine's original, its logs or its numbers; else 'day-missing' (red) when a log is
-    // missing, one or both (issue, see dayIssue); else ''. No blue.
+    // deh jangan coloms per text lagi"; it was on the log boxes from 05-11): 'day-missing' (red)
+    // when a log is missing, one or both (issue, see dayIssue), even on a day the admin changed;
+    // else 'day-changed' (yellow) when a version (an import, Add Log or Delete Log) left the day
+    // different from the machine's original, its logs or its total (Baldy, 10-11-2026: "yang ada
+    // missing dia juga merah ya… yang kuning ketika ada update dari admin nya di coloms itu entah
+    // bagian log nya atau total nya"); else ''. No blue.
     function dayMark(employee, date, s, count, issue) {
+        if (issue) return 'day-missing';
         if (s.last) {
             var o = dayState(employee.code, date, null);
             var oc = logCount(employee.code, date, o.inTime, o.outTime);
             if (s.inTime !== o.inTime || s.outTime !== o.outTime || Number(count.daily) !== oc.daily ||
                 Math.abs(count.work - oc.work) >= 0.01 || Math.abs(count.ot - oc.ot) >= 0.01) return 'day-changed';
         }
-        return issue ? 'day-missing' : '';
+        return '';
     }
 
     /* History of one day (the clock button after its date, with Show history, from its second

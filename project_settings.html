@@ -7,12 +7,12 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.82">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.82">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.83">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.83">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.82" defer></script>
-    <script src="assets/js/app.js?v=3.7.82" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.82" defer></script>
+    <script src="assets/js/data.js?v=3.7.83" defer></script>
+    <script src="assets/js/app.js?v=3.7.83" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.83" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026: "paling makesanse tuh taro nya di benefits… kiri nya
@@ -20,10 +20,12 @@
      settings"), two panels:
      - Benefits: THR, pay for the red dates and other one-off amounts, each Name, Date, Amount, Note
        (09-11-2026: one date and amount each, no Copy, no note under the title).
-     - Default Hours per Occupation: occupations whose day counts other hours than the project's,
-       e.g. Mandor 8/3 where the project is 8/2 (Arcon's sheet: "beberapa orang 8/3"), a row per
-       occupation and a field per day written hours/overtime, as their sheet. The project's own row
-       is shown first and set in Project Detail. Saved as defaultHours.occupations. -->
+     - Default Hours per Occupation: every occupation of the employees assigned to the project, a
+       row each and a field per day written hours/overtime, as Arcon's sheet (Baldy, 10-11-2026:
+       "jangan all occupation… tunjukin semua aja… berdasarkan employee yang di assign di project").
+       An occupation never set here, e.g. a new employee's, starts at 8/2 every day ("ketika
+       occupations nya ada yang baru dia set default nya 8/2 semua dari minggu sampe sabtu").
+       Saved as defaultHours.occupations. -->
 <body data-page="project-settings">
     <!-- Sidebar -->
     <aside class="sidebar"></aside>
@@ -69,10 +71,6 @@
             <section class="settings-panel" aria-labelledby="occHoursTitle">
                 <div class="settings-panel-head">
                     <h2 class="settings-panel-title" id="occHoursTitle">Default Hours per Occupation</h2>
-                    <button class="btn btn-outline btn-sm" type="button" id="occAddBtn">
-                        <i class="fa-solid fa-plus"></i>
-                        Add Occupation
-                    </button>
                 </div>
                 <div class="occ-hours" id="occHours"></div>
                 <div class="settings-panel-foot">
@@ -80,7 +78,7 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.82</div>
+        <div class="feriiz-u-032">version : 3.7.83</div>
     </main>
 
     <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalTitle" aria-hidden="true">
@@ -218,27 +216,23 @@
             /* ---------- Default Hours per Occupation ---------- */
             var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             var DAY_NAMES = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
-            var occupationLists = { inProject: [], others: [] };
+            var NEW_DAY = { work: 8, ot: 2 };   // an occupation never set here: 8/2 every day
+            var projectOccupations = [];          // [{ name, people }] of the employees assigned here
 
-            // The occupations of this project's employees first, then every other occupation.
-            function projectOccupationLists(data) {
-                var here = {};
+            // Every occupation of the employees assigned to this project, by name, with how many.
+            function occupationsOfProject(data) {
+                var count = {};
                 (data.employees || []).forEach(function (e) {
-                    if (e.occupation && (e.projects || []).indexOf(project.code) >= 0) here[e.occupation] = true;
+                    if (e.occupation && (e.projects || []).indexOf(project.code) >= 0) count[e.occupation] = (count[e.occupation] || 0) + 1;
                 });
-                var all = (data.occupations || []).slice();
-                Object.keys(here).forEach(function (o) { if (all.indexOf(o) < 0) all.push(o); });
-                var byName = function (a, b) { return a.localeCompare(b); };
-                return {
-                    inProject: all.filter(function (o) { return here[o]; }).sort(byName),
-                    others: all.filter(function (o) { return !here[o]; }).sort(byName)
-                };
+                return Object.keys(count).sort(function (a, b) { return a.localeCompare(b); })
+                    .map(function (name) { return { name: name, people: count[name] }; });
             }
 
-            // The project's own hours of a weekday (Project Detail > Default Hours).
-            function projectDay(day) {
-                var set = project.defaultHours || {};
-                return (set.custom ? (set.days || {})[day] : set.daily) || { work: 0, ot: 0 };
+            function savedOccupations() {
+                var saved = {};
+                ((project.defaultHours || {}).occupations || []).forEach(function (o) { saved[o.occupation] = o; });
+                return saved;
             }
 
             // "8/2" -> { work: 8, ot: 2 }; "8" -> 8 and no overtime; empty -> 0; anything else -> null.
@@ -255,66 +249,35 @@
                 return work ? work + (ot ? '/' + ot : '') : '0';
             }
 
-            function occupationRow(entry) {
-                var option = function (o) {
-                    return '<option value="' + esc(o) + '"' + (o === entry.occupation ? ' selected' : '') + '>' + esc(o) + '</option>';
-                };
-                var group = function (label, items) {
-                    return items.length ? '<optgroup label="' + label + '">' + items.map(option).join('') + '</optgroup>' : '';
-                };
-                var days = entry.days || {};
-                return '<div class="occ-hours-row is-occupation">' +
-                    '<select class="occ-hours-select" aria-label="Occupation" title="' + esc(entry.occupation) + '">' +
-                        '<option value="">Choose an occupation</option>' +
-                        group('In this project', occupationLists.inProject) + group('Other occupations', occupationLists.others) +
-                    '</select>' +
+            // A row per occupation: its name and people, then a field per day. One never saved here
+            // starts at 8/2 every day and says "New", once the project has saved any.
+            function occupationRow(occ, saved, anySaved) {
+                var entry = saved[occ.name];
+                var isNew = !entry && anySaved;
+                return '<div class="occ-hours-row is-occupation" data-occupation="' + esc(occ.name) + '">' +
+                    '<div class="occ-hours-name">' + esc(occ.name) + (isNew ? ' <span class="occ-hours-new">New</span>' : '') +
+                        '<small>' + occ.people + (occ.people === 1 ? ' employee' : ' employees') + '</small></div>' +
                     DAYS.map(function (day) {
-                        return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + dayPairText(days[day] || entry.daily) +
-                            '" placeholder="8/2" aria-label="' + DAY_NAMES[day] + ', hours/overtime">';
+                        var d = entry ? (entry.days || {})[day] || entry.daily : NEW_DAY;
+                        return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + dayPairText(d) +
+                            '" placeholder="8/2" aria-label="' + esc(occ.name) + ', ' + DAY_NAMES[day] + ', hours/overtime">';
                     }).join('') +
-                    '<button type="button" class="occ-hours-remove" title="Remove" aria-label="Remove this occupation"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
                 '</div>';
             }
 
-            // The column titles, the project's own row (read only), then the occupations.
             function renderOccupationHours() {
-                var set = project.defaultHours || {};
-                var head = '<div class="occ-hours-row is-head" aria-hidden="true"><span>Occupation</span>' +
-                    DAYS.map(function (d) { return '<span>' + d + '</span>'; }).join('') + '<span></span></div>';
-                var own = '<div class="occ-hours-row is-project" title="Set in Project Detail > Default Hours">' +
-                    '<div class="occ-hours-name">All occupations<small>Project Detail</small></div>' +
-                    DAYS.map(function (d) { return '<div class="occ-hours-value">' + dayPairText(projectDay(d)) + '</div>'; }).join('') +
-                    '<span></span></div>';
-                var rows = (set.occupations || []).map(occupationRow).join('');
-                // Shown while no occupation has a row (syncOccupationOptions).
-                var empty = '<p class="occ-hours-empty" id="occHoursEmpty">No occupation has its own hours yet: everyone counts the project\'s.</p>';
-                document.getElementById('occHours').innerHTML = head + own + rows + empty;
-                syncOccupationOptions();
-            }
-
-            // An occupation already on another row cannot be picked again.
-            function syncOccupationOptions() {
-                var selects = Array.prototype.slice.call(document.querySelectorAll('#occHours .occ-hours-select'));
-                var chosen = selects.map(function (s) { return s.value; });
-                selects.forEach(function (select, i) {
-                    select.title = select.value;
-                    select.querySelectorAll('option').forEach(function (opt) {
-                        opt.disabled = Boolean(opt.value) && opt.value !== chosen[i] && chosen.indexOf(opt.value) >= 0;
-                    });
-                });
-                var empty = document.getElementById('occHoursEmpty');
-                if (empty) empty.hidden = selects.length > 0;
-            }
-
-            // A new row starts from the project's hours, so only what differs has to change.
-            function addOccupation() {
-                var entry = { occupation: '', days: {} };
-                DAYS.forEach(function (day) { entry.days[day] = projectDay(day); });
                 var box = document.getElementById('occHours');
-                document.getElementById('occHoursEmpty').insertAdjacentHTML('beforebegin', occupationRow(entry));
-                syncOccupationOptions();
-                var rows = box.querySelectorAll('.occ-hours-row.is-occupation');
-                rows[rows.length - 1].querySelector('.occ-hours-select').focus();
+                if (!projectOccupations.length) {
+                    box.innerHTML = '<p class="occ-hours-empty">No employee is assigned to this project yet. Their occupations show here once they are.</p>';
+                    document.getElementById('occSaveBtn').hidden = true;
+                    return;
+                }
+                var saved = savedOccupations();
+                var anySaved = Object.keys(saved).length > 0;
+                var head = '<div class="occ-hours-row is-head" aria-hidden="true"><span>Occupation</span>' +
+                    DAYS.map(function (d) { return '<span>' + d + '</span>'; }).join('') + '</div>';
+                box.innerHTML = head + projectOccupations.map(function (occ) { return occupationRow(occ, saved, anySaved); }).join('');
+                document.getElementById('occSaveBtn').hidden = false;
             }
 
             // { value: [...] } to save, or { input, message } for the first field that is wrong.
@@ -322,9 +285,7 @@
                 var value = [];
                 var rows = document.querySelectorAll('#occHours .occ-hours-row.is-occupation');
                 for (var r = 0; r < rows.length; r++) {
-                    var select = rows[r].querySelector('.occ-hours-select');
-                    var occupation = select.value;
-                    if (!occupation) return { input: select, message: 'Choose the occupation of every row, or remove the row.' };
+                    var occupation = rows[r].dataset.occupation;
                     var entry = { occupation: occupation, custom: true, daily: null, days: {} };
                     for (var i = 0; i < DAYS.length; i++) {
                         var input = rows[r].querySelector('[data-day="' + DAYS[i] + '"]');
@@ -350,17 +311,20 @@
                     warn(read.message, 'Default hours not saved');
                     return;
                 }
-                // Only the occupations change; the project's own hours stay as Project Detail has them.
-                var defaultHours = Object.assign({}, project.defaultHours || {}, { occupations: read.value });
+                // Only the occupations change; the rest of the project's Default Hours stays as it is.
+                // An occupation saved before whose employees left the project keeps its hours, in
+                // case one comes back.
+                var shown = {};
+                read.value.forEach(function (o) { shown[o.occupation] = true; });
+                var kept = ((project.defaultHours || {}).occupations || []).filter(function (o) { return !shown[o.occupation]; });
+                var defaultHours = Object.assign({}, project.defaultHours || {}, { occupations: read.value.concat(kept) });
                 if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {
                     window.FERIIZ_DATA.saveProjectSettings(project.code, { defaultHours: defaultHours });
                 }
                 project.defaultHours = defaultHours;
                 renderOccupationHours();
                 if (window.FeriizNotify) {
-                    FeriizNotify.success(read.value.length
-                        ? read.value.length + (read.value.length === 1 ? ' occupation has' : ' occupations have') + ' its own default hours now.'
-                        : 'Every occupation counts the project\'s default hours.', 'Default hours saved');
+                    FeriizNotify.success('Default hours saved for ' + read.value.length + (read.value.length === 1 ? ' occupation.' : ' occupations.'), 'Default hours saved');
                 }
             }
 
@@ -379,19 +343,8 @@
                     if (edit) { e.preventDefault(); openForm(T().get(edit.dataset.edit)); }
                 });
 
-                document.getElementById('occAddBtn').addEventListener('click', function () { if (project) addOccupation(); });
                 document.getElementById('occSaveBtn').addEventListener('click', function () { if (project) saveOccupationHours(); });
-                var occBox = document.getElementById('occHours');
-                occBox.addEventListener('change', function (e) {
-                    if (e.target.classList.contains('occ-hours-select')) syncOccupationOptions();
-                });
-                occBox.addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
-                occBox.addEventListener('click', function (e) {
-                    var remove = e.target.closest('.occ-hours-remove');
-                    if (!remove) return;
-                    remove.closest('.occ-hours-row').remove();
-                    syncOccupationOptions();
-                });
+                document.getElementById('occHours').addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
 
                 if (!window.FERIIZ_DATA) return;
                 var code = new URLSearchParams(location.search).get('project');
@@ -402,7 +355,7 @@
                     link.textContent = project.name;
                     link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);
                     document.title = 'Feriiz - ' + project.name + ' - Settings';
-                    occupationLists = projectOccupationLists(data);
+                    projectOccupations = occupationsOfProject(data);
                     renderBenefits();
                     renderOccupationHours();
                 });

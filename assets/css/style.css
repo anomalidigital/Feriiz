@@ -7299,21 +7299,25 @@ div.report-layout .report-search-input {
     padding: 12px 16px 16px;
 }
 
-/* Default Hours per Occupation: a row per occupation and a field per day written "8/2", as
-   Arcon's own sheet; the first row is the project's own Default Hours, set in Project Detail. */
+/* Default Hours per Occupation: every occupation of the project's employees, a row each and a
+   field per day written "8/2", as Arcon's own sheet. */
 .occ-hours {
     display: grid;
-    gap: 8px;
-    padding: 16px 16px 0;
+    padding: 8px 16px 0;
     overflow-x: auto;
 }
 
 .occ-hours-row {
     display: grid;
-    grid-template-columns: minmax(140px, 1fr) repeat(7, 56px) 28px;
+    grid-template-columns: minmax(160px, 1fr) repeat(7, 56px);
     gap: 6px;
     align-items: center;
-    min-width: 560px;
+    min-width: 600px;
+    padding: 8px 0;
+}
+
+.occ-hours-row + .occ-hours-row {
+    border-top: 1px solid var(--feriiz-border-soft);
 }
 
 .occ-hours-row.is-head span {
@@ -7327,81 +7331,51 @@ div.report-layout .report-search-input {
     text-align: left;
 }
 
-/* The project's own row: read only, it is changed in Project Detail. */
-.occ-hours-row.is-project {
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--feriiz-border-soft);
-}
-
-.occ-hours-row.is-project .occ-hours-name {
+.occ-hours-name {
+    min-width: 0;
     font-size: 13px;
     font-weight: 600;
     color: var(--feriiz-text);
 }
 
-.occ-hours-row.is-project .occ-hours-name small {
+.occ-hours-name small {
     display: block;
     font-size: 12px;
     font-weight: 400;
     color: var(--feriiz-text-hint);
 }
 
-.occ-hours-value {
-    font-size: 13px;
-    text-align: center;
-    color: var(--feriiz-text-hint);
-    font-variant-numeric: tabular-nums;
+/* An occupation that came with a new employee and has not been saved here yet. */
+.occ-hours-new {
+    margin-left: 4px;
+    padding: 1px 6px;
+    border-radius: var(--feriiz-radius-pill);
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary-dark);
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: 1px;
 }
 
-.occ-hours-select,
 .occ-hours-day {
+    width: 100%;
     height: 36px;
+    padding: 0 4px;
     border: 1px solid var(--feriiz-border);
     border-radius: var(--feriiz-radius);
     background: var(--feriiz-card);
     color: var(--feriiz-text);
     font-size: 13px;
-}
-
-.occ-hours-select {
-    width: 100%;
-    min-width: 0;
-    padding: 0 8px;
-    text-overflow: ellipsis;
-}
-
-.occ-hours-day {
-    width: 100%;
-    padding: 0 4px;
     text-align: center;
     font-variant-numeric: tabular-nums;
 }
 
-.occ-hours-day.is-invalid,
-.occ-hours-select.is-invalid {
+.occ-hours-day.is-invalid {
     border-color: var(--feriiz-danger);
 }
 
-.occ-hours-remove {
-    width: 28px;
-    height: 28px;
-    display: grid;
-    place-items: center;
-    padding: 0;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--feriiz-text-hint);
-    cursor: pointer;
-}
-
-.occ-hours-remove:hover {
-    background: var(--feriiz-flag-danger);
-    color: var(--feriiz-danger);
-}
-
 .occ-hours-empty {
-    margin: 0;
+    margin: 8px 0;
     font-size: 13px;
     color: var(--feriiz-text-hint);
 }

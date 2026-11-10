@@ -1626,6 +1626,72 @@ body {
             display: none !important;
         }
 
+        /* Default Hours of an occupation (Baldy, 10-11-2026): "All occupations" names the table
+           above; each occupation with other hours is a card with the same table. */
+        #projectModal .project-default-scope {
+            margin: 0 0 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--feriiz-text);
+        }
+
+        #projectModal .project-occ-defaults-head {
+            margin: 24px 0 4px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--feriiz-text);
+        }
+
+        #projectModal .project-occ-defaults {
+            display: grid;
+            gap: 12px;
+        }
+
+        #projectModal .project-occ-defaults:empty {
+            display: none;
+        }
+
+        #projectModal .project-occ-default {
+            display: grid;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--feriiz-border-soft);
+            border-radius: var(--feriiz-radius-lg);
+            background: var(--feriiz-bg);
+        }
+
+        #projectModal .project-occ-default-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #projectModal .project-occ-default-head .project-occ-select {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #projectModal .project-occ-remove {
+            flex: none;
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--feriiz-border);
+            border-radius: var(--feriiz-radius);
+            background: var(--feriiz-card);
+            color: var(--feriiz-danger);
+            cursor: pointer;
+        }
+
+        #projectModal .project-occ-remove:hover {
+            background: var(--feriiz-flag-danger);
+        }
+
+        #projectModal .project-occ-add {
+            margin-top: 12px;
+        }
+
         #projectModal .project-config-toggle {
             width: 100%;
             border: 0;

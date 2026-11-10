@@ -1551,82 +1551,6 @@ body {
             padding: 10px 14px !important;
         }
 
-        #projectModal .project-overtime-panel {
-            display: grid;
-            gap: 12px;
-        }
-
-        /* Default Hours: Day | Hours | Overtime (02-11-2026) */
-        #projectModal .project-default-hint {
-            margin: 0 0 12px;
-            font-size: 12px;
-            line-height: 1.5;
-            color: var(--feriiz-text-hint);
-        }
-
-        #projectModal .project-overtime-table {
-            display: grid;
-            grid-template-columns: minmax(88px, 1fr) 82px 82px;
-            gap: 8px 12px;
-            align-items: center;
-            border: 1px solid #E7E7E7;
-            border-radius: 8px;
-            padding: 12px;
-            background: #fff;
-        }
-
-        #projectModal .project-overtime-table[hidden] {
-            display: none !important;
-        }
-
-        #projectModal .project-overtime-head {
-            color: #333;
-            font-size: 12px;
-            font-weight: 700 !important;
-            line-height: 1;
-        }
-
-        #projectModal .project-overtime-day {
-            color: #1a1a1a;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        #projectModal .project-overtime-table input {
-            min-height: 36px !important;
-            padding: 7px 8px !important;
-            font-size: 12px;
-            text-align: center;
-            width: 100%;
-            border: 1px solid #D4D4D4 !important;
-            border-radius: 7px !important;
-            outline: none;
-        }
-
-        #projectModal .project-overtime-custom-toggle {
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            margin: 0 !important;
-            width: fit-content;
-        }
-
-        #projectModal .project-overtime-custom-toggle span {
-            color: #333;
-        }
-
-        #projectModal .project-overtime-daily {
-            display: block;
-        }
-
-        #projectModal .project-overtime-daily[hidden] {
-            display: none !important;
-        }
-
-
         #projectModal .project-config-toggle {
             width: 100%;
             border: 0;
@@ -1667,10 +1591,6 @@ body {
 
             #projectModal .project-working-hour-grid {
                 grid-template-columns: 1fr;
-            }
-
-            #projectModal .project-overtime-table {
-                grid-template-columns: minmax(72px, 1fr) 68px 68px;
             }
         }
 

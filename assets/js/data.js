@@ -16,8 +16,9 @@
     'use strict';
 
     // Fetched with force-cache, so change the query whenever the file changes
-    // (2026-11-02: projects got defaultHours).
-    var DATA_URL = 'feriiz-data.json?v=2026-11-02';
+    // (2026-11-02: projects got defaultHours; 2026-11-10: taken out again, Default Hours are
+    // per occupation on each project's Settings page).
+    var DATA_URL = 'feriiz-data.json?v=2026-11-10';
 
     // Transport / Day (Rp) per employee: from the data, unless it was changed in the
     // employee form. 0 = no transport. Kept in this browser until the API exists.
@@ -25,11 +26,16 @@
     var transportEdits = {};
     try { transportEdits = JSON.parse(localStorage.getItem(TRANSPORT_KEY) || '{}') || {}; } catch (e) { transportEdits = {}; }
 
-    // Working Time and Default Hours per project, as last saved in Project Detail, so the
-    // Report on another page uses them. Kept in this browser until the API exists.
+    // A project's Working Time (Project Detail) and its Default Hours per occupation
+    // (Settings), as last saved, so the Report on another page uses them. Kept in this
+    // browser until the API exists.
     var PROJECT_KEY = 'feriiz_project_settings_v1';
     var projectEdits = {};
     try { projectEdits = JSON.parse(localStorage.getItem(PROJECT_KEY) || '{}') || {}; } catch (e) { projectEdits = {}; }
+
+    // The Default Hours of an occupation never saved on its project's Settings page: 8/2 every
+    // day (Baldy, 10-11-2026).
+    var NEW_OCCUPATION_DAY = { work: 8, ot: 2 };
 
     // Request quotas: Projects > Activity > an employee > Assigned Requests, the old Feriiz
     // "List Assigned Request" (Baldy, 03-11-2026). The admin gives each person how much of a
@@ -204,8 +210,9 @@
             assignedEdits[projectCode + '|' + employeeCode] = list;
             try { localStorage.setItem(ASSIGNED_KEY, JSON.stringify(assignedEdits)); } catch (e) { /* kept for this page only */ }
         },
-        // settings = { workStart, workEnd, cutOff, defaultHours }; defaultHours =
-        // { custom, daily: { work, ot }, days: { Sun: { work, ot }, ... } } in hours.
+        // settings = { workStart, workEnd, cutOff } from Project Detail, or { defaultHours } from
+        // Settings: { occupations: [{ occupation, custom, daily: { work, ot },
+        // days: { Sun: { work, ot }, ... } }] } in hours.
         saveProjectSettings: function (code, settings) {
             if (!code || !settings) return;
             var edit = projectEdits[code] || (projectEdits[code] = {});
@@ -213,6 +220,20 @@
             var project = this._projByCode[code];
             if (project) Object.keys(edit).forEach(function (k) { project[k] = edit[k]; });
             try { localStorage.setItem(PROJECT_KEY, JSON.stringify(projectEdits)); } catch (e) { /* kept for this page only */ }
+        },
+        // The Default Hours of an occupation in a project on one weekday ('Mon'): its row on the
+        // project's Settings page, { work, ot } in hours. One never saved there has 8/2 every
+        // day; a day saved as 0 hours has none, so its real logs count (null). The Report, its
+        // print, Attendance and Settings itself all read it here.
+        defaultHoursOf: function (project, occupation, dayName) {
+            var rows = (project && project.defaultHours && project.defaultHours.occupations) || [];
+            var row = null;
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].occupation === occupation) { row = rows[i]; break; }
+            }
+            var day = row ? (row.days || {})[dayName] || row.daily : NEW_OCCUPATION_DAY;
+            var work = Math.max(0, Number(day && day.work) || 0);
+            return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
         },
         initialsAvatar: function (name) { return buildInitialsAvatar(name); },
         avatarSrc: function (employee) {

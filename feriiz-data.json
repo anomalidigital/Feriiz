@@ -61,44 +61,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 25000,
-      "clientOvertimeRate": 40000,
-      "defaultHours": {
-        "custom": true,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 0
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 2
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 40000
     },
     {
       "code": "ANM001",
@@ -126,44 +89,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 25000,
-      "clientOvertimeRate": 40000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 2
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 2
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 40000
     },
     {
       "code": "DGE006",
@@ -191,44 +117,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 28000,
-      "clientOvertimeRate": 42000,
-      "defaultHours": {
-        "custom": true,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 0
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 2
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 42000
     },
     {
       "code": "GRU008",
@@ -256,44 +145,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 32000,
-      "clientOvertimeRate": 48000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 1
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 1
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 1
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 1
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 1
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 1
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 1
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 1
-          }
-        }
-      }
+      "clientOvertimeRate": 48000
     },
     {
       "code": "GSR002",
@@ -321,44 +173,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 28000,
-      "clientOvertimeRate": 42000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 2
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 2
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 42000
     },
     {
       "code": "KCP003",
@@ -386,44 +201,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 30000,
-      "clientOvertimeRate": 45000,
-      "defaultHours": {
-        "custom": true,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 1
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 1
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 45000
     },
     {
       "code": "MKP005",
@@ -451,44 +229,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 25000,
-      "clientOvertimeRate": 40000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 3
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 3
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 3
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 3
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 3
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 3
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 3
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 3
-          }
-        }
-      }
+      "clientOvertimeRate": 40000
     },
     {
       "code": "PBC004",
@@ -516,44 +257,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 32000,
-      "clientOvertimeRate": 48000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 1
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 1
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 1
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 1
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 1
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 1
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 1
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 1
-          }
-        }
-      }
+      "clientOvertimeRate": 48000
     },
     {
       "code": "PTC010",
@@ -581,44 +285,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 28000,
-      "clientOvertimeRate": 42000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 2
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 2
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 42000
     },
     {
       "code": "RSH007",
@@ -646,44 +313,7 @@
       "workStart": "08:00",
       "workEnd": "17:00",
       "overtimeRate": 30000,
-      "clientOvertimeRate": 45000,
-      "defaultHours": {
-        "custom": false,
-        "daily": {
-          "work": 8,
-          "ot": 2
-        },
-        "days": {
-          "Sun": {
-            "work": 8,
-            "ot": 2
-          },
-          "Mon": {
-            "work": 8,
-            "ot": 2
-          },
-          "Tue": {
-            "work": 8,
-            "ot": 2
-          },
-          "Wed": {
-            "work": 8,
-            "ot": 2
-          },
-          "Thu": {
-            "work": 8,
-            "ot": 2
-          },
-          "Fri": {
-            "work": 8,
-            "ot": 2
-          },
-          "Sat": {
-            "work": 8,
-            "ot": 2
-          }
-        }
-      }
+      "clientOvertimeRate": 45000
     }
   ],
   "employees": [

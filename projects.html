@@ -7,11 +7,11 @@
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.84">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.84">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.85">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.85">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.84" defer></script>
-    <script src="assets/js/app.js?v=3.7.84" defer></script>
+    <script src="assets/js/data.js?v=3.7.85" defer></script>
+    <script src="assets/js/app.js?v=3.7.85" defer></script>
 </head>
 
 <body data-page="projects">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.84</div>
+        <div class="feriiz-u-032">version : 3.7.85</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -146,60 +146,9 @@
                             </div>
                         </div>
 
-                        <!-- Default Hours (Baldy, 02-11-2026): what a day with a log in and log out
-                             counts in the Report, for every day or per weekday ("8/2" = 8h, 2h overtime).
-                             It replaced the overtime limits (Before Start / After End). -->
-                        <div>
-                            <h3 class="feriiz-u-202">
-                                Default Hours</h3>
-                            <p class="project-default-hint">A day with a log in and log out counts these hours, whatever the clock says. 0 hours: the real logs count.</p>
-                            <div class="project-overtime-panel">
-                                <div class="project-overtime-table" id="projectOvertimeDefault"
-                                    aria-label="Default hours for every day">
-                                    <div class="project-overtime-head">Day</div>
-                                    <div class="project-overtime-head">Hours</div>
-                                    <div class="project-overtime-head">Overtime</div>
-                                    <div class="project-overtime-day">Daily Default</div>
-                                    <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="daily" data-default-field="work" aria-label="Hours of every day"><span class="unit-input-suffix">h</span></div>
-                                    <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="daily" data-default-field="ot" aria-label="Overtime of every day"><span class="unit-input-suffix">h</span></div>
-                                </div>
-
-                                <label class="project-overtime-custom-toggle">
-                                    <input type="checkbox" id="projectCustomizeOvertime"
-                                        onchange="toggleProjectOvertimeCustomize(this.checked, true)">
-                                    <span>Customize per day</span>
-                                </label>
-
-                                <div class="project-overtime-daily" id="projectOvertimeDaily" hidden>
-                                    <div class="project-overtime-table" aria-label="Default hours per day">
-                                        <div class="project-overtime-head">Day</div>
-                                        <div class="project-overtime-head">Hours</div>
-                                        <div class="project-overtime-head">Overtime</div>
-                                        <div class="project-overtime-day">Sun</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Sun" data-default-field="work" aria-label="Sunday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Sun" data-default-field="ot" aria-label="Sunday overtime"><span class="unit-input-suffix">h</span></div>
-                                        <div class="project-overtime-day">Mon</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Mon" data-default-field="work" aria-label="Monday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Mon" data-default-field="ot" aria-label="Monday overtime"><span class="unit-input-suffix">h</span></div>
-                                        <div class="project-overtime-day">Tue</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Tue" data-default-field="work" aria-label="Tuesday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Tue" data-default-field="ot" aria-label="Tuesday overtime"><span class="unit-input-suffix">h</span></div>
-                                        <div class="project-overtime-day">Wed</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Wed" data-default-field="work" aria-label="Wednesday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Wed" data-default-field="ot" aria-label="Wednesday overtime"><span class="unit-input-suffix">h</span></div>
-                                        <div class="project-overtime-day">Thu</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Thu" data-default-field="work" aria-label="Thursday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Thu" data-default-field="ot" aria-label="Thursday overtime"><span class="unit-input-suffix">h</span></div>
-                                        <div class="project-overtime-day">Fri</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Fri" data-default-field="work" aria-label="Friday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Fri" data-default-field="ot" aria-label="Friday overtime"><span class="unit-input-suffix">h</span></div>
-                                        <div class="project-overtime-day">Sat</div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Sat" data-default-field="work" aria-label="Saturday hours"><span class="unit-input-suffix">h</span></div>
-                                        <div class="unit-input"><input type="text" value="0" inputmode="decimal" data-default-day="Sat" data-default-field="ot" aria-label="Saturday overtime"><span class="unit-input-suffix">h</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- No Default Hours here since 10-11-2026: each occupation has its own on the
+                             project's Settings page ("karna udah ada di dalam setiap project, maka ini di
+                             hapus yang ada di form nya"). -->
                     </div>
                 </div>
 
@@ -302,7 +251,6 @@
             if (pAdvLeft) pAdvLeft.style.display = '';
             if (footer) footer.style.display = 'flex';
             resetProjectPenaltyConfig();
-            loadProjectDefaultHours(project);
 
 
             modal.classList.add('show');
@@ -329,88 +277,6 @@
             button.classList.toggle('is-open', isOpening);
             const text = button.querySelector('span');
             if (text) text.textContent = isOpening ? 'Hide Penalty & Config' : 'Show Penalty & Config';
-        }
-
-        /* Default Hours (Baldy, 02-11-2026): the Hours and Overtime a day with a log in and log
-           out counts in the Report, for every day or per weekday (Arcon's "8/2"). Saved with
-           the project; 0 hours leaves that day to the real logs. */
-        const DEFAULT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const DEFAULT_DAY_NAMES = { daily: 'Daily Default', Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
-
-        function defaultInput(day, field) {
-            return document.querySelector('#projectModal [data-default-day="' + day + '"][data-default-field="' + field + '"]');
-        }
-
-        function loadProjectDefaultHours(project) {
-            const set = (project && project.defaultHours) || {};
-            const daily = set.daily || { work: 0, ot: 0 };
-            defaultInput('daily', 'work').value = String(Number(daily.work) || 0);
-            defaultInput('daily', 'ot').value = String(Number(daily.ot) || 0);
-            DEFAULT_DAYS.forEach(day => {
-                const d = (set.days || {})[day] || daily;
-                defaultInput(day, 'work').value = String(Number(d.work) || 0);
-                defaultInput(day, 'ot').value = String(Number(d.ot) || 0);
-            });
-            document.getElementById('projectCustomizeOvertime').checked = Boolean(set.custom);
-            toggleProjectOvertimeCustomize(Boolean(set.custom));
-        }
-
-        function toggleProjectOvertimeCustomize(isEnabled, fromToggle) {
-            const defaultTable = document.getElementById('projectOvertimeDefault');
-            const dailyTable = document.getElementById('projectOvertimeDaily');
-            if (!defaultTable || !dailyTable) return;
-
-            // Ticking it: days that were never set apart start from the Daily Default.
-            const same = field => DEFAULT_DAYS.every(day => defaultInput(day, field).value === defaultInput('Sun', field).value);
-            if (fromToggle && isEnabled && same('work') && same('ot')) {
-                DEFAULT_DAYS.forEach(day => {
-                    defaultInput(day, 'work').value = defaultInput('daily', 'work').value;
-                    defaultInput(day, 'ot').value = defaultInput('daily', 'ot').value;
-                });
-            }
-            defaultTable.hidden = isEnabled;
-            dailyTable.hidden = !isEnabled;
-            setProjectOvertimeInputsDisabled(defaultTable, isEnabled);
-            setProjectOvertimeInputsDisabled(dailyTable, !isEnabled);
-        }
-
-        function setProjectOvertimeInputsDisabled(container, isDisabled) {
-            container.querySelectorAll('input').forEach(input => {
-                input.disabled = isDisabled;
-            });
-        }
-
-        // "8", "1.5" or "1,5" -> hours; empty -> 0; anything else -> NaN.
-        function readHours(input) {
-            const text = String(input.value || '').trim().replace(',', '.');
-            if (!text) return 0;
-            const n = Number(text);
-            return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
-        }
-
-        // { value } to save, or { input, message } for the first field that is wrong.
-        function readProjectDefaultHours() {
-            const custom = document.getElementById('projectCustomizeOvertime').checked;
-            const value = { custom: custom, daily: null, days: {} };
-            const keys = ['daily'].concat(DEFAULT_DAYS);
-            for (const key of keys) {
-                const workInput = defaultInput(key, 'work');
-                const otInput = defaultInput(key, 'ot');
-                const work = readHours(workInput);
-                const ot = readHours(otInput);
-                const name = DEFAULT_DAY_NAMES[key];
-                // Only the table on screen is checked; the other keeps what it had.
-                if ((key === 'daily') !== custom) {
-                    if (!(work >= 0 && work <= 24)) return { input: workInput, message: name + ': hours must be a number from 0 to 24.' };
-                    if (!(ot >= 0 && ot <= 24)) return { input: otInput, message: name + ': overtime must be a number from 0 to 24.' };
-                    if (work + ot > 24) return { input: otInput, message: name + ': hours and overtime add up to more than 24.' };
-                    if (!work && ot) return { input: workInput, message: name + ' has overtime but no hours. Set its hours, or set both to 0.' };
-                }
-                const day = { work: work >= 0 ? work : 0, ot: ot >= 0 ? ot : 0 };
-                if (key === 'daily') value.daily = day;
-                else value.days[key] = day;
-            }
-            return { value: value };
         }
 
         function closeProjectModal() {
@@ -440,14 +306,9 @@
                 if (window.FeriizNotify) FeriizNotify.warning(code + ' is already used by another project.', 'Project not saved');
                 return;
             }
-            var defaults = readProjectDefaultHours();
-            if (defaults.input) {
-                defaults.input.focus();
-                if (window.FeriizNotify) FeriizNotify.warning(defaults.message, 'Project not saved');
-                return;
-            }
-            // Kept in memory until the API saves projects; Working Time and Default Hours are
-            // also kept in this browser, so the Report uses them.
+            // Kept in memory until the API saves projects; the Working Time is also kept in this
+            // browser, so the Report uses it. Default Hours are per occupation on the project's
+            // Settings page (Baldy, 10-11-2026); this form leaves them as they are.
             var target = isNew ? { code: code, status: 'Active', employeeCount: 0, createdAt: new Date().toISOString() } : editingProject;
             if (target) {
                 target.name = name;
@@ -455,11 +316,10 @@
                 target.workStart = document.getElementById('projStartHour').value || target.workStart;
                 target.workEnd = document.getElementById('projEndHour').value || target.workEnd;
                 target.cutOff = document.getElementById('projCutOffHour').value || target.cutOff;
-                target.defaultHours = defaults.value;
                 if (isNew) projectList.unshift(target);
                 if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {
                     window.FERIIZ_DATA.saveProjectSettings(code, {
-                        workStart: target.workStart, workEnd: target.workEnd, cutOff: target.cutOff, defaultHours: target.defaultHours
+                        workStart: target.workStart, workEnd: target.workEnd, cutOff: target.cutOff
                     });
                 }
                 refreshProjects();

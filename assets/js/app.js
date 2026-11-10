@@ -909,7 +909,7 @@ function feriizLogout() {
 
         const start = (project && project.workStart) || '08:00';
         const end = (project && project.workEnd) || '17:00';
-        // As in the Report: the Time Period is the project's Default Hours for that weekday
+        // As in the Report: the Time Period is the person's Default Hours for that weekday
         // (8 of 08:00-17:00, Baldy 04-11-2026), else the whole Working Time. Surplus starts
         // after the Working Time; the hour between them is the break.
         const span = Math.max(0, toSeconds(end + ':00') - toSeconds(start + ':00'));
@@ -946,12 +946,13 @@ function feriizLogout() {
         };
     }
 
-    // The project's Default Hours of that day in seconds (per weekday when customised), or 0.
+    // The person's Default Hours of that day in seconds: their occupation's on the project's
+    // Settings page for that weekday (8 when never saved there), or 0.
     function defaultSeconds(project, date) {
-        const set = project && project.defaultHours;
-        if (!set) return 0;
-        const day = set.custom ? (set.days || {})[SHORT_DAYS[fromISO(date).getDay()]] : set.daily;
-        return Math.max(0, Number(day && day.work) || 0) * 3600;
+        if (!project || !ctx.data || !ctx.data.defaultHoursOf) return 0;
+        const occupation = ctx.employee ? ctx.employee.occupation : '';
+        const def = ctx.data.defaultHoursOf(project, occupation, SHORT_DAYS[fromISO(date).getDay()]);
+        return def ? def.work * 3600 : 0;
     }
 
     function defaultRange() {

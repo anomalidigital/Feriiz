@@ -108,9 +108,9 @@
        From the real logs, hours are the time worked, at most the Time Period; overtime is
        what is worked beyond the Working Time (Baldy, 30-10-2026, like the old Feriiz: in
        08:54, out 18:06 shows 0.21h of overtime).
-       - The Time Period is the project's Default Hours for that weekday: 8 of 08:00-17:00
-         (Baldy, 04-11-2026: "yang di lapangan kerjanya 8 jam kerja", it was 9). Without
-         Default Hours it is the whole Working Time.
+       - The Time Period is the Default Hours of the person's occupation for that weekday
+         (Projects > Settings): 8 of 08:00-17:00 (Baldy, 04-11-2026: "yang di lapangan
+         kerjanya 8 jam kerja", it was 9). A day set to 0 hours there has the whole Working Time.
        - The hour between them (8h to 9h) is the break: neither hours nor overtime.
        - The Working Time is the person's own, else the project's.
        Every day counts the hours its times make, in both views (Baldy, 05-11-2026: a day
@@ -137,11 +137,12 @@
         return end > start ? (end - start) / 3600 : 0;
     }
 
-    // The Time Period: the Default Hours of that day's weekday; without a date, the Default
-    // Hours when every weekday has the same. Else the whole Working Time.
+    // The Time Period: the Default Hours of the person's occupation on that day's weekday;
+    // without a date, its Default Hours when every weekday has the same. Else the whole
+    // Working Time.
     function periodOf(code, date) {
-        var def = date ? dayDefault(date) : null;
-        var hours = def ? def.work : date ? null : defaultWorkHours();
+        var def = date ? dayDefault(date, code) : null;
+        var hours = def ? def.work : date ? null : defaultWorkHours(code);
         return hours || spanOf(code);
     }
 
@@ -160,44 +161,47 @@
     }
 
     /* =============================================
-       DEFAULT HOURS (Baldy, 02-11-2026)
-       A project sets the Hours and Overtime of its working day, for every day or per
-       weekday (Projects > Project Detail > Default Hours; Arcon's "8/2"). The Hours are the
-       day's Time Period: the hours a full day (Daily 1) needs. From 02-11 to 05-11-2026 a
+       DEFAULT HOURS (Baldy, 02-11-2026; per occupation since 10-11-2026)
+       Each occupation in a project has the Hours and Overtime of its working day, per
+       weekday (Projects > Settings > Default Hours; Arcon's "8/2"); one never saved there has
+       8/2 every day. The project form's own Default Hours were taken out on 10-11-2026
+       ("karna udah ada di dalam setiap project, maka ini di hapus yang ada di form nya").
+       The Hours are the day's Time Period: the hours a full day (Daily 1) needs. From 02-11 to 05-11-2026 a
        complete day counted the default Hours and Overtime whatever the clock said; since
        05-11 every day counts its real times (Baldy: "pake waktu yang aseli"), as the live
        Feriiz does, so the default Overtime is not added any more. Filter > Show history only
        puts each changed day's newest version next to its original; it changes no number.
        ============================================= */
-    // { work, ot } in hours for one weekday ('Mon'), or null: no default, so the real logs count.
-    // Everyone in the project has the same; a person who differs is set with an import (Baldy,
-    // 09-11-2026, who took per-person hours out again: "alternatifnya pake import").
-    function defaultFor(dayName) {
-        var set = projectContext && projectContext.defaultHours;
-        if (!set) return null;
-        var day = set.custom ? (set.days || {})[dayName] : set.daily;
-        var work = day ? Number(day.work) || 0 : 0;
-        return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
+    // { work, ot } in hours for one person on one weekday ('Mon'), or null: 0 hours, so the
+    // real logs count. Everyone with the same occupation has the same; a person who differs is
+    // set with an import (Baldy, 09-11-2026, who took per-person hours out again:
+    // "alternatifnya pake import").
+    function defaultFor(dayName, code) {
+        var data = window.FERIIZ_DATA;
+        if (!projectContext || !data || !data.defaultHoursOf) return null;
+        var emp = code ? data.findEmployeeByCode(code) : null;
+        return data.defaultHoursOf(projectContext, emp ? emp.occupation : '', dayName);
     }
 
-    function dayDefault(date) { return defaultFor(DAY_NAMES[fromISO(date).getDay()]); }
+    function dayDefault(date, code) { return defaultFor(DAY_NAMES[fromISO(date).getDay()], code); }
 
-    // The hours of a default day when every weekday has the same (Download Log's Period), else null.
-    function defaultWorkHours() {
+    // The hours of the person's default day when every weekday has the same (Download Log's
+    // Period), else null.
+    function defaultWorkHours(code) {
         var hours = [];
         DAY_NAMES.forEach(function (n) {
-            var d = defaultFor(n);
+            var d = defaultFor(n, code);
             if (d && hours.indexOf(d.work) < 0) hours.push(d.work);
         });
         return hours.length === 1 ? hours[0] : null;
     }
 
     // What the client print gives a day that has data (Set Default, meeting 05-11-2026, 0:05:07:
-    // "ketika udah di print… semuanya itu harus 8 per 2"): the project's hours and overtime of
-    // that weekday, or null when that weekday has no default hours (its real data prints, as
-    // "0 hours: the real logs count" says in Default Hours).
-    function setDefaultFor(date) {
-        var def = dayDefault(date);
+    // "ketika udah di print… semuanya itu harus 8 per 2"): the hours and overtime of the
+    // person's occupation on that weekday, or null when that weekday has 0 hours there (its
+    // real data prints).
+    function setDefaultFor(date, code) {
+        var def = dayDefault(date, code);
         return def ? { work: def.work, ot: def.ot } : null;
     }
 

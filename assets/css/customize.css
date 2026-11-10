@@ -146,7 +146,8 @@ img, svg {
     box-shadow: 0 0 0 0.2rem rgba(41, 117, 187, 0.18);
 }
 
-.form-check-input:checked {
+.form-check-input:checked,
+.form-check-input[type=checkbox]:indeterminate {
     background-color: #2975BB;
     border-color: #2975BB;
 }

@@ -568,6 +568,12 @@ function feriizLogout() {
          "All Occupations (132)", "Tukang Besi (13)", "2 Occupations (27)".
        - The list ticks one or more occupations, A to Z, each with its count. It only drafts:
          the page's <select class="filter-occ"> keeps the value and is read on Apply.
+       - Every occupation starts ticked, and "All Occupations" heads them as a three-way box
+         (Baldy, 10-11-2026: "by default itu kepilih semua… icon check nya yang minus kali ya buat
+         uncheck all… kalau mau select all lagi tinggal checklist yang all occupation"): ticked
+         when all are, a minus when some are, empty when none is. Ticked or with its minus, a click
+         unticks every occupation; empty, a click ticks them all again. Nothing ticked filters
+         nothing: Apply reads it as all, and closing the list ticks them all again.
        It is Bootstrap's dropdown, restyled as ours (Baldy, 04-11-2026): Bootstrap opens, places
        and closes it (a tick keeps it open; Esc or a click outside closes it). */
     const normalizeOccupation = value => String(value || '').trim().toLowerCase();
@@ -592,11 +598,13 @@ function feriizLogout() {
         const menu = el.querySelector('.occ-picker-menu');
         let items = [];     // { value, name, count }, A to Z
         let total = null;   // how many people in all; null until the page gives its people
-        let chosen = [];    // ticked values; none = all occupations
+        let chosen = [];    // ticked values, the filter; empty = all occupations
+        let none = false;   // every occupation unticked, only while choosing
 
         const countText = n => (n == null ? '' : ` (${formatCount(n)})`);
 
         function label() {
+            if (none) return 'No occupation ticked';
             const picked = items.filter(item => chosen.includes(item.value));
             if (!picked.length) return 'All Occupations' + countText(total);
             const sum = total == null ? null : picked.reduce((s, item) => s + item.count, 0);
@@ -612,8 +620,14 @@ function feriizLogout() {
         }
 
         function paint() {
+            const all = !none && !chosen.length;
             menu.querySelectorAll('input').forEach(input => {
-                input.checked = input.value === '' ? !chosen.length : chosen.includes(input.value);
+                if (input.value === '') {
+                    input.checked = all;
+                    input.indeterminate = !none && chosen.length > 0;
+                } else {
+                    input.checked = all || chosen.includes(input.value);
+                }
             });
             text.textContent = label();
         }
@@ -635,8 +649,25 @@ function feriizLogout() {
 
         menu.addEventListener('change', event => {
             const value = event.target.value;
-            if (value === '') chosen = [];
-            else chosen = event.target.checked ? chosen.concat(value) : chosen.filter(v => v !== value);
+            if (value === '') {
+                // "All Occupations": ticked or with its minus it unticks them all; empty it ticks them all.
+                none = !none;
+                chosen = [];
+            } else {
+                const all = !none && !chosen.length;
+                let ticked = none ? [] : all ? items.map(item => item.value) : chosen.slice();
+                ticked = event.target.checked ? ticked.filter(v => v !== value).concat(value) : ticked.filter(v => v !== value);
+                none = !ticked.length;
+                chosen = ticked.length === items.length ? [] : ticked;
+            }
+            paint();
+            if (options.onChange) options.onChange(chosen.slice());
+        });
+
+        // Nothing ticked filters nothing, so closing the list ticks every occupation again.
+        el.addEventListener('hidden.bs.dropdown', () => {
+            if (!none) return;
+            none = false;
             paint();
             if (options.onChange) options.onChange(chosen.slice());
         });
@@ -669,11 +700,13 @@ function feriizLogout() {
             allNames: () => items.map(item => item.name),
             reset() {
                 chosen = [];
+                none = false;
                 paint();
             },
             // One occupation off, the others stay ticked (the Report's chip x).
             remove(value) {
                 chosen = chosen.filter(v => v !== value);
+                none = false;
                 paint();
             }
         };

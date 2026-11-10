@@ -428,11 +428,9 @@ function feriizLogout() {
         'project-activity':          { main: 'projects-group', sub: 'activity' },
         'project-attendance':        { main: 'projects-group', sub: 'activity' },
         'project-report':            { main: 'projects-group', sub: 'report' },
-        'project-calendar':          { main: 'calendar' },
         'project-requests':          { main: 'projects-group', sub: 'requests' },
         'project-closing':           { main: 'projects-group', sub: 'closing' },
         'project-settings':          { main: 'projects-group', sub: 'settings' },
-        'employee-detail':           { main: 'employees' },
         'employee-attendance':       { main: 'employees' },
         'employee-projects':         { main: 'employees' },
         'employee-report':           { main: 'projects-group', sub: 'report' },
@@ -1262,50 +1260,6 @@ function feriizLogout() {
     }
 })();
 
-/* ============================================================
-   FERIIZ HELPERS — generic UI utilities reused across pages.
-   Use these instead of writing new modal/search/filter logic
-   inline. Old inline code stays for now; migrate as you touch.
-   ============================================================ */
-window.FeriizModal = {
-    open: function (id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        el.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        if (!el.dataset.feriizBound) {
-            el.dataset.feriizBound = '1';
-            el.addEventListener('click', function (e) {
-                if (e.target === el) window.FeriizModal.close(id);
-            });
-        }
-    },
-    close: function (id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        el.classList.remove('show');
-        document.body.style.overflow = '';
-    }
-};
-
-window.FeriizSearch = {
-    /* Wires an <input> to filter rows by text content.
-       opts: { input, rows, getText? } — getText(row) returns the string to match. */
-    bind: function (opts) {
-        var input = opts.input;
-        var rows = opts.rows;
-        var getText = opts.getText || function (r) { return r.textContent || ''; };
-        if (!input || !rows) return;
-        input.addEventListener('input', function () {
-            var q = (input.value || '').trim().toLowerCase();
-            rows.forEach(function (row) {
-                var text = getText(row).toLowerCase();
-                row.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
-            });
-        });
-    }
-};
-
 /* Auto-fill alt text on employee avatars so screen readers
    announce the name instead of an empty image. */
 (function () {
@@ -1325,24 +1279,3 @@ window.FeriizSearch = {
         fillAlts();
     }
 })();
-
-window.FeriizFilterBar = {
-    /* Wires a filter toggle button + dropdown panel with outside-click close.
-       opts: { toggle, dropdown, apply?, clear?, onApply?, onClear? } */
-    init: function (opts) {
-        var toggle = opts.toggle;
-        var dropdown = opts.dropdown;
-        if (!toggle || !dropdown) return;
-        toggle.addEventListener('click', function (e) {
-            e.stopPropagation();
-            dropdown.classList.toggle('show');
-        });
-        document.addEventListener('click', function (e) {
-            if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-        if (opts.apply && opts.onApply) opts.apply.addEventListener('click', opts.onApply);
-        if (opts.clear && opts.onClear) opts.clear.addEventListener('click', opts.onClear);
-    }
-};

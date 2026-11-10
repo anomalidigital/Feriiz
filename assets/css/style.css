@@ -28,7 +28,6 @@
     --feriiz-danger: #E74C3C;    /* Rejected, Absent */
     --feriiz-info: #2980B9;      /* Hours, Updated, Leave */
     --feriiz-neutral: #7F8C8D;   /* Inactive */
-    --feriiz-overtime: #F1C40F;  /* Overtime badge, dark text */
     --feriiz-flag-danger: #F8D2CD;   /* a Report log box that is missing, with a --feriiz-danger bar */
     /* What an import, Add Log or Delete Log changed is yellow, never blue (Baldy, 05-11-2026) */
     --feriiz-changed: #F39C12;       /* its bar or ring */
@@ -37,7 +36,6 @@
     --feriiz-changed-ink: #7A4A00;   /* dark text on the yellow ground, 6.5:1 */
 
     /* Surfaces */
-    --feriiz-bg: #F2F2F2;
     --feriiz-card: #FFFFFF;
     --feriiz-border: #D9D9D9;
     --feriiz-border-soft: #E5E8EC;
@@ -46,20 +44,11 @@
     --feriiz-text: #1a1a1a;
     --feriiz-text-muted: #777;
     --feriiz-text-hint: #6B7480;     /* helper text and units on white, 4.7:1 */
-    --feriiz-text-soft: #999;
 
     /* Shape */
     --feriiz-radius: 7px;
     --feriiz-radius-lg: 12px;
     --feriiz-radius-pill: 999px;
-
-    /* Layout */
-    --feriiz-sidebar-w: 56px;
-    --feriiz-sidebar-hover-w: 200px;
-    --feriiz-sidebar-mobile-w: 240px;
-
-    /* Type */
-    --feriiz-font: 'Poppins', sans-serif;
 }
 
 /* === RESET & BASE === */
@@ -901,10 +890,6 @@ body {
     padding: 24px;
 }
 
-.filter-dropdown.show {
-    display: block;
-}
-
 /* A dropdown taller than the room under its button scrolls inside (app.js fitDropdown), and its
    Clear / Apply stay in view at the bottom (Baldy, 05-11-2026). */
 .filter-dropdown.is-scrolling,
@@ -1168,22 +1153,6 @@ body {
 }
 /* === Extracted from project_employees.html: Project Employees page styles === */
 /* Manage Employee Modal Overlay */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
 
         .modal-overlay .modal-card {
             animation: modalSlideIn 0.25s ease;
@@ -1322,43 +1291,6 @@ body {
             background: #F4F7FA;
         }
 
-        /* Old attendance-preview in Name cell — replaced by Activity column */
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: flex-start;
-            padding-top: 6vh;
-            justify-content: center;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
-        .modal-card {
-            background: #fff;
-            border-radius: 14px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-            animation: slideUp 0.25s ease;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -1381,55 +1313,7 @@ body {
             }
         }
 
-        .filter-dropdown.show {
-            display: block !important;
-        }
-
 /* === Extracted from projects.html: Projects page modal styles === */
-.modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: flex-start;
-            padding-top: 6vh;
-            padding-bottom: 6vh;
-            justify-content: center;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
-        .modal-card {
-            background: #fff;
-            border-radius: 14px;
-            width: 560px;
-            max-width: 92vw;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-            animation: slideUp 0.25s ease;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 32px 32px 20px;
-        }
-
-        #projectModal {
-            padding-top: 2vh;
-            padding-bottom: 2vh;
-        }
 
 #projectModal .modal-card {
     width: 1040px !important;
@@ -1614,27 +1498,6 @@ body {
             }
         }
 
-.modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: flex-start;
-            padding-top: 6vh;
-            padding-bottom: 6vh;
-            justify-content: center;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
         .modal-card {
             background: #fff;
             border-radius: 14px;
@@ -1645,13 +1508,6 @@ body {
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
             animation: slideUp 0.25s ease;
             position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 24px 24px 16px;
         }
 
         @keyframes fadeIn {
@@ -1681,10 +1537,6 @@ body {
 .cal-header-left { display:flex; align-items:center; gap:12px; }
 .cal-header-right { display:flex; align-items:center; gap:12px; }
         .cal-title { font-size:24px; font-weight:800; color:#2975BB; margin:0; }
-        .cal-nav { display:flex; align-items:center; gap:8px; }
-        .cal-nav-btn { width:36px; height:36px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#555; transition:all 0.15s; }
-        .cal-nav-btn:hover { background:#f0f4f8; border-color:#2975BB; color:#2975BB; }
-        .cal-today-btn { padding:6px 16px; border:1px solid #2975BB; border-radius:8px; background:#2975BB; color:#fff; font-size:12px; font-weight:600; cursor:pointer; }
         .cal-month-label { font-size:22px; font-weight:700; color:#1a1a1a; min-width:180px; }
         /* Search Project */
         .cal-search-wrap { position:relative; }
@@ -1710,14 +1562,6 @@ body {
         .f-btn-apply { background:#2975BB; border:1px solid #2975BB; color:#fff; }
         .f-btn-apply:hover { background:#1e5f9e; }
 
-        .cal-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
-        .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
-        .cal-cell { min-height:120px; min-width:0; padding:6px; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; background:#fff; transition:background 0.15s; }
-        .cal-cell:hover { background:#fafcff; }
-        .cal-cell.today { background:#eef5ff; }
-        .cal-cell.other-month { background:#fafafa; }
-        .cal-cell.other-month .cal-date { color:#ccc; }
-        .cal-cell.weekend { background:#fdf8f4; }
         .cal-date { font-size:12px; font-weight:600; color:#555; margin-bottom:4px; }
 
         .cal-count-badge { display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600; color:#fff; margin-bottom:3px; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
@@ -1732,35 +1576,13 @@ body {
         .cal-holiday-bar { padding:3px 8px; border-radius:4px; background:#E67E22; color:#fff; font-size:12px; font-weight:500; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
         .cal-holiday-bar:hover { transform:translateY(-1px); box-shadow:0 2px 8px rgba(230,126,34,0.22); }
         .cal-holiday-bar.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
-        .holiday-edit-field { width:100%; border:1px solid #D9D9D9; border-radius:8px; padding:9px 12px; font-size:13px; outline:none; }
-        .holiday-edit-field:focus { border-color:#2975BB; box-shadow:0 0 0 3px rgba(41,117,187,0.08); }
-        .holiday-save-btn { margin-top:14px; width:100%; border:0; border-radius:8px; background:#2975BB; color:#fff; height:40px; font-size:13px; font-weight:700; cursor:pointer; }
 
         /* Overlay */
-        .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:flex-start; padding-top:10vh; justify-content:center; }
-        .cal-overlay.show { display:flex; }
         .cal-detail { background:#fff; border-radius:14px; width:480px; max-width:92vw; max-height:75vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.18); animation:slideUp 0.25s ease; }
         .cal-detail-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #eee; position:sticky; top:0; background:#fff; z-index:1; border-radius:14px 14px 0 0; }
-        .cal-detail-header h3 { font-size:15px; font-weight:700; color:#1a1a1a; margin:0; }
-        .cal-detail-close { width:30px; height:30px; border:none; background:#E74C3C; border-radius:6px; font-size:17px; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; transition:background 0.15s, transform 0.15s; }
-        .cal-detail-close:hover { background:#d93f31; transform:translateY(-1px); }
-        .cal-detail-body { padding:16px 24px 24px; }
         .cal-detail-row { display:flex; gap:12px; padding:8px 0; font-size:13px; border-bottom:1px solid #f5f5f5; }
-        .cal-detail-row:last-child { border-bottom:none; }
-        .cal-detail-label { width:110px; font-weight:600; color:#666; flex-shrink:0; }
         .cal-detail-value { color:#1a1a1a; font-weight:500; flex:1; }
         .cal-detail-value .badge-sm { display:inline-block; padding:3px 8px; border-radius:999px; color:#fff; font-size:12px; font-weight:700; line-height:1; }
-        .emp-list-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f5f5f5; }
-        .emp-list-item:last-child { border-bottom:none; }
-        .emp-list-num { width:24px; height:24px; border-radius:50%; background:#f0f4f8; color:#2975BB; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-        .emp-list-info { flex:1; }
-        .emp-list-name { font-size:13px; font-weight:600; color:#1a1a1a; }
-        .emp-list-sub { font-size:12px; color:#888; margin-top:2px; }
-        .emp-list-sub .badge-sm { display:inline-block; padding:1px 6px; border-radius:3px; font-size:12px; font-weight:600; color:#fff; }
-        .badge-accepted { background:#27AE60; }
-        .badge-pending { background:#E67E22; }
-        .badge-rejected { background:#E74C3C; }
-        .total-bar { padding:10px 0 0; margin-top:8px; border-top:1px solid #eee; font-size:12px; font-weight:600; color:#888; }
         .calendar-layout { display:flex; gap:20px; align-items:flex-start; }
         .request-panel { width:320px; flex:0 0 320px; background:#fff; border:1px solid #E5E8EC; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.04); overflow:hidden; position:sticky; top:24px; max-height:calc(100vh - 96px); display:flex; flex-direction:column; }
         .request-panel-head { padding:18px 18px 14px; border-bottom:1px solid #EEF1F4; }
@@ -1811,19 +1633,11 @@ body {
         }
         @media (max-width: 768px) {
             .calendar-board-top { align-items:flex-start; flex-direction:column; }
-            .cal-grid { min-width:760px; }
             .calendar-board { width:100%; overflow-x:auto; }
         }
         @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
 /* === Extracted from employees.html === */
-.modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000;
-            align-items: flex-start; justify-content: center; padding-top: 4vh;
-            animation: fadeIn 0.2s ease;
-        }
-        .modal-overlay.show { display: flex; }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
         @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
@@ -1880,95 +1694,12 @@ body {
         }
 
 /* === Extracted from employee_report.html === */
-.report-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .report-actions .btn-action {
-            display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px;
-            border-radius: 6px; border: 1.5px solid #166DBA; background: #fff; color: #166DBA; font-size: 13px; font-weight: 600; cursor: pointer;
-        }
-        .report-actions .btn-action:hover { background: #f0f7ff; }
-        .report-actions .btn-action.primary { background: #166DBA; color: #fff; border-color: #166DBA; }
 
-                /* removed old bar */
-
-                .report-table { width: 100%; min-width: 1400px; border-collapse: collapse; font-size: 12px; }
-        .report-table thead th { border-right: 1.5px solid #E5E8EC; background: #fff; color: #1a1a1a; font-weight: 700; padding: 14px 16px; text-align: left; border-bottom: 2px solid #D9D9D9; white-space: nowrap; font-size: 12px; }
-        .report-table thead th.group-header { text-align: center; border-bottom: 1.5px solid #D9D9D9; font-size: 13px; font-weight: 700; }
-        .report-table tbody td { border-right: 1.5px solid #E5E8EC; padding: 18px 16px; border-bottom: 1.5px solid #E5E8EC; color: #333; vertical-align: top; white-space: nowrap; }
-        .report-table tbody tr:hover { background: #fafcff; }
-        .emp-name-cell { font-weight: 600; color: #1a1a1a; }
-        .emp-code-cell { font-size: 12px; color: #888; font-weight: 400; }
         .emp-occupation-cell { font-size: 12px; color: #666; font-weight: 500; margin-top: 3px; }
-        .rate-cell { color: #166DBA; }
-        .note-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #166DBA; color: #166DBA; cursor: pointer; font-size: 12px; }
-        /* Report is read-only: hide row-level edit/add/delete controls. */
-        .report-table .day-col .btn,
-        .report-table .note-icon {
-            display: none !important;
-        }
-        .report-table .day-col>div:first-child {
-            justify-content: flex-start !important;
-        }
-            .filter-dropdown.show { display: block !important; }
-        /* Clean layout overrides for report pages */
-        .report-table-wrap {
-            overflow-x: auto;
-            width: auto !important;
-            margin-top: 0;
-        }
 
         /* Flexbox Viewport Sticky Overrides */
         /* Wrapper div replaces the old <body class="report-layout">; it is the flex row now. */
         div.report-layout { display: flex; flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; height: 100vh; }
-        div.report-layout .main-content {
-            height: 100vh !important;
-            display: flex !important;
-            flex-direction: column !important;
-            padding: 0 !important; /* Reset padding so flex takes full height properly */
-            overflow: hidden !important;
-        }
-        .fixed-toolbar {
-            flex-shrink: 0;
-            position: relative !important; /* Remove sticky to let flex manage it */
-            padding: 24px 40px 16px 40px !important; /* Restore horizontal padding */
-        }
-        .report-table-wrap {
-            flex: 1;
-            overflow: auto !important; /* Both X and Y scrolling allowed solely in this area */
-            margin: 0 40px !important;
-            padding: 0 !important; /* Horizontal padding for table */
-        }
-        .fixed-bottom-bar {
-            flex-shrink: 0;
-            background: #fff;
-            padding: 16px 40px;
-            border-top: 1px solid #D9D9D9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            z-index: 90;
-        }
-        .version-text {
-            position: absolute;
-            left: 40px;
-            font-size: 12px;
-            color: #bbb;
-        }
-        /* Webkit Sticky: base settings only (Master Override handles the rest) */
-        .day-col-hidden {
-            display: none !important;
-        }
-
-        /* Sticky Column: horizontal positioning only (Master Override handles bg/shadow) */
-        .sticky-col {
-            position: sticky !important;
-            left: 0 !important;
-            background-clip: padding-box !important;
-        }
-
-#downloadDropdown { display:none; }
-        #downloadDropdown.show { display:block; }
-        #downloadDropdown > div:not([style*="height:1px"]):hover { background:#f5f8fc; }
 
 /* === Report Search === */
 .report-search-wrap {
@@ -2060,13 +1791,6 @@ body {
             align-items: center;
             justify-content: center;
             transition: all 0.15s ease;
-        }
-
-        #approvalModal,
-        #addRequestModal {
-            padding-top: 2vh;
-            padding-bottom: 2vh;
-            align-items: flex-start;
         }
 
         #approvalModal .modal-card,
@@ -2251,30 +1975,16 @@ body {
             }
         }
 
-/* === Extracted from project_calendar.html === */
-.cal-wrapper { display:flex; gap:0; height:calc(100vh - 120px); }
-        .cal-sidebar { width:260px; min-width:220px; background:#fff; border-right:1px solid #e8ecf0; overflow-y:auto; padding:20px 16px; flex-shrink:0; }
-        .cal-sidebar h3 { font-size:14px; font-weight:700; color:#1a1a1a; margin:0 0 12px; }
-        .cal-sidebar-section { margin-bottom:24px; }
-        .cal-sidebar-item { font-size:12px; color:#444; margin-bottom:10px; padding-left:12px; border-left:3px solid #2975BB; }
-        .cal-sidebar-item .item-name { font-weight:600; color:#1a1a1a; }
-        .cal-sidebar-item .item-sub { color:#888; font-size:12px; margin-top:2px; }
-        .cal-sidebar-item .badge-sm { display:inline-block; padding:1px 8px; border-radius:4px; font-size:12px; font-weight:600; color:#fff; margin-top:3px; }
+/* === Calendar: first written for project_calendar.html (removed 10-11-2026), used by calendar.html === */
         .badge-accepted { background:#27AE60; }
         .badge-pending { background:#E67E22; }
         .badge-rejected { background:#E74C3C; }
 
-        .cal-main { flex:1; overflow:auto; padding:0; display:flex; flex-direction:column; }
-        .cal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; flex-shrink:0; }
         .cal-title { font-size:22px; font-weight:700; color:#1a1a1a; }
         .cal-nav { display:flex; align-items:center; gap:8px; }
         .cal-nav-btn { width:36px; height:36px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#555; transition:all 0.15s; }
         .cal-nav-btn:hover { background:#f0f4f8; border-color:#2975BB; color:#2975BB; }
         .cal-today-btn { padding:6px 16px; border:1px solid #2975BB; border-radius:8px; background:#2975BB; color:#fff; font-size:12px; font-weight:600; cursor:pointer; }
-        .cal-toggle { display:flex; border:2px solid #2975BB; border-radius:8px; overflow:hidden; }
-        .cal-toggle button { padding:6px 18px; border:none; background:#fff; color:#2975BB; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
-        .cal-toggle button.active { background:#2975BB; color:#fff; }
-        .cal-fullscreen-btn { padding:6px 14px; border:1px solid #333; border-radius:8px; background:#333; color:#fff; font-size:12px; font-weight:600; cursor:pointer; }
 
         .cal-grid { flex:1; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-top:1px solid #e0e0e0; border-left:1px solid #e0e0e0; }
         .cal-day-header { padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:#2975BB; background:#f5f8fc; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0; text-transform:uppercase; }
@@ -2285,19 +1995,6 @@ body {
         .cal-cell.other-month .cal-date { color:#ccc; }
         .cal-cell.weekend { background:#fdf8f4; }
         .cal-date { font-size:12px; font-weight:600; color:#555; padding:2px 6px; }
-        .cal-events { margin-top:2px; display:flex; flex-direction:column; gap:2px; }
-        .cal-event { padding:2px 6px; border-radius:4px; font-size:12px; font-weight:500; color:#fff; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:transform 0.1s, box-shadow 0.1s; }
-        .cal-event:hover { transform:scale(1.02); box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:2; position:relative; }
-        .cal-event.is-span { margin-left:-4px; margin-right:-4px; border-radius:0; }
-        .cal-event.span-start { margin-left:0; border-radius:4px 0 0 4px; }
-        .cal-event.span-end { margin-right:0; border-radius:0 4px 4px 0; }
-        .cal-event.span-single { margin-left:0; margin-right:0; border-radius:4px; }
-        .cal-event.cat-work { background:#27AE60; }
-        .cal-event.cat-leave { background:#2980B9; }
-        .cal-event.cat-sick { background:#E74C3C; }
-        .cal-event.cat-other { background:#E67E22; }
-        .cal-event.company-working { background:#EBF3FA; color:#166DBA; border:1px solid #166DBA; }
-        .cal-more { font-size:12px; color:#2975BB; font-weight:600; cursor:pointer; padding:1px 6px; }
 
         /* Detail Overlay */
         .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:flex-start; padding-top:10vh; justify-content:center; animation:fadeIn 0.2s ease; }
@@ -2371,13 +2068,6 @@ div.report-layout .report-actions {
     border-color: #D0D5DD;
 }
 
-        .report-table {
-            width: 100%;
-            min-width: 1400px;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
         .report-table thead th {
             border-right: 1.5px solid #E5E8EC;
             background: #fff;
@@ -2396,15 +2086,6 @@ div.report-layout .report-actions {
             font-size: 13px;
             font-weight: 700;
             color: #1a1a1a;
-        }
-
-        .report-table tbody td {
-            border-right: 1.5px solid #E5E8EC;
-            padding: 18px 16px;
-            border-bottom: 1.5px solid #E5E8EC;
-            color: #333;
-            vertical-align: top;
-            white-space: nowrap;
         }
 
         .report-table tbody tr:hover {
@@ -2426,22 +2107,8 @@ div.report-layout .report-actions {
             color: #166DBA;
         }
 
-        .note-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px solid #166DBA;
-            color: #166DBA;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
         /* Report is read-only: hide row-level edit/add/delete controls. */
-        .report-table .day-col .btn,
-        .report-table .note-icon {
+        .report-table .day-col .btn {
             display: none !important;
         }
 
@@ -3356,7 +3023,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-086 { text-align:center; border-top:2px solid #ddd; color:#333; }
 .feriiz-u-087 { text-align:center; border-top:2px solid #ddd; color:#e74c3c; }
 .feriiz-u-088 { border-top:2px solid #ddd; }
-.feriiz-u-092 { clear:both; margin-top:32px; font-size:12px; color:#bbb; }
 .feriiz-u-093 { font-size:12px; color:#888; font-weight:500; }
 .feriiz-u-095 { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
 .feriiz-u-098 { background:#E67E22; color:#fff; border:none; box-shadow:none; align-items:center; padding:20px 24px; border-radius:10px; }
@@ -3497,18 +3163,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-209 { padding:0 32px 32px; display:flex; justify-content:flex-end; gap:12px; }
 .feriiz-u-210 { color:#166DBA; border:1px solid #166DBA; padding:10px 24px; border-radius:6px; background:#fff; font-weight:600; cursor:pointer; }
 .feriiz-u-211 { background:#166DBA; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-weight:600; cursor:pointer; }
-.feriiz-u-227 { padding:0; overflow:hidden; }
-.feriiz-u-228 { padding:16px 24px 0; }
-.feriiz-u-229 { font-size:13px; color:#888; margin-bottom:4px; font-weight:500; }
-.feriiz-u-230 { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-.feriiz-u-231 { margin:0; font-size:24px; font-weight:800; color:#2975BB; }
-.feriiz-u-233 { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; }
-.feriiz-u-234 { color:#27AE60; font-weight:600; }
-.feriiz-u-236 { color:#2980B9; font-weight:600; }
-.feriiz-u-237 { color:#E74C3C; font-weight:600; }
-.feriiz-u-238 { height:1px; background:#eee; margin:4px 0; }
-.feriiz-u-239 { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; font-weight:700; }
-.feriiz-u-240 { font-size:12px; color:#aaa; padding:8px 0; }
 .feriiz-u-242 { display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:8px; }
 .feriiz-u-243 { accent-color:#166DBA; width:16px; height:16px; }
 .feriiz-u-244 { font-size:13px; color:#333; }
@@ -4517,59 +4171,6 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     margin-top: 0.2mm !important;
     font-weight: 400 !important;
     line-height: 1.2 !important;
-}
-
-/* --- daily attendance cell --- */
-.print-day-cell {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 0.3mm !important;
-}
-
-.print-day-badges {
-    display: flex !important;
-    justify-content: center !important;
-    gap: 0.5mm !important;
-    flex-wrap: wrap !important;
-}
-
-.print-badge-work,
-.print-badge-ot {
-    font-size: var(--pt-sub) !important;
-    font-weight: 600 !important;
-    padding: 0.1mm 0.6mm !important;
-    border-radius: 0.6mm !important;
-    white-space: nowrap !important;
-}
-
-.print-badge-work {
-    background: #dbeafe !important;
-    color: #1e40af !important;
-}
-
-.print-badge-ot {
-    background: #fef3c7 !important;
-    color: #92400e !important;
-}
-
-.print-day-log {
-    font-size: var(--pt-sub) !important;
-    color: var(--ink) !important;
-    white-space: nowrap !important;
-    font-variant-numeric: tabular-nums !important;
-}
-
-.print-log-label {
-    color: var(--ink-muted) !important;
-}
-
-.print-no-log {
-    color: #cbd5e1 !important;
-}
-
-.print-day-off {
-    color: var(--ink-muted) !important;
 }
 
 /* ===============================  FOOTER  =============================== */
@@ -5862,7 +5463,6 @@ body[data-page="print-preview"] {
 
     /* --- Version footer --- */
     .feriiz-u-032,
-    .feriiz-u-092,
     .version-text {
         font-size: 12px !important;
         text-align: center !important;
@@ -7308,7 +6908,6 @@ div.report-layout .report-search-input {
         grid-template-columns: 1fr;
     }
 }
-
 
 .tpl-optional {
     color: #8A94A3;

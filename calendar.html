@@ -6,11 +6,11 @@
     <title>Feriiz - Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.87">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.87">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.88">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.88">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.87" defer></script>
-    <script src="assets/js/app.js?v=3.7.87" defer></script>
+    <script src="assets/js/data.js?v=3.7.88" defer></script>
+    <script src="assets/js/app.js?v=3.7.88" defer></script>
 </head>
 <body data-page="calendar">
     <aside class="sidebar"></aside>
@@ -100,7 +100,7 @@
                     <div class="calendar-legend-item"><span class="feriiz-u-009"></span> Libur & Lainnya</div>
                 </div>
                 <div class="cal-grid" id="calGrid"></div>
-                <div class="feriiz-u-010">version : 3.7.87</div>
+                <div class="feriiz-u-010">version : 3.7.88</div>
             </section>
         </div>
     </main>
@@ -341,20 +341,6 @@
             }).join('');
         }
 
-        function showList(cat, dateStr) {
-            const events = getFilteredEvents().filter(e=>e.cat===cat&&e.dateStart<=dateStr&&e.dateEnd>=dateStr);
-            const dt = new Date(dateStr+'T00:00:00');
-            const dateLabel = dt.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-            document.getElementById('overlayTitle').textContent = `${CAT_LABELS[cat]} - ${dateLabel}`;
-            let html='';
-            events.forEach((e,i)=>{
-                const sc=e.status==='Accepted'?'badge-accepted':e.status==='Pending'?'badge-pending':'badge-rejected';
-                html+=`<div class="emp-list-item"><div class="emp-list-num">${i+1}</div><div class="emp-list-info"><div class="emp-list-name">${e.name}</div><div class="emp-list-sub"><span class="badge-sm ${sc}">${e.status}</span> - PIC: ${e.pic}</div></div></div>`;
-            });
-            html+=`<div class="total-bar">Total: ${events.length} employee${events.length>1?'s':''}</div>`;
-            document.getElementById('overlayBody').innerHTML=html;
-            document.getElementById('calOverlay').classList.add('show');
-        }
         function showEventDetailByIndex(index) {
             const e = EVENTS[index];
             if (!e) return;

@@ -256,11 +256,6 @@ img, svg {
     border-radius: 8px;
 }
 
-.form-check-label {
-    font-size: 13px;
-    color: #333;
-}
-
 /* --- Bootstrap tooltips (the "?" next to Daily / One time) --- */
 .tooltip {
     --bs-tooltip-zindex: 10060; /* above .modal (10050) */

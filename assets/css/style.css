@@ -3440,8 +3440,6 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 .feriiz-u-132 { position:relative; }
 .feriiz-u-133 { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .feriiz-u-134 { display:flex; gap:6px; }
-.feriiz-u-135 { background:var(--feriiz-info); color:#fff; font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
-.feriiz-u-136 { background:var(--feriiz-overtime); color:var(--feriiz-text); font-weight:600; padding:4px 8px; border-radius:6px; font-size:12px; }
 .feriiz-u-140 { display:flex; flex-direction:column; gap:6px; }
 .feriiz-u-141 { display:flex; justify-content:space-between; align-items:center; background:#f4f6f8; padding:6px 10px; border-radius:6px; font-size:13px; color:#333; font-weight:500; }
 .feriiz-u-142 { color:var(--feriiz-success); margin-right:6px; }
@@ -3801,24 +3799,48 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
     color: #fff;
 }
 
-/* === Day marks on the boxes, not on the cell (Baldy, 05-11-2026: "kotak yang di text nya aja
-   yang berwarna") === No blue (05-11-2026): a missing log is a red box, one or both; a log box an
-   import, Add Log or Delete Log made differ from the machine's original is yellow, and a changed
-   hours or overtime number gets a yellow ring. Each box is a tint with a bar. */
-.feriiz-u-141.log-missing {
-    background: var(--feriiz-flag-danger);
-    box-shadow: inset 3px 0 0 var(--feriiz-danger);
-    opacity: 1;
+/* A day's hours and overtime, bold text as on the old Feriiz: "9h / 0.08h" (Baldy, 10-11-2026:
+   no blue and yellow badges). Clear of the day's checkbox, top right. */
+.day-hours {
+    margin-bottom: 8px;
+    padding-right: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1A1A1A;
+    white-space: nowrap;
 }
 
-.feriiz-u-141.log-changed {
-    background: var(--feriiz-changed-tint);
-    box-shadow: inset 3px 0 0 var(--feriiz-changed);
-    opacity: 1;
+/* === Day marks on the whole cell (Baldy, 10-11-2026: "tanda nya lansung satu coloms aja deh
+   jangan coloms per text lagi"; on the log boxes from 05-11) === No blue: a day an import, Add
+   Log or Delete Log left different from the machine's original is yellow; otherwise a day missing
+   a log, one or both, is red. A tint with a bar, its log boxes on white; the colour stays on
+   hover and when the day is ticked (the blue outline shows the tick). In a split day each half
+   carries its own colour, as in the History window. */
+div.report-layout .report-table tbody td.day-col.day-changed,
+div.report-layout .report-table tbody td.day-col.day-changed:has(.day-cell-select:checked),
+.day-half.day-changed {
+    background: var(--feriiz-changed-tint) !important;
+    box-shadow: inset 4px 0 0 var(--feriiz-changed);
 }
 
-.badge.badge-changed {
-    box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--feriiz-changed);
+div.report-layout .report-table tbody tr:hover td.day-col.day-changed {
+    background: #FDE68A !important;
+}
+
+div.report-layout .report-table tbody td.day-col.day-missing,
+div.report-layout .report-table tbody td.day-col.day-missing:has(.day-cell-select:checked),
+.day-half.day-missing {
+    background: var(--feriiz-flag-danger) !important;
+    box-shadow: inset 4px 0 0 var(--feriiz-danger);
+}
+
+div.report-layout .report-table tbody tr:hover td.day-col.day-missing {
+    background: #F3B6AE !important;
+}
+
+.day-changed .feriiz-u-141,
+.day-missing .feriiz-u-141 {
+    background: #fff;
 }
 
 /* Weekend off cells */
@@ -3991,8 +4013,8 @@ div.report-layout .report-table thead th.day-col.day-split-col {
     border-radius: 8px;
 }
 
-/* The two halves of a split day, the newest on the left, are outlined alike: only their boxes
-   carry colour, as in any day (Baldy, 05-11-2026). */
+/* The two halves of a split day, the newest on the left, are outlined alike; each half is
+   coloured as a whole when it is changed or missing a log (10-11-2026). */
 .day-split > .day-half:not(.is-empty) {
     border: 1px solid var(--feriiz-border-soft);
 }
@@ -4025,7 +4047,7 @@ div.report-layout .report-table tbody td.day-split-cell {
     padding: 10px !important;
 }
 
-/* The hour and overtime badges stay on one line. */
+/* A request chip stays on one line. */
 .report-table td.day-col .feriiz-u-134 {
     flex-wrap: nowrap;
 }
@@ -7436,7 +7458,7 @@ div.report-layout .report-table td.day-col > .feriiz-u-133 {
     padding-right: 24px;
 }
 
-/* Every day starts at the top of its row, so the badges and logs line up from day to day
+/* Every day starts at the top of its row, so the hours and logs line up from day to day
    whether or not a day has request chips under it (Baldy, 04-11-2026: "di sejajari"). */
 div.report-layout .report-table tbody td.day-col {
     vertical-align: top !important;

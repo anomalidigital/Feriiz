@@ -228,9 +228,9 @@
        The newest version is what the day shows and counts ("import 1 > import 2 > add log:
        yang dipake add log", and the other way round). A version keeps only the days it
        changes: a day a file or Add Log leaves as it was gets no version and no History
-       (Baldy, 05-11-2026: "kalau data nya sama itu gausah ada history"). What a change made
-       is yellow on the day's boxes, for an import and for Add Log alike ("sama sama update"),
-       and a missing log red (see dayMarks). With Filter > Show history a changed day splits:
+       (Baldy, 05-11-2026: "kalau data nya sama itu gausah ada history"). A day a change made
+       different is yellow, for an import and for Add Log alike ("sama sama update"), and a
+       day missing a log red, each on its whole cell (see dayMark). With Filter > Show history a changed day splits:
        the newest version on the left, the original on the right (Pak Stef, 04-11-2026), and
        a date's History lists every version. Prototype only: kept in this browser per project
        until the API exists.
@@ -551,28 +551,23 @@
     }
 
     // A missing log's box, coloured by its mark.
-    function emptyLine(mark) {
-        return '<div class="feriiz-u-141 log-empty-row' + (mark ? ' ' + mark : '') + '"><span class="log-placeholder">--:--:--</span></div>';
+    function emptyLine() {
+        return '<div class="feriiz-u-141 log-empty-row"><span class="log-placeholder">--:--:--</span></div>';
     }
 
-    // The colours on a day's boxes (Baldy, 05-11-2026: "kotak yang di text nya aja yang
-    // berwarna", the cell itself stays white; no blue): a log box an import, Add Log or Delete
-    // Log made differ from the machine's original is yellow, a missing log red, one or both
-    // (issue, see dayIssue); hours (or a Daily) or overtime that changed get a yellow ring.
-    function dayMarks(employee, date, s, count, issue) {
-        var o = dayState(employee.code, date, null);
-        var oc = logCount(employee.code, date, o.inTime, o.outTime);
-        var changed = Boolean(s.last);
-        function logMark(now, orig, side) {
-            if (changed && now !== orig) return 'log-changed';
-            return issue === 'both' || issue === side ? 'log-missing' : '';
+    // A day's colour, on its whole cell (Baldy, 10-11-2026: "tanda nya lansung satu coloms aja
+    // deh jangan coloms per text lagi"; it was on the log boxes from 05-11): 'day-changed'
+    // (yellow) when a version (an import, Add Log or Delete Log) left the day different from the
+    // machine's original, its logs or its numbers; else 'day-missing' (red) when a log is
+    // missing, one or both (issue, see dayIssue); else ''. No blue.
+    function dayMark(employee, date, s, count, issue) {
+        if (s.last) {
+            var o = dayState(employee.code, date, null);
+            var oc = logCount(employee.code, date, o.inTime, o.outTime);
+            if (s.inTime !== o.inTime || s.outTime !== o.outTime || Number(count.daily) !== oc.daily ||
+                Math.abs(count.work - oc.work) >= 0.01 || Math.abs(count.ot - oc.ot) >= 0.01) return 'day-changed';
         }
-        return {
-            inCls: logMark(s.inTime, o.inTime, 'in'),
-            outCls: logMark(s.outTime, o.outTime, 'out'),
-            work: changed && (Math.abs(count.work - oc.work) >= 0.01 || Number(count.daily) !== oc.daily),
-            ot: changed && Math.abs(count.ot - oc.ot) >= 0.01
-        };
+        return issue ? 'day-missing' : '';
     }
 
     /* History of one day (the clock button after its date, with Show history, from its second
@@ -592,8 +587,8 @@
         if (!b.cells[employee.code + '|' + date]) return '<span class="import-history-none">–</span>';
         var s = dayState(employee.code, date, b);
         var c = stateCount(employee, date, s);
-        var marks = dayMarks(employee, date, s, c, dayIssue(employee.code, date, s));
-        return '<div class="day-half day-half--changed">' + badgesHTML(c.work, c.ot, marks) + logLinesHTML(s, marks) + '</div>';
+        var mark = dayMark(employee, date, s, c, dayIssue(employee.code, date, s));
+        return '<div class="day-half day-half--changed' + (mark ? ' ' + mark : '') + '">' + hoursHTML(c.work, c.ot) + logLinesHTML(s) + '</div>';
     }
 
     function buildHistoryModal() {
@@ -686,34 +681,31 @@
        ============================================= */
     function buildClockLine(type, value, options) {
         var note = (options && options.note) || '';
-        var mark = (options && options.mark) || '';
         var iconClass = type === 'in'
             ? 'fa-arrow-right-to-bracket feriiz-u-142'
             : 'fa-arrow-right-from-bracket feriiz-u-144';
         var noteButton = note
             ? '<button type="button" class="report-log-note-btn" data-log-type="' + type + '" title="View log note" aria-label="View ' + (type === 'in' ? 'log in' : 'log out') + ' note"><i class="fa-solid fa-note-sticky"></i></button>'
             : '';
-        return '<div class="feriiz-u-141' + (mark ? ' ' + mark : '') + '">' +
+        return '<div class="feriiz-u-141">' +
             '<span><i class="fa-solid ' + iconClass + '"></i>' + escapeHTML(value) + '</span>' +
             noteButton + '</div>';
     }
 
-    // A day's log in over its log out, "--:--:--" for a missing one, each box with its mark.
-    function logLinesHTML(logs, marks) {
-        marks = marks || {};
+    // A day's log in over its log out, "--:--:--" for a missing one.
+    function logLinesHTML(logs) {
         return '<div class="feriiz-u-140">' +
-            (logs.inTime ? buildClockLine('in', logs.inTime, { note: logs.inNote, mark: marks.inCls }) : emptyLine(marks.inCls)) +
-            (logs.outTime ? buildClockLine('out', logs.outTime, { note: logs.outNote, mark: marks.outCls }) : emptyLine(marks.outCls)) +
+            (logs.inTime ? buildClockLine('in', logs.inTime, { note: logs.inNote }) : emptyLine()) +
+            (logs.outTime ? buildClockLine('out', logs.outTime, { note: logs.outNote }) : emptyLine()) +
         '</div>';
     }
 
-    // A day's hours and overtime badges; a changed number gets a yellow ring.
-    function badgesHTML(work, ot, marks) {
-        marks = marks || {};
-        return '<div class="feriiz-u-133"><div class="feriiz-u-134">' +
-            '<span class="badge feriiz-u-135' + (marks.work ? ' badge-changed' : '') + '">' + formatHour(work) + '</span>' +
-            '<span class="badge feriiz-u-136' + (marks.ot ? ' badge-changed' : '') + '">' + formatHour(ot) + ' OT</span>' +
-        '</div></div>';
+    // A day's hours and overtime, bold text as on the old Feriiz: "9h / 0.08h" (Baldy,
+    // 10-11-2026: the blue and yellow badges "di ilangin… mereka lebih bold aja"). Print reads them.
+    function hoursHTML(work, ot) {
+        return '<div class="day-hours" title="Hours / overtime">' +
+            '<span class="day-hours-work">' + formatHour(work) + '</span> / ' +
+            '<span class="day-hours-ot">' + formatHour(ot) + '</span></div>';
     }
 
     /* =============================================
@@ -785,8 +777,8 @@
         return chips ? content + '<div class="req-chip-row">' + chips + '</div>' : content;
     }
 
-    // A day in a given state: its class and data, and what goes inside, its boxes marked (see
-    // dayMarks). noteAttrs lets the original half of a split day open its own log notes.
+    // A day in a given state: its class, its colour (mark, see dayMark) and data, and what goes
+    // inside. noteAttrs lets the original half of a split day open its own log notes.
     function dayContent(employee, date, s) {
         var code = employee.code;
         var numbered = s.numbers && (s.numbers.daily || s.numbers.ot);
@@ -801,46 +793,47 @@
         var issue = dayIssue(code, date, s);
         // The data keeps the logs (notes, Batch Update); the cell shows the view.
         var count = stateCount(employee, date, s);
-        var marks = dayMarks(employee, date, s, count, issue);
         return {
             cls: '',
             issue: issue,
+            mark: dayMark(employee, date, s, count, issue),
             attrs: (s.numbers ? ' data-imported="1"' : '') + ' data-daily="' + count.daily + '"' + (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(s) +
                 ' data-work="' + count.work.toFixed(4) + '" data-ot="' + count.ot.toFixed(4) + '" data-ot-total="' + count.ot.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logDataAttrs(s),
-            content: withRequestChips(badgesHTML(count.work, count.ot, marks) + logLinesHTML(s, marks), code, date)
+            content: withRequestChips(hoursHTML(count.work, count.ot) + logLinesHTML(s), code, date)
         };
     }
 
-    // The right half of a split day: the machine's original, its missing logs marked on their
-    // boxes. A day off keeps its request chips (a red-date incentive).
+    // The right half of a split day: the machine's original, red when it misses a log. A day
+    // off keeps its request chips (a red-date incentive).
     function systemHalfHTML(sys) {
         if (sys.off) return '<div class="day-half day-half--system is-empty">' + (sys.content || '') + '<span class="day-half-empty">Day off</span></div>';
-        return '<div class="day-half day-half--system"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
+        return '<div class="day-half day-half--system' + (sys.mark ? ' ' + sys.mark : '') + '"' + (sys.noteAttrs || '') + '>' + sys.content + '</div>';
     }
 
     var NO_CHANGE_HALF = '<div class="day-half day-half--changed is-empty"><span class="day-half-empty">No change</span></div>';
     var CELL_CHECKBOX = '<div class="day-cell-checkbox"><input type="checkbox" class="day-cell-select"></div>';
 
-    // One day as it stands, the marks on its boxes; a day a version changed says which and who
-    // in its tooltip. With Show history a split column shows the newest version on the left and
-    // the original on the right (the same when a later version put the day back); a day no
-    // version changed has an empty left half.
+    // One day as it stands, coloured as a whole (see dayMark); a day a version changed says which
+    // and who in its tooltip. With Show history a split column shows the newest version on the
+    // left and the original on the right (the same when a later version put the day back), each
+    // half with its own colour; a day no version changed has an empty left half.
     function dayCellHTML(employee, date) {
         var s = dayState(employee.code, date);
         var shown = versionShown(employee, date, s);
         var now = dayContent(employee, date, s);
         var cls = now.cls ? ' ' + now.cls : '';
+        var mark = now.mark ? ' ' + now.mark : '';
         var title = shown ? ' title="' + escapeHTML(versionText(s.last)) + '"' : '';
         if (splitDates[date] && !(now.off && !shown)) {
             var halves = shown
-                ? '<div class="day-half day-half--changed"' + title + '>' + now.content + '</div>' +
+                ? '<div class="day-half day-half--changed' + mark + '"' + title + '>' + now.content + '</div>' +
                     systemHalfHTML(dayContent(employee, date, dayState(employee.code, date, null)))
                 : NO_CHANGE_HALF + systemHalfHTML(now);
             return '<td class="day-col feriiz-u-132 day-split-cell' + cls + '" data-date="' + date + '"' + now.attrs + '>' +
                 CELL_CHECKBOX + '<div class="day-split">' + halves + '</div></td>';
         }
-        return '<td class="day-col feriiz-u-132' + cls + '" data-date="' + date + '"' + now.attrs + title + '>' + CELL_CHECKBOX + now.content + '</td>';
+        return '<td class="day-col feriiz-u-132' + cls + mark + '" data-date="' + date + '"' + now.attrs + title + '>' + CELL_CHECKBOX + now.content + '</td>';
     }
 
     function createDayCells(employee, dates) {

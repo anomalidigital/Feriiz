@@ -216,13 +216,12 @@
         }
 
         // A split day (newest | original) prints the newest version, which is what the totals
-        // count. Only the hour and overtime badges are read, not the request chips.
+        // count. Only its hours and overtime are read ("9h / 0.08h"), not the request chips.
         var scope = dayTd.querySelector('.day-half--changed:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
-        scope.querySelectorAll('.feriiz-u-135, .feriiz-u-136').forEach(function (b) {
-            var text = b.textContent.trim();
-            if (text.toLowerCase().includes('ot')) e.o = text.replace(/ot/i, '').trim();
-            else if (text) e.p = text.replace(/h/i, '').trim();
-        });
+        var work = scope.querySelector('.day-hours-work');
+        var ot = scope.querySelector('.day-hours-ot');
+        if (work && work.textContent.trim()) e.p = work.textContent.replace(/h/i, '').trim();
+        if (ot && ot.textContent.trim()) e.o = ot.textContent.trim();
 
         if (e.p === '-' && e.o === '-' && (dayTd.dataset.inTime || dayTd.dataset.outTime)) e.p = '1';
         return e;

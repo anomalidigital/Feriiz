@@ -7,20 +7,22 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.83">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.83">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.84">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.84">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.83" defer></script>
-    <script src="assets/js/app.js?v=3.7.83" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.83" defer></script>
+    <script src="assets/js/data.js?v=3.7.84" defer></script>
+    <script src="assets/js/app.js?v=3.7.84" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.84" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026: "paling makesanse tuh taro nya di benefits… kiri nya
      buat yang masalah one time, terus kanan nya buat yang set default nya… di ubah dari benefits jadi
      settings"), two panels:
-     - Benefits: THR, pay for the red dates and other one-off amounts, each Name, Date, Amount, Note
-       (09-11-2026: one date and amount each, no Copy, no note under the title).
-     - Default Hours per Occupation: every occupation of the employees assigned to the project, a
+     - Public Holidays: every national holiday of the year, the same in every project at first,
+       each with the incentive for working on it (10-11-2026: "namanya jangan benefits… tambahkan
+       semua tanggal merah kalender pemerintah… apply ke semua project dan mereka sama"); THR or
+       another one-off amount can be added. Name, Date, Amount, Note; no Copy.
+     - Default Hours ("Per occupations" taken off the title, 10-11-2026): every occupation of the employees assigned to the project, a
        row each and a field per day written hours/overtime, as Arcon's sheet (Baldy, 10-11-2026:
        "jangan all occupation… tunjukin semua aja… berdasarkan employee yang di assign di project").
        An occupation never set here, e.g. a new employee's, starts at 8/2 every day ("ketika
@@ -45,12 +47,12 @@
         </div>
 
         <div class="settings-grid">
-            <section class="settings-panel" aria-labelledby="benefitsTitle">
+            <section class="settings-panel" aria-labelledby="holidaysTitle">
                 <div class="settings-panel-head">
-                    <h2 class="settings-panel-title" id="benefitsTitle">Benefits</h2>
+                    <h2 class="settings-panel-title" id="holidaysTitle">Public Holidays</h2>
                     <button class="btn btn-outline btn-sm" type="button" id="addPayBtn">
                         <i class="fa-solid fa-plus"></i>
-                        Add Benefit
+                        Add Holiday
                     </button>
                 </div>
                 <div class="table-container">
@@ -70,7 +72,7 @@
 
             <section class="settings-panel" aria-labelledby="occHoursTitle">
                 <div class="settings-panel-head">
-                    <h2 class="settings-panel-title" id="occHoursTitle">Default Hours per Occupation</h2>
+                    <h2 class="settings-panel-title" id="occHoursTitle">Default Hours</h2>
                 </div>
                 <div class="occ-hours" id="occHours"></div>
                 <div class="settings-panel-foot">
@@ -78,7 +80,7 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.83</div>
+        <div class="feriiz-u-032">version : 3.7.84</div>
     </main>
 
     <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalTitle" aria-hidden="true">
@@ -86,14 +88,14 @@
             <form class="modal-content" id="payForm" novalidate>
                 <div class="modal-header">
                     <div>
-                        <h2 class="modal-title" id="payModalTitle">Add Benefit</h2>
+                        <h2 class="modal-title" id="payModalTitle">Add Holiday</h2>
                         <p class="tpl-subtitle" id="payModalContext"></p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <label class="form-label" for="payName">Name</label>
-                    <input type="text" class="form-control" id="payName" placeholder="For example: THR Idul Fitri 2026" autocomplete="off">
+                    <input type="text" class="form-control" id="payName" placeholder="For example: THR Idul Fitri 1447 H" autocomplete="off">
                     <div class="row g-3 mt-0">
                         <div class="col-sm-6">
                             <label class="form-label" for="payDate">Date</label>
@@ -121,7 +123,7 @@
     <script>
         (function () {
             var project = null;
-            var editing = null;   // the benefit being edited
+            var editing = null;   // the holiday being edited
 
             function esc(v) {
                 return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -133,14 +135,14 @@
             function digits(v) { return Number(String(v || '').replace(/\D/g, '')) || 0; }
             function typed(n) { return n ? Number(n).toLocaleString('id-ID') : ''; }
 
-            /* ---------- Benefits ---------- */
+            /* ---------- Public Holidays ---------- */
             // In date order, as on a calendar; one without a date comes last.
-            function renderBenefits() {
+            function renderHolidays() {
                 var tbody = document.getElementById('payTableBody');
                 if (!project) return;
                 var rows = T().ofProject(project.code).slice().sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
                 if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="tpl-empty">No benefits yet. Add the first one, for example THR Idul Fitri 2026.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="tpl-empty">No holidays yet. Add the first one, for example Idul Fitri 1447 H.</td></tr>';
                     return;
                 }
                 tbody.innerHTML = rows.map(function (t) {
@@ -157,7 +159,7 @@
 
             function openForm(t) {
                 editing = t || null;
-                document.getElementById('payModalTitle').textContent = t ? 'Edit Benefit' : 'Add Benefit';
+                document.getElementById('payModalTitle').textContent = t ? 'Edit Holiday' : 'Add Holiday';
                 document.getElementById('payModalContext').textContent = project.name;
                 document.getElementById('payName').value = t ? t.name : '';
                 document.getElementById('payDate').value = t ? (t.date || '') : '';
@@ -168,7 +170,7 @@
             }
 
             function warn(text, title) {
-                if (window.FeriizNotify) FeriizNotify.warning(text, title || 'Benefit not saved');
+                if (window.FeriizNotify) FeriizNotify.warning(text, title || 'Holiday not saved');
             }
 
             function saveForm(e) {
@@ -178,7 +180,7 @@
                 var amount = document.getElementById('payAmount');
                 var value = digits(amount.value);
                 // The name is also the column title in the project's Report: it may not repeat a
-                // template for every project or another benefit of this project. "Transport" is the
+                // template for every project or another holiday of this project. "Transport" is the
                 // Report's automatic column.
                 var same = T().findByName(name.value, project.code);
                 var reserved = T().reservedName(name.value);
@@ -188,14 +190,14 @@
                 amount.classList.toggle('is-invalid', !value);
                 if (!name.value.trim() || taken) {
                     name.focus();
-                    warn(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so it needs no benefit.'
+                    warn(reserved ? 'Transport is paid automatically from each employee\'s Transport / Day, so a holiday needs another name.'
                         : taken && !same.projectCode ? 'Request Templates already has ' + same.name + ' for every project.'
-                        : taken ? 'This project already has ' + same.name + '.' : 'A benefit needs a name.');
+                        : taken ? 'This project already has ' + same.name + '.' : 'A holiday needs a name.');
                     return;
                 }
                 if (!date.value || !value) {
                     (date.value ? amount : date).focus();
-                    warn('A benefit needs a date and an amount.');
+                    warn('A holiday needs a date and an amount.');
                     return;
                 }
                 var saved = T().save({
@@ -207,10 +209,10 @@
                     note: document.getElementById('payNote').value.trim()
                 });
                 window.bootstrap.Modal.getInstance(document.getElementById('payModal')).hide();
-                renderBenefits();
+                renderHolidays();
                 if (!window.FeriizNotify) return;
-                if (editing) FeriizNotify.success(saved.name + ' was updated.', 'Benefit updated');
-                else FeriizNotify.success(saved.name + ' was added. Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.', 'Benefit added');
+                if (editing) FeriizNotify.success(saved.name + ' was updated.', 'Holiday updated');
+                else FeriizNotify.success(saved.name + ' was added. Give it in the Report on ' + T().fmtDate(saved.date) + ': Batch Update > Assign Request.', 'Holiday added');
             }
 
             /* ---------- Default Hours per Occupation ---------- */
@@ -356,7 +358,9 @@
                     link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);
                     document.title = 'Feriiz - ' + project.name + ' - Settings';
                     projectOccupations = occupationsOfProject(data);
-                    renderBenefits();
+                    // Every project starts with the year's national holidays, the same everywhere.
+                    T().ensureHolidays(data.projects.map(function (p) { return p.code; }));
+                    renderHolidays();
                     renderOccupationHours();
                 });
             });

@@ -426,7 +426,7 @@ function feriizLogout() {
                         '<a href="project_closing.html' + projQuery + '"' + cls(cfg.sub === 'closing') + '>' +
                             '<i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Closing</span>' +
                         '</a>' +
-                        // The project's Settings: its Benefits (THR, red dates) and its Default Hours per
+                        // The project's Settings: its Public Holidays (red dates, THR) and its Default Hours per
                         // occupation, under Closing as the meeting of 05-11-2026 placed its "Setting"
                         // (0:39:35; Baldy, 10-11-2026: "di ubah dari benefits jadi settings").
                         '<a href="project_settings.html' + projQuery + '"' + cls(cfg.sub === 'settings') + '>' +

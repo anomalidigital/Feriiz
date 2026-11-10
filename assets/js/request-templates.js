@@ -11,14 +11,15 @@
    - A template made here is per day: each ticked day gets its Amount. The Daily / One time
      choice and the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026:
      "secara logika agak bingung").
-   - One-off payments of ONE project (THR, pay for a red date) are its Benefits, made on that
-     project's Settings page, left panel (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project", not
-     called a template there nor "pay", and each is just "tanggal berapa dan berapa amount nya…
-     ga perlu ada add date"; meeting 05-11-2026, 0:38:14 and 1:04:16: "namain dulu, ini hari apa,
-     tanggal berapa, terus… harganya"). A benefit is a template with the project's code and one
-     date: Name, Date, Amount, Note. Assign Request gives it only on the ticked days on its date,
-     with or without a log: the Report's Log Status filter says whether only the people who came
-     in get it. There is no Copy ("copy nya di ilangin", Baldy, the same day).
+   - One-off payments of ONE project are its Public Holidays, on the project's Settings page,
+     left panel (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project", each just
+     "tanggal berapa dan berapa amount nya… ga perlu ada add date"; 10-11-2026: not called
+     "benefits", and "tambahkan semua tanggal merah kalender pemerintah… apply ke semua project
+     dan mereka sama"; meeting 05-11-2026, 0:38:14 and 1:04:16). A holiday is a template with the
+     project's code and one date: Name, Date, Amount, Note. Every project starts with the year's
+     national holidays (ensureHolidays); the admin can change, add (THR, say) and give them.
+     Assign Request gives one only on the ticked days on its date, with or without a log: the
+     Report's Log Status filter says whether only the people who came in get it. No Copy.
    - The Amount can be changed in Assign Request, for that Assign only (Baldy, 09-11-2026: "ada
      custom amount… soal nya belum pasti"; meeting 05-11-2026, 0:41:32-0:43:45: people of another
      occupation are filtered, ticked and given their own).
@@ -38,7 +39,8 @@
    Templates and project Settings pages and the Report see the same data. The API replaces this.
 
    FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
-   FeriizTemplates.isBenefit(template)   a project's own one-date benefit
+   FeriizTemplates.isHoliday(template)   a project's own one-date holiday
+   FeriizTemplates.ensureHolidays(codes)   the year's national holidays in each of these projects, once
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -80,7 +82,7 @@
     // The old Transport sample goes too: transport is paid automatically now.
     var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false && t.id !== OLD_TRANSPORT_ID; });
     // Templates for every project saved before 04-11-2026 may still say Daily / One time and carry
-    // dates: they are all per day now. A project's benefit saved on 09-11-2026 while it held a
+    // dates: they are all per day now. A project's holiday saved on 09-11-2026 while it held a
     // list of dates keeps its first date, with that date's amount.
     templates.forEach(function (t) {
         if (t.projectCode && t.dates) {
@@ -111,12 +113,59 @@
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
 
-    // A project's own template is one of its Benefits, given on its one date; the others per day.
-    function isBenefit(t) { return Boolean(t && t.projectCode); }
+    // A project's own template is one of its Public Holidays, given on its one date; the others per day.
+    function isHoliday(t) { return Boolean(t && t.projectCode); }
 
     function shared() { return templates.filter(function (t) { return !t.projectCode; }); }
 
     function ofProject(code) { return templates.filter(function (t) { return t.projectCode === code; }); }
+
+    /* The year's national holidays, the same in every project at first (Baldy, 10-11-2026:
+       "tambahkan semua tanggal merah kalender pemerintah, intinya semua libur nasional… apply ke
+       semua project dan mereka sama"). The 17 libur nasional of the SKB 3 Menteri for 2026 (no
+       cuti bersama; setneg.go.id), each with an incentive for working on it that a Sonnet agent
+       priced at Baldy's request ("atur harganya pake agent si sonnet"): about 0.5 to 1.5 of a
+       Rp 150.000-250.000 day wage, most for Idulfitri, Natal and the New Year. Sample values. */
+    var KEY_HOLIDAY_SEED = 'feriiz_holiday_seed_v1';
+    var NATIONAL_HOLIDAYS = [
+        { date: '2026-01-01', name: 'Tahun Baru 2026 Masehi', amount: 250000 },
+        { date: '2026-01-16', name: 'Isra Mikraj Nabi Muhammad saw.', amount: 100000 },
+        { date: '2026-02-17', name: 'Tahun Baru Imlek 2577 Kongzili', amount: 125000 },
+        { date: '2026-03-19', name: 'Hari Suci Nyepi (Tahun Baru Saka 1948)', amount: 125000 },
+        { date: '2026-03-21', name: 'Idulfitri 1447 H (hari 1)', amount: 300000 },
+        { date: '2026-03-22', name: 'Idulfitri 1447 H (hari 2)', amount: 300000 },
+        { date: '2026-04-03', name: 'Wafat Yesus Kristus', amount: 125000 },
+        { date: '2026-04-05', name: 'Kebangkitan Yesus Kristus (Paskah)', amount: 125000 },
+        { date: '2026-05-01', name: 'Hari Buruh Internasional', amount: 150000 },
+        { date: '2026-05-14', name: 'Kenaikan Yesus Kristus', amount: 100000 },
+        { date: '2026-05-27', name: 'Iduladha 1447 H', amount: 200000 },
+        { date: '2026-05-31', name: 'Hari Raya Waisak 2570 BE', amount: 100000 },
+        { date: '2026-06-01', name: 'Hari Lahir Pancasila', amount: 100000 },
+        { date: '2026-06-16', name: '1 Muharam Tahun Baru Islam 1448 H', amount: 100000 },
+        { date: '2026-08-17', name: 'Proklamasi Kemerdekaan', amount: 150000 },
+        { date: '2026-08-25', name: 'Maulid Nabi Muhammad saw.', amount: 100000 },
+        { date: '2026-12-25', name: 'Kelahiran Yesus Kristus (Natal)', amount: 250000 }
+    ];
+
+    // Gives each of these projects the national holidays once; what the admin changes after
+    // that stays the project's own. A name the project already uses is left alone.
+    function ensureHolidays(codes) {
+        var seeded = load(KEY_HOLIDAY_SEED, {});
+        var added = false;
+        [].concat(codes || []).forEach(function (code) {
+            if (!code || seeded[code]) return;
+            NATIONAL_HOLIDAYS.forEach(function (h) {
+                if (findByName(h.name, code)) return;
+                templates.push({ id: 'TPL-H-' + code + '-' + h.date, projectCode: code, name: h.name, date: h.date,
+                                 amount: h.amount, note: '', createdAt: h.date + 'T00:00:00.000Z' });
+            });
+            seeded[code] = true;
+            added = true;
+        });
+        if (!added) return;
+        store(KEY_TEMPLATES, templates);
+        store(KEY_HOLIDAY_SEED, seeded);
+    }
 
     // The name is also the Report column title, so two templates a Report can show may not
     // share it: a template for every project clashes with any other, a project's own only with
@@ -225,12 +274,12 @@
     function templateOptions(projectCode) {
         var option = function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' +
-                (isBenefit(t) ? (t.date ? fmtDate(t.date) : 'no date') + ' · ' + rupiah(t.amount) : rupiah(t.amount) + ' a day') + '</option>';
+                (isHoliday(t) ? (t.date ? fmtDate(t.date) : 'no date') + ' · ' + rupiah(t.amount) : rupiah(t.amount) + ' a day') + '</option>';
         };
         var own = ofProject(projectCode).slice().sort(function (a, b) { return (a.date || '9').localeCompare(b.date || '9'); });
         if (!own.length) return shared().map(option).join('');
         return '<optgroup label="Every project, a day">' + shared().map(option).join('') + '</optgroup>' +
-            '<optgroup label="This project\'s benefits">' + own.map(option).join('') + '</optgroup>';
+            '<optgroup label="This project\'s holidays">' + own.map(option).join('') + '</optgroup>';
     }
 
     function noTemplates(projectCode) {
@@ -256,7 +305,7 @@
        - The Amount starts at the template's and can be changed for this Assign only (Baldy,
          09-11-2026: "soal nya belum pasti").
        - A per-day template: each ticked day the person came in gets the Amount.
-       - A project's benefit: each ticked day on its date gets the Amount, log or not (the Log
+       - A project's holiday: each ticked day on its date gets the Amount, log or not (the Log
          Status filter decides who); other ticked days are left.
        - A day that already has the template is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
@@ -329,12 +378,12 @@
         var out = { rows: [], total: 0, people: {}, noLog: 0, already: 0, notDate: 0 };
         var amount = currentAmount();
         if (!t || !amount) return out;
-        var benefit = isBenefit(t);
+        var holiday = isHoliday(t);
         var given = givenIndex(t);
         ctx.cells.forEach(function (c) {
-            if (benefit && c.date !== t.date) { out.notDate++; return; }
+            if (holiday && c.date !== t.date) { out.notDate++; return; }
             if (given[c.code + '|' + c.date]) { out.already++; return; }
-            if (!benefit && !cameIn(c.code, c.date)) { out.noLog++; return; }
+            if (!holiday && !cameIn(c.code, c.date)) { out.noLog++; return; }
             out.rows.push({ code: c.code, name: c.name, date: c.date, amount: amount });
             out.total += amount;
             out.people[c.code] = true;
@@ -347,12 +396,12 @@
         var t = currentTemplate();
         if (!t) return;
         modal.querySelector('#assignAmount').value = typed(t.amount);
-        modal.querySelector('#assignAmountUnit').textContent = isBenefit(t) ? 'once' : 'a day';
+        modal.querySelector('#assignAmountUnit').textContent = isHoliday(t) ? 'once' : 'a day';
         refreshSummary();
     }
 
-    // Where a benefit goes: its date, when it is ticked.
-    function benefitLine(t) {
+    // Where a holiday goes: its date, when it is ticked.
+    function holidayLine(t) {
         if (!t.date) return 'It has no date yet: give it one on the project\'s Settings page.';
         var ticked = ctx.cells.some(function (c) { return c.date === t.date; });
         return ticked ? 'Only on ' + fmtDate(t.date) + ', with or without a log.'
@@ -362,10 +411,10 @@
     function refreshSummary() {
         var t = currentTemplate();
         if (!t) return;
-        var benefit = isBenefit(t);
+        var holiday = isHoliday(t);
         var amount = currentAmount();
-        var info = (benefit ? benefitLine(t) : 'Only on the ticked days each person came in.') +
-            (amount && amount !== Number(t.amount) ? ' ' + (benefit ? 'The benefit' : 'The template') + ' says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
+        var info = (holiday ? holidayLine(t) : 'Only on the ticked days each person came in.') +
+            (amount && amount !== Number(t.amount) ? ' ' + (holiday ? 'The holiday' : 'The template') + ' says ' + rupiah(t.amount) + '; this Assign uses yours.' : '');
         modal.querySelector('#assignTemplateInfo').textContent = info + (t.note ? ' ' + t.note : '');
         var p = planned();
         var people = Object.keys(p.people).length;
@@ -394,7 +443,7 @@
         window.bootstrap.Modal.getInstance(modal).hide();
         var people = Object.keys(p.people).length;
         if (window.FeriizNotify) {
-            window.FeriizNotify.success((isBenefit(t)
+            window.FeriizNotify.success((isHoliday(t)
                 ? rupiah(p.rows[0].amount) + ' for ' + plural(people, 'person', 'people') + ' on ' + fmtDate(t.date)
                 : rupiah(p.rows[0].amount) + ' a day for ' + plural(people, 'person', 'people')) +
                 ', ' + rupiah(p.total) + ' in all. It shows in the ' + t.name + ' column under Client.', t.name + ' assigned');
@@ -404,6 +453,7 @@
 
     function openAssign(context) {
         ctx = context;
+        ensureHolidays(ctx.project.code);   // the project's Settings may not have been opened yet
         if (noTemplates(ctx.project.code)) return;
         if (!modal) modal = buildModal();
         modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + ctx.cells.length + ' selected';
@@ -523,7 +573,8 @@
         all: shared,
         ofProject: ofProject,
         get: get,
-        isBenefit: isBenefit,
+        isHoliday: isHoliday,
+        ensureHolidays: ensureHolidays,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

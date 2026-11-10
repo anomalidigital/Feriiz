@@ -6740,12 +6740,16 @@ div.report-layout .report-search-input {
     white-space: nowrap;
 }
 
-/* Projects > Settings (Baldy, 10-11-2026: "taro nya di benefits… kiri nya buat yang masalah one
-   time, terus kanan nya buat yang set default nya… di ubah dari benefits jadi settings"): two
-   panels side by side, stacked on small screens. */
+/* The projects that use a template: "All projects", or two names and how many more. */
+.tpl-projects {
+    color: var(--feriiz-text-muted);
+    font-size: 13px;
+}
+
+/* Projects > Settings: the Default Hours panel (its Public Holidays panel went on 10-11-2026). */
 .settings-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
     align-items: start;
 }
@@ -6865,12 +6869,6 @@ div.report-layout .report-search-input {
     margin: 8px 0;
     font-size: 13px;
     color: var(--feriiz-text-hint);
-}
-
-@media (max-width: 1100px) {
-    .settings-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 .tpl-optional {

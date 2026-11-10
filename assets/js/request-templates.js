@@ -7,20 +7,19 @@
    assignments are dropped when stored data is loaded, so it is never paid twice.
 
    As drawn on the whiteboard of the Arcon meeting (20-10-2026):
-   - A template is made once for every project and reused (1:39): Name, Amount, Note.
-   - A template made here is per day: each ticked day gets its Amount. The Daily / One time
-     choice and the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026:
-     "secara logika agak bingung").
-   - One-off payments of ONE project are its Public Holidays, on the project's Settings page,
-     left panel (Baldy, 09-11-2026: "taro nya paling ideal yang itu di project", each just
-     "tanggal berapa dan berapa amount nya… ga perlu ada add date"; 10-11-2026: not called
-     "benefits", and "tambahkan semua tanggal merah kalender pemerintah… apply ke semua project
-     dan mereka sama"; meeting 05-11-2026, 0:38:14 and 1:04:16). A holiday is a template with the
-     project's code and one date: Name, Date, Amount, Note. Every project starts with the year's
-     national holidays (ensureHolidays); the admin can change and add them. Nobody assigns them:
-     the Report gives each to everyone who came in on its date, the same Amount for all (Baldy,
-     10-11-2026: "ini mah lansung ter assign otomatis karna udah terpasang sebagai di project
-     nya, jadi semua employee sama"), like Transport. No Copy.
+   - A template is made once and reused (1:39): Name, Amount, Note.
+   - A template is per day: each ticked day gets its Amount. The Daily / One time choice and
+     the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026: "secara
+     logika agak bingung").
+   - Each template says which projects may use it (Baldy, 10-11-2026: "template biasa kaya
+     tambah uang makan… bisa di assign di project mana aja… template yang muncul ketika mau
+     assign di project nya ya maka template yang di assign ke project itu aja"): projects null
+     = every project, else the project codes ticked. A project's Assign Request lists only its
+     templates.
+   - Red dates are templates again, given with Assign Request (Baldy, 10-11-2026: "yang holiday
+     itu di apus, dan ini kita kembaliin lagi ke assign request… bisa di pilih project nya").
+     The project Settings' Public Holidays (09-11 to 10-11-2026), their national-holiday seed and
+     their automatic payment are gone; what they stored is dropped on load.
    - The Amount can be changed in Assign Request, for that Assign only (Baldy, 09-11-2026: "ada
      custom amount… soal nya belum pasti"; meeting 05-11-2026, 0:41:32-0:43:45: people of another
      occupation are filtered, ticked and given their own).
@@ -37,15 +36,12 @@
      line under the day.
 
    Prototype only: everything is kept in this browser (localStorage) so the Request
-   Templates and project Settings pages and the Report see the same data. The API replaces this.
+   Templates page and the Report see the same data. The API replaces this.
 
-   FeriizTemplates.all(), ofProject(code), get(id), findByName(name, projectCode), save(template)
-   FeriizTemplates.isHoliday(template)   a project's own one-date holiday
-   FeriizTemplates.ensureHolidays(codes)   the year's national holidays in each of these projects, once
-   FeriizTemplates.additionalFor(employeeCode, projectCode, dates, workedOn)
-   FeriizTemplates.usedIn(projectCode, employeeCodes, dates, workedOn)
-   FeriizTemplates.dayIndex(projectCode, dates, employeeCodes, workedOn)   what each person got on each day: the Report's day chips
-     workedOn(code, date) -> true when the person came in: it gives the project's Public Holidays.
+   FeriizTemplates.all(), forProject(code), get(id), findByName(name), save(template)
+   FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
+   FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
+   FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
    FeriizTemplates.openAssign(context)   Assign Request in the Report (Batch Update: the ticked days)
    FeriizTemplates.openRemove(context)   Delete Request in the Report (Batch Update: the ticked days)
    ============================================================ */
@@ -54,6 +50,7 @@
 
     var KEY_TEMPLATES = 'feriiz_request_templates_v1';
     var KEY_ASSIGNED = 'feriiz_template_assignments_v1';
+    var KEY_HOLIDAY_SEED = 'feriiz_holiday_seed_v1';   // marked the seeded Public Holidays (10-11-2026), gone
 
     // Sample templates, as on the whiteboard (Uang Makan) plus an incentive for working on a red date.
     // The ids are the ones the first samples had, so assignments made with them still match.
@@ -80,32 +77,23 @@
         try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* kept for this page only */ }
     }
 
-    // Archiving was dropped (2026-10-26); templates archived before that are left out.
-    // The old Transport sample goes too: transport is paid automatically now.
-    var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) { return t.active !== false && t.id !== OLD_TRANSPORT_ID; });
-    // Templates for every project saved before 04-11-2026 may still say Daily / One time and carry
-    // dates: they are all per day now. A project's holiday saved on 09-11-2026 while it held a
-    // list of dates keeps its first date, with that date's amount.
-    templates.forEach(function (t) {
-        if (t.projectCode && t.dates) {
-            var first = t.dates[0];
-            if (first && !t.date) {
-                t.date = first.date;
-                if (Number(first.amount) > 0) t.amount = Number(first.amount);
-            }
-        }
-        if (!t.projectCode) delete t.unit;
-        delete t.dates;
+    // Archiving was dropped (2026-10-26); templates archived before that are left out. The old
+    // Transport sample goes too (transport is paid automatically), and so does a project's own
+    // template, one of its Public Holidays of 09-11 to 10-11-2026, with what was given of it.
+    var ownIds = {};
+    var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) {
+        if (t.projectCode) { ownIds[t.id] = true; return false; }
+        return t.active !== false && t.id !== OLD_TRANSPORT_ID;
     });
+    // Templates saved before 04-11-2026 may still say Daily / One time and carry dates: they are
+    // all per day now.
+    templates.forEach(function (t) { delete t.unit; delete t.dates; });
+    if (Object.keys(ownIds).length) store(KEY_TEMPLATES, templates);
+    try { localStorage.removeItem(KEY_HOLIDAY_SEED); } catch (e) { /* nothing kept */ }
     var assigned = load(KEY_ASSIGNED, []);
-    if (assigned.some(function (a) { return a.templateId === OLD_TRANSPORT_ID; })) {
-        assigned = assigned.filter(function (a) { return a.templateId !== OLD_TRANSPORT_ID; });
-        store(KEY_ASSIGNED, assigned);
-    }
-    // A project's Public Holidays give themselves since 10-11-2026, so holidays assigned by hand
-    // before then come off: they would be paid twice.
-    if (assigned.some(function (a) { return isHoliday(get(a.templateId)); })) {
-        assigned = assigned.filter(function (a) { return !isHoliday(get(a.templateId)); });
+    var given = assigned.filter(function (a) { return a.templateId !== OLD_TRANSPORT_ID && !ownIds[a.templateId]; });
+    if (given.length !== assigned.length) {
+        assigned = given;
         store(KEY_ASSIGNED, assigned);
     }
 
@@ -121,69 +109,16 @@
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
 
-    // A project's own template is one of its Public Holidays, given on its one date; the others per day.
-    function isHoliday(t) { return Boolean(t && t.projectCode); }
-
-    function shared() { return templates.filter(function (t) { return !t.projectCode; }); }
-
-    function ofProject(code) { return templates.filter(function (t) { return t.projectCode === code; }); }
-
-    /* The year's national holidays, the same in every project at first (Baldy, 10-11-2026:
-       "tambahkan semua tanggal merah kalender pemerintah, intinya semua libur nasional… apply ke
-       semua project dan mereka sama"). The 17 libur nasional of the SKB 3 Menteri for 2026 (no
-       cuti bersama; setneg.go.id), each with an incentive for working on it that a Sonnet agent
-       priced at Baldy's request ("atur harganya pake agent si sonnet"): about 0.5 to 1.5 of a
-       Rp 150.000-250.000 day wage, most for Idulfitri, Natal and the New Year. Sample values. */
-    var KEY_HOLIDAY_SEED = 'feriiz_holiday_seed_v1';
-    var NATIONAL_HOLIDAYS = [
-        { date: '2026-01-01', name: 'Tahun Baru 2026 Masehi', amount: 250000 },
-        { date: '2026-01-16', name: 'Isra Mikraj Nabi Muhammad saw.', amount: 100000 },
-        { date: '2026-02-17', name: 'Tahun Baru Imlek 2577 Kongzili', amount: 125000 },
-        { date: '2026-03-19', name: 'Hari Suci Nyepi (Tahun Baru Saka 1948)', amount: 125000 },
-        { date: '2026-03-21', name: 'Idulfitri 1447 H (hari 1)', amount: 300000 },
-        { date: '2026-03-22', name: 'Idulfitri 1447 H (hari 2)', amount: 300000 },
-        { date: '2026-04-03', name: 'Wafat Yesus Kristus', amount: 125000 },
-        { date: '2026-04-05', name: 'Kebangkitan Yesus Kristus (Paskah)', amount: 125000 },
-        { date: '2026-05-01', name: 'Hari Buruh Internasional', amount: 150000 },
-        { date: '2026-05-14', name: 'Kenaikan Yesus Kristus', amount: 100000 },
-        { date: '2026-05-27', name: 'Iduladha 1447 H', amount: 200000 },
-        { date: '2026-05-31', name: 'Hari Raya Waisak 2570 BE', amount: 100000 },
-        { date: '2026-06-01', name: 'Hari Lahir Pancasila', amount: 100000 },
-        { date: '2026-06-16', name: '1 Muharam Tahun Baru Islam 1448 H', amount: 100000 },
-        { date: '2026-08-17', name: 'Proklamasi Kemerdekaan', amount: 150000 },
-        { date: '2026-08-25', name: 'Maulid Nabi Muhammad saw.', amount: 100000 },
-        { date: '2026-12-25', name: 'Kelahiran Yesus Kristus (Natal)', amount: 250000 }
-    ];
-
-    // Gives each of these projects the national holidays once; what the admin changes after
-    // that stays the project's own. A name the project already uses is left alone.
-    function ensureHolidays(codes) {
-        var seeded = load(KEY_HOLIDAY_SEED, {});
-        var added = false;
-        [].concat(codes || []).forEach(function (code) {
-            if (!code || seeded[code]) return;
-            NATIONAL_HOLIDAYS.forEach(function (h) {
-                if (findByName(h.name, code)) return;
-                templates.push({ id: 'TPL-H-' + code + '-' + h.date, projectCode: code, name: h.name, date: h.date,
-                                 amount: h.amount, note: '', createdAt: h.date + 'T00:00:00.000Z' });
-            });
-            seeded[code] = true;
-            added = true;
-        });
-        if (!added) return;
-        store(KEY_TEMPLATES, templates);
-        store(KEY_HOLIDAY_SEED, seeded);
+    // The templates a project's Assign Request may give: those for every project (projects null:
+    // the samples and every template saved before 10-11-2026) and those that ticked it.
+    function forProject(code) {
+        return templates.filter(function (t) { return !t.projects || t.projects.indexOf(code) >= 0; });
     }
 
-    // The name is also the Report column title, so two templates a Report can show may not
-    // share it: a template for every project clashes with any other, a project's own only with
-    // the shared ones and that project's.
-    function findByName(name, projectCode) {
+    // The name is also the Report column title, so two templates may not share it.
+    function findByName(name) {
         var key = String(name || '').trim().toLowerCase();
-        return templates.filter(function (t) {
-            if (t.name.trim().toLowerCase() !== key) return false;
-            return !projectCode || !t.projectCode || t.projectCode === projectCode;
-        })[0] || null;
+        return templates.filter(function (t) { return t.name.trim().toLowerCase() === key; })[0] || null;
     }
 
     function save(t) {
@@ -200,15 +135,8 @@
         return existing || t;
     }
 
-    // The project's Public Holidays dated on one of these days ({ 'YYYY-MM-DD': true }), with an
-    // amount. Each goes to everyone who came in on its date (workedOn), the same Amount for all.
-    function holidaysIn(projectCode, inRange) {
-        return ofProject(projectCode).filter(function (t) { return t.date && inRange[t.date] && Number(t.amount) > 0; });
-    }
-
-    // { total, items: [{ templateId, name, count, amount, notes }] } for the given days: what was
-    // assigned, plus the project's holidays on the days the person came in.
-    function additionalFor(employeeCode, projectCode, dates, workedOn) {
+    // { total, items: [{ templateId, name, count, amount, notes }] } for the given days.
+    function additionalFor(employeeCode, projectCode, dates) {
         var inRange = {};
         (dates || []).forEach(function (d) { inRange[d] = true; });
         var byTemplate = {};
@@ -223,21 +151,13 @@
             total += a.amount;
             if (a.note && item.notes.indexOf(a.note) < 0) item.notes.push(a.note);
         });
-        if (workedOn) holidaysIn(projectCode, inRange).forEach(function (t) {
-            if (!workedOn(employeeCode, t.date)) return;
-            var item = byTemplate[t.id] || (byTemplate[t.id] = { templateId: t.id, name: t.name, count: 0, amount: 0, notes: [] });
-            item.count++;
-            item.amount += Number(t.amount);
-            total += Number(t.amount);
-        });
         return { total: total, items: Object.keys(byTemplate).map(function (k) { return byTemplate[k]; }) };
     }
 
-    // [{ id, name }] of the templates any of these people received in the project on these days,
-    // a holiday when one of them came in on its date: the Report's dynamic Client columns. Oldest
-    // template first, so a new one is added on the right instead of pushing the others along
-    // (the samples have no createdAt and come first).
-    function usedIn(projectCode, employeeCodes, dates, workedOn) {
+    // [{ id, name }] of the templates any of these people received in the project on these days:
+    // the Report's dynamic Client columns. Oldest template first, so a new one is added on the
+    // right instead of pushing the others along (the samples have no createdAt and come first).
+    function usedIn(projectCode, employeeCodes, dates) {
         var inRange = {};
         var people = {};
         var ids = {};
@@ -245,9 +165,6 @@
         (employeeCodes || []).forEach(function (c) { people[c] = true; });
         assigned.forEach(function (a) {
             if (a.projectCode === projectCode && inRange[a.date] && people[a.employeeCode]) ids[a.templateId] = true;
-        });
-        if (workedOn) holidaysIn(projectCode, inRange).forEach(function (t) {
-            if ((employeeCodes || []).some(function (c) { return workedOn(c, t.date); })) ids[t.id] = true;
         });
         var cols = templates.filter(function (t) { return ids[t.id]; })
             .sort(function (a, b) { return (a.createdAt || '').localeCompare(b.createdAt || ''); })
@@ -257,9 +174,8 @@
     }
 
     // { 'CODE|YYYY-MM-DD': [{ templateId, name, amount, note }] } for one project on these days,
-    // in the order of the Report's columns (oldest template first); a holiday on its date for
-    // each of these people who came in.
-    function dayIndex(projectCode, dates, employeeCodes, workedOn) {
+    // in the order of the Report's columns (oldest template first).
+    function dayIndex(projectCode, dates) {
         var inRange = {};
         var out = {};
         (dates || []).forEach(function (d) { inRange[d] = true; });
@@ -269,14 +185,6 @@
             var key = a.employeeCode + '|' + a.date;
             (out[key] || (out[key] = [])).push({ templateId: a.templateId, name: t.name, amount: a.amount, note: a.note,
                                                  order: t.createdAt || '' });
-        });
-        if (workedOn) holidaysIn(projectCode, inRange).forEach(function (t) {
-            (employeeCodes || []).forEach(function (code) {
-                if (!workedOn(code, t.date)) return;
-                var key = code + '|' + t.date;
-                (out[key] || (out[key] = [])).push({ templateId: t.id, name: t.name, amount: Number(t.amount), note: t.note || '',
-                                                     order: t.createdAt || '' });
-            });
         });
         Object.keys(out).forEach(function (key) {
             out[key].sort(function (a, b) { return a.order.localeCompare(b.order); });
@@ -305,17 +213,19 @@
 
     function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
-    // The templates Assign Request can give: those for every project, one list without a group
-    // name (Baldy, 10-11-2026). A project's holidays are not here: they give themselves.
-    function templateOptions() {
-        return shared().map(function (t) {
+    // The templates Assign Request can give in this project, one list without a group name
+    // (Baldy, 10-11-2026): those whose Projects take it in.
+    function templateOptions(projectCode) {
+        return forProject(projectCode).map(function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + ' a day</option>';
         }).join('');
     }
 
-    function noTemplates() {
-        if (shared().length) return false;
-        if (window.FeriizNotify) window.FeriizNotify.warning('Make a template on the Request Templates page first.', 'No template');
+    function noTemplates(project) {
+        if (forProject(project.code).length) return false;
+        if (window.FeriizNotify) {
+            window.FeriizNotify.warning('No template is set for ' + project.name + ' yet. On the Request Templates page, tick this project in a template\'s Projects.', 'No template');
+        }
         return true;
     }
 
@@ -335,8 +245,9 @@
        made the admin pick people and days a second time).
        - The Amount starts at the template's and can be changed for this Assign only (Baldy,
          09-11-2026: "soal nya belum pasti").
+       - Only the templates whose Projects take this project in are listed.
        - Each ticked day the person came in gets the Amount; a day that already has the template
-         is skipped. A project's Public Holidays are not assigned: they give themselves.
+         is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
     var modal = null;
     var ctx = null;
@@ -466,10 +377,10 @@
 
     function openAssign(context) {
         ctx = context;
-        if (noTemplates()) return;
+        if (noTemplates(ctx.project)) return;
         if (!modal) modal = buildModal();
         modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + ctx.cells.length + ' selected';
-        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
+        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions(ctx.project.code);
         takeTemplateAmount();
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
@@ -581,12 +492,10 @@
     window.FeriizTemplates = {
         rupiah: rupiah,
         fmtDate: fmtDate,
-        // The templates for every project (the Request Templates page); a project's own are ofProject.
-        all: shared,
-        ofProject: ofProject,
+        // Every template (the Request Templates page); a project's Assign Request uses forProject.
+        all: function () { return templates; },
+        forProject: forProject,
         get: get,
-        isHoliday: isHoliday,
-        ensureHolidays: ensureHolidays,
         findByName: findByName,
         reservedName: reservedName,
         save: save,

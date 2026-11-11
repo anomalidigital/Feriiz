@@ -57,7 +57,8 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        logStatus: 'all',      // Log Status: 'all', 'complete', 'in', 'out' or 'both' (LOG_STATUS)
+        logIn: false,          // Log Status: only the days with a log in (see cellMatchesLogFilters)
+        logOut: false,         // ...and/or only the days with a log out
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -1173,41 +1174,34 @@
     /* =============================================
        FILTERS
        ============================================= */
-    /* Log Status is one choice (Baldy, 09-11-2026: "yang admin mau yang log in dan log out, dan
-       yang missing itu jadi terhide… gimana yang simple?"). Two Log In / Log Out boxes give four
-       cases, and the admin needs five, so it is one pick of five, none of them a contradiction:
-       every day (the default), the days with their log in and log out (the missing ones hidden),
-       or the days missing exactly their log in, their log out, or both (the live Feriiz rule).
-       Meeting 05-11-2026, 59:23 / 1:00:46: the options do what they say. */
-    // Without the word "log", and the days missing both say "Missing" too (Baldy, 09-11-2026:
-    // "jangan pake logs… yang missing in and out itu ada kata 'missing' nya"). The first is
-    // "All logs", not "All days", which sounded like the day columns (Baldy, the same day).
-    var LOG_STATUS = {
-        all: 'All logs',
-        complete: 'In and out',
-        'in': 'Missing in',
-        out: 'Missing out',
-        both: 'Missing in and out'
-    };
-
-    function getDraftLogStatus() {
-        var picked = document.querySelector('.filter-log:checked');
-        return picked && LOG_STATUS[picked.value] ? picked.value : 'all';
+    /* Log Status is two boxes again, Log In and Log Out (Baldy, 11-11-2026: "yang In nya ada itu ke
+       tampil… yang in ada out nya gada itu ketampil, yang in gada out ada ga ketampil, dan yang in
+       gada out gada itu ga ketampil… jadi yang checklist lagi aja"; one choice of five from 09-11 to
+       10-11-2026, two "missing" boxes before that). A ticked box keeps the days that HAVE that log:
+       Log In, a log in with or without a log out; Log Out, a log out; both ticked, both (meeting
+       05-11-2026, 57:35: "mau yang in, atau mau yang keduanya"). Nothing ticked: every day. */
+    function getDraftLogs() {
+        var ticked = function (value) {
+            var box = document.querySelector('.filter-log[value="' + value + '"]');
+            return Boolean(box && box.checked);
+        };
+        return { logIn: ticked('in'), logOut: ticked('out') };
     }
 
-    function setLogStatusDraft(value) {
-        document.querySelectorAll('.filter-log').forEach(function (r) { r.checked = r.value === value; });
+    function setLogDraft(logIn, logOut) {
+        document.querySelectorAll('.filter-log').forEach(function (box) { box.checked = box.value === 'in' ? logIn : logOut; });
     }
 
     function logFiltersOn() {
-        return appliedReportFilters.logStatus !== 'all';
+        return appliedReportFilters.logIn || appliedReportFilters.logOut;
     }
 
-    // A day without logs that an accepted request covers is not missing anything (dayIssue).
+    // The day's logs as they stand (its newest version). A day off or a day covered by a request
+    // has neither, so a ticked box hides it.
     function cellMatchesLogFilters(cell) {
-        var status = appliedReportFilters.logStatus;
-        if (status === 'complete') return Boolean(cell.dataset.inTime && cell.dataset.outTime);
-        return status === 'all' || (cell.dataset.missing || '') === status;
+        if (appliedReportFilters.logIn && !cell.dataset.inTime) return false;
+        if (appliedReportFilters.logOut && !cell.dataset.outTime) return false;
+        return true;
     }
 
     function rowMatchesLogFilters(row) {
@@ -1280,7 +1274,7 @@
     function paginateRows() {
         // A new search or filter starts again on the first page.
         var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
-            appliedReportFilters.occupations, appliedReportFilters.logStatus]);
+            appliedReportFilters.occupations, appliedReportFilters.logIn, appliedReportFilters.logOut]);
         if (key !== pageFilterKey) {
             pageFilterKey = key;
             reportPage = 1;
@@ -1409,11 +1403,12 @@
             html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(name) +
                 '<button class="filter-chip-close" data-filter-type="occupation" data-value="' + escapeHTML(value) + '" aria-label="Remove ' + escapeHTML(name) + ' from the occupation filter">&times;</button></span>';
         });
-        if (logFiltersOn()) {
-            var status = LOG_STATUS[appliedReportFilters.logStatus];
-            html += '<span class="filter-indicator-chip">' + status +
-                '<button class="filter-chip-close" data-filter-type="log" aria-label="Remove the ' + status + ' filter">&times;</button></span>';
-        }
+        // One chip per ticked box, so one can go and the other stays.
+        [['in', 'Log In', appliedReportFilters.logIn], ['out', 'Log Out', appliedReportFilters.logOut]].forEach(function (box) {
+            if (!box[2]) return;
+            html += '<span class="filter-indicator-chip">' + box[1] +
+                '<button class="filter-chip-close" data-filter-type="log" data-value="' + box[0] + '" aria-label="Remove the ' + box[1] + ' filter">&times;</button></span>';
+        });
         if (appliedReportFilters.original) {
             html += '<span class="filter-indicator-chip">Show history' +
                 '<button class="filter-chip-close" data-filter-type="original" aria-label="Show the default hours again">&times;</button></span>';
@@ -1438,8 +1433,9 @@
                     }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
                 } else if (type === 'log') {
-                    setLogStatusDraft('all');
-                    appliedReportFilters.logStatus = 'all';
+                    if (btn.dataset.value === 'in') appliedReportFilters.logIn = false;
+                    else appliedReportFilters.logOut = false;
+                    setLogDraft(appliedReportFilters.logIn, appliedReportFilters.logOut);
                 }
                 applyReportFilters();
             });
@@ -2343,7 +2339,9 @@
                 var wasOriginal = appliedReportFilters.original;
                 var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
-                appliedReportFilters.logStatus = getDraftLogStatus();
+                var logs = getDraftLogs();
+                appliedReportFilters.logIn = logs.logIn;
+                appliedReportFilters.logOut = logs.logOut;
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
@@ -2363,10 +2361,11 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                setLogStatusDraft('all');
+                setLogDraft(false, false);
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
-                appliedReportFilters.logStatus = 'all';
+                appliedReportFilters.logIn = false;
+                appliedReportFilters.logOut = false;
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];
                 appliedReportFilters.range = null;

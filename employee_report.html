@@ -7,14 +7,14 @@
     <title>Feriiz - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.94">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.94">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.95">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.95">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.94" defer></script>
-    <script src="assets/js/app.js?v=3.7.94" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.94" defer></script>
-    <script src="assets/js/report.js?v=3.7.94" defer></script>
-    <script src="assets/js/print-report.js?v=3.7.94" defer></script>
+    <script src="assets/js/data.js?v=3.7.95" defer></script>
+    <script src="assets/js/app.js?v=3.7.95" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.95" defer></script>
+    <script src="assets/js/report.js?v=3.7.95" defer></script>
+    <script src="assets/js/print-report.js?v=3.7.95" defer></script>
 </head>
 
 <body data-page="employee-report">
@@ -109,31 +109,19 @@
                             <option>3D Artist</option>
                         </select>
 
-                        <!-- Log Status: one choice of five (Baldy, 09-11-2026: "yang admin mau yang log in dan log out, dan yang missing itu jadi terhide") -->
+                        <!-- Log Status: Log In / Log Out boxes again (Baldy, 11-11-2026: "jadi yang checklist lagi aja"); a ticked box keeps the days that have that log -->
                         <div class="log-filter-head">
                             <label class="feriiz-u-110" id="logStatusLabel">Log Status</label>
-                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Which days the Report shows. In and out: only the days with both, the missing ones hidden. Missing in, Missing out, Missing in and out: only the days missing exactly that." aria-label="About Log Status"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Log In: only the days with a log in, with or without a log out. Log Out: only the days with a log out. Both ticked: the days with both. None: every day." aria-label="About Log Status"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
                         </div>
-                        <div class="missing-filter-group log-status-group" role="radiogroup" aria-labelledby="logStatusLabel">
+                        <div class="missing-filter-group log-status-group" role="group" aria-labelledby="logStatusLabel">
                             <label class="missing-filter-option">
-                                <input type="radio" name="logStatus" class="filter-log" value="all" checked>
-                                <span>All logs</span>
+                                <input type="checkbox" class="filter-log" value="in">
+                                <span>Log In</span>
                             </label>
                             <label class="missing-filter-option">
-                                <input type="radio" name="logStatus" class="filter-log" value="complete">
-                                <span>In and out</span>
-                            </label>
-                            <label class="missing-filter-option">
-                                <input type="radio" name="logStatus" class="filter-log" value="in">
-                                <span>Missing in</span>
-                            </label>
-                            <label class="missing-filter-option">
-                                <input type="radio" name="logStatus" class="filter-log" value="out">
-                                <span>Missing out</span>
-                            </label>
-                            <label class="missing-filter-option">
-                                <input type="radio" name="logStatus" class="filter-log" value="both">
-                                <span>Missing in and out</span>
+                                <input type="checkbox" class="filter-log" value="out">
+                                <span>Log Out</span>
                             </label>
                         </div>
 
@@ -282,7 +270,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.7.94</div>
+            <div class="version-text">version : 3.7.95</div>
             <!-- 20 people a page, like Employees and Activity (Baldy, 04-11-2026) -->
             <div class="table-pager report-pager">
                 <div class="pagination-info" id="reportPageInfo"></div>

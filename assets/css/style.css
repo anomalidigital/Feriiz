@@ -7146,6 +7146,70 @@ div.report-layout .report-search-input {
     margin-bottom: 0;
 }
 
+/* Log Status: Log In and Log Out, each a row of All / With / Without (12-11-2026). */
+.log-status-fields {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.log-status-field {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.log-status-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #344054;
+}
+
+.log-seg {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.filter-dropdown .log-seg-btn,
+.log-seg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    margin: 0;
+    padding: 6px 8px;
+    border-left: 1px solid #E2E8F0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #344054;
+    background: #fff;
+    cursor: pointer;
+    user-select: none;
+}
+
+.log-seg .btn-check:first-child + .log-seg-btn {
+    border-left: 0;
+}
+
+.log-seg-btn:hover {
+    background: #F5FAFF;
+}
+
+.log-seg .btn-check:checked + .log-seg-btn {
+    background: #2975BB;
+    color: #fff;
+}
+
+.log-seg .btn-check:focus-visible + .log-seg-btn {
+    outline: 2px solid #1D5A91;
+    outline-offset: -3px;
+}
+
 .tpl-people-head {
     display: flex;
     flex-wrap: wrap;

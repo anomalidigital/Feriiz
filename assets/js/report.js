@@ -57,8 +57,7 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        logIn: false,          // Log Status: only the days with a log in (see cellMatchesLogFilters)
-        logOut: false,         // ...and/or only the days with a log out
+        logKinds: [],          // Log Status: the kinds of day shown, none = all (LOG_KINDS)
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -1174,34 +1173,39 @@
     /* =============================================
        FILTERS
        ============================================= */
-    /* Log Status is two boxes again, Log In and Log Out (Baldy, 11-11-2026: "yang In nya ada itu ke
-       tampil… yang in ada out nya gada itu ketampil, yang in gada out ada ga ketampil, dan yang in
-       gada out gada itu ga ketampil… jadi yang checklist lagi aja"; one choice of five from 09-11 to
-       10-11-2026, two "missing" boxes before that). A ticked box keeps the days that HAVE that log:
-       Log In, a log in with or without a log out; Log Out, a log out; both ticked, both (meeting
-       05-11-2026, 57:35: "mau yang in, atau mau yang keduanya"). Nothing ticked: every day. */
+    /* Log Status is a checklist of the four kinds of day (Baldy, 12-11-2026: "mereka justru juga
+       katanya mau juga yang keliatan missing in atau missing out, atau missing keduanya… yang mudah
+       di gunakan"; 11-11-2026: "yang In nya ada itu ke tampil… yang in gada… ga ketampil… jadi yang
+       checklist lagi aja"). Each ticked kind is shown, more than one at once; nothing ticked shows
+       every day. The first two have a log in, so ticking both shows who came in with or without a
+       log out; the last two have none. Words without "log" (09-11-2026). One choice of five from
+       09-11 to 10-11-2026, Log In / Log Out boxes on 11-11-2026. */
+    var LOG_KINDS = {
+        complete: 'In and out',
+        out: 'Missing out',
+        'in': 'Missing in',
+        both: 'Missing in and out'
+    };
+
     function getDraftLogs() {
-        var ticked = function (value) {
-            var box = document.querySelector('.filter-log[value="' + value + '"]');
-            return Boolean(box && box.checked);
-        };
-        return { logIn: ticked('in'), logOut: ticked('out') };
+        return Array.prototype.filter.call(document.querySelectorAll('.filter-log'), function (box) { return box.checked && LOG_KINDS[box.value]; })
+            .map(function (box) { return box.value; });
     }
 
-    function setLogDraft(logIn, logOut) {
-        document.querySelectorAll('.filter-log').forEach(function (box) { box.checked = box.value === 'in' ? logIn : logOut; });
+    function setLogDraft(kinds) {
+        document.querySelectorAll('.filter-log').forEach(function (box) { box.checked = kinds.indexOf(box.value) >= 0; });
     }
 
     function logFiltersOn() {
-        return appliedReportFilters.logIn || appliedReportFilters.logOut;
+        return appliedReportFilters.logKinds.length > 0;
     }
 
-    // The day's logs as they stand (its newest version). A day off or a day covered by a request
-    // has neither, so a ticked box hides it.
+    // A day's kind as it stands (its newest version): both logs, or what it misses (dayIssue). A day
+    // off or a day covered by a request is none of them, so it shows only when nothing is ticked.
     function cellMatchesLogFilters(cell) {
-        if (appliedReportFilters.logIn && !cell.dataset.inTime) return false;
-        if (appliedReportFilters.logOut && !cell.dataset.outTime) return false;
-        return true;
+        if (!logFiltersOn()) return true;
+        var kind = cell.dataset.inTime && cell.dataset.outTime ? 'complete' : (cell.dataset.missing || '');
+        return appliedReportFilters.logKinds.indexOf(kind) >= 0;
     }
 
     function rowMatchesLogFilters(row) {
@@ -1274,7 +1278,7 @@
     function paginateRows() {
         // A new search or filter starts again on the first page.
         var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
-            appliedReportFilters.occupations, appliedReportFilters.logIn, appliedReportFilters.logOut]);
+            appliedReportFilters.occupations, appliedReportFilters.logKinds]);
         if (key !== pageFilterKey) {
             pageFilterKey = key;
             reportPage = 1;
@@ -1403,11 +1407,11 @@
             html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(name) +
                 '<button class="filter-chip-close" data-filter-type="occupation" data-value="' + escapeHTML(value) + '" aria-label="Remove ' + escapeHTML(name) + ' from the occupation filter">&times;</button></span>';
         });
-        // One chip per ticked box, so one can go and the other stays.
-        [['in', 'Log In', appliedReportFilters.logIn], ['out', 'Log Out', appliedReportFilters.logOut]].forEach(function (box) {
-            if (!box[2]) return;
-            html += '<span class="filter-indicator-chip">' + box[1] +
-                '<button class="filter-chip-close" data-filter-type="log" data-value="' + box[0] + '" aria-label="Remove the ' + box[1] + ' filter">&times;</button></span>';
+        // One chip per ticked kind, so one can go and the others stay.
+        appliedReportFilters.logKinds.forEach(function (kind) {
+            var name = LOG_KINDS[kind];
+            html += '<span class="filter-indicator-chip">' + name +
+                '<button class="filter-chip-close" data-filter-type="log" data-value="' + kind + '" aria-label="Remove ' + name + ' from the Log Status filter">&times;</button></span>';
         });
         if (appliedReportFilters.original) {
             html += '<span class="filter-indicator-chip">Show history' +
@@ -1433,9 +1437,8 @@
                     }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
                 } else if (type === 'log') {
-                    if (btn.dataset.value === 'in') appliedReportFilters.logIn = false;
-                    else appliedReportFilters.logOut = false;
-                    setLogDraft(appliedReportFilters.logIn, appliedReportFilters.logOut);
+                    appliedReportFilters.logKinds = appliedReportFilters.logKinds.filter(function (k) { return k !== btn.dataset.value; });
+                    setLogDraft(appliedReportFilters.logKinds);
                 }
                 applyReportFilters();
             });
@@ -2339,9 +2342,7 @@
                 var wasOriginal = appliedReportFilters.original;
                 var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
-                var logs = getDraftLogs();
-                appliedReportFilters.logIn = logs.logIn;
-                appliedReportFilters.logOut = logs.logOut;
+                appliedReportFilters.logKinds = getDraftLogs();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
@@ -2361,11 +2362,10 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                setLogDraft(false, false);
+                setLogDraft([]);
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
-                appliedReportFilters.logIn = false;
-                appliedReportFilters.logOut = false;
+                appliedReportFilters.logKinds = [];
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];
                 appliedReportFilters.range = null;

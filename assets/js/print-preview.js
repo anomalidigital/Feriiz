@@ -299,7 +299,7 @@
         if (cols) parts.push(cols + (cols === 1 ? ' column' : ' columns') + ' left out');
         var people = count(state.rows);
         if (people) parts.push(people + (people === 1 ? ' person' : ' people') + ' left out');
-        if (!parts.length) return mode + 'The paper is what prints. Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
+        if (!parts.length) return mode + 'The paper is what prints, on A4 landscape; A3 or A2 in the print dialog gets the same sheet, larger. Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
         return mode + parts.join(' · ') + '. The totals and the pay count only what prints.';
     }
 

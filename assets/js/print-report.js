@@ -412,7 +412,8 @@
     // What a day prints under Period and Overtime: the figures, a request's name, "-" on a day off.
     function periodText(e) {
         if (!e) return '-';
-        if (e.r) return escapeHTML(e.r);
+        // A leave's name in small type, so its row stays as low as the others.
+        if (e.r) return '<span class="print-day-note">' + escapeHTML(e.r) + '</span>';
         return e.off ? '-' : figure(e.d);
     }
 
@@ -444,7 +445,9 @@
 
         // One wide table. Proportional column widths: without them the browser splits the
         // columns evenly, which starves the money columns while the day columns sit half empty.
-        var W = { no: 0.7, name: 3.5, dayPeriod: 1.62, dayOT: 1.62, totals: 2.4, money: 4.4, pay: 4.6 };
+        // The Name column is wide enough for most names on one line, so the rows stay low
+        // (Baldy, 12-11-2026: "tolong ini di dempet dempetin aja ya"; it was 3.5).
+        var W = { no: 0.7, name: 7, dayPeriod: 1.62, dayOT: 1.62, totals: 2.4, money: 4.4, pay: 4.6 };
         var colW = [W.no, W.name];
         job.dates.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
         cols.totals.forEach(function () { colW.push(W.totals); });

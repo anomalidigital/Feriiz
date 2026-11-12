@@ -3880,6 +3880,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
    holding up to ~25 columns.
    --------------------------------------------------------------- */
 .report-print-document {
+    container-type: inline-size;   /* the tiers below measure the sheet's own width */
     --pt-title: 12pt;
     --pt-subtitle: 6pt;
     --pt-meta-label: 4.6pt;
@@ -3888,11 +3889,12 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     --pt-group: 7pt;     /* EMPLOYEE / CLIENT band */
     --pt-head: 4.8pt;    /* column headers */
     --pt-body: 6pt;      /* data cells */
+    --pt-figure: 7pt;    /* the numbers, bigger than the words (Baldy, 12-11-2026) */
     --pt-name: 6.2pt;
     --pt-sub: 5pt;       /* occupation under the name */
     --pt-total: 5pt;     /* footer TOTAL row — holds the widest figures */
     --pt-footer: 5pt;
-    --cell-pad-y: 0.8mm;
+    --cell-pad-y: 0.4mm;
     --cell-pad-x: 0.35mm;
     --head-pad-x: 0.2mm;
 
@@ -4018,7 +4020,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     background: #ffffff !important;
     font-size: var(--pt-body) !important;
     font-weight: 400 !important;
-    line-height: 1.25 !important;
+    line-height: 1.15 !important;
     text-align: left !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
@@ -4070,11 +4072,41 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     color: var(--ink-strong) !important;
 }
 
-/* A group of people of one occupation, its name in the Name column (Baldy, 12-11-2026). */
+/* The numbers read bigger than the words (Baldy, 12-11-2026: "angka nya font nya bisa di
+   besarin sendiri ya"); the Total row keeps its size, its sums are the widest. */
+.report-unified-table tbody td.td-daily-period,
+.report-unified-table tbody td.td-daily-ot,
+.report-unified-table tbody td.td-total-days,
+.report-unified-table tbody td.td-total-ot,
+.report-unified-table tbody td.td-rate,
+.report-unified-table tbody td.td-payment {
+    font-size: var(--pt-figure) !important;
+    line-height: 1.1 !important;
+}
+
+/* A leave's name under a date ("Sick Leave"): small, so the row stays low. */
+.report-unified-table td .print-day-note {
+    display: block;
+    font-size: var(--pt-sub) !important;
+    line-height: 1.05 !important;
+}
+
+/* A group of people of one occupation, its name in the Name column (Baldy, 12-11-2026), on a
+   band of Feriiz blue, the one colour on the white sheet ("kasih warna biru nya feriiz… yang
+   warna nya tajem, soal nya ini aku pusing lihat nya"; the meeting of 10-11, 01:25:48: colour
+   only on the occupation header). */
+.report-unified-table tr.tr-group td {
+    background: #2975BB !important;
+    border-color: #2975BB !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
 .report-unified-table tr.tr-group td.td-group {
     font-size: var(--pt-name) !important;
     font-weight: 700 !important;
-    color: var(--ink-strong) !important;
+    color: #fff !important;
     padding-left: 1.4mm !important;
 }
 
@@ -4211,50 +4243,76 @@ body[data-page="employee-report"] .report-print-footer {
         background: #ffffff !important;
         color: var(--ink) !important;
     }
+}
 
-    /* ---------------------------------------------------------------
-       WIDER PAPER — everything scales up from the same variables.
-       ~250mm+ : A4 landscape (297mm) and A3 portrait (297mm)
-       ~380mm+ : A3 landscape (420mm)
-       --------------------------------------------------------------- */
-    @media (min-width: 250mm) {
-        .report-print-document {
-            --pt-title: 17pt;
-            --pt-subtitle: 8.5pt;
-            --pt-meta-label: 6.5pt;
-            --pt-meta-value: 8.5pt;
-            --pt-filter: 7.5pt;
-            --pt-group: 8.4pt;
-            --pt-head: 6.2pt;
-            --pt-body: 8pt;
-            --pt-name: 8.3pt;
-            --pt-sub: 6.8pt;
-            --pt-total: 6.2pt;
-            --pt-footer: 7.5pt;
-            --cell-pad-y: 1.1mm;
-            --cell-pad-x: 0.55mm;
-            --head-pad-x: 0.3mm;
-        }
+/* ---------------------------------------------------------------
+   WIDER PAPER — everything scales up from the same variables, by the width the sheet itself
+   gets on the paper (a container query): A4, A3 or A2, whatever the print dialog has, and the
+   Print preview's A4 paper on screen. ~250mm+ : A4 landscape (285mm inside the margins) and A3
+   portrait; ~380mm+ : A3 landscape; ~540mm+ : A2 landscape (12-11-2026). These were
+   @media (min-width) tiers inside @media print, which never matched when printing (Edge
+   headless, 12-11-2026: every paper printed the base tier), so A3 and A2 printed small type.
+   --------------------------------------------------------------- */
+@container (min-width: 250mm) {
+    .report-print-document > * {
+        --pt-title: 17pt;
+        --pt-subtitle: 8.5pt;
+        --pt-meta-label: 6.5pt;
+        --pt-meta-value: 8.5pt;
+        --pt-filter: 7.5pt;
+        --pt-group: 8.4pt;
+        --pt-head: 6.2pt;
+        --pt-body: 8pt;
+        --pt-figure: 9.5pt;
+        --pt-name: 8.3pt;
+        --pt-sub: 6.8pt;
+        --pt-total: 6.2pt;
+        --pt-footer: 7.5pt;
+        --cell-pad-y: 0.5mm;
+        --cell-pad-x: 0.55mm;
+        --head-pad-x: 0.3mm;
     }
+}
 
-    @media (min-width: 380mm) {
-        .report-print-document {
-            --pt-title: 22pt;
-            --pt-subtitle: 11pt;
-            --pt-meta-label: 9pt;
-            --pt-meta-value: 11pt;
-            --pt-filter: 9.5pt;
-            --pt-group: 11.5pt;
-            --pt-head: 8.6pt;
-            --pt-body: 11pt;
-            --pt-name: 11.5pt;
-            --pt-sub: 9pt;
-            --pt-total: 8.6pt;
-            --pt-footer: 9.5pt;
-            --cell-pad-y: 1.5mm;
-            --cell-pad-x: 0.8mm;
-            --head-pad-x: 0.45mm;
-        }
+@container (min-width: 380mm) {
+    .report-print-document > * {
+        --pt-title: 22pt;
+        --pt-subtitle: 11pt;
+        --pt-meta-label: 9pt;
+        --pt-meta-value: 11pt;
+        --pt-filter: 9.5pt;
+        --pt-group: 11.5pt;
+        --pt-head: 8.6pt;
+        --pt-body: 11pt;
+        --pt-figure: 13pt;
+        --pt-name: 11.5pt;
+        --pt-sub: 9pt;
+        --pt-total: 8.6pt;
+        --pt-footer: 9.5pt;
+        --cell-pad-y: 0.7mm;
+        --cell-pad-x: 0.8mm;
+        --head-pad-x: 0.45mm;
+    }
+}
+
+@container (min-width: 540mm) {
+    .report-print-document > * {
+        --pt-title: 30pt;
+        --pt-subtitle: 15pt;
+        --pt-meta-label: 12.5pt;
+        --pt-meta-value: 15pt;
+        --pt-filter: 13pt;
+        --pt-group: 16pt;
+        --pt-head: 12pt;
+        --pt-body: 15.5pt;
+        --pt-figure: 18pt;
+        --pt-name: 16pt;
+        --pt-sub: 12.5pt;
+        --pt-total: 12pt;
+        --pt-footer: 13pt;
+        --cell-pad-y: 1mm;
+        --cell-pad-x: 1.1mm;
+        --head-pad-x: 0.6mm;
     }
 }
 
@@ -4370,6 +4428,14 @@ body[data-page="print-preview"] {
     align-items: flex-start;
     gap: 24px;
     padding: 24px;
+}
+
+/* The paper scrolls sideways on its own when the window is narrow. The stage itself must not
+   scroll: an overflow there held the panel, so it went up with the page (Baldy, 12-11-2026:
+   "yang aku kotakin itu dia ikut scroll jadi nya fixed"). */
+.pp-paper-scroll {
+    flex: 1 1 auto;
+    min-width: 0;
     overflow-x: auto;
 }
 
@@ -4509,7 +4575,8 @@ body[data-page="print-preview"] {
     text-align: center;
 }
 
-/* A4 landscape, the paper a wide report is printed on. */
+/* A4 landscape on screen, the paper a wide report is printed on; another paper chosen in the
+   print dialog gets the same sheet, fitted to it (see @page feriiz-preview). */
 .pp-paper {
     box-sizing: border-box;
     flex: 0 0 auto;
@@ -4522,24 +4589,9 @@ body[data-page="print-preview"] {
 }
 
 @media screen {
-    /* The sheet on the paper, at A4 landscape's type scale (the print tier for 250mm+). */
+    /* The sheet on the paper; its type follows the paper's width (WIDER PAPER), A4 landscape here. */
     .pp-paper .report-print-document {
         display: block;
-        --pt-title: 17pt;
-        --pt-subtitle: 8.5pt;
-        --pt-meta-label: 6.5pt;
-        --pt-meta-value: 8.5pt;
-        --pt-filter: 7.5pt;
-        --pt-group: 8.4pt;
-        --pt-head: 6.2pt;
-        --pt-body: 8pt;
-        --pt-name: 8.3pt;
-        --pt-sub: 6.8pt;
-        --pt-total: 6.2pt;
-        --pt-footer: 7.5pt;
-        --cell-pad-y: 1.1mm;
-        --cell-pad-x: 0.55mm;
-        --head-pad-x: 0.3mm;
     }
 }
 
@@ -4557,9 +4609,12 @@ body[data-page="print-preview"] {
     }
 }
 
-/* The paper prints as it shows: A4 landscape, the preview's own page size. */
+/* Landscape on whatever paper the print dialog has (Baldy, 12-11-2026, A2 printed the A4 sheet
+   small over 14 sheets: "dia ga support beberapa versi ya coba tangani, kalau emang misal ga
+   muat gapapa ga ketampil"). The sheet is 100% wide, so it fills A4, A3 or A2, and the type
+   grows with the paper (WIDER PAPER above). It was "A4 landscape" from 12-11 to v3.7.106. */
 @page feriiz-preview {
-    size: A4 landscape;
+    size: landscape;
     margin: 9mm 6mm;
 }
 
@@ -4575,6 +4630,7 @@ body[data-page="print-preview"] #ppSheet {
     }
 
     body[data-page="print-preview"] .pp-stage,
+    body[data-page="print-preview"] .pp-paper-scroll,
     body[data-page="print-preview"] .pp-paper {
         display: block;
         width: auto;

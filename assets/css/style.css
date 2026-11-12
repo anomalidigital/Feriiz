@@ -3453,8 +3453,9 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
     color: #fff;
 }
 
-/* A day's hours and overtime, bold text as on the old Feriiz: "9h / 0.08h" (Baldy, 10-11-2026:
-   no blue and yellow badges). Clear of the day's checkbox, top right. */
+/* A day's Daily and overtime, bold text as on the old Feriiz: "1 / 1h" (Baldy, 12-11-2026; the
+   hours worked before, no blue and yellow badges since 10-11-2026). Clear of the day's checkbox,
+   top right. */
 .day-hours {
     margin-bottom: 8px;
     padding-right: 24px;

@@ -581,7 +581,7 @@
 
     /* History of one day (the clock button after its date, with Show history, from its second
        change on). Every version of that day side by side, oldest first, each drawn as the day
-       looked right after it: hours, overtime, log in, log out. Imports, Add Log and Delete Log
+       looked right after it: Daily, overtime, log in, log out. Imports, Add Log and Delete Log
        alike (Baldy, 05-11-2026: "add log juga masuk ke history"). Each column's title says
        what, when and who (Baldy, 04-11-2026: the account's name and role); an import's file and
        an Add Log's note are in its tooltip. The newest is what the day shows. */
@@ -597,7 +597,7 @@
         var s = dayState(employee.code, date, b);
         var c = stateCount(employee, date, s);
         var mark = dayMark(employee, date, s, c, dayIssue(employee.code, date, s));
-        return '<div class="day-half day-half--changed' + (mark ? ' ' + mark : '') + '">' + hoursHTML(c.work, c.ot) + logLinesHTML(s) + '</div>';
+        return '<div class="day-half day-half--changed' + (mark ? ' ' + mark : '') + '">' + figuresHTML(c.daily, c.ot) + logLinesHTML(s) + '</div>';
     }
 
     function buildHistoryModal() {
@@ -709,12 +709,14 @@
         '</div>';
     }
 
-    // A day's hours and overtime, bold text as on the old Feriiz: "8h / 1h" (Baldy, 10-11-2026:
-    // the blue and yellow badges "di ilangin… mereka lebih bold aja"); overtime in whole hours
-    // since 12-11-2026 (it was "0.08h"). Print reads them.
-    function hoursHTML(work, ot) {
-        return '<div class="day-hours" title="Hours / overtime">' +
-            '<span class="day-hours-work">' + formatHour(work) + '</span> / ' +
+    // A day's Daily and overtime, bold text as on the old Feriiz: "1 / 1h", the figures the print
+    // has under Period (daily) and Overtime (hour) (Baldy, 12-11-2026: "harus pake yang 1 dan
+    // overtime nya by jam"). Daily is 1, 0.5 or 0; overtime is whole hours. It showed the hours
+    // worked before ("8h / 0.08h", bold since 10-11-2026: the blue and yellow badges "di
+    // ilangin… mereka lebih bold aja"); Total Hour still adds those hours up.
+    function figuresHTML(daily, ot) {
+        return '<div class="day-hours" title="Daily / overtime (hours)">' +
+            '<span class="day-hours-daily">' + (Number(daily) || 0) + '</span> / ' +
             '<span class="day-hours-ot">' + formatHour(ot) + '</span></div>';
     }
 
@@ -810,7 +812,7 @@
             attrs: (s.numbers ? ' data-imported="1"' : '') + ' data-daily="' + count.daily + '"' + (issue ? ' data-missing="' + issue + '"' : '') + logDataAttrs(s) +
                 ' data-work="' + count.work.toFixed(4) + '" data-ot="' + count.ot.toFixed(4) + '" data-ot-total="' + count.ot.toFixed(4) + '"',
             noteAttrs: ' data-date="' + date + '"' + logDataAttrs(s),
-            content: withRequestChips(hoursHTML(count.work, count.ot) + logLinesHTML(s), code, date)
+            content: withRequestChips(figuresHTML(count.daily, count.ot) + logLinesHTML(s), code, date)
         };
     }
 

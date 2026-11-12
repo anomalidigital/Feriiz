@@ -11,11 +11,8 @@
    - A template is per day: each ticked day gets its Amount. The Daily / One time choice and
      the One-time dates with their own amounts are gone from it (Baldy, 04-11-2026: "secara
      logika agak bingung").
-   - Each template says which projects may use it (Baldy, 10-11-2026: "template biasa kaya
-     tambah uang makan… bisa di assign di project mana aja… template yang muncul ketika mau
-     assign di project nya ya maka template yang di assign ke project itu aja"): projects null
-     = every project, else the project codes ticked. A project's Assign Request lists only its
-     templates.
+   - Every template is offered in every project's Assign Request. A Projects choice per template
+     (10-11-2026) was taken out again on 12-11-2026: "ribet katanya secara backend".
    - Red dates are templates again, given with Assign Request (Baldy, 10-11-2026: "yang holiday
      itu di apus, dan ini kita kembaliin lagi ke assign request… bisa di pilih project nya").
      The project Settings' Public Holidays (09-11 to 10-11-2026), their national-holiday seed and
@@ -38,7 +35,7 @@
    Prototype only: everything is kept in this browser (localStorage) so the Request
    Templates page and the Report see the same data. The API replaces this.
 
-   FeriizTemplates.all(), forProject(code), get(id), findByName(name), save(template)
+   FeriizTemplates.all(), get(id), findByName(name), save(template)
    FeriizTemplates.additionalFor(employeeCode, projectCode, dates)
    FeriizTemplates.usedIn(projectCode, employeeCodes, dates)
    FeriizTemplates.dayIndex(projectCode, dates)   what each person got on each day: the Report's day chips
@@ -86,8 +83,8 @@
         return t.active !== false && t.id !== OLD_TRANSPORT_ID;
     });
     // Templates saved before 04-11-2026 may still say Daily / One time and carry dates: they are
-    // all per day now.
-    templates.forEach(function (t) { delete t.unit; delete t.dates; });
+    // all per day now. The projects a template chose on 10-11 to 12-11-2026 no longer count.
+    templates.forEach(function (t) { delete t.unit; delete t.dates; delete t.projects; });
     if (Object.keys(ownIds).length) store(KEY_TEMPLATES, templates);
     try { localStorage.removeItem(KEY_HOLIDAY_SEED); } catch (e) { /* nothing kept */ }
     var assigned = load(KEY_ASSIGNED, []);
@@ -108,12 +105,6 @@
     function rupiah(n) { return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); }
 
     function get(id) { return templates.filter(function (t) { return t.id === id; })[0] || null; }
-
-    // The templates a project's Assign Request may give: those for every project (projects null:
-    // the samples and every template saved before 10-11-2026) and those that ticked it.
-    function forProject(code) {
-        return templates.filter(function (t) { return !t.projects || t.projects.indexOf(code) >= 0; });
-    }
 
     // The name is also the Report column title, so two templates may not share it.
     function findByName(name) {
@@ -213,19 +204,17 @@
 
     function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 
-    // The templates Assign Request can give in this project, one list without a group name
-    // (Baldy, 10-11-2026): those whose Projects take it in.
-    function templateOptions(projectCode) {
-        return forProject(projectCode).map(function (t) {
+    // The templates Assign Request can give: every template, one list without a group name
+    // (Baldy, 10-11-2026).
+    function templateOptions() {
+        return templates.map(function (t) {
             return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · ' + rupiah(t.amount) + ' a day</option>';
         }).join('');
     }
 
-    function noTemplates(project) {
-        if (forProject(project.code).length) return false;
-        if (window.FeriizNotify) {
-            window.FeriizNotify.warning('No template is set for ' + project.name + ' yet. On the Request Templates page, tick this project in a template\'s Projects.', 'No template');
-        }
+    function noTemplates() {
+        if (templates.length) return false;
+        if (window.FeriizNotify) window.FeriizNotify.warning('Make a template on the Request Templates page first.', 'No template');
         return true;
     }
 
@@ -245,7 +234,6 @@
        made the admin pick people and days a second time).
        - The Amount starts at the template's and can be changed for this Assign only (Baldy,
          09-11-2026: "soal nya belum pasti").
-       - Only the templates whose Projects take this project in are listed.
        - Each ticked day the person came in gets the Amount; a day that already has the template
          is skipped.
        The line by the buttons says what Apply gives, and what it skips. */
@@ -377,10 +365,10 @@
 
     function openAssign(context) {
         ctx = context;
-        if (noTemplates(ctx.project)) return;
+        if (noTemplates()) return;
         if (!modal) modal = buildModal();
         modal.querySelector('#assignTemplateContext').textContent = ctx.project.name + ' · ' + ctx.cells.length + ' selected';
-        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions(ctx.project.code);
+        modal.querySelector('#assignTemplateSelect').innerHTML = templateOptions();
         takeTemplateAmount();
         window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
@@ -492,9 +480,8 @@
     window.FeriizTemplates = {
         rupiah: rupiah,
         fmtDate: fmtDate,
-        // Every template (the Request Templates page); a project's Assign Request uses forProject.
+        // Every template (the Request Templates page and every project's Assign Request).
         all: function () { return templates; },
-        forProject: forProject,
         get: get,
         findByName: findByName,
         reservedName: reservedName,

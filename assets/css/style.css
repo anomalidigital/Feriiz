@@ -6739,13 +6739,6 @@ div.report-layout .report-search-input {
     font-weight: 600;
     white-space: nowrap;
 }
-
-/* The projects that use a template: "All projects", or two names and how many more. */
-.tpl-projects {
-    color: var(--feriiz-text-muted);
-    font-size: 13px;
-}
-
 /* Projects > Settings: the Default Hours panel (its Public Holidays panel went on 10-11-2026). */
 .settings-grid {
     display: grid;

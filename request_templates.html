@@ -7,12 +7,12 @@
     <title>Feriiz - Request Templates</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.95">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.95">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.96">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.96">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.95" defer></script>
-    <script src="assets/js/app.js?v=3.7.95" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.95" defer></script>
+    <script src="assets/js/data.js?v=3.7.96" defer></script>
+    <script src="assets/js/app.js?v=3.7.96" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.96" defer></script>
 </head>
 
 <body data-page="request-templates">
@@ -23,7 +23,7 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Request Templates</h1>
-                <p class="tpl-page-note">Made once, then given per day in a project's Report (Batch Update &gt; Assign Request), where each template has its own column. Tick the projects that use a template: a project's Assign Request lists only its templates.</p>
+                <p class="tpl-page-note">Made once for every project. Give them per day in a project's Report (Batch Update &gt; Assign Request), where each template has its own column.</p>
             </div>
             <div class="page-actions">
                 <button class="btn btn-primary" type="button" id="addTemplateBtn">
@@ -43,21 +43,17 @@
                     <tr>
                         <th class="feriiz-u-028"></th>
                         <th>Name</th>
-                        <th>Projects</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
                 <tbody id="tplTableBody"></tbody>
             </table>
         </div>
-        <div class="feriiz-u-032">version : 3.7.95</div>
+        <div class="feriiz-u-032">version : 3.7.96</div>
     </main>
 
     <!-- Add / edit template: Name, Amount, Note, as on the meeting whiteboard (20-10-2026). Every
-         template is per day: the Daily / One time choice and its dates are gone (Baldy, 04-11-2026).
-         Projects: the projects whose Assign Request lists it (Baldy, 10-11-2026: "bisa di assign di
-         project mana aja… template yang di assign ke project itu aja"), all of them by default, ticked
-         like the occupation filters. -->
+         template is per day: the Daily / One time choice and its dates are gone (Baldy, 04-11-2026). -->
     <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <form class="modal-content" id="templateForm" novalidate>
@@ -73,8 +69,6 @@
                         <span class="input-group-text">Rp</span>
                         <input type="text" inputmode="numeric" class="form-control" id="tplAmount" placeholder="0">
                     </div>
-                    <label class="form-label mt-3" id="tplProjectsLabel">Projects</label>
-                    <div id="tplProjects" role="group" aria-labelledby="tplProjectsLabel"></div>
                     <label class="form-label mt-3" for="tplNote">Note <span class="tpl-optional">(Optional)</span></label>
                     <textarea class="form-control" id="tplNote" rows="3" placeholder="Who gets it, or when"></textarea>
                 </div>
@@ -89,8 +83,6 @@
     <script>
         (function () {
             var editing = null;
-            var projectPicker = null;   // FeriizFilters.createPicker, filled with the projects
-            var projectNames = {};      // code -> name
 
             function esc(v) {
                 return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -99,15 +91,6 @@
 
             function T() { return window.FeriizTemplates; }
 
-            function namesOf(t) { return (t.projects || []).map(function (code) { return projectNames[code] || code; }); }
-
-            // "All projects", or the projects' names: two, then how many more.
-            function projectsText(t) {
-                if (!t.projects) return 'All projects';
-                var names = namesOf(t);
-                return names.slice(0, 2).join(', ') + (names.length > 2 ? ' +' + (names.length - 2) : '');
-            }
-
             function render() {
                 var q = document.getElementById('tplSearch').value.trim().toLowerCase();
                 var rows = T().all().filter(function (t) {
@@ -115,7 +98,7 @@
                 });
                 var tbody = document.getElementById('tplTableBody');
                 if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="tpl-empty">' +
+                    tbody.innerHTML = '<tr><td colspan="3" class="tpl-empty">' +
                         (q ? 'No template matches your search.' : 'No template yet. Add the first one.') + '</td></tr>';
                     return;
                 }
@@ -125,7 +108,6 @@
                             '<a href="#" class="btn-icon" title="Edit" data-edit="' + esc(t.id) + '"><i class="fa-solid fa-pen-to-square"></i></a>' +
                         '</div></td>' +
                         '<td><div class="fw-semibold">' + esc(t.name) + '</div>' + (t.note ? '<div class="tpl-sub">' + esc(t.note) + '</div>' : '') + '</td>' +
-                        '<td class="tpl-projects" title="' + esc(t.projects ? namesOf(t).join(', ') : 'All projects') + '">' + esc(projectsText(t)) + '</td>' +
                         '<td class="tpl-amount">' + T().rupiah(t.amount) + '</td>' +
                     '</tr>';
                 }).join('');
@@ -138,7 +120,6 @@
                 document.getElementById('tplName').value = t ? t.name : '';
                 document.getElementById('tplAmount').value = t ? Number(t.amount).toLocaleString('id-ID') : '';
                 document.getElementById('tplNote').value = t ? (t.note || '') : '';
-                if (projectPicker) projectPicker.setValues(t ? t.projects : null);
                 document.querySelectorAll('#templateForm .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
                 window.bootstrap.Modal.getOrCreateInstance(document.getElementById('templateModal')).show();
             }
@@ -163,19 +144,11 @@
                     }
                     return;
                 }
-                if (projectPicker && projectPicker.isNone()) {
-                    projectPicker.el.querySelector('.occ-picker-trigger').focus();
-                    if (window.FeriizNotify) FeriizNotify.warning('Tick at least one project that uses this template.', 'Template not saved');
-                    return;
-                }
-                // All ticked = every project, also the ones added later.
-                var ticked = projectPicker ? projectPicker.values() : [];
                 var saved = T().save({
                     id: editing ? editing.id : '',
                     name: name.value.trim(),
                     amount: value,
-                    note: document.getElementById('tplNote').value.trim(),
-                    projects: ticked.length ? ticked : null
+                    note: document.getElementById('tplNote').value.trim()
                 });
                 window.bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
                 render();
@@ -184,20 +157,6 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 render();
-                if (window.FeriizFilters && window.FeriizFilters.createPicker) {
-                    projectPicker = window.FeriizFilters.createPicker({
-                        noneMeansAll: false,
-                        labels: { all: 'All Projects', none: 'No project ticked', many: function (n) { return n + ' Projects'; }, group: 'Projects' }
-                    });
-                    document.getElementById('tplProjects').appendChild(projectPicker.el);
-                }
-                if (window.FERIIZ_DATA) {
-                    window.FERIIZ_DATA.ready.then(function (data) {
-                        data.projects.forEach(function (p) { projectNames[p.code] = p.name; });
-                        if (projectPicker) projectPicker.setList(data.projects.map(function (p) { return { value: p.code, name: p.name }; }));
-                        render();
-                    });
-                }
                 document.getElementById('addTemplateBtn').addEventListener('click', function () { openForm(null); });
                 document.getElementById('templateForm').addEventListener('submit', saveForm);
                 document.getElementById('tplAmount').addEventListener('input', function (e) {

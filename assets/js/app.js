@@ -585,37 +585,30 @@ function feriizLogout() {
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const formatCount = n => Number(n).toLocaleString('id-ID');
 
-    // The same list ticks the projects of a Request Template (FeriizFilters.createPicker, 10-11-2026).
-    // options = { labels: { all, none, many(n), group }, noneMeansAll, onChange(values) }; a form
-    // passes noneMeansAll: false, so nothing ticked stays nothing (isNone) instead of all.
-    function createChecklistPicker(options = {}) {
-        const labels = Object.assign({
-            all: 'All Occupations', none: 'No occupation ticked', many: n => `${n} Occupations`, group: 'Occupations'
-        }, options.labels || {});
-        const noneMeansAll = options.noneMeansAll !== false;
+    function createOccupationPicker(options = {}) {
         const el = document.createElement('div');
         el.className = 'dropdown occ-picker';
         el.innerHTML = `
             <button type="button" class="occ-picker-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
-                <span class="occ-picker-text">${escapeText(labels.all)}</span>
+                <span class="occ-picker-text">All Occupations</span>
                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </button>
-            <div class="dropdown-menu occ-picker-menu" role="group" aria-label="${escapeText(labels.group)}"></div>`;
+            <div class="dropdown-menu occ-picker-menu" role="group" aria-label="Occupations"></div>`;
         const text = el.querySelector('.occ-picker-text');
         const menu = el.querySelector('.occ-picker-menu');
         let items = [];     // { value, name, count }, A to Z
         let total = null;   // how many people in all; null until the page gives its people
-        let chosen = [];    // ticked values; empty = all
-        let none = false;   // every one unticked (for a filter only while choosing)
+        let chosen = [];    // ticked values, the filter; empty = all occupations
+        let none = false;   // every occupation unticked, only while choosing
 
         const countText = n => (n == null ? '' : ` (${formatCount(n)})`);
 
         function label() {
-            if (none) return labels.none;
+            if (none) return 'No occupation ticked';
             const picked = items.filter(item => chosen.includes(item.value));
-            if (!picked.length) return labels.all + countText(total);
+            if (!picked.length) return 'All Occupations' + countText(total);
             const sum = total == null ? null : picked.reduce((s, item) => s + item.count, 0);
-            return (picked.length === 1 ? picked[0].name : labels.many(picked.length)) + countText(sum);
+            return (picked.length === 1 ? picked[0].name : `${picked.length} Occupations`) + countText(sum);
         }
 
         function rowHTML(value, name, count) {
@@ -643,7 +636,7 @@ function feriizLogout() {
             items = list.sort((a, b) => a.name.localeCompare(b.name));
             total = people;
             chosen = chosen.filter(value => items.some(item => item.value === value));
-            menu.innerHTML = rowHTML('', labels.all, total) +
+            menu.innerHTML = rowHTML('', 'All Occupations', total) +
                 items.map(item => rowHTML(item.value, item.name, total == null ? null : item.count)).join('');
             paint();
         }
@@ -657,7 +650,7 @@ function feriizLogout() {
         menu.addEventListener('change', event => {
             const value = event.target.value;
             if (value === '') {
-                // "All …": ticked or with its minus it unticks them all; empty it ticks them all.
+                // "All Occupations": ticked or with its minus it unticks them all; empty it ticks them all.
                 none = !none;
                 chosen = [];
             } else {
@@ -671,9 +664,9 @@ function feriizLogout() {
             if (options.onChange) options.onChange(chosen.slice());
         });
 
-        // Nothing ticked filters nothing, so closing a filter's list ticks them all again.
+        // Nothing ticked filters nothing, so closing the list ticks every occupation again.
         el.addEventListener('hidden.bs.dropdown', () => {
-            if (!none || !noneMeansAll) return;
+            if (!none) return;
             none = false;
             paint();
             if (options.onChange) options.onChange(chosen.slice());
@@ -702,19 +695,6 @@ function feriizLogout() {
                 });
                 setItems(Object.values(byValue), people.length);
             },
-            // Things without counts, e.g. projects: [{ value, name }].
-            setList(list) {
-                setItems(list.map(item => ({ value: String(item.value), name: String(item.name), count: 0 })), null);
-            },
-            // null or [] = all ticked, else only these.
-            setValues(values) {
-                const wanted = (values || []).map(String);
-                none = false;
-                chosen = wanted.length ? items.map(item => item.value).filter(v => wanted.includes(v)) : [];
-                if (chosen.length === items.length) chosen = [];
-                paint();
-            },
-            isNone: () => none,
             counted: () => total != null,
             values: () => chosen.slice(),
             allNames: () => items.map(item => item.name),
@@ -738,7 +718,7 @@ function feriizLogout() {
 
     function pickerFor(select) {
         if (filterPickers.has(select)) return filterPickers.get(select);
-        const picker = createChecklistPicker({ onChange: () => writeSelect(select) });
+        const picker = createOccupationPicker({ onChange: () => writeSelect(select) });
         select.multiple = true;
         select.classList.add('occ-picker-native');
         select.insertAdjacentElement('afterend', picker.el);
@@ -805,7 +785,6 @@ function feriizLogout() {
     }
 
     window.FeriizFilters = Object.assign(window.FeriizFilters || {}, {
-        createPicker: createChecklistPicker,
         getOccupationValues,
         removeOccupationValue,
         resetOccupationFilter,

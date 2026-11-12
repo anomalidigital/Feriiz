@@ -7,12 +7,13 @@
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.98">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.98">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.99">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.99">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.98" defer></script>
-    <script src="assets/js/app.js?v=3.7.98" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.98" defer></script>
+    <script src="assets/js/data.js?v=3.7.99" defer></script>
+    <script src="assets/js/app.js?v=3.7.99" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.99" defer></script>
+    <script src="assets/js/occupation-manager.js?v=3.7.99" defer></script>
 </head>
 
 <body data-page="employees">
@@ -43,6 +44,10 @@
                 <button class="btn btn-primary">
                     <i class="fa-solid fa-file-export"></i>
                     Export
+                </button>
+                <button class="btn btn-outline" type="button" id="manageOccupationsBtn">
+                    <i class="fa-solid fa-briefcase"></i>
+                    Occupations
                 </button>
                 <button class="btn btn-primary" type="button" id="addEmployeeBtn">
                     <i class="fa-solid fa-plus"></i>
@@ -97,7 +102,7 @@
                 <nav id="paginationButtons" aria-label="Employee pages"></nav>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.98</div>
+        <div class="feriiz-u-032">version : 3.7.99</div>
     </main>
 
     <script>
@@ -234,6 +239,23 @@
             renderPage();
         }
 
+        // After Manage Occupations: the table, the Occupation filter and the count follow. An
+        // occupation renamed or deleted leaves the filter, as it leaves the filter's list.
+        function onOccupationsChange() {
+            window.FeriizFilters?.setOccupationPeople(employeesState.all);
+            var have = {};
+            employeesState.all.forEach(function (emp) {
+                var v = (emp.occupation || '').trim().toLowerCase();
+                if (v) have[v] = true;
+            });
+            employeesState.filters.occupations = employeesState.filters.occupations.filter(function (v) { return have[v]; });
+            document.querySelector('[data-stat="occupations"]').textContent = window.FERIIZ_DATA.occupations.length;
+            var page = employeesState.page;
+            applyEmployeeFilter();
+            employeesState.page = Math.min(page, Math.ceil(employeesState.filtered.length / employeesState.perPage) || 1);
+            renderPage();
+        }
+
         function commitEmployeeFilterDraft() {
             employeesState.filters = {
                 occupations: window.FeriizFilters?.getOccupationValues(document) || [],
@@ -286,6 +308,9 @@
 
             document.getElementById('addEmployeeBtn').addEventListener('click', function () {
                 openEmployeeForm(null);
+            });
+            document.getElementById('manageOccupationsBtn').addEventListener('click', function () {
+                window.FERIIZ_DATA.ready.then(function () { window.FeriizOccupations.open(onOccupationsChange); });
             });
         });
     </script>

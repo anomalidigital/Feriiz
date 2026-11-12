@@ -107,7 +107,9 @@
        HOURS
        From the real logs, hours are the time worked, at most the Time Period; overtime is
        what is worked beyond the Working Time (Baldy, 30-10-2026, like the old Feriiz: in
-       08:54, out 18:06 shows 0.21h of overtime).
+       08:54, out 18:06 shows 0.21h of overtime). Since 12-11-2026 overtime counts in whole
+       hours, as the print does: 1h 50m is 1, 0.21h is 0 (Baldy: "iya di samakan… overtime nya
+       itu lansung aja 1 jam 2 jam"; Daily stays 1, 0.5 or 0). See wholeHours.
        - The Time Period is the Default Hours of the person's occupation for that weekday
          (Projects > Settings): 8 of 08:00-17:00 (Baldy, 04-11-2026: "yang di lapangan
          kerjanya 8 jam kerja", it was 9). A day set to 0 hours there has the whole Working Time.
@@ -443,14 +445,19 @@
 
     // What a day's logs count, by the live Feriiz's rule (Baldy, 05-11-2026): Daily 1 when the day
     // meets the project's hours, 0.5 when someone came but did not (7 of 8 hours, or only one
-    // log), 0 when nobody came. Hours and overtime need both logs and come from their times.
+    // log), 0 when nobody came. Hours and overtime need both logs and come from their times;
+    // overtime in whole hours.
     function logCount(code, date, inTime, outTime) {
         if (!inTime && !outTime) return { daily: 0, work: 0, ot: 0 };
         if (!inTime || !outTime) return { daily: 0.5, work: 0, ot: 0 };
         var view = dayView(code, date, inTime, outTime);
         var work = round2(view.hours.work);
-        return { daily: work >= round2(periodOf(code, date)) ? 1 : 0.5, work: work, ot: round2(view.hours.ot) };
+        return { daily: work >= round2(periodOf(code, date)) ? 1 : 0.5, work: work, ot: wholeHours(view.hours.ot) };
     }
+
+    // Overtime as it is shown, counted and paid: the whole hours, 1h 50m is 1 (Baldy, 12-11-2026,
+    // the same rule as the print's: "tidak ada setengah seperti 1.30"). An imported 1.5 is 1 too.
+    function wholeHours(h) { return Math.max(0, Math.floor(round2(h) + 1e-9)); }
 
     // What a day shows and counts now: the newest import's numbers, else its logs'. A Daily the
     // import left as it was keeps the hours the logs make, so a plain download and import
@@ -462,11 +469,11 @@
         return {
             daily: imp.daily,
             work: imp.daily !== logs.daily ? round2((Number(imp.daily) || 0) * importHours(employee, imp).period) : logs.work,
-            ot: round2(imp.ot)
+            ot: wholeHours(imp.ot)
         };
     }
 
-    function differs(a, b) { return a.daily !== b.daily || Math.abs((a.ot || 0) - (b.ot || 0)) >= 0.01; }
+    function differs(a, b) { return a.daily !== b.daily || wholeHours(a.ot) !== wholeHours(b.ot); }
 
     // Does the day now differ from the machine's original: other logs, or numbers an import changed.
     function isChanged(employee, date, s) {
@@ -534,7 +541,7 @@
         if (!s.last) return false;
         if (isChanged(employee, date, s)) return true;
         var c = s.last.cells[employee.code + '|' + date] || {};
-        return !(kindOf(s.last) === 'import' && s.off && !Number(c.daily) && !Number(c.ot));
+        return !(kindOf(s.last) === 'import' && s.off && !Number(c.daily) && !wholeHours(c.ot));
     }
 
     // { 'YYYY-MM-DD': true } for the days on screen that split into newest | original: with Show
@@ -702,8 +709,9 @@
         '</div>';
     }
 
-    // A day's hours and overtime, bold text as on the old Feriiz: "9h / 0.08h" (Baldy,
-    // 10-11-2026: the blue and yellow badges "di ilangin… mereka lebih bold aja"). Print reads them.
+    // A day's hours and overtime, bold text as on the old Feriiz: "8h / 1h" (Baldy, 10-11-2026:
+    // the blue and yellow badges "di ilangin… mereka lebih bold aja"); overtime in whole hours
+    // since 12-11-2026 (it was "0.08h"). Print reads them.
     function hoursHTML(work, ot) {
         return '<div class="day-hours" title="Hours / overtime">' +
             '<span class="day-hours-work">' + formatHour(work) + '</span> / ' +
@@ -783,7 +791,7 @@
     // inside. noteAttrs lets the original half of a split day open its own log notes.
     function dayContent(employee, date, s) {
         var code = employee.code;
-        var numbered = s.numbers && (s.numbers.daily || s.numbers.ot);
+        var numbered = s.numbers && (s.numbers.daily || wholeHours(s.numbers.ot));
         if (s.off && !s.inTime && !s.outTime && !numbered) {
             return { cls: 'weekend-off-cell', off: true, attrs: EMPTY_LOG_ATTRS, content: withRequestChips('', code, date) };
         }
@@ -1135,7 +1143,7 @@
 
     // Pay is per day (decided Oct 2026):
     //   Total Rate          = Daily Rate x days with a log
-    //   Total Rate Overtime = Overtime Rate per hour x overtime hours
+    //   Total Rate Overtime = Overtime Rate per hour x overtime hours (whole hours, as the print)
     // Client columns use the client rates the same way.
     function setText(row, selector, text) {
         var el = row.querySelector(selector);
@@ -1802,7 +1810,7 @@
        One dialog with the two steps of the live Feriiz (Baldy, 05-11-2026: the button and the
        dialog of the first design, as dev still has them):
        - Download template: the period as an Excel to fill in, one row per person with
-         Daily (1, 0.5 or 0) and Overtime (hours) under every date, then the rates.
+         Daily (1, 0.5 or 0) and Overtime (whole hours) under every date, then the rates.
        - Import file: that file back. Its numbers become the newest version of those days
          (Feriiz team, 27-10-2026); with Show history each changed day shows the import on
          the left and the original on the right (04-11-2026). What the file changes is shown
@@ -1943,7 +1951,7 @@
                 var name = logFileName(dates);
                 XLSX.writeFile(wb, name);
                 if (window.FeriizNotify) {
-                    FeriizNotify.success('Fill in Daily (1, 0.5 or 0) and Overtime (hours) for each day, then bring it back with Import XLSX.', name + ' downloaded');
+                    FeriizNotify.success('Fill in Daily (1, 0.5 or 0) and Overtime (whole hours) for each day, then bring it back with Import XLSX.', name + ' downloaded');
                 }
             });
         }).catch(function () {

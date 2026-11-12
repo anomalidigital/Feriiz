@@ -38,10 +38,12 @@
     var NEW_OCCUPATION_DAY = { work: 8, ot: 2 };
 
     // The occupations as Employees > Manage Occupations left them (Baldy, 12-11-2026): { list:
-    // the names, steps: ['rename', from, to] and ['delete', [names]] in the order they were done }.
-    // The steps are done again on the employees when the data loads, so each keeps what the page
-    // showed (a name deleted and added again stays off the people it was taken from). Kept in
-    // this browser until the API exists.
+    // the names, steps: ['delete', [names]] in the order they were done }. The steps are done
+    // again on the employees when the data loads, so each keeps what the page showed (a name
+    // deleted and added again stays off the people it was taken from). A ['rename', from, to]
+    // step can be there from the morning of 12-11, before rename was taken out; it is still done
+    // again, so those employees keep the name they were given. Kept in this browser until the
+    // API exists.
     var OCC_KEY = 'feriiz_occupations_v1';
     var occEdits = {};
     try { occEdits = JSON.parse(localStorage.getItem(OCC_KEY) || '{}') || {}; } catch (e) { occEdits = {}; }
@@ -258,7 +260,7 @@
         },
         // Occupations, A to Z, each with how many employees have it (Employees > Manage
         // Occupations, Baldy, 12-11-2026: "tambahin tombol buat tambah occupation… ada checlist nya
-        // terus bisa delete juga… bisa di rename").
+        // terus bisa delete juga"; no rename: "ini edit occupation harusnya tidak ada deh").
         occupationList: function () {
             var count = {};
             API.employees.forEach(function (e) { if (e.occupation) count[lower(e.occupation)] = (count[lower(e.occupation)] || 0) + 1; });
@@ -275,24 +277,6 @@
             saveOccupations();
             return '';
         },
-        // '' when renamed, else what is wrong. Its employees and each project's Default Hours follow.
-        renameOccupation: function (from, to) {
-            var clean = String(to || '').trim().replace(/\s+/g, ' ');
-            if (!clean) return 'Type the new name.';
-            var taken = lower(clean) !== lower(from) && onList(clean);
-            if (taken) return taken + ' is already on the list.';
-            var at = -1;
-            API.occupations.forEach(function (o, i) { if (lower(o) === lower(from)) at = i; });
-            if (at < 0) return from + ' is not on the list any more.';
-            var step = ['rename', API.occupations[at], clean];
-            API.occupations[at] = clean;
-            API.occupations.sort(byName);
-            occEdits.steps.push(step);
-            occupationStep(API.employees, step);
-            editDefaultHours(function (name) { return lower(name) === lower(from) ? clean : name; });
-            saveOccupations();
-            return '';
-        },
         // Takes these occupations off the list and off their employees; how many employees lost one.
         deleteOccupations: function (names) {
             var gone = {};
@@ -301,7 +285,7 @@
             API.occupations = API.occupations.filter(function (o) { return !gone[lower(o)]; });
             occEdits.steps.push(step);
             var cleared = occupationStep(API.employees, step);
-            editDefaultHours(function (name) { return gone[lower(name)] ? null : name; });
+            dropDefaultHours(gone);
             saveOccupations();
             return cleared;
         },
@@ -322,8 +306,8 @@
         try { localStorage.setItem(OCC_KEY, JSON.stringify(occEdits)); } catch (e) { /* kept for this page only */ }
     }
 
-    // One step on these people: a renamed occupation takes its new name, a deleted one leaves
-    // them without. How many people it changed.
+    // One step on these people: a deleted occupation leaves them without (an old rename step
+    // gives them its new name). How many people it changed.
     function occupationStep(people, step) {
         var n = 0;
         var from = {};
@@ -344,21 +328,14 @@
         occEdits.steps.forEach(function (step) { occupationStep(API.employees, step); });
     }
 
-    // Each project's Default Hours rows follow a renamed occupation and lose a deleted one:
-    // change(name) gives the new name, or null to drop the row.
-    function editDefaultHours(change) {
+    // Each project's Default Hours lose the rows of the deleted occupations (gone: lower-case
+    // name -> true).
+    function dropDefaultHours(gone) {
         API.projects.forEach(function (p) {
             var rows = p.defaultHours && p.defaultHours.occupations;
             if (!rows || !rows.length) return;
-            var changed = false;
-            var next = [];
-            rows.forEach(function (r) {
-                var to = change(r.occupation);
-                if (to === r.occupation) { next.push(r); return; }
-                changed = true;
-                if (to) next.push(Object.assign({}, r, { occupation: to }));
-            });
-            if (changed) API.saveProjectSettings(p.code, { defaultHours: Object.assign({}, p.defaultHours, { occupations: next }) });
+            var next = rows.filter(function (r) { return !gone[lower(r.occupation)]; });
+            if (next.length < rows.length) API.saveProjectSettings(p.code, { defaultHours: Object.assign({}, p.defaultHours, { occupations: next }) });
         });
     }
 

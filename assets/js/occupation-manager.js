@@ -1,11 +1,12 @@
 /* =============================================
    FERIIZ — Manage Occupations (Employees page, Baldy, 12-11-2026: "tambahin tombol buat tambah
    occupation… kurang lebih kayanya untuk desain kaya manage employees… ada checlist nya terus bisa
-   delete juga jadinya, bisa di rename juga").
-   One window, like Manage Employee: add a name, search, tick occupations and delete them, or
-   rename one in its row. Each occupation says how many employees have it. A rename follows to
-   every employee and to each project's Default Hours; a delete leaves its employees without an
-   occupation, and asks first, saying how many. The list lives in FERIIZ_DATA (data.js).
+   delete juga jadinya").
+   One window, like Manage Employee: add a name, search, tick occupations and delete them. Each
+   occupation says how many employees have it. Delete shows only once something is ticked
+   ("paling ketika select itu baru ada tombol delete ya"); it leaves the employees without an
+   occupation and asks first, saying how many. No rename ("ini edit occupation harusnya tidak ada
+   deh ga perlu banget"). The list lives in FERIIZ_DATA (data.js).
    FeriizOccupations.open(onChange): onChange() after each change, so the page draws again.
    ============================================= */
 (function () {
@@ -15,7 +16,6 @@
     var onChange = null;
     var query = '';
     var picked = {};       // lower-case name -> true
-    var renaming = null;   // the name being renamed
     var asking = false;    // the delete question is showing
 
     function D() { return window.FERIIZ_DATA; }
@@ -65,12 +65,11 @@
                                 '<label class="occm-check"><input type="checkbox" class="form-check-input" id="occmAll" aria-label="Tick every occupation shown"></label>' +
                                 '<span>Occupation</span>' +
                                 '<span class="occm-num">Employees</span>' +
-                                '<span class="visually-hidden">Rename</span>' +
                             '</div>' +
                             '<div class="occm-rows" id="occmRows"></div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="modal-footer occm-foot" id="occmFoot"></div>' +
+                    '<div class="modal-footer occm-foot" id="occmFoot" aria-live="polite"></div>' +
                 '</div>' +
             '</div>';
         document.body.appendChild(el);
@@ -78,10 +77,8 @@
         el.querySelector('#occmSearch').addEventListener('input', function (e) { query = e.target.value.trim().toLowerCase(); render(); });
         el.querySelector('#occmAll').addEventListener('change', tickShown);
         el.querySelector('#occmRows').addEventListener('change', onRowsChange);
-        el.querySelector('#occmRows').addEventListener('click', onRowsClick);
-        el.querySelector('#occmRows').addEventListener('keydown', onRenameKey);
         el.querySelector('#occmFoot').addEventListener('click', onFootClick);
-        el.addEventListener('hidden.bs.modal', function () { renaming = null; asking = false; });
+        el.addEventListener('hidden.bs.modal', function () { asking = false; });
         return el;
     }
 
@@ -94,31 +91,25 @@
     }
 
     function rowHTML(o) {
-        if (renaming && key(renaming) === key(o.name)) {
-            return '<div class="occm-row is-renaming">' +
-                '<span class="occm-check"></span>' +
-                '<input type="text" class="form-control form-control-sm occm-input" value="' + esc(o.name) + '" aria-label="New name for ' + esc(o.name) + '">' +
-                '<span class="occm-num">' + o.employees.toLocaleString('id-ID') + '</span>' +
-                '<span class="occm-actions">' +
-                    '<button type="button" class="occm-icon is-save" data-save title="Save the name" aria-label="Save the new name"><i class="fa-solid fa-check" aria-hidden="true"></i></button>' +
-                    '<button type="button" class="occm-icon" data-cancel title="Cancel" aria-label="Keep the old name"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
-                '</span>' +
-            '</div>';
-        }
         return '<div class="occm-row">' +
             '<label class="occm-check"><input type="checkbox" class="form-check-input" data-pick="' + esc(o.name) + '"' + (picked[key(o.name)] ? ' checked' : '') +
                 ' aria-label="Tick ' + esc(o.name) + '"></label>' +
             '<span class="occm-name">' + esc(o.name) + '</span>' +
             '<span class="occm-num">' + o.employees.toLocaleString('id-ID') + '</span>' +
-            '<span class="occm-actions"><button type="button" class="occm-icon" data-rename="' + esc(o.name) + '" title="Rename" aria-label="Rename ' + esc(o.name) + '">' +
-                '<i class="fa-solid fa-pen" aria-hidden="true"></i></button></span>' +
         '</div>';
     }
 
+    // Nothing ticked: only a hint, no Delete. Ticked: "Selected: N" and Delete, then the question.
+    // The footer stays, so ticking the first box does not move the window.
     function renderFoot() {
         var foot = modal.querySelector('#occmFoot');
         var list = pickedNames();
-        if (asking && list.length) {
+        if (!list.length) {
+            asking = false;
+            foot.innerHTML = '<span class="occm-hint">Tick occupations to delete them.</span>';
+            return;
+        }
+        if (asking) {
             var people = list.reduce(function (n, o) { return n + o.employees; }, 0);
             foot.innerHTML = '<span class="occm-ask">Delete ' + plural(list.length, 'occupation', 'occupations') + '?' +
                 (people ? ' ' + plural(people, 'employee', 'employees') + ' will have no occupation.' : '') + '</span>' +
@@ -126,9 +117,8 @@
                 '<button type="button" class="btn btn-danger" data-confirm>Yes, delete</button>';
             return;
         }
-        asking = false;
         foot.innerHTML = '<span class="occm-selected">Selected: <strong>' + list.length + '</strong></span>' +
-            '<button type="button" class="btn btn-outline-danger" data-delete' + (list.length ? '' : ' disabled') + '>' +
+            '<button type="button" class="btn btn-outline-danger" data-delete>' +
                 '<i class="fa-solid fa-trash-can" aria-hidden="true"></i> Delete</button>';
     }
 
@@ -145,11 +135,6 @@
         master.indeterminate = on > 0 && on < rows.length;
         master.disabled = !rows.length;
         renderFoot();
-        var input = modal.querySelector('.occm-input');
-        if (input) {
-            input.focus();
-            input.select();
-        }
     }
 
     function changed() { if (onChange) onChange(); }
@@ -196,65 +181,6 @@
         if (again) again.focus();
     }
 
-    function saveRename() {
-        var input = modal.querySelector('.occm-input');
-        if (!input || !renaming) return;
-        var from = renaming;
-        var to = input.value.trim().replace(/\s+/g, ' ');
-        if (to === from) { cancelRename(); return; }
-        var people = D().occupationList().filter(function (o) { return key(o.name) === key(from); }).reduce(function (n, o) { return n + o.employees; }, 0);
-        var problem = D().renameOccupation(from, to);
-        if (problem) {
-            input.classList.add('is-invalid');
-            input.focus();
-            notify('warning', problem, 'Occupation not renamed');
-            return;
-        }
-        if (picked[key(from)]) {
-            delete picked[key(from)];
-            picked[key(to)] = true;
-        }
-        renaming = null;
-        render();
-        changed();
-        notify('success', from + ' is now ' + to + (people ? ', for its ' + plural(people, 'employee', 'employees') + ' too.' : '.'), 'Occupation renamed');
-        var again = modal.querySelector('button[data-rename="' + to.replace(/"/g, '\\"') + '"]');
-        if (again) again.focus();
-    }
-
-    function cancelRename() {
-        var name = renaming;
-        renaming = null;
-        render();
-        var again = name && modal.querySelector('button[data-rename="' + name.replace(/"/g, '\\"') + '"]');
-        if (again) again.focus();
-    }
-
-    function onRowsClick(e) {
-        var rename = e.target.closest('button[data-rename]');
-        if (rename) {
-            renaming = rename.dataset.rename;
-            asking = false;
-            render();
-            return;
-        }
-        if (e.target.closest('button[data-save]')) saveRename();
-        else if (e.target.closest('button[data-cancel]')) cancelRename();
-    }
-
-    // Enter saves the new name; Esc keeps the old one (and leaves the window open).
-    function onRenameKey(e) {
-        if (!e.target.classList.contains('occm-input')) return;
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            saveRename();
-        } else if (e.key === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-            cancelRename();
-        }
-    }
-
     function onFootClick(e) {
         if (e.target.closest('[data-delete]')) {
             asking = true;
@@ -264,6 +190,8 @@
         } else if (e.target.closest('[data-keep]')) {
             asking = false;
             renderFoot();
+            var del = modal.querySelector('#occmFoot [data-delete]');
+            if (del) del.focus();
         } else if (e.target.closest('[data-confirm]')) {
             var list = pickedNames();
             var cleared = D().deleteOccupations(list.map(function (o) { return o.name; }));
@@ -273,6 +201,7 @@
             changed();
             notify('success', plural(list.length, 'occupation was', 'occupations were') + ' deleted.' +
                 (cleared ? ' ' + plural(cleared, 'employee has', 'employees have') + ' no occupation now.' : ''), 'Occupations deleted');
+            modal.querySelector('#occmSearch').focus();
         }
     }
 
@@ -282,7 +211,7 @@
             onChange = callback || null;
             if (!modal) modal = build();
             query = '';
-            renaming = null;
+            picked = {};
             asking = false;
             modal.querySelector('#occmSearch').value = '';
             modal.querySelector('#occmNewName').value = '';

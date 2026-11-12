@@ -185,7 +185,7 @@
     }
 
     // One person's day as the Report has it: d = the Daily (0, 0.5 or 1), ot = overtime hours,
-    // w = came in (Transport pays it), req = the requests given that day (Uang Makan…) for their
+    // w = came in (Jumlah Orang Per Hari counts it), req = the requests given that day (Uang Makan…) for their
     // columns, r = the name of an accepted request on a day off work, off = a day off, and for a
     // day with data s = [hours, overtime] of the client print's Set Default.
     function dayEntry(tr, date, idx) {
@@ -228,7 +228,7 @@
             var d = fromISO(date);
             return { date: date, label: label, dow: d ? d.getDay() : -1 };
         });
-        // The Client group's additional columns: Transport, the request templates, Total Additional.
+        // The Client group's additional columns: the request templates (Transport among them), Total Additional.
         var add = Array.from(document.querySelectorAll('.report-table thead th.col-cli-add, .report-table thead th.col-cli-addtotal'))
             .filter(isElementVisible)
             .map(function (th) { return { id: th.dataset.template || '', name: th.textContent.trim(), total: !th.dataset.template }; });
@@ -269,8 +269,7 @@
                         daily: Number(tr.dataset.dailyRate) || 0,
                         ot: Number(tr.dataset.otRate) || 0,
                         clientDaily: Number(tr.dataset.clientDailyRate) || 0,
-                        clientOt: Number(tr.dataset.clientOtRate) || 0,
-                        transport: Number(tr.dataset.transportRate) || 0
+                        clientOt: Number(tr.dataset.clientOtRate) || 0
                     },
                     days: days
                 };
@@ -293,7 +292,7 @@
          1.30"). The headers are written out ("jangan kita singkat").
        - What is cut or left out no longer counts ("ketika ada yang di hide itu harus ada
          pengaruh buat penotalan"): pay is per day, Daily Rate × Period and Overtime Rate ×
-         hours, and Transport and the requests go with a day's Period. A money column left out
+         hours, and the requests (Transport, Uang Makan…) go with a day's Period. A money column left out
          never changes what a person is paid.
        - People are grouped by occupation, A to Z, each group headed by its name in the Name
          column and numbered from 1 ("no nya juga khusus… tukang plumbing dia jadi dari 1 lagi").
@@ -367,17 +366,15 @@
     }
 
     // One person's figures over the job's dates, without what is cut: pay is per day (Total Rate
-    // = Daily Rate x Period), overtime per whole hour, Transport and requests on the days whose
-    // Period prints.
+    // = Daily Rate x Period), overtime per whole hour, the requests on the days whose Period prints.
     function rowFigures(row, job, view) {
         var cut = view.cut || {};
-        var days = 0, ot = 0, paid = 0, req = {}, reqTotal = 0;
+        var days = 0, ot = 0, req = {}, reqTotal = 0;
         job.dates.forEach(function (d) {
             var e = sheetDay(row, d.date, view.client);
             if (!e) return;
             if (!cut['p:' + d.date]) {
                 days += e.d;
-                if (e.w) paid++;
                 e.req.forEach(function (r) {
                     var item = req[r.t] || (req[r.t] = { n: 0, a: 0 });
                     item.n++;
@@ -388,8 +385,7 @@
             if (!cut['o:' + d.date]) ot += e.ot;
         });
         var r = row.rates;
-        var transport = r.transport * paid;
-        var f = { days: days, ot: ot, transport: transport, req: req, add: transport + reqTotal };
+        var f = { days: days, ot: ot, req: req, add: reqTotal };
         f.emp = { daily: r.daily, rateOT: r.ot, totalR: days * r.daily, totalOT: ot * r.ot };
         f.cli = { daily: r.clientDaily, rateOT: r.clientOt, totalR: days * r.clientDaily, totalOT: ot * r.clientOt };
         f.emp.sub = f.emp.totalR + f.emp.totalOT;
@@ -480,8 +476,7 @@
             if (c.f === 'sub') return '<td class="td-rate td-subtotal">' + rupiah(group.sub) + '</td>';
             var text;
             if (c.f === 'add') {
-                if (c.id === 'transport') text = f.transport ? idr(f.transport) : '-';
-                else text = f.req[c.id] ? idr(f.req[c.id].a) : '-';
+                text = f.req[c.id] ? idr(f.req[c.id].a) : '-';
             } else if (c.f === 'addtotal') {
                 text = f.add ? idr(f.add) : '-';
             } else {
@@ -545,7 +540,7 @@
             var text = '';
             if (c.f === 'sub') text = rupiah(sum(function (f) { return f[group].sub; }));
             else if (c.f === 'totalR' || c.f === 'totalOT') text = rupiah(sum(function (f) { return f[group][c.f]; }));
-            else if (c.f === 'add') text = rupiah(sum(function (f) { return c.id === 'transport' ? f.transport : (f.req[c.id] ? f.req[c.id].a : 0); }));
+            else if (c.f === 'add') text = rupiah(sum(function (f) { return f.req[c.id] ? f.req[c.id].a : 0; }));
             else if (c.f === 'addtotal') text = rupiah(sum(function (f) { return f.add; }));
             html += '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + ' td-total-cell">' + text + '</td>';
         });

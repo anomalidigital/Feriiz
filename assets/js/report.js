@@ -853,44 +853,13 @@
         return dates.map(function (date) { return dayCellHTML(employee, date); }).join('');
     }
 
-    /* =============================================
-       TRANSPORT (Arcon MoM 20-10-2026, built 28-10-2026)
-       Every day someone worked pays the Transport / Day from their employee data,
-       without anyone assigning it: a day with a log, or an imported Daily 1. Who gets
-       transport is decided per person, not per day: someone who lives on the site has
-       no Transport / Day (Arcon's note on the timeline, 28-10-2026), and the per-day
-       skip in Batch Update was removed (Baldy, 30-10-2026). It is the first of the
-       Client group's additional columns and counts in Total Additional; like every
-       summary column it shows only the total.
-       ============================================= */
-    var TRANSPORT_COL = 'transport';
+    /* Transport is a request template like Uang Makan (Baldy, 12-11-2026: "kita udah pilih pake
+       template request"; meeting 10-11-2026, 00:47: tick the days, Batch Update, Assign Request).
+       From 28-10 to 12-11-2026 it was paid automatically from each employee's Transport / Day,
+       in a column of its own. */
 
-    function transportRateOf(employee) {
-        return employee && window.FERIIZ_DATA && window.FERIIZ_DATA.transportOf ? window.FERIIZ_DATA.transportOf(employee) : 0;
-    }
-
-    // A day someone came in (Daily 1 or 0.5), by the same rule as Total Days.
-    function workedCell(cell) {
-        if (cell.classList.contains('weekend-off-cell')) return false;
-        return Number(cell.dataset.daily) > 0;
-    }
-
-    // The Transport cell and Total Additional of one row, from its worked days.
-    function paintTransport(row, rate, days) {
-        var total = rate * days;
-        var cell = row.querySelector('td.col-cli-add[data-template="' + TRANSPORT_COL + '"]');
-        // Empty when there is nothing to pay, so print leaves it blank too.
-        if (cell) cell.textContent = total ? formatIDR(total) : '';
-        var sum = row.querySelector('td.col-cli-addtotal');
-        if (sum) {
-            var all = (Number(sum.dataset.requests) || 0) + total;
-            sum.textContent = all ? formatIDR(all) : '';
-        }
-    }
-
-    // Additional columns at the end of the Client group: Transport first (when anyone here has
-    // a Transport / Day), then one column per request template given on the visible days,
-    // shown only when someone here has it (whiteboard 20-10-2026). With two or more,
+    // Additional columns at the end of the Client group: one column per request template given
+    // on the visible days, shown only when someone here has it (whiteboard 20-10-2026). With two or more,
     // "Total Additional" adds them up (meeting 1:59, 2:01). They show only totals and
     // cannot be clicked: requests are opened and removed from the chips in the days
     // (Baldy, 29-10-2026: "di tabel ya total nya aja").
@@ -899,8 +868,7 @@
     function computeAddColumns(dates) {
         var templates = window.FeriizTemplates && projectContext
             ? window.FeriizTemplates.usedIn(projectContext.code, reportEmployees.map(function (e) { return e.code; }), dates) : [];
-        var transport = reportEmployees.some(function (e) { return transportRateOf(e) > 0; });
-        addColumns = (transport ? [{ id: TRANSPORT_COL, name: 'Transport' }] : []).concat(templates);
+        addColumns = templates;
     }
 
     function hasAddTotal() { return addColumns.length > 1; }
@@ -913,11 +881,9 @@
         var cells = addColumns.map(function (col) {
             var it = byId[col.id];
             var attrs = ' class="col-cli-add rate-cell" data-template="' + escapeHTML(col.id) + '"';
-            // Transport is painted by updateVisibleTotals, from the days on screen.
-            if (col.id === TRANSPORT_COL) return '<td' + attrs + '></td>';
             return '<td' + attrs + '>' + (it ? formatIDR(it.amount) : '') + '</td>';
         }).join('');
-        // Total Additional = these requests + Transport, which updateVisibleTotals adds.
+        // Total Additional = these requests.
         if (hasAddTotal()) cells += '<td class="col-cli-addtotal rate-cell" data-requests="' + add.total + '">' + (add.total ? formatIDR(add.total) : '') + '</td>';
         return cells;
     }
@@ -941,11 +907,10 @@
             if (slaves[i].indexOf('colCliAdd') === 0) slaves.splice(i, 1);
         }
         var items = addColumns.map(function (col) {
-            return { id: 'colCliAdd-' + col.id, label: col.name, cols: ['.col-cli-add[data-template="' + col.id + '"]'], request: col.id !== TRANSPORT_COL };
+            return { id: 'colCliAdd-' + col.id, label: col.name, cols: ['.col-cli-add[data-template="' + col.id + '"]'], request: true };
         });
         if (hasAddTotal()) items.push({ id: 'colCliAddTotal', label: 'Total Additional', cols: ['.col-cli-addtotal'], request: true });
-        // New columns start visible, so an assignment shows right away. Transport sits
-        // above the "Requests" sub-heading: it is not a request.
+        // New columns start visible, so an assignment shows right away, under "Requests".
         var headed = false;
         list.innerHTML = items.map(function (it) {
             colMap[it.id] = it.cols;
@@ -1026,8 +991,7 @@
         var workTime = workTimeOf(employee.code);
         return '<tr data-employee-code="' + escapeHTML(employee.code) + '" data-employee-name="' + escapeHTML(employee.name) + '"' +
             ' data-daily-rate="' + rates.daily + '" data-client-daily-rate="' + rates.clientDaily + '"' +
-            ' data-ot-rate="' + rates.ot + '" data-client-ot-rate="' + rates.clientOt + '"' +
-            ' data-transport-rate="' + transportRateOf(employee) + '">' +
+            ' data-ot-rate="' + rates.ot + '" data-client-ot-rate="' + rates.clientOt + '">' +
             '<td class="col-name sticky-col">' +
                 '<div class="report-identity-content">' +
                     '<div class="emp-code-cell">' + escapeHTML(employee.code) + '</div>' +
@@ -1153,22 +1117,18 @@
         if (el) el.textContent = text;
     }
 
-    // Total Days adds up each day's Daily (1, 0.5 or 0), what pay counts. Transport is paid on the
-    // days someone came in.
+    // Total Days adds up each day's Daily (1, 0.5 or 0), what pay counts.
     function updateVisibleTotals(datesToShow) {
         document.querySelectorAll('.report-table tbody tr').forEach(function (row) {
             var otRate = Number(row.dataset.otRate) || 0;
             var clientOtRate = Number(row.dataset.clientOtRate) || 0;
-            var transportRate = Number(row.dataset.transportRate) || 0;
-            var days = 0, totalWork = 0, totalOT = 0, paid = 0;
+            var days = 0, totalWork = 0, totalOT = 0;
             row.querySelectorAll('td.day-col').forEach(function (cell) {
                 if (datesToShow.indexOf(cell.dataset.date) < 0 || cell.classList.contains('weekend-off-cell')) return;
                 days += Number(cell.dataset.daily) || 0;
-                if (transportRate && workedCell(cell)) paid++;
                 totalWork += Number(cell.dataset.work) || 0;
                 totalOT += Number(cell.dataset.otTotal) || 0;
             });
-            paintTransport(row, transportRate, paid);
             var daily = Number(row.dataset.dailyRate) || 0;
             var clientDaily = Number(row.dataset.clientDailyRate) || 0;
             setText(row, '.col-totaldays', days + 'd');

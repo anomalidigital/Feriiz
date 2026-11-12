@@ -1,10 +1,10 @@
 /* ============================================================
    FERIIZ — Request templates (uang makan, insentif tanggal merah...).
 
-   Transport is not a template any more (Arcon MoM 20-10-2026, built 28-10-2026):
-   each employee has a Transport / Day and the Report pays it automatically on
-   every day with a log (report.js, TRANSPORT). The old Transport sample and its
-   assignments are dropped when stored data is loaded, so it is never paid twice.
+   Transport is a template again (Baldy, 12-11-2026: "kita udah pilih pake template request";
+   meeting 10-11-2026, 00:47: tick the days, Batch Update, Assign Request). From 28-10 to
+   12-11-2026 it was paid automatically from each employee's Transport / Day, and no template
+   could take its name. A Transport sample is added once, in a browser that has none.
 
    As drawn on the whiteboard of the Arcon meeting (20-10-2026):
    - A template is made once and reused (1:39): Name, Amount, Note.
@@ -48,12 +48,17 @@
     var KEY_TEMPLATES = 'feriiz_request_templates_v1';
     var KEY_ASSIGNED = 'feriiz_template_assignments_v1';
     var KEY_HOLIDAY_SEED = 'feriiz_holiday_seed_v1';   // marked the seeded Public Holidays (10-11-2026), gone
+    var KEY_TRANSPORT_SAMPLE = 'feriiz_transport_template_v1';   // the Transport sample was added (12-11-2026)
 
-    // Sample templates, as on the whiteboard (Uang Makan) plus an incentive for working on a red date.
-    // The ids are the ones the first samples had, so assignments made with them still match.
-    var OLD_TRANSPORT_ID = 'TPL-003';   // the Transport sample, before transport became automatic
+    // Sample templates, as on the whiteboard (Uang Makan) plus an incentive for working on a red date
+    // and Transport. The ids are the ones the first samples had, so assignments made with them still
+    // match; TPL-003 was the Transport sample until 28-10-2026 and its old assignments were dropped,
+    // so the new one has its own id.
+    var OLD_TRANSPORT_ID = 'TPL-003';
+    var TRANSPORT_SAMPLE = { id: 'TPL-005', name: 'Transport', amount: 25000, note: '' };
     var DEFAULT_TEMPLATES = [
         { id: 'TPL-001', name: 'Uang Makan', amount: 25000, note: '' },
+        TRANSPORT_SAMPLE,
         { id: 'TPL-004', name: 'Insentif Tanggal Merah 2026', amount: 50000, note: '' }
     ];
 
@@ -75,8 +80,8 @@
     }
 
     // Archiving was dropped (2026-10-26); templates archived before that are left out. The old
-    // Transport sample goes too (transport is paid automatically), and so does a project's own
-    // template, one of its Public Holidays of 09-11 to 10-11-2026, with what was given of it.
+    // Transport sample (TPL-003) stays out, and so does a project's own template, one of its
+    // Public Holidays of 09-11 to 10-11-2026, with what was given of it.
     var ownIds = {};
     var templates = load(KEY_TEMPLATES, DEFAULT_TEMPLATES).filter(function (t) {
         if (t.projectCode) { ownIds[t.id] = true; return false; }
@@ -87,15 +92,24 @@
     templates.forEach(function (t) { delete t.unit; delete t.dates; delete t.projects; });
     if (Object.keys(ownIds).length) store(KEY_TEMPLATES, templates);
     try { localStorage.removeItem(KEY_HOLIDAY_SEED); } catch (e) { /* nothing kept */ }
+    // Transport is a template again: a browser whose templates were kept before gets the sample
+    // once, unless one already has that name.
+    (function () {
+        var added = false;
+        try { added = localStorage.getItem(KEY_TRANSPORT_SAMPLE) === '1'; } catch (e) { added = true; }
+        if (added) return;
+        if (!templates.some(function (t) { return t.name.trim().toLowerCase() === 'transport'; })) {
+            templates.splice(1, 0, clone(TRANSPORT_SAMPLE));
+            store(KEY_TEMPLATES, templates);
+        }
+        try { localStorage.setItem(KEY_TRANSPORT_SAMPLE, '1'); } catch (e) { /* asked again next time */ }
+    })();
     var assigned = load(KEY_ASSIGNED, []);
     var given = assigned.filter(function (a) { return a.templateId !== OLD_TRANSPORT_ID && !ownIds[a.templateId]; });
     if (given.length !== assigned.length) {
         assigned = given;
         store(KEY_ASSIGNED, assigned);
     }
-
-    // "Transport" is the Report's automatic column, so no template may take that name.
-    function reservedName(name) { return String(name || '').trim().toLowerCase() === 'transport'; }
 
     function esc(v) {
         return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -484,7 +498,6 @@
         all: function () { return templates; },
         get: get,
         findByName: findByName,
-        reservedName: reservedName,
         save: save,
         additionalFor: additionalFor,
         usedIn: usedIn,

@@ -20,11 +20,9 @@
     // per occupation on each project's Settings page).
     var DATA_URL = 'feriiz-data.json?v=2026-11-10';
 
-    // Transport / Day (Rp) per employee: from the data, unless it was changed in the
-    // employee form. 0 = no transport. Kept in this browser until the API exists.
-    var TRANSPORT_KEY = 'feriiz_employee_transport_v2';
-    var transportEdits = {};
-    try { transportEdits = JSON.parse(localStorage.getItem(TRANSPORT_KEY) || '{}') || {}; } catch (e) { transportEdits = {}; }
+    // Transport per employee (Transport / Day, 28-10 to 12-11-2026) is gone: transport is a request
+    // template given in the Report. What a browser kept of it is dropped.
+    try { localStorage.removeItem('feriiz_employee_transport_v2'); } catch (e) { /* nothing kept */ }
 
     // A project's Working Time (Project Detail) and its Default Hours per occupation
     // (Settings), as last saved, so the Report on another page uses them. Kept in this
@@ -204,17 +202,6 @@
                     others: others.map(function (e) { return person(e, ''); })
                 };
             });
-        },
-        // Transport is paid automatically on every day with a log (Arcon MoM 20-10-2026).
-        transportOf: function (employee) {
-            if (!employee) return 0;
-            if (Object.prototype.hasOwnProperty.call(transportEdits, employee.code)) return Number(transportEdits[employee.code]) || 0;
-            return Number(employee.transportPerDay) || 0;
-        },
-        setTransport: function (code, perDay) {
-            if (!code) return;
-            transportEdits[code] = Math.max(0, Math.round(Number(perDay) || 0));
-            try { localStorage.setItem(TRANSPORT_KEY, JSON.stringify(transportEdits)); } catch (e) { /* kept for this page only */ }
         },
         requestTypes: REQUEST_TYPES,
         findRequestType: function (name) {

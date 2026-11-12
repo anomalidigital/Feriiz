@@ -11,9 +11,12 @@
    FeriizEmployeeForm.mount(container, { employee, project, onSave })
        Renders the same form inline (Employee Detail page).
 
-   onSave(values, isNew). This prototype keeps changes in memory only, except
-   Transport / Day: the Report reads it on another page, so it is kept in this
-   browser (FERIIZ_DATA.setTransport).
+   onSave(values, isNew). This prototype keeps changes in memory only.
+
+   Occupation is picked from the list made in Employees > Occupations, in a dropdown that can
+   be searched (Baldy, 12-11-2026). There is no Transport / Day any more: transport is a
+   request template given in the Report (Baldy, 12-11-2026: "kita udah pilih pake template
+   request jadi ga perlu yang di dalam form employee nya").
 
    Pay is per day (decided Oct 2026):
        Employee pay = Daily rate x days worked + Overtime rate x overtime hours
@@ -46,9 +49,117 @@
         return { first: first, middle: parts.join(' '), last: last };
     }
 
-    function occupationOptions() {
+    /* Occupation: one from the list made in Employees > Occupations, picked in a dropdown that
+       can be searched (Baldy, 12-11-2026: "ini di form employee, itu jadi dropdown ya occupation
+       nya bisa di serch juga"), so a typed "TK batu" never sits beside "Tukang Batu" (meeting
+       10-11-2026, 01:09). It was a text field with suggestions. Bootstrap's dropdown opens,
+       places and closes it; the search filters as it is typed, Enter takes the first match. */
+    function occupationOption(value, text, cls) {
+        return '<button type="button" class="dropdown-item emp-occ-option' + (cls || '') + '" role="option" aria-selected="false" data-value="' +
+            esc(value) + '">' + esc(text) + '</button>';
+    }
+
+    function occupationField(p) {
         var data = window.FERIIZ_DATA;
-        return ((data && data.occupations) || []).map(function (o) { return '<option value="' + esc(o) + '">'; }).join('');
+        var names = ((data && data.occupations) || []).slice().sort(function (a, b) { return a.localeCompare(b); });
+        return '<div class="dropdown emp-occ">' +
+            '<input type="hidden" name="occupation" value="">' +
+            '<button type="button" id="' + p + 'occupation" class="feriiz-u-260 emp-occ-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside"' +
+                ' data-bs-popper-config=\'{"strategy":"fixed"}\' aria-haspopup="listbox" aria-expanded="false">' +
+                '<span class="emp-occ-text"></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>' +
+            '<div class="dropdown-menu emp-occ-menu">' +
+                '<div class="emp-occ-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>' +
+                    '<input type="search" placeholder="Search occupation" aria-label="Search occupation" autocomplete="off"></div>' +
+                '<div class="emp-occ-list" role="listbox" aria-label="Occupations">' +
+                    occupationOption('', 'No occupation', ' is-none') +
+                    names.map(function (o) { return occupationOption(o, o); }).join('') +
+                '</div>' +
+                '<p class="emp-occ-empty" hidden>No occupation matches. Add it with Occupations on the Employees page.</p>' +
+            '</div>' +
+        '</div>';
+    }
+
+    // Shows the chosen occupation on the field and in the list. One no longer on the list (saved
+    // before it was deleted there) is offered too, so opening the form never loses it.
+    function setOccupation(form, value) {
+        var box = form.querySelector('.emp-occ');
+        if (!box) return;
+        var list = box.querySelector('.emp-occ-list');
+        var known = Array.prototype.some.call(list.querySelectorAll('.emp-occ-option'), function (o) { return o.dataset.value === value; });
+        if (value && !known) list.querySelector('.is-none').insertAdjacentHTML('afterend', occupationOption(value, value));
+        box.querySelector('input[name="occupation"]').value = value;
+        var text = box.querySelector('.emp-occ-text');
+        text.textContent = value || 'Choose occupation';
+        text.classList.toggle('is-empty', !value);
+        list.querySelectorAll('.emp-occ-option').forEach(function (o) {
+            var on = o.dataset.value === value;
+            o.classList.toggle('active', on);
+            o.setAttribute('aria-selected', String(on));
+        });
+    }
+
+    function bindOccupation(form) {
+        var box = form.querySelector('.emp-occ');
+        if (!box || !window.bootstrap) return;
+        var trigger = box.querySelector('.emp-occ-trigger');
+        var search = box.querySelector('.emp-occ-search input');
+        var list = box.querySelector('.emp-occ-list');
+        var empty = box.querySelector('.emp-occ-empty');
+        var dropdown = function () { return window.bootstrap.Dropdown.getOrCreateInstance(trigger); };
+        function shown() {
+            return Array.prototype.filter.call(list.querySelectorAll('.emp-occ-option'), function (o) { return !o.hidden; });
+        }
+        function filter() {
+            var q = search.value.trim().toLowerCase();
+            list.querySelectorAll('.emp-occ-option').forEach(function (o) {
+                o.hidden = !!q && (!o.dataset.value || o.dataset.value.toLowerCase().indexOf(q) < 0);
+            });
+            empty.hidden = shown().length > 0;
+        }
+        function pick(value) {
+            setOccupation(form, value);
+            dropdown().hide();
+            trigger.focus();
+        }
+        box.addEventListener('show.bs.dropdown', function () {
+            box.querySelector('.emp-occ-menu').style.width = trigger.getBoundingClientRect().width + 'px';
+            search.value = '';
+            filter();
+        });
+        box.addEventListener('shown.bs.dropdown', function () {
+            search.focus();
+            var on = list.querySelector('.emp-occ-option.active');
+            if (on) on.scrollIntoView({ block: 'nearest' });
+            // Opened while the form still slides in, the list was placed on the moving card: place
+            // it again once the card stands still (it sat 122px to the left).
+            var card = form.closest('.modal-card');
+            var moving = card && card.getAnimations ? card.getAnimations() : [];
+            if (moving.length) {
+                Promise.all(moving.map(function (a) { return a.finished; })).then(function () { dropdown().update(); }, function () {});
+            }
+        });
+        search.addEventListener('input', filter);
+        search.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();   // not the form's submit
+                if (shown()[0]) pick(shown()[0].dataset.value);
+            } else if (e.key === 'ArrowDown' && shown()[0]) {
+                e.preventDefault();
+                shown()[0].focus();
+            }
+        });
+        list.addEventListener('click', function (e) {
+            var o = e.target.closest('.emp-occ-option');
+            if (o) pick(o.dataset.value);
+        });
+        // Esc closes the list only; the form stays open with what was typed in it.
+        box.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+                e.stopPropagation();
+                dropdown().hide();
+                trigger.focus();
+            }
+        });
     }
 
     // One labelled field in the original input style.
@@ -84,8 +195,7 @@
                 '</div>' +
                 '<div class="feriiz-u-258">' +
                     field(p, 'code', 'Code', text(p, 'code', ' readonly placeholder="' + (isNew ? 'Created on save' : '') + '"')) +
-                    field(p, 'occupation', 'Occupation', text(p, 'occupation', ' list="' + p + 'occupations"') +
-                        '<datalist id="' + p + 'occupations">' + occupationOptions() + '</datalist>') +
+                    field(p, 'occupation', 'Occupation', occupationField(p)) +
                     field(p, 'pin', 'Pin', text(p, 'pin', ' inputmode="numeric" maxlength="6"')) +
                 '</div>' +
                 '<div class="feriiz-u-258">' +
@@ -97,10 +207,6 @@
                 '<div class="feriiz-u-258">' +
                     field(p, 'status', 'Status', '<select id="' + p + 'status" name="status" class="feriiz-u-260">' +
                         '<option>Active</option><option>Inactive</option></select>') +
-                    // Transport (Arcon MoM 20-10-2026): paid on every day with a log; empty = no transport.
-                    field(p, 'transportPerDay', 'Transport / Day',
-                        '<div class="rate-input"><span class="rate-icon">Rp</span>' +
-                        '<input type="text" inputmode="numeric" id="' + p + 'transportPerDay" name="transportPerDay" class="feriiz-u-259 js-rupiah" placeholder="No transport"></div>') +
                 '</div>' +
                 '<div class="mb-3">' +
                     field(p, 'note', 'Note', '<textarea id="' + p + 'note" name="note" class="feriiz-u-261"></textarea>') +
@@ -151,7 +257,7 @@
         setVal(form, 'middleName', n.middle);
         setVal(form, 'lastName', n.last);
         setVal(form, 'code', e.code || '');
-        setVal(form, 'occupation', e.occupation || '');
+        setOccupation(form, e.occupation || '');
         setVal(form, 'pin', e.pin || '');
         setVal(form, 'phone', e.phone || '');
         setVal(form, 'birthDate', e.birthDate || '');
@@ -169,8 +275,6 @@
         setVal(form, 'overtimeRate', rupiah(e.overtimeRate != null ? e.overtimeRate : (project && project.overtimeRate)));
         setVal(form, 'clientDailyRate', rupiah(e.clientDailyRate));
         setVal(form, 'clientOvertimeRate', rupiah(e.clientOvertimeRate != null ? e.clientOvertimeRate : (project && project.clientOvertimeRate)));
-        var transport = window.FERIIZ_DATA && window.FERIIZ_DATA.transportOf ? window.FERIIZ_DATA.transportOf(e) : Number(e.transportPerDay) || 0;
-        setVal(form, 'transportPerDay', transport ? rupiah(transport) : '');
         form.querySelectorAll('.emp-invalid').forEach(function (el) { el.classList.remove('emp-invalid'); });
         var box = form.querySelector('.js-reset-box');
         if (box) {
@@ -187,7 +291,7 @@
             var el = form.querySelector('[name="' + k + '"]');
             v[k] = el ? el.value.trim() : '';
         });
-        ['dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate', 'transportPerDay'].forEach(function (k) {
+        ['dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
             v[k] = Number(digits(form.querySelector('[name="' + k + '"]').value)) || 0;
         });
         v.workingDays = Array.prototype.filter.call(form.querySelectorAll('[name="workingDays"]'), function (cb) { return cb.checked; })
@@ -261,13 +365,6 @@
         });
     }
 
-    // A new employee gets a code from the page; this keeps transport for one that has a code.
-    function keepTransport(employee, v) {
-        if (employee && employee.code && window.FERIIZ_DATA && window.FERIIZ_DATA.setTransport) {
-            window.FERIIZ_DATA.setTransport(employee.code, v.transportPerDay);
-        }
-    }
-
     /* ---------- overlay (same look as the original Activity form) ---------- */
     var overlay = null;
     var state = { employee: null, project: null, onSave: null, isNew: true };
@@ -305,7 +402,6 @@
             var v = read(e.target);
             if (!validate(e.target, v)) return;
             var isNew = state.isNew;
-            keepTransport(state.employee, v);
             if (state.onSave) state.onSave(v, isNew);
             close();
             if (window.FeriizNotify) {
@@ -325,6 +421,7 @@
             state.isNew = !state.employee;
             var form = overlay.querySelector('#employeeForm');
             form.innerHTML = formHTML('ef' + (++uid) + '-', state.isNew);
+            bindOccupation(form);
             bindReset(form, function () { return state.employee; });
             fill(form, state.employee, state.project, opts.prefillName);
             overlay.querySelector('#employeeFormTitle').textContent = state.isNew ? 'Add Employee' : 'Employee Detail';
@@ -345,13 +442,13 @@
                 '<div class="emp-form-actions"><button type="submit" class="btn btn-primary feriiz-u-056">Save Changes</button></div></form>';
             var form = container.querySelector('form');
             bindInputs(form);
+            bindOccupation(form);
             bindReset(form, function () { return opts.employee; });
             fill(form, opts.employee, opts.project);
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var v = read(form);
                 if (!validate(form, v)) return;
-                keepTransport(opts.employee, v);
                 if (opts.onSave) opts.onSave(v, !opts.employee);
                 if (window.FeriizNotify) window.FeriizNotify.success(v.name + ' was updated.', 'Employee updated');
             });

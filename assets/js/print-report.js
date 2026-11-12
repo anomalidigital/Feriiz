@@ -3,6 +3,7 @@
 
     var printButton = null;
     var originalTitle = '';
+    var JOB_VERSION = 2;   // 12-11-2026: a day keeps d / ot / r / off, not the text it printed
 
     function isElementVisible(el) {
         if (!el || el.hidden || el.classList.contains('day-col-hidden')) return false;
@@ -183,12 +184,12 @@
         return code || '';
     }
 
-    // One person's day: what the sheet prints (p = the hours, o = the overtime, as the badges
-    // say) and what it counts (d = Daily, ot = overtime hours, w = came in, so Transport
-    // pays it), plus the requests given that day (Uang Makan…) for their columns, and for a
+    // One person's day as the Report has it: d = the Daily (0, 0.5 or 1), ot = overtime hours,
+    // w = came in (Transport pays it), req = the requests given that day (Uang Makan…) for their
+    // columns, r = the name of an accepted request on a day off work, off = a day off, and for a
     // day with data s = [hours, overtime] of the client print's Set Default.
     function dayEntry(tr, date, idx) {
-        var e = { p: '-', o: '-', d: 0, ot: 0, w: false, req: [] };
+        var e = { d: 0, ot: 0, w: false, req: [], r: '', off: false };
         var dayTd = tr.querySelector('td.day-col[data-date="' + date + '"]');
         if (!dayTd) {
             var allDayTds = Array.from(tr.querySelectorAll('td.day-col')).filter(isElementVisible);
@@ -199,31 +200,17 @@
         dayTd.querySelectorAll('.req-chip[data-template]').forEach(function (chip) {
             e.req.push({ t: chip.dataset.template, a: Number(chip.dataset.amount) || 0 });
         });
-        var dayOff = dayTd.classList.contains('weekend-off-cell');
-        if (!dayOff) {
+        var weekendOff = dayTd.classList.contains('weekend-off-cell');
+        e.off = weekendOff || dayTd.classList.contains('holiday-off-cell');
+        if (!weekendOff) {
+            // The cell's data is its newest version, also on a split day (Show history).
             e.d = Number(dayTd.dataset.daily) || 0;
             e.ot = Number(dayTd.dataset.otTotal) || 0;
             e.w = e.d > 0;
             var def = (e.d > 0 || e.ot > 0) && window.FeriizReport ? window.FeriizReport.setDefaultFor(date, tr.dataset.employeeCode) : null;
             if (def) e.s = [def.work, def.ot];
         }
-        if (dayOff || dayTd.classList.contains('holiday-off-cell')) return e;
-
-        // A day off work for an accepted request (sick, leave...) prints the request's name.
-        if (dayTd.dataset.request) {
-            e.p = dayTd.dataset.request;
-            return e;
-        }
-
-        // A split day (newest | original) prints the newest version, which is what the totals
-        // count. Only its hours and overtime are read ("9h / 0.08h"), not the request chips.
-        var scope = dayTd.querySelector('.day-half--changed:not(.is-empty)') || dayTd.querySelector('.day-half--system') || dayTd;
-        var work = scope.querySelector('.day-hours-work');
-        var ot = scope.querySelector('.day-hours-ot');
-        if (work && work.textContent.trim()) e.p = work.textContent.replace(/h/i, '').trim();
-        if (ot && ot.textContent.trim()) e.o = ot.textContent.trim();
-
-        if (e.p === '-' && e.o === '-' && (dayTd.dataset.inTime || dayTd.dataset.outTime)) e.p = '1';
+        if (!e.off && dayTd.dataset.request) e.r = dayTd.dataset.request;
         return e;
     }
 
@@ -247,7 +234,7 @@
             .map(function (th) { return { id: th.dataset.template || '', name: th.textContent.trim(), total: !th.dataset.template }; });
 
         return {
-            v: 1,
+            v: JOB_VERSION,
             project: { code: projectCode(), name: context.projectName },
             title: context.mainTitle,
             subtitle: context.subtitle,
@@ -293,105 +280,118 @@
 
     /* =============================================
        THE SHEET
-       Drawn from a job. view (all optional): hidden { key: true } for the columns left out
-       ('date:YYYY-MM-DD', 'tot:days', 'tot:ot', 'emp', 'emp:daily', 'emp:rateOT', 'emp:totalR',
-       'emp:totalOT', 'emp:sub', 'cli', 'cli:…', 'cli:add:ID', 'cli:addtotal', 'cli:sub',
-       'pay:emp', 'pay:cli'), blank { 'YYYY-MM-DD': true } for dates printed with their header
-       but nothing under it, rowsOff { CODE: true } for people left out, client: the client
-       print, where every day with data prints and counts the Set Default (Daily 1 with the
-       default hours and overtime of the person's occupation on that weekday, from the
-       project's Settings; the meeting of 05-11-2026: "ketika
-       udah di print… semuanya itu harus 8 per 2", 0:05:07), and controls: the
-       Print preview's own view, where what is left out stays in sight, faded, with the
-       buttons that leave it out or bring it back. A date left out or blanked, and a person
-       left out, no longer count in the totals: the sheet adds up what it prints (Baldy,
-       06-11-2026). The money columns never change what a person is paid.
+       Drawn from a job and a view (all optional): hidden { key: true } for the columns left out
+       ('tot:days', 'tot:ot', 'emp:daily', 'emp:rateOT', 'emp:totalR', 'emp:totalOT', 'emp:sub',
+       'cli:…', 'cli:add:ID', 'cli:addtotal', 'pay:emp', 'pay:cli'; 'emp' or 'cli' for a whole
+       group), cut { 'p:YYYY-MM-DD': true, 'o:YYYY-MM-DD': true } for a date's Period (daily) or
+       Overtime (hour) printed empty under its header, rowsOff { CODE: true } for people left
+       out, client: the client print, where every day with data prints and counts the Set Default
+       of the person's occupation (meeting 05-11-2026, 0:05:07: "ketika udah di print… semuanya
+       itu harus 8 per 2"). Since 12-11-2026 (Baldy):
+       - Period is the Daily, 0, 0.5 or 1, and Overtime is whole hours, 1.5 counts 1 ("isi nya
+         itu cuma ada 0, 0.5, dan 1… overtime dia berdasakan hour… tidak ada setengah seperti
+         1.30"). The headers are written out ("jangan kita singkat").
+       - What is cut or left out no longer counts ("ketika ada yang di hide itu harus ada
+         pengaruh buat penotalan"): pay is per day, Daily Rate × Period and Overtime Rate ×
+         hours, and Transport and the requests go with a day's Period. A money column left out
+         never changes what a person is paid.
+       - People are grouped by occupation, A to Z, each group headed by its name in the Name
+         column and numbered from 1 ("no nya juga khusus… tukang plumbing dia jadi dari 1 lagi").
+       - White cells only, no stripes ("bener bener putih clean aja"), and no cards in the
+         header ("desain card dan kaya detail… di apus aja").
        ============================================= */
-    function formatHour(h) {
-        if (!Number.isFinite(h) || h <= 0) return '0h';
-        return Number.isInteger(h) ? h + 'h' : h.toFixed(2).replace(/\.?0+$/, '') + 'h';
-    }
-
     // As the Report writes an amount (formatIDR), without "IDR": the column header says it once.
     function idr(n) { return Number(n || 0).toLocaleString('id-ID'); }
 
     // A subtotal or a payment: whole rupiah, "0" for nothing.
     function rupiah(n) { return n ? Math.round(n).toLocaleString('id-ID') : '0'; }
 
-    var EMP_COLS = [['daily', 'Daily<br>Rate'], ['rateOT', 'Rate<br>Overtime'], ['totalR', 'Total<br>Rate'], ['totalOT', 'Total Rate<br>OT']];
+    function wholeHours(h) { return Math.max(0, Math.floor((Number(h) || 0) + 1e-9)); }
 
-    // The sheet's columns, each with its key and whether it is left out.
-    function sheetColumns(job, view) {
-        var hidden = view.hidden || {};
-        var off = function (key, group) { return Boolean(hidden[key] || (group && hidden[group])); };
-        var keep = function (c) { return view.controls || !c.off; };
+    function figure(n) { return String(Math.round(n * 100) / 100); }
 
-        var dates = job.dates.map(function (d) { return { key: 'date:' + d.date, date: d.date, label: d.label, off: off('date:' + d.date) }; }).filter(keep);
+    var EMP_COLS = [['daily', 'Daily<br>Rate'], ['rateOT', 'Overtime Rate<br>/ Hour'], ['totalR', 'Total<br>Rate'], ['totalOT', 'Total<br>Overtime Rate']];
+
+    // Every column the sheet can print, with its key, label and group (the Print preview lists them).
+    function allColumns(job) {
         var groupCols = function (group, def, extra) {
             var cols = [];
             if (!def.active) return cols;
             EMP_COLS.forEach(function (c) {
-                if (def.show[c[0]]) cols.push({ key: group + ':' + c[0], f: c[0], label: c[1], off: off(group + ':' + c[0], group) });
+                if (def.show[c[0]]) cols.push({ key: group + ':' + c[0], f: c[0], label: c[1], group: group });
             });
             (extra || []).forEach(function (c) { cols.push(c); });
-            if (cols.length) cols.push({ key: group + ':sub', f: 'sub', label: 'Subtotal<br>Rate', off: off(group + ':sub', group) });
-            return cols.filter(keep);
+            if (cols.length) cols.push({ key: group + ':sub', f: 'sub', label: 'Subtotal<br>Rate', group: group });
+            return cols;
         };
         var addCols = (job.cli.add || []).map(function (a) {
-            var key = a.total ? 'cli:addtotal' : 'cli:add:' + a.id;
-            return { key: key, f: a.total ? 'addtotal' : 'add', id: a.id, label: escapeHTML(a.name), off: off(key, 'cli') };
+            return { key: a.total ? 'cli:addtotal' : 'cli:add:' + a.id, f: a.total ? 'addtotal' : 'add', id: a.id, label: escapeHTML(a.name), group: 'cli' };
         });
         var pay = [];
-        if (job.emp.active) pay.push({ key: 'pay:emp', f: 'emp', label: 'Total Payment<br>Employee<br>(IDR)', off: off('pay:emp', 'emp') });
-        if (job.cli.active) pay.push({ key: 'pay:cli', f: 'cli', label: 'Total Payment<br>Client<br>(IDR)', off: off('pay:cli', 'cli') });
+        if (job.emp.active) pay.push({ key: 'pay:emp', f: 'emp', label: 'Total Payment<br>Employee<br>(IDR)', group: 'emp' });
+        if (job.cli.active) pay.push({ key: 'pay:cli', f: 'cli', label: 'Total Payment<br>Client<br>(IDR)', group: 'cli' });
         return {
-            dates: dates,
-            totals: [{ key: 'tot:days', f: 'days', label: 'Total<br>Day', cls: 'th-total-days', off: off('tot:days') },
-                     { key: 'tot:ot', f: 'ot', label: 'Total<br>OT', cls: 'th-total-ot', off: off('tot:ot') }].filter(keep),
+            totals: [{ key: 'tot:days', f: 'days', label: 'Total Period<br>(daily)', cls: 'th-total-days' },
+                     { key: 'tot:ot', f: 'ot', label: 'Total Overtime<br>(hour)', cls: 'th-total-ot' }],
             emp: groupCols('emp', job.emp),
             cli: groupCols('cli', job.cli, addCols),
-            pay: pay.filter(keep),
-            empOff: Boolean(hidden.emp),
-            cliOff: Boolean(hidden.cli)
+            pay: pay
         };
     }
 
-    // The dates the totals count: the ones printed and not blanked.
-    function countedDates(job, view) {
-        var hidden = view.hidden || {}, blank = view.blank || {};
-        return job.dates.filter(function (d) { return !hidden['date:' + d.date] && !blank[d.date]; }).map(function (d) { return d.date; });
+    // The columns that print.
+    function sheetColumns(job, view) {
+        var hidden = (view && view.hidden) || {};
+        var all = allColumns(job);
+        var on = function (c) { return !hidden[c.key] && !(c.group && hidden[c.group]); };
+        return { totals: all.totals.filter(on), emp: all.emp.filter(on), cli: all.cli.filter(on), pay: all.pay.filter(on) };
+    }
+
+    // People by occupation, A to Z (no occupation last), in the Report's order within each.
+    function groupsOf(rows) {
+        var byName = {};
+        rows.forEach(function (row) { (byName[row.occupation || ''] || (byName[row.occupation || ''] = [])).push(row); });
+        return Object.keys(byName).sort(function (a, b) {
+            if (!a || !b) return a ? -1 : b ? 1 : 0;
+            return a.localeCompare(b);
+        }).map(function (name) { return { name: name || 'No occupation', rows: byName[name] }; });
     }
 
     // A day as the sheet prints and counts it: as the Report has it, or in the client print a
-    // day with data at its Set Default.
+    // day with data at its Set Default. Overtime in whole hours.
     function sheetDay(row, date, client) {
         var e = row.days[date];
-        if (!e || !client || !e.s) return e;
-        return { p: String(Math.round(e.s[0] * 100) / 100), o: formatHour(e.s[1]), d: 1, ot: e.s[1], w: true, req: e.req };
+        if (!e) return null;
+        if (client && e.s) return { d: 1, ot: wholeHours(e.s[1]), w: true, req: e.req || [], r: '', off: false };
+        return { d: Number(e.d) || 0, ot: wholeHours(e.ot), w: Boolean(e.w), req: e.req || [], r: e.r || '', off: Boolean(e.off) };
     }
 
-    // One person's figures over the counted dates, by the Report's rules: pay is per day
-    // (Total Rate = Daily Rate x days), overtime per hour, Transport on the days they came in.
-    function rowFigures(row, counted, client) {
+    // One person's figures over the job's dates, without what is cut: pay is per day (Total Rate
+    // = Daily Rate x Period), overtime per whole hour, Transport and requests on the days whose
+    // Period prints.
+    function rowFigures(row, job, view) {
+        var cut = view.cut || {};
         var days = 0, ot = 0, paid = 0, req = {}, reqTotal = 0;
-        counted.forEach(function (date) {
-            var e = sheetDay(row, date, client);
+        job.dates.forEach(function (d) {
+            var e = sheetDay(row, d.date, view.client);
             if (!e) return;
-            days += e.d;
-            ot += e.ot;
-            if (e.w) paid++;
-            e.req.forEach(function (r) {
-                var item = req[r.t] || (req[r.t] = { n: 0, a: 0 });
-                item.n++;
-                item.a += r.a;
-                reqTotal += r.a;
-            });
+            if (!cut['p:' + d.date]) {
+                days += e.d;
+                if (e.w) paid++;
+                e.req.forEach(function (r) {
+                    var item = req[r.t] || (req[r.t] = { n: 0, a: 0 });
+                    item.n++;
+                    item.a += r.a;
+                    reqTotal += r.a;
+                });
+            }
+            if (!cut['o:' + d.date]) ot += e.ot;
         });
         var r = row.rates;
         var transport = r.transport * paid;
         var f = { days: days, ot: ot, transport: transport, req: req, add: transport + reqTotal };
-        f.emp = { daily: r.daily, rateOT: r.ot, totalR: days * r.daily, totalOT: Math.round(ot * r.ot) };
-        f.cli = { daily: r.clientDaily, rateOT: r.clientOt, totalR: days * r.clientDaily, totalOT: Math.round(ot * r.clientOt) };
+        f.emp = { daily: r.daily, rateOT: r.ot, totalR: days * r.daily, totalOT: ot * r.ot };
+        f.cli = { daily: r.clientDaily, rateOT: r.clientOt, totalR: days * r.clientDaily, totalOT: ot * r.clientOt };
         f.emp.sub = f.emp.totalR + f.emp.totalOT;
         f.cli.sub = f.cli.totalR + f.cli.totalOT;
         f.pay = { emp: f.emp.sub, cli: f.cli.sub + f.add };
@@ -403,128 +403,78 @@
         var cols = sheetColumns(job, { hidden: (view && view.hidden) || {} });
         var parts = [job.startYYMMDD + '_' + job.endYYMMDD,
                      String(job.project.name || '').toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_\-&]/g, '')];
-        if (cols.dates.length) parts.push('DAILY');
+        if (job.dates.length) parts.push('DAILY');
         if (cols.emp.length) parts.push('EMPLOYEE');
         if (cols.cli.length) parts.push('CLIENT');
         return parts.join('_');
     }
 
+    // What a day prints under Period and Overtime: the figures, a request's name, "-" on a day off.
+    function periodText(e) {
+        if (!e) return '-';
+        if (e.r) return escapeHTML(e.r);
+        return e.off ? '-' : figure(e.d);
+    }
+
+    function overtimeText(e) {
+        if (!e || e.r || e.off) return '-';
+        return String(e.ot);
+    }
+
     function renderPrintSheet(job, view) {
         view = view || {};
-        var ctl = Boolean(view.controls);
-        var client = Boolean(view.client);
-        var blank = view.blank || {};
+        var cut = view.cut || {};
         var rowsOff = view.rowsOff || {};
         var cols = sheetColumns(job, view);
-        var counted = countedDates(job, view);
-        var people = job.rows.filter(function (r) { return ctl || !rowsOff[r.code]; });
-        var printedRows = job.rows.filter(function (r) { return !rowsOff[r.code]; });
+        var printed = job.rows.filter(function (r) { return !rowsOff[r.code]; });
+        var moneyCols = cols.emp.concat(cols.cli);
+        var span = 2 + job.dates.length * 2 + cols.totals.length + moneyCols.length + cols.pay.length;
 
-        // The Print preview's buttons and marks (never on paper).
-        var offCls = function (c) { return c.off ? ' pp-off' : ''; };
-        var tool = function (action, key, icon, label, pressed) {
-            return '<button type="button" class="pp-btn" data-pp="' + action + '" data-key="' + escapeHTML(key) + '" aria-label="' + escapeHTML(label) + '" title="' + escapeHTML(label) + '"' +
-                (pressed != null ? ' aria-pressed="' + pressed + '"' : '') + '><i class="fa-solid ' + icon + '" aria-hidden="true"></i></button>';
-        };
-        var eye = function (c, name) {
-            return tool('col', c.key, c.off ? 'fa-eye-slash' : 'fa-eye', (c.off ? 'Print ' : 'Leave out ') + name, null);
-        };
-        var tag = function (text) { return '<span class="pp-tag">' + text + '</span>'; };
-        var plain = function (label) { return label.replace(/<br>/g, ' ').replace(/<[^>]+>/g, ''); };
-        var headTools = function (c, name, extra) {
-            if (!ctl) return '';
-            return '<span class="pp-tools">' + eye(c, name) + (extra || '') + '</span>' + (c.off ? tag('Not printed') : '');
-        };
-
-        // Top Header
-        var html = '<div class="report-print-header">';
-        html += '<div class="report-print-header-top">';
-        html += '  <div class="report-print-brand-wrap">';
-        html += '    <div class="report-print-title-group">';
-        html += '      <h1 class="report-print-project-title">' + escapeHTML(job.title) + '</h1>';
-        html += '      <p class="report-print-project-subtitle">' + escapeHTML(job.subtitle) + '</p>';
-        html += '    </div>';
-        html += '  </div>';
-        html += '  <div class="report-print-header-right">';
-        html += '    <div class="report-print-footer-id">' + escapeHTML(sheetIdentifier(job, view)) + '</div>';
-        html += '    <div class="report-print-meta-grid">';
-        html += '      <div class="report-print-meta-item"><div class="report-print-meta-label">Period</div><div class="report-print-meta-value">' + escapeHTML(job.period) + '</div></div>';
-        html += '      <div class="report-print-meta-item"><div class="report-print-meta-label">Rows</div><div class="report-print-meta-value">' + printedRows.length + ' records</div></div>';
-        html += '      <div class="report-print-meta-item"><div class="report-print-meta-label">Generated</div><div class="report-print-meta-value">' + escapeHTML(job.generated) + '</div></div>';
-        html += '    </div>';
-        html += '  </div>';
-        html += '</div>';
-        // Only when a filter is on; a job saved before 3.7.71 still says "All active data (No filter)".
+        // Header: what the sheet is, and the filter when one is on (a job saved before 3.7.71
+        // still says "All active data (No filter)").
+        var html = '<div class="report-print-header">' +
+            '<div class="report-print-title-group">' +
+                '<h1 class="report-print-project-title">' + escapeHTML(job.title) + '</h1>' +
+                '<p class="report-print-project-subtitle">' + escapeHTML(job.subtitle) + '</p>' +
+            '</div>';
         if (job.filter && job.filter !== 'All active data (No filter)') {
             html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(job.filter) + '</div>';
         }
         html += '</div>';
 
-        // Single Unified Wide Table (Old Feriiz Structure + New Design)
-        html += '<div class="report-print-section">';
-        // Proportional column widths. Without this the browser splits all ~26
-        // columns evenly, which starves the money columns (they need room for
-        // "1.095.000") while the day columns sit half empty.
-        var W = { no: 0.7, name: 3.5, dayPeriod: 1.62, dayOT: 1.45, totals: 2.4, money: 4.4, pay: 4.6 };
+        // One wide table. Proportional column widths: without them the browser splits the
+        // columns evenly, which starves the money columns while the day columns sit half empty.
+        var W = { no: 0.7, name: 3.5, dayPeriod: 1.62, dayOT: 1.62, totals: 2.4, money: 4.4, pay: 4.6 };
         var colW = [W.no, W.name];
-        cols.dates.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
+        job.dates.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
         cols.totals.forEach(function () { colW.push(W.totals); });
-        cols.emp.concat(cols.cli).forEach(function () { colW.push(W.money); });
+        moneyCols.forEach(function () { colW.push(W.money); });
         cols.pay.forEach(function () { colW.push(W.pay); });
         var colTotal = colW.reduce(function (a, b) { return a + b; }, 0);
 
-        html += '<table class="report-print-table report-unified-table">';
-        html += '<colgroup>' + colW.map(function (w) {
-            return '<col style="width:' + (w / colTotal * 100).toFixed(3) + '%">';
-        }).join('') + '</colgroup>';
-        html += '<thead>';
+        html += '<div class="report-print-section"><table class="report-print-table report-unified-table">';
+        html += '<colgroup>' + colW.map(function (w) { return '<col style="width:' + (w / colTotal * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
 
-        // Header Row 1
-        html += '<tr>';
-        html += '<th rowspan="2" class="th-no">No</th>';
-        html += '<th rowspan="2" class="th-name">Name</th>';
-        cols.dates.forEach(function (c) {
-            var blanked = blank[c.date];
-            var tools = ctl ? '<span class="pp-tools">' + eye(c, c.label) +
-                tool('blank', c.date, 'fa-eraser', blanked ? 'Print what ' + c.label + ' has' : 'Blank ' + c.label + ', keep its header', blanked) + '</span>' +
-                (c.off ? tag('Not printed') : blanked ? tag('Blanked') : '') : '';
-            html += '<th colspan="2" class="th-group th-date-grp' + offCls(c) + (blanked && ctl ? ' pp-blank' : '') + '">' + escapeHTML(c.label) + tools + '</th>';
-        });
-        cols.totals.forEach(function (c) {
-            html += '<th rowspan="2" class="' + c.cls + offCls(c) + '">' + c.label + headTools(c, plain(c.label)) + '</th>';
-        });
-        if (cols.emp.length) {
-            html += '<th colspan="' + cols.emp.length + '" class="th-group th-emp-grp' + (cols.empOff ? ' pp-off' : '') + '">Employee (IDR)' +
-                headTools({ key: 'emp', off: cols.empOff }, 'the Employee group') + '</th>';
-        }
-        if (cols.cli.length) {
-            html += '<th colspan="' + cols.cli.length + '" class="th-group th-cli-grp' + (cols.cliOff ? ' pp-off' : '') + '">Client (IDR)' +
-                headTools({ key: 'cli', off: cols.cliOff }, 'the Client group') + '</th>';
-        }
-        cols.pay.forEach(function (c) {
-            html += '<th rowspan="2" class="th-total-pay' + offCls(c) + '">' + c.label + headTools(c, plain(c.label)) + '</th>';
-        });
-        html += '</tr>';
-
-        // Header Row 2
-        html += '<tr>';
-        cols.dates.forEach(function (c) {
-            html += '<th class="' + offCls(c).trim() + '">Day</th><th class="' + offCls(c).trim() + '">OT</th>';
-        });
-        cols.emp.concat(cols.cli).forEach(function (c) {
-            html += '<th class="' + offCls(c).trim() + '">' + c.label + headTools(c, plain(c.label)) + '</th>';
-        });
-        html += '</tr>';
-        html += '</thead><tbody>';
+        // Header rows
+        html += '<thead><tr><th rowspan="2" class="th-no">No</th><th rowspan="2" class="th-name">Name</th>';
+        job.dates.forEach(function (d) { html += '<th colspan="2" class="th-group th-date-grp">' + escapeHTML(d.label) + '</th>'; });
+        cols.totals.forEach(function (c) { html += '<th rowspan="2" class="' + c.cls + '">' + c.label + '</th>'; });
+        if (cols.emp.length) html += '<th colspan="' + cols.emp.length + '" class="th-group th-emp-grp">Employee (IDR)</th>';
+        if (cols.cli.length) html += '<th colspan="' + cols.cli.length + '" class="th-group th-cli-grp">Client (IDR)</th>';
+        cols.pay.forEach(function (c) { html += '<th rowspan="2" class="th-total-pay">' + c.label + '</th>'; });
+        html += '</tr><tr>';
+        job.dates.forEach(function () { html += '<th>Period<br>(daily)</th><th>Overtime<br>(hour)</th>'; });
+        moneyCols.forEach(function (c) { html += '<th>' + c.label + '</th>'; });
+        html += '</tr></thead><tbody>';
 
         var figures = {};
-        job.rows.forEach(function (row) { figures[row.code] = rowFigures(row, counted, client); });
+        printed.forEach(function (row) { figures[row.code] = rowFigures(row, job, view); });
 
         // A money cell of a person: the rates and totals as the Report writes them, the
-        // additional columns blank ("-") when there is nothing to pay.
+        // additional columns "-" when there is nothing to pay.
         function moneyCell(c, f) {
-            var group = c.key.slice(0, 3) === 'emp' ? f.emp : f.cli;
-            if (c.f === 'sub') return '<td class="td-rate td-subtotal' + offCls(c) + '">' + rupiah(group.sub) + '</td>';
+            var group = c.group === 'emp' ? f.emp : f.cli;
+            if (c.f === 'sub') return '<td class="td-rate td-subtotal">' + rupiah(group.sub) + '</td>';
             var text;
             if (c.f === 'add') {
                 if (c.id === 'transport') text = f.transport ? idr(f.transport) : '-';
@@ -534,92 +484,78 @@
             } else {
                 text = idr(group[c.f]);
             }
-            return '<td class="td-rate' + offCls(c) + '">' + text + '</td>';
+            return '<td class="td-rate">' + text + '</td>';
         }
 
-        // Rows
-        people.forEach(function (row, index) {
-            var f = figures[row.code];
-            var rowOff = Boolean(rowsOff[row.code]);
-            var cellOff = function (c) { return (rowOff || c.off) ? ' pp-off' : ''; };
-            html += '<tr' + (rowOff ? ' class="pp-off-row"' : '') + '>';
-            html += '<td class="td-no' + (rowOff ? ' pp-off' : '') + '">' + (index + 1) + '</td>';
-            html += '<td class="td-name' + (rowOff ? ' pp-off' : '') + '">' +
-                (ctl ? tool('row', row.code, rowOff ? 'fa-eye-slash' : 'fa-eye', (rowOff ? 'Print ' : 'Leave out ') + row.name) : '') +
-                '<div class="print-emp-name">' + escapeHTML(row.name) + '</div>' +
-                (row.occupation ? '<div class="print-emp-sub">' + escapeHTML(row.occupation) + '</div>' : '') +
-                (ctl && rowOff ? tag('Not printed') : '') + '</td>';
-            cols.dates.forEach(function (c) {
-                var e = sheetDay(row, c.date, client) || { p: '-', o: '-' };
-                var cls = cellOff(c) + (blank[c.date] && ctl ? ' pp-blank' : '');
-                var p = blank[c.date] ? '' : escapeHTML(e.p);
-                var o = blank[c.date] ? '' : escapeHTML(e.o);
-                html += '<td class="td-daily-period' + cls + '">' + p + '</td>';
-                html += '<td class="td-daily-ot' + cls + '">' + o + '</td>';
+        // Rows, by occupation, each group numbered from 1.
+        groupsOf(printed).forEach(function (group) {
+            html += '<tr class="tr-group"><td class="td-no"></td><td class="td-group" colspan="' + (span - 1) + '">' + escapeHTML(group.name) + '</td></tr>';
+            group.rows.forEach(function (row, index) {
+                var f = figures[row.code];
+                html += '<tr><td class="td-no">' + (index + 1) + '</td>';
+                html += '<td class="td-name"><div class="print-emp-name">' + escapeHTML(row.name) + '</div></td>';
+                job.dates.forEach(function (d) {
+                    var e = sheetDay(row, d.date, view.client);
+                    html += '<td class="td-daily-period">' + (cut['p:' + d.date] ? '' : periodText(e)) + '</td>';
+                    html += '<td class="td-daily-ot">' + (cut['o:' + d.date] ? '' : overtimeText(e)) + '</td>';
+                });
+                cols.totals.forEach(function (c) {
+                    html += '<td class="' + (c.f === 'days' ? 'td-total-days' : 'td-total-ot') + '">' + (c.f === 'days' ? figure(f.days) : f.ot) + '</td>';
+                });
+                moneyCols.forEach(function (c) { html += moneyCell(c, f); });
+                cols.pay.forEach(function (c) { html += '<td class="td-payment">' + rupiah(f.pay[c.f]) + '</td>'; });
+                html += '</tr>';
             });
-            cols.totals.forEach(function (c) {
-                html += '<td class="' + (c.f === 'days' ? 'td-total-days' : 'td-total-ot') + cellOff(c) + '">' +
-                    (c.f === 'days' ? f.days + 'd' : formatHour(f.ot)) + '</td>';
-            });
-            cols.emp.concat(cols.cli).forEach(function (c) {
-                var cell = moneyCell(c, f);
-                html += rowOff && !c.off ? cell.replace('class="td-rate', 'class="pp-off td-rate') : cell;
-            });
-            cols.pay.forEach(function (c) {
-                html += '<td class="td-payment' + cellOff(c) + '">' + rupiah(f.pay[c.f]) + '</td>';
-            });
-            html += '</tr>';
         });
 
         html += '</tbody><tfoot>';
 
-        // "Jumlah Orang Per Hari" (Arcon's sheet, built on dev 30-10-2026): how many of the
-        // printed people worked on each date, by the same rule as Total Days, and the sum of
-        // those person-days under Total Day.
-        if (cols.dates.length) {
+        // "Jumlah Orang Per Hari" (Arcon's sheet): how many of the printed people came in on each
+        // date whose Period prints, and those person-days under Total Period.
+        if (job.dates.length) {
             var personDays = 0;
             html += '<tr class="tr-people-row"><td colspan="2" class="td-total-label">Jumlah Orang Per Hari</td>';
-            cols.dates.forEach(function (c) {
-                var counts = !c.off && !blank[c.date];
-                var count = printedRows.filter(function (row) { var e = sheetDay(row, c.date, client); return e && e.w; }).length;
-                if (counts) personDays += count;
-                html += '<td colspan="2" class="td-people-count' + offCls(c) + (blank[c.date] && ctl ? ' pp-blank' : '') + '">' + (blank[c.date] ? '' : count) + '</td>';
+            job.dates.forEach(function (d) {
+                if (cut['p:' + d.date]) {
+                    html += '<td colspan="2" class="td-people-count"></td>';
+                    return;
+                }
+                var count = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client); return e && e.w; }).length;
+                personDays += count;
+                html += '<td colspan="2" class="td-people-count">' + count + '</td>';
             });
             cols.totals.forEach(function (c) {
-                html += '<td class="' + (c.f === 'days' ? 'td-people-count' : '') + offCls(c) + '">' + (c.f === 'days' ? personDays : '') + '</td>';
+                html += '<td class="' + (c.f === 'days' ? 'td-people-count' : '') + '">' + (c.f === 'days' ? personDays : '') + '</td>';
             });
-            var restCols = cols.emp.length + cols.cli.length + cols.pay.length;
+            var restCols = moneyCols.length + cols.pay.length;
             if (restCols) html += '<td colspan="' + restCols + '"></td>';
             html += '</tr>';
         }
 
         // Total row: the printed people's figures.
         var sum = function (fn) {
-            return printedRows.reduce(function (a, row) { return a + fn(figures[row.code]); }, 0);
+            return printed.reduce(function (a, row) { return a + fn(figures[row.code]); }, 0);
         };
-        var leftColspan = 2 + cols.dates.length * 2 + cols.totals.length;
-        html += '<tr class="tr-total-row">';
-        html += '<td colspan="' + leftColspan + '" class="td-total-label">Total</td>';
-        cols.emp.concat(cols.cli).forEach(function (c) {
-            var group = c.key.slice(0, 3) === 'emp' ? 'emp' : 'cli';
+        html += '<tr class="tr-total-row"><td colspan="' + (2 + job.dates.length * 2 + cols.totals.length) + '" class="td-total-label">Total</td>';
+        moneyCols.forEach(function (c) {
+            var group = c.group;
             var text = '';
             if (c.f === 'sub') text = rupiah(sum(function (f) { return f[group].sub; }));
             else if (c.f === 'totalR' || c.f === 'totalOT') text = rupiah(sum(function (f) { return f[group][c.f]; }));
             else if (c.f === 'add') text = rupiah(sum(function (f) { return c.id === 'transport' ? f.transport : (f.req[c.id] ? f.req[c.id].a : 0); }));
             else if (c.f === 'addtotal') text = rupiah(sum(function (f) { return f.add; }));
-            html += '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + ' td-total-cell' + offCls(c) + '">' + text + '</td>';
+            html += '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + ' td-total-cell">' + text + '</td>';
         });
         cols.pay.forEach(function (c) {
-            html += '<td class="td-payment td-total-cell' + offCls(c) + '">' + rupiah(sum(function (f) { return f.pay[c.f]; })) + '</td>';
+            html += '<td class="td-payment td-total-cell">' + rupiah(sum(function (f) { return f.pay[c.f]; })) + '</td>';
         });
-        html += '</tr></tfoot></table>';
-        html += '</div>';
+        html += '</tr></tfoot></table></div>';
 
-        // Footer HTML
-        html += '<div class="report-print-footer">';
-        html += '  <div class="report-print-footer-url">' + escapeHTML(job.pageUrl) + '</div>';
-        html += '  <div class="report-print-footer-page"></div>';
-        html += '</div>';
+        // Footer
+        html += '<div class="report-print-footer">' +
+            '<div class="report-print-footer-url">' + escapeHTML(job.pageUrl) + '</div>' +
+            '<div class="report-print-footer-page"></div>' +
+        '</div>';
         return html;
     }
 
@@ -653,7 +589,7 @@
 
     function loadJob(id) {
         var job = readJobs()[id];
-        return job && job.v === 1 ? job : null;
+        return job && job.v === JOB_VERSION ? job : null;
     }
 
     function prepareForPrint() {
@@ -753,7 +689,9 @@
     window.FeriizPrintSheet = {
         load: loadJob,
         render: renderPrintSheet,
-        identifier: sheetIdentifier
+        identifier: sheetIdentifier,
+        columns: allColumns,
+        groups: groupsOf
     };
 
     if (document.readyState === 'loading') {

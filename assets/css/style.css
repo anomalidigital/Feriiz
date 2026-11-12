@@ -3470,26 +3470,28 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
    yellow, and a log it still misses keeps a red box; otherwise a day missing a log, one or both,
    is red. A tint with a bar, its log boxes on white; the colour stays on
    hover and when the day is ticked (the blue outline shows the tick). In a split day each half
-   carries its own colour, as in the History window. */
-div.report-layout .report-table tbody td.day-col.day-changed,
-div.report-layout .report-table tbody td.day-col.day-changed:has(.day-cell-select:checked),
+   carries its own colour, as in the History window. A day the Log Status filter leaves out
+   (filtered-out-cell) takes no colour: it is blank grey, so "in gada" really is not shown
+   (Baldy, 12-11-2026; the red used to win and left a red block). */
+div.report-layout .report-table tbody td.day-col.day-changed:not(.filtered-out-cell),
+div.report-layout .report-table tbody td.day-col.day-changed:not(.filtered-out-cell):has(.day-cell-select:checked),
 .day-half.day-changed {
     background: var(--feriiz-changed-tint) !important;
     box-shadow: inset 4px 0 0 var(--feriiz-changed);
 }
 
-div.report-layout .report-table tbody tr:hover td.day-col.day-changed {
+div.report-layout .report-table tbody tr:hover td.day-col.day-changed:not(.filtered-out-cell) {
     background: #FDE68A !important;
 }
 
-div.report-layout .report-table tbody td.day-col.day-missing,
-div.report-layout .report-table tbody td.day-col.day-missing:has(.day-cell-select:checked),
+div.report-layout .report-table tbody td.day-col.day-missing:not(.filtered-out-cell),
+div.report-layout .report-table tbody td.day-col.day-missing:not(.filtered-out-cell):has(.day-cell-select:checked),
 .day-half.day-missing {
     background: var(--feriiz-flag-danger) !important;
     box-shadow: inset 4px 0 0 var(--feriiz-danger);
 }
 
-div.report-layout .report-table tbody tr:hover td.day-col.day-missing {
+div.report-layout .report-table tbody tr:hover td.day-col.day-missing:not(.filtered-out-cell) {
     background: #F3B6AE !important;
 }
 
@@ -3770,7 +3772,8 @@ div.report-layout .report-table tbody td.filtered-out-cell .day-cell-checkbox {
     display: none;
 }
 
-/* Filtered-out cells: hide content when filter doesn't match */
+/* Filtered-out cells: a day the Log Status filter leaves out is empty and grey, with no day
+   colour (the colour rules above skip it). */
 div.report-layout .report-table tbody td.filtered-out-cell {
     background: #F9FAFB !important;
     box-shadow: none !important;

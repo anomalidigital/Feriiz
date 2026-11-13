@@ -106,15 +106,19 @@
         return s;
     }
 
-    // mode: 'internal' or 'client'; hidden: columns left out; cut: a date's field off; rows: people
-    // left out; open: the people groups unfolded in the panel.
+    // mode: 'internal' or 'client'; data: 'latest' or 'original', the Internal print's data (the
+    // newest version of each day, or what the machine recorded: meeting 10-11-2026, 00:03:33,
+    // "internal ini bakal… yang update-an atau yang dari sistem"); hidden: columns left out;
+    // cut: a date's field off; rows: people left out; open: the people groups unfolded in the panel.
     function freshState(mode, withPrefs) {
         var s = withPrefs ? modeState(mode) : { hidden: {}, cut: {} };
-        return { mode: mode, hidden: s.hidden, cut: s.cut, rows: {}, open: {} };
+        return { mode: mode, data: 'latest', hidden: s.hidden, cut: s.cut, rows: {}, open: {} };
     }
 
+    function original() { return state.mode === 'internal' && state.data === 'original'; }
+
     function view() {
-        return { hidden: state.hidden, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client' };
+        return { hidden: state.hidden, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', original: original() };
     }
 
     /* ---------- the panel ---------- */
@@ -289,7 +293,8 @@
         if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Tick someone under People, or Reset.';
         var mode = state.mode === 'client'
             ? 'For the client: every day with data prints the Set Default of its occupation. '
-            : 'Internal: the Report\'s own data. ';
+            : original() ? 'Internal, original: each day as the machine recorded it, before imports, Add Log and Delete Log. '
+            : 'Internal: the Report\'s own data, the newest version of each day. ';
         var parts = [];
         FIELDS.forEach(function (f) {
             var off = job.dates.filter(function (d) { return !fieldOn(f[0], d.date); }).length;
@@ -307,6 +312,20 @@
         $('ppMode').querySelectorAll('button[data-mode]').forEach(function (btn) {
             btn.setAttribute('aria-pressed', String(btn.dataset.mode === state.mode));
         });
+        // Data: Latest | Original, for the Internal print of a period where a day was changed.
+        $('ppData').hidden = !(state.mode === 'internal' && window.FeriizPrintSheet.hasOriginal(job));
+        $('ppData').querySelectorAll('button[data-data]').forEach(function (btn) {
+            btn.setAttribute('aria-pressed', String(btn.dataset.data === state.data));
+        });
+    }
+
+    function onDataClick(e) {
+        var btn = e.target.closest('button[data-data]');
+        if (!btn || btn.dataset.data === state.data) return;
+        state.data = btn.dataset.data;
+        render();
+        var again = $('ppData').querySelector('button[data-data="' + state.data + '"]');
+        if (again) again.focus();
     }
 
     function render() {
@@ -349,7 +368,7 @@
 
     function fail(message) {
         $('ppState').textContent = message;
-        ['ppMode', 'ppReset', 'ppPrint'].forEach(function (id) { $(id).hidden = true; });
+        ['ppMode', 'ppData', 'ppReset', 'ppPrint'].forEach(function (id) { $(id).hidden = true; });
         $('ppSummary').textContent = '';
     }
 
@@ -379,6 +398,7 @@
         $('ppPanel').addEventListener('change', onPanelChange);
         $('ppPanel').addEventListener('click', onPanelClick);
         $('ppMode').addEventListener('click', onModeClick);
+        $('ppData').addEventListener('click', onDataClick);
         $('ppReset').addEventListener('click', function () {
             var open = state.open;
             state = freshState(state.mode, false);

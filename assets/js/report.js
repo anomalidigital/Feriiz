@@ -208,7 +208,19 @@
         return def ? { work: def.work, ot: def.ot } : null;
     }
 
-    window.FeriizReport = { setDefaultFor: setDefaultFor };
+    // The machine's own Daily and overtime of a day a version changed (an import, Add Log or
+    // Delete Log), for the Internal print's "Original" (meeting 10-11-2026, 00:03:33: Internal
+    // prints "yang update-an atau yang dari sistem"; Baldy, 13-11-2026: "yaudah kamu atur ya");
+    // null when nothing changed the day.
+    function originalFor(code, date) {
+        if (!dayState(code, date).last) return null;
+        var o = dayState(code, date, null);
+        if (o.off && !o.inTime && !o.outTime) return { daily: 0, ot: 0, off: true };
+        var c = logCount(code, date, o.inTime, o.outTime);
+        return { daily: c.daily, ot: c.ot, off: false };
+    }
+
+    window.FeriizReport = { setDefaultFor: setDefaultFor, originalFor: originalFor };
 
     function showOriginal() { return appliedReportFilters.original; }
 

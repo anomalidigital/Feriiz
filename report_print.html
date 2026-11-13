@@ -7,10 +7,10 @@
     <title>Feriiz - Print preview</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.109">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.109">
-    <script src="assets/js/print-report.js?v=3.7.109" defer></script>
-    <script src="assets/js/print-preview.js?v=3.7.109" defer></script>
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.110">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.110">
+    <script src="assets/js/print-report.js?v=3.7.110" defer></script>
+    <script src="assets/js/print-preview.js?v=3.7.110" defer></script>
 </head>
 
 <!-- The Report's Print opens this tab (06-11-2026). Since 12-11-2026 the paper is exactly what
@@ -29,6 +29,12 @@
                 <span class="pp-mode-label">For</span>
                 <button type="button" class="pp-day" data-mode="internal" aria-pressed="true">Internal</button>
                 <button type="button" class="pp-day" data-mode="client" aria-pressed="false">Client</button>
+            </div>
+            <!-- Internal only, when a day was changed: the newest data or the machine's own (meeting 10-11-2026, 00:03:33) -->
+            <div class="pp-mode" id="ppData" role="group" aria-label="Data to print" hidden>
+                <span class="pp-mode-label">Data</span>
+                <button type="button" class="pp-day" data-data="latest" aria-pressed="true">Latest</button>
+                <button type="button" class="pp-day" data-data="original" aria-pressed="false">Original</button>
             </div>
             <button type="button" class="btn btn-outline" id="ppReset">Reset</button>
             <button type="button" class="btn btn-outline" id="ppClose">Close</button>

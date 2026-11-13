@@ -198,13 +198,24 @@
         return hours.length === 1 ? hours[0] : null;
     }
 
+    // A full working day in the project: the person's Working Time (else the project's) less its
+    // hour of break, 8 hours of 08:00-17:00 (Baldy, 13-11-2026: "8 jam berarti intinya memenuhi
+    // jam kerja si employee itu di project tersebut").
+    function fullDayHours(code) {
+        var span = spanOf(code);
+        return span > 1 ? span - 1 : span;
+    }
+
     // What the client print gives a day that has data (Set Default, meeting 05-11-2026, 0:05:07:
     // "ketika udah di print… semuanya itu harus 8 per 2"): the hours and overtime of the
-    // person's occupation on that weekday, or null when that weekday has 0 hours there (its
-    // real data prints).
+    // person's occupation on that weekday, and its Daily: 1 when those hours make a full working
+    // day, else 0.5 (Baldy, 13-11-2026: "set default nya 8/2… day nya 1 dan overtime nya 2…
+    // kalau misal set default nya dia isi nya ga memenuhi jam kerja nya project ya nanti jadinya
+    // 0.5"; it was always 1). Null when that weekday has 0 hours there (its real data prints).
     function setDefaultFor(date, code) {
         var def = dayDefault(date, code);
-        return def ? { work: def.work, ot: def.ot } : null;
+        if (!def) return null;
+        return { work: def.work, ot: def.ot, daily: round2(def.work) >= round2(fullDayHours(code)) ? 1 : 0.5 };
     }
 
     /* Use Default Hours in this project (Project Settings, 13-11-2026; the meeting of 10-11-2026,
@@ -213,7 +224,8 @@
        yang filter itu di matiin dulu show histori nya"). Ticked, a day with a log in counts its
        occupation's Default Hours as its newest data: Daily 1, the default hours and overtime,
        whatever the clock says, also a day missing its log out. Its logs stay as the machine
-       recorded them and the machine's own count is its original (Filter > Show history). The
+       recorded them and the machine's own count is its original (Filter > Show history). Its
+       Daily is 1 when the default hours make a full working day, else 0.5 (setDefaultFor). The
        Default Hours come over every version, an import or Add Hours too (Baldy, 13-11-2026: "set
        default itu yang paling teratas ya, jadi add hour dan import itu nomor 2 mereka… yang dari
        sistem tetep ada juga… set default itu bisa di bilang sama kaya import atau add hours dia
@@ -230,9 +242,9 @@
 
     function applyDefault(s, code, date) {
         if (!usesDefault() || s.off || !s.inTime) return;
-        var def = dayDefault(date, code);
+        var def = setDefaultFor(date, code);
         if (!def) return;
-        s.numbers = { daily: 1, ot: def.ot, work: def.work };
+        s.numbers = { daily: def.daily, ot: def.ot, work: def.work };
         s.last = DEFAULT_VERSION;
     }
 

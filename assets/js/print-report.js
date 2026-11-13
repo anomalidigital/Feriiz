@@ -187,7 +187,7 @@
     // One person's day as the Report has it: d = the Daily (0, 0.5 or 1), ot = overtime hours,
     // w = came in (Jumlah Orang Per Hari counts it), req = the requests given that day (Uang Makan…) for their
     // columns, r = the name of an accepted request on a day off work, off = a day off, and for a
-    // day with data s = [hours, overtime] of the client print's Set Default.
+    // day with data s = [hours, overtime, Daily] of the client print's Set Default.
     function dayEntry(tr, date, idx) {
         var e = { d: 0, ot: 0, w: false, req: [], r: '', off: false };
         var dayTd = tr.querySelector('td.day-col[data-date="' + date + '"]');
@@ -208,7 +208,7 @@
             e.ot = Number(dayTd.dataset.otTotal) || 0;
             e.w = e.d > 0;
             var def = (e.d > 0 || e.ot > 0) && window.FeriizReport ? window.FeriizReport.setDefaultFor(date, tr.dataset.employeeCode) : null;
-            if (def) e.s = [def.work, def.ot];
+            if (def) e.s = [def.work, def.ot, def.daily];
         }
         if (!e.off && dayTd.dataset.request) e.r = dayTd.dataset.request;
         return e;
@@ -366,7 +366,7 @@
     function sheetDay(row, date, client) {
         var e = row.days[date];
         if (!e) return null;
-        if (client && e.s) return { d: 1, ot: wholeHours(e.s[1]), w: true, req: e.req || [], r: '', off: false };
+        if (client && e.s) return { d: e.s[2] != null ? e.s[2] : 1, ot: wholeHours(e.s[1]), w: true, req: e.req || [], r: '', off: false };
         return { d: Number(e.d) || 0, ot: wholeHours(e.ot), w: Boolean(e.w), req: e.req || [], r: e.r || '', off: Boolean(e.off) };
     }
 

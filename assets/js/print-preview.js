@@ -18,10 +18,13 @@
    fits itself to the print dialog's paper and Layout and may split a long period.
    The columns are the Report's own, from its Columns menu; this panel's Columns is gone (Baldy,
    13-11-2026: "colums ini gausah ada gausah ga perlu, ini cuma ada di report project aja").
-   For: Internal | Client (meeting 05-11-2026, 0:34:01): Client prints every day with data at
-   the Set Default of the person's occupation, without changing the Report, and without the
-   workers' pay (the Employee columns). A date or a field off on every date of a weekday (Sundays,
-   say) is kept for the project's next print of that kind.
+   For: Internal | Client (meeting 05-11-2026, 0:34:01): Client only changes the data, every day
+   with data at the Set Default of the person's occupation (Daily 1 when its hours make a full
+   working day, else 0.5), without changing the Report; its columns are the Report's too, the
+   Employee ones included (Baldy, 13-11-2026: "fungsi client cuma buat ubah data nya menjadi
+   sesuai set default nya, untuk coloms nya itu jangan di ubah"; it left them out before). A date
+   or a field off on every date of a weekday (Sundays, say) is kept for the project's next print
+   of that kind.
    ============================================= */
 (function () {
     'use strict';
@@ -31,7 +34,6 @@
     var FIELDS = [['p', 'Period (daily)'], ['o', 'Overtime (hour)']];
     var job = null;
     var state = null;
-    var columns = null;   // FeriizPrintSheet.columns(job)
     var pageTitle = document.title;
 
     function $(id) { return document.getElementById(id); }
@@ -97,16 +99,6 @@
         return cut;
     }
 
-    // The client print leaves out the Employee columns and their payment, the workers' pay.
-    function hiddenFor(mode) {
-        var hidden = {};
-        if (mode === 'client') {
-            columns.emp.concat(columns.pay.filter(function (c) { return c.group === 'emp'; }))
-                .forEach(function (c) { hidden[c.key] = true; });
-        }
-        return hidden;
-    }
-
     // mode: 'internal' or 'client'; cut: a date or one of its fields off; rows: the people of the
     // occupations left out. Internal prints the Report's newest data: its Data: Latest | System
     // went on 13-11-2026 ("ga di minta deh kayanya apus dulu").
@@ -116,7 +108,7 @@
 
     // screen: the sheet also draws its one table for this page (print-report.js screenTable).
     function view() {
-        return { hidden: hiddenFor(state.mode), cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', screen: true };
+        return { hidden: {}, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', screen: true };
     }
 
     /* ---------- the panel ---------- */
@@ -217,7 +209,7 @@
     function summary() {
         if (nothingLeft()) return 'Every occupation is left out, so there is nothing to print. Tick one under Occupation, or Reset.';
         var mode = state.mode === 'client'
-            ? 'For the client: every day with data prints the Set Default of its occupation, without the workers\' pay. '
+            ? 'For the client: every day with data prints the Set Default of its occupation, Daily 1 when its hours make a full working day, else 0.5. '
             : 'Internal: the Report\'s own data, the newest version of each day. ';
         var parts = [];
         var gone = job.dates.filter(function (d) { return !dayOn(d.date); }).length;
@@ -293,7 +285,6 @@
             fail('There is nobody to print. Go back to the Report and change its filters.');
             return;
         }
-        columns = window.FeriizPrintSheet.columns(job);
         pageTitle = 'Feriiz - Print Configuration - ' + (job.project.name || 'Report');
         document.title = pageTitle;
         $('ppContext').textContent = (job.employeePage ? job.subtitle.split(' • ')[0] + ' · ' : '') + job.title + ' · ' + job.period;

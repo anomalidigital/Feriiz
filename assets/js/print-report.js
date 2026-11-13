@@ -173,8 +173,8 @@
        What the Report prints, as data: every filtered row (all pages), every date, the
        columns the Columns picker shows, and for each person and day what the sheet prints
        and what the totals count, by the Report's own rules (report.js updateVisibleTotals).
-       The sheet is drawn from it, so the Print preview tab can leave columns, days and
-       people out and count again.
+       The sheet is drawn from it, so the Print Configuration tab can leave days and people out
+       and count again.
        ============================================= */
     function projectCode() {
         var code = new URL(location.href).searchParams.get('project');
@@ -313,7 +313,8 @@
 
     var EMP_COLS = [['daily', 'Daily<br>Rate'], ['rateOT', 'Overtime Rate<br>/ Hour'], ['totalR', 'Total<br>Rate'], ['totalOT', 'Total<br>Overtime Rate']];
 
-    // Every column the sheet can print, with its key, label and group (the Print preview lists them).
+    // Every column the sheet can print, with its key, label and group (the client print leaves the
+    // Employee ones out).
     function allColumns(job) {
         var groupCols = function (group, def, extra) {
             var cols = [];
@@ -476,7 +477,7 @@
 
     // The margin boxes of every printed page: when it prints at the top left, the file's name at
     // the top right, the page number at the bottom right. page: the named page ('feriiz-preview'
-    // in the Print preview) or '' for the Report's own print.
+    // in the Print Configuration) or '' for the Report's own print.
     function pageBoxes(job, view, page) {
         var box = 'font-family: Poppins, Arial, sans-serif; font-size: 6.5pt; line-height: 1.2; color: #475569;';
         var top = box + ' vertical-align: bottom; padding-bottom: 1.6mm;';
@@ -576,12 +577,12 @@
     var FIT_MIN = 0.85;
     var FIT_MAX = 1.4;
 
-    function sheetPlan(job, view, cols, printed, figures, dates) {
+    function sheetPlan(job, view, cols, printed, figures, dates, narrow) {
         var w = columnWidths(job, view, cols, printed, figures, dates);
-        // Inside the margins, in mm: A4 landscape 287, A4 portrait 200, where the type tiers
-        // start at about 3/4 of the landscape type (tier).
-        var room = view.portrait ? 200 : A4_WIDTH;
-        var tier = view.portrait ? 0.75 : 1;
+        // Inside the margins, in mm: a wide page (A4 landscape) 287, a narrow one (A4 portrait)
+        // 200, where the type tiers start at about 3/4 of the landscape type (tier).
+        var room = narrow ? 200 : A4_WIDTH;
+        var tier = narrow ? 0.75 : 1;
         var idW = sumOf(w.id);
         var dayW = function (d) { return w.days[d.date][0] + w.days[d.date][1]; };
         var partW = function (part) { return sumOf(tailColumns(part).map(function (c) { return w.col[c.key]; })); };
@@ -775,9 +776,19 @@
             cameIn[d.date] = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client); return e && e.w; }).length;
             if (!cut['p:' + d.date]) personDays += cameIn[d.date];
         });
-        var plan = sheetPlan(job, view, cols, printed, figures, dates);
-        var ctx = { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: plan.scale, cameIn: cameIn, personDays: personDays };
-        plan.tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
+        /* The tables twice, fitted to a wide page and to a narrow one: the paper and Layout picked
+           in the print dialog print the fit for its width (style.css, a container query on the
+           sheet's own width; the print dialog's Layout reaches no script). A4 landscape, A3 and
+           wider take the wide fit, A4 portrait the narrow one. The Print Configuration shows the
+           wide fit (Baldy, 13-11-2026: its Landscape | Portrait went, "jangan samain banget dengan
+           yang di print… ketika print mungkin besaran nya beda"). */
+        [false, true].forEach(function (narrow) {
+            var plan = sheetPlan(job, view, cols, printed, figures, dates, narrow);
+            var ctx = { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: plan.scale, cameIn: cameIn, personDays: personDays };
+            html += '<div class="report-print-fit report-print-fit--' + (narrow ? 'narrow' : 'wide') + '">';
+            plan.tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
+            html += '</div>';
+        });
 
         // The admin who printed it and the date, after the last table.
         html += '<div class="report-print-signoff">' +
@@ -794,7 +805,7 @@
 
     /* =============================================
        PRINT FROM THE REPORT
-       The Print button opens the Print preview tab (report_print.html) with the job, where
+       The Print button opens the Print Configuration tab (report_print.html) with the job, where
        the sheet can lose columns, days and people before it prints (Baldy, 06-11-2026; the
        meeting of 05-11, 1:55: "begitu di-print, kamu buka dulu new tab"). The browser's own
        Print (Ctrl+P) still prints the Report's sheet as it is.
@@ -889,8 +900,8 @@
 
         // No preview (pop-ups blocked, or no room to keep the job): print here, as before.
         if (window.FeriizNotify) {
-            window.FeriizNotify.warning(id ? 'The browser blocked the print preview tab, so the report prints from here.'
-                : 'The print preview could not be prepared, so the report prints from here.', 'Print preview');
+            window.FeriizNotify.warning(id ? 'The browser blocked the Print Configuration tab, so the report prints from here.'
+                : 'The Print Configuration could not be prepared, so the report prints from here.', 'Print Configuration');
         }
         if (printButton) {
             printButton.disabled = true;
@@ -919,7 +930,7 @@
         });
     }
 
-    // The Print preview tab draws the same sheet.
+    // The Print Configuration tab draws the same sheet.
     window.FeriizPrintSheet = {
         load: loadJob,
         render: renderPrintSheet,

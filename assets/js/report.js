@@ -788,7 +788,7 @@
        bawahnya", not next to the hours and overtime; they were initials in the badge row
        before). They are labels: a request is assigned and removed with Batch Update (Baldy,
        04-11-2026: "jangan di tabel nya"). Print leaves them out, but reads the template and
-       amount of each, so a day the Print preview blanks leaves its columns too. */
+       amount of each, so a day the Print Configuration blanks leaves its columns too. */
     var requestDayIndex = {};   // FeriizTemplates.dayIndex for the days on screen
 
     function requestDayChips(code, date) {
@@ -1113,7 +1113,7 @@
         updateVisibleTotals(currentVisibleDates);
     }
 
-    // "Jumlah Orang Per Hari" is on paper only, in the print preview and the printed sheet
+    // "Jumlah Orang Per Hari" is on paper only, in the Print Configuration and the printed sheet
     // (print-report.js). It was under this table too from 3.7.67 until Baldy took it off on
     // 09-11-2026: "ini kayanya ga di report… di proses print dan di hasil print nya".
 

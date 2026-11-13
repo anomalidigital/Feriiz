@@ -4001,6 +4001,24 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-weight: 600 !important;
 }
 
+/* The sheet's tables in two fits (print-report.js renderPrintSheet): for a wide page, A4
+   landscape and wider, and for a narrow one, A4 portrait. The sheet's own width on the paper the
+   print dialog has picks one (13-11-2026); the Print Configuration's A4 landscape paper shows
+   the wide one. */
+.report-print-fit--narrow {
+    display: none !important;
+}
+
+@container (max-width: 249.9mm) {
+    .report-print-document > .report-print-fit--wide {
+        display: none !important;
+    }
+
+    .report-print-document > .report-print-fit--narrow {
+        display: block !important;
+    }
+}
+
 /* ===============================  SECTION  ============================== */
 .report-print-section {
     margin-bottom: 3mm !important;
@@ -4577,10 +4595,6 @@ body[data-page="print-preview"] {
     margin: 0;
 }
 
-.pp-strong {
-    font-weight: 600;
-}
-
 .pp-list {
     display: grid;
     gap: 6px;
@@ -4692,12 +4706,6 @@ body[data-page="print-preview"] #ppSheet {
     page: feriiz-preview;
 }
 
-/* Portrait in the preview (13-11-2026): the paper stands up on screen. What prints follows the
-   print dialog's Layout. */
-.pp-paper.is-portrait {
-    width: 210mm;
-    min-height: 297mm;
-}
 
 @media print {
     body[data-page="print-preview"] .pp-toolbar,

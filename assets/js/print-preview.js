@@ -46,7 +46,8 @@
         try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch (e) { return {}; }
     }
 
-    // { internal: { cols, days }, client: { cols, days } } for the project (06-11 kept one set: Internal).
+    // { internal: { cols, days }, client: { cols, days }, layout } for the project (06-11 kept one set:
+    // Internal; layout 'landscape' or 'portrait' since 13-11-2026).
     function projectPrefs() {
         var p = readPrefs()[job.project.code] || {};
         return p.internal || p.client ? p : { internal: p };
@@ -75,6 +76,7 @@
             });
         });
         mine[state.mode] = { cols: Object.keys(state.hidden).filter(function (k) { return state.hidden[k]; }), days: days };
+        mine.layout = state.layout;
         all[job.project.code] = mine;
         try { localStorage.setItem(PREFS_KEY, JSON.stringify(all)); } catch (e) { /* kept for this tab only */ }
     }
@@ -106,19 +108,22 @@
         return s;
     }
 
-    // mode: 'internal' or 'client'; data: 'latest' or 'original', the Internal print's data (the
+    // mode: 'internal' or 'client'; data: 'latest' or 'system', the Internal print's data (the
     // newest version of each day, or what the machine recorded: meeting 10-11-2026, 00:03:33,
-    // "internal ini bakal… yang update-an atau yang dari sistem"); hidden: columns left out;
-    // cut: a date's field off; rows: people left out; open: the people groups unfolded in the panel.
+    // "internal ini bakal… yang update-an atau yang dari sistem"; Baldy, 13-11-2026: "original
+    // ganti jadi system"); layout: 'landscape' or 'portrait' (13-11-2026); hidden: columns left
+    // out; cut: a date's field off; rows: people left out; open: the people groups unfolded.
     function freshState(mode, withPrefs) {
         var s = withPrefs ? modeState(mode) : { hidden: {}, cut: {} };
-        return { mode: mode, data: 'latest', hidden: s.hidden, cut: s.cut, rows: {}, open: {} };
+        var layout = withPrefs && projectPrefs().layout === 'portrait' ? 'portrait' : 'landscape';
+        return { mode: mode, data: 'latest', layout: layout, hidden: s.hidden, cut: s.cut, rows: {}, open: {} };
     }
 
-    function original() { return state.mode === 'internal' && state.data === 'original'; }
+    function systemData() { return state.mode === 'internal' && state.data === 'system'; }
 
     function view() {
-        return { hidden: state.hidden, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', original: original() };
+        return { hidden: state.hidden, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client',
+                 system: systemData(), portrait: state.layout === 'portrait' };
     }
 
     /* ---------- the panel ---------- */
@@ -293,7 +298,7 @@
         if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Tick someone under People, or Reset.';
         var mode = state.mode === 'client'
             ? 'For the client: every day with data prints the Set Default of its occupation. '
-            : original() ? 'Internal, original: each day as the machine recorded it, before imports and Add Hours. '
+            : systemData() ? 'Internal, system data: each day as the machine recorded it, before imports and Add Hours. '
             : 'Internal: the Report\'s own data, the newest version of each day. ';
         var parts = [];
         FIELDS.forEach(function (f) {
@@ -304,7 +309,7 @@
         if (cols) parts.push(cols + (cols === 1 ? ' column' : ' columns') + ' left out');
         var people = count(state.rows);
         if (people) parts.push(people + (people === 1 ? ' person' : ' people') + ' left out');
-        if (!parts.length) return mode + 'The paper is what prints, on A4 landscape; A3 or A2 in the print dialog gets the same sheet, larger. Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
+        if (!parts.length) return mode + 'The paper is what prints, on A4 ' + state.layout + '; A3 or A2 in the print dialog gets the same sheet, larger. Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
         return mode + parts.join(' · ') + '. The totals and the pay count only what prints.';
     }
 
@@ -312,11 +317,26 @@
         $('ppMode').querySelectorAll('button[data-mode]').forEach(function (btn) {
             btn.setAttribute('aria-pressed', String(btn.dataset.mode === state.mode));
         });
-        // Data: Latest | Original, for the Internal print of a period where a day was changed.
-        $('ppData').hidden = !(state.mode === 'internal' && window.FeriizPrintSheet.hasOriginal(job));
+        // Data: Latest | System, for the Internal print of a period where a day was changed.
+        $('ppData').hidden = !(state.mode === 'internal' && window.FeriizPrintSheet.hasSystemData(job));
         $('ppData').querySelectorAll('button[data-data]').forEach(function (btn) {
             btn.setAttribute('aria-pressed', String(btn.dataset.data === state.data));
         });
+        $('ppLayout').querySelectorAll('button[data-layout]').forEach(function (btn) {
+            btn.setAttribute('aria-pressed', String(btn.dataset.layout === state.layout));
+        });
+        // The paper on screen and the page it prints on stand up for Portrait.
+        $('ppPaper').classList.toggle('is-portrait', state.layout === 'portrait');
+        $('ppSheet').classList.toggle('is-portrait', state.layout === 'portrait');
+    }
+
+    function onLayoutClick(e) {
+        var btn = e.target.closest('button[data-layout]');
+        if (!btn || btn.dataset.layout === state.layout) return;
+        state.layout = btn.dataset.layout;
+        render();
+        var again = $('ppLayout').querySelector('button[data-layout="' + state.layout + '"]');
+        if (again) again.focus();
     }
 
     function onDataClick(e) {
@@ -368,7 +388,7 @@
 
     function fail(message) {
         $('ppState').textContent = message;
-        ['ppMode', 'ppData', 'ppReset', 'ppPrint'].forEach(function (id) { $(id).hidden = true; });
+        ['ppMode', 'ppData', 'ppLayout', 'ppReset', 'ppPrint'].forEach(function (id) { $(id).hidden = true; });
         $('ppSummary').textContent = '';
     }
 
@@ -399,10 +419,13 @@
         $('ppPanel').addEventListener('click', onPanelClick);
         $('ppMode').addEventListener('click', onModeClick);
         $('ppData').addEventListener('click', onDataClick);
+        $('ppLayout').addEventListener('click', onLayoutClick);
         $('ppReset').addEventListener('click', function () {
             var open = state.open;
+            var layout = state.layout;
             state = freshState(state.mode, false);
             state.open = open;
+            state.layout = layout;
             render();
         });
         $('ppPrint').addEventListener('click', printSheet);

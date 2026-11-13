@@ -4642,6 +4642,22 @@ body[data-page="print-preview"] #ppSheet {
     page: feriiz-preview;
 }
 
+/* Portrait (Baldy, 13-11-2026: "tetep harus ada ya potriat dan landscape nya"): the paper stands
+   up on screen and the page prints standing, on whatever paper the dialog has. */
+.pp-paper.is-portrait {
+    width: 210mm;
+    min-height: 297mm;
+}
+
+@page feriiz-preview-portrait {
+    size: portrait;
+    margin: 6mm 5mm;
+}
+
+body[data-page="print-preview"] #ppSheet.is-portrait {
+    page: feriiz-preview-portrait;
+}
+
 @media print {
     body[data-page="print-preview"] .pp-toolbar,
     body[data-page="print-preview"] .pp-state,

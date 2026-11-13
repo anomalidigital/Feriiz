@@ -188,7 +188,7 @@
     // w = came in (Jumlah Orang Per Hari counts it), req = the requests given that day (Uang Makan…) for their
     // columns, r = the name of an accepted request on a day off work, off = a day off, and for a
     // day with data s = [hours, overtime] of the client print's Set Default, and for a day a version
-    // changed o = [Daily, overtime, day off 1/0] as the machine had it (the Internal "Original").
+    // changed o = [Daily, overtime, day off 1/0] as the machine had it (the Internal "System" data).
     function dayEntry(tr, date, idx) {
         var e = { d: 0, ot: 0, w: false, req: [], r: '', off: false };
         var dayTd = tr.querySelector('td.day-col[data-date="' + date + '"]');
@@ -360,13 +360,13 @@
     }
 
     // A day as the sheet prints and counts it: as the Report has it, in the client print a day
-    // with data at its Set Default, in the Internal "Original" as the machine had it. Overtime in
-    // whole hours.
-    function sheetDay(row, date, client, original) {
+    // with data at its Set Default, in the Internal "System" data as the machine had it. Overtime
+    // in whole hours.
+    function sheetDay(row, date, client, system) {
         var e = row.days[date];
         if (!e) return null;
         if (client && e.s) return { d: 1, ot: wholeHours(e.s[1]), w: true, req: e.req || [], r: '', off: false };
-        if (!client && original && e.o) return { d: Number(e.o[0]) || 0, ot: wholeHours(e.o[1]), w: Number(e.o[0]) > 0, req: e.req || [], r: '', off: Boolean(e.o[2]) };
+        if (!client && system && e.o) return { d: Number(e.o[0]) || 0, ot: wholeHours(e.o[1]), w: Number(e.o[0]) > 0, req: e.req || [], r: '', off: Boolean(e.o[2]) };
         return { d: Number(e.d) || 0, ot: wholeHours(e.ot), w: Boolean(e.w), req: e.req || [], r: e.r || '', off: Boolean(e.off) };
     }
 
@@ -376,7 +376,7 @@
         var cut = view.cut || {};
         var days = 0, ot = 0, req = {}, reqTotal = 0;
         job.dates.forEach(function (d) {
-            var e = sheetDay(row, d.date, view.client, view.original);
+            var e = sheetDay(row, d.date, view.client, view.system);
             if (!e) return;
             if (!cut['p:' + d.date]) {
                 days += e.d;
@@ -405,7 +405,7 @@
         var parts = [job.startYYMMDD + '_' + job.endYYMMDD,
                      String(job.project.name || '').toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_\-&]/g, '')];
         if (job.dates.length) parts.push('DAILY');
-        if (view && view.original && !view.client) parts.push('ORIGINAL');
+        if (view && view.system && !view.client) parts.push('SYSTEM');
         if (cols.emp.length) parts.push('EMPLOYEE');
         if (cols.cli.length) parts.push('CLIENT');
         return parts.join('_');
@@ -474,7 +474,7 @@
         job.dates.forEach(function (d) {
             var p = 1, o = 1;
             printed.forEach(function (row) {
-                var e = sheetDay(row, d.date, view.client, view.original);
+                var e = sheetDay(row, d.date, view.client, view.system);
                 if (e && !e.r) { p = Math.max(p, figure(e.d).length); o = Math.max(o, String(e.ot).length); }
             });
             need.push(Math.max(figureMM(p), headMM('Period<br>(daily)')), Math.max(figureMM(o), headMM('Overtime<br>(hour)')));
@@ -489,7 +489,10 @@
             need.push(Math.max(figureMM(maxOf(function (row) { return rupiah(figures[row.code].pay[c.f]).length; }), true), headMM(c.label)));
         });
         var total = need.reduce(function (a, b) { return a + b; }, 0);
-        return { widths: need, total: total, scale: Math.max(0.6, Math.min(1.4, A4_WIDTH / total)) };
+        // A4 portrait has 200mm inside the margins and the base type sizes, about 3/4 of the A4
+        // landscape ones the widths were measured in: 200 / 0.75.
+        var room = view.portrait ? 266 : A4_WIDTH;
+        return { widths: need, total: total, scale: Math.max(0.6, Math.min(1.4, room / total)) };
     }
 
     function renderPrintSheet(job, view) {
@@ -507,7 +510,7 @@
             '<div class="report-print-title-group">' +
                 '<h1 class="report-print-project-title">' + escapeHTML(job.title) + '</h1>' +
                 '<p class="report-print-project-subtitle">' + escapeHTML(job.subtitle) +
-                    (view.original && !view.client ? ' · Original data (as the machine recorded it)' : '') + '</p>' +
+                    (view.system && !view.client ? ' · System data (as the machine recorded it)' : '') + '</p>' +
             '</div>';
         if (job.filter && job.filter !== 'All active data (No filter)') {
             html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(job.filter) + '</div>';
@@ -547,7 +550,7 @@
                 html += '<tr><td class="td-no">' + (index + 1) + '</td>';
                 html += '<td class="td-name"><div class="print-emp-name">' + escapeHTML(row.name) + '</div></td>';
                 job.dates.forEach(function (d) {
-                    var e = sheetDay(row, d.date, view.client, view.original);
+                    var e = sheetDay(row, d.date, view.client, view.system);
                     html += '<td class="td-daily-period">' + (cut['p:' + d.date] ? '' : periodText(e)) + '</td>';
                     html += '<td class="td-daily-ot">' + (cut['o:' + d.date] ? '' : overtimeText(e)) + '</td>';
                 });
@@ -572,7 +575,7 @@
                     html += '<td colspan="2" class="td-people-count"></td>';
                     return;
                 }
-                var count = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client, view.original); return e && e.w; }).length;
+                var count = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client, view.system); return e && e.w; }).length;
                 personDays += count;
                 html += '<td colspan="2" class="td-people-count">' + count + '</td>';
             });
@@ -740,8 +743,8 @@
     // The Print preview tab draws the same sheet.
     window.FeriizPrintSheet = {
         load: loadJob,
-        // Does any printed day differ from what the machine recorded (the Internal "Original")?
-        hasOriginal: function (job) {
+        // Does any printed day differ from what the machine recorded (the Internal "System" data)?
+        hasSystemData: function (job) {
             return job.rows.some(function (row) { return Object.keys(row.days).some(function (d) { return Boolean(row.days[d].o); }); });
         },
         render: renderPrintSheet,

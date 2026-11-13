@@ -411,16 +411,17 @@
         return parts.join('_');
     }
 
-    // What a day prints under Period and Overtime: the figures, a request's name, "-" on a day off.
+    // What a day prints under Period and Overtime: the figures, "-" on a day off. A day of leave
+    // prints its figures like any day nobody worked, 0 and 0: no "Sick Leave" on paper, as the
+    // old Feriiz did not have it (Baldy, 13-11-2026: "kalau emang tidak seperti itu di data lama
+    // mending gausah").
     function periodText(e) {
         if (!e) return '-';
-        // A leave's name in small type, so its row stays as low as the others.
-        if (e.r) return '<span class="print-day-note">' + escapeHTML(e.r) + '</span>';
         return e.off ? '-' : figure(e.d);
     }
 
     function overtimeText(e) {
-        if (!e || e.r || e.off) return '-';
+        if (!e || e.off) return '-';
         return String(e.ot);
     }
 
@@ -434,8 +435,9 @@
         return (day >= 0 ? '<span class="th-weekday">' + HARI[day] + '</span>' : '') + escapeHTML(d.label);
     }
 
-    // A header as printed: "Overtime" may break as "Over-time" in a narrow column, never "Overti-me".
-    function headHTML(label) { return String(label).replace(/Overtime/g, 'Over&shy;time'); }
+    // A header as printed: "Overtime" may break as "Over / time" in a narrow column, no hyphen
+    // (Baldy, 13-11-2026: "overtime gausah ada '-'"), never "Overti-me".
+    function headHTML(label) { return String(label).replace(/Overtime/g, 'Over<wbr>time'); }
 
     // What a money cell says: the rates and totals as the Report writes them, the additional
     // columns "-" when there is nothing to pay.
@@ -460,7 +462,7 @@
     function textMM(chars, em, pt) { return chars * em * pt * PT_MM; }
 
     function headMM(label) {
-        var longest = String(headHTML(label)).replace(/&shy;/g, '- ').replace(/<br>/gi, ' ').replace(/<[^>]+>/g, ' ')
+        var longest = String(headHTML(label)).replace(/<[^>]+>/g, ' ')
             .split(/\s+/).reduce(function (m, w) { return Math.max(m, w.length); }, 0);
         return textMM(longest, 0.6, 6.2) + 0.6;
     }
@@ -475,7 +477,7 @@
             var p = 1, o = 1;
             printed.forEach(function (row) {
                 var e = sheetDay(row, d.date, view.client, view.system);
-                if (e && !e.r) { p = Math.max(p, figure(e.d).length); o = Math.max(o, String(e.ot).length); }
+                if (e) { p = Math.max(p, figure(e.d).length); o = Math.max(o, String(e.ot).length); }
             });
             need.push(Math.max(figureMM(p), headMM('Period<br>(daily)')), Math.max(figureMM(o), headMM('Overtime<br>(hour)')));
         });
@@ -506,11 +508,13 @@
 
         // Header: what the sheet is, and the filter when one is on (a job saved before 3.7.71
         // still says "All active data (No filter)").
+        // Under the project only the person, on an Employee Report's print: no "Attendance & Payroll
+        // Summary" line and no data note (Baldy, 13-11-2026, "di hapus").
+        var person = job.employeePage ? String(job.subtitle || '').split(' • ')[0] : '';
         var html = '<div class="report-print-header">' +
             '<div class="report-print-title-group">' +
                 '<h1 class="report-print-project-title">' + escapeHTML(job.title) + '</h1>' +
-                '<p class="report-print-project-subtitle">' + escapeHTML(job.subtitle) +
-                    (view.system && !view.client ? ' · System data (as the machine recorded it)' : '') + '</p>' +
+                (person ? '<p class="report-print-project-subtitle">' + escapeHTML(person) + '</p>' : '') +
             '</div>';
         if (job.filter && job.filter !== 'All active data (No filter)') {
             html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(job.filter) + '</div>';

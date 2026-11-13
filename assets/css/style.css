@@ -4006,7 +4006,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     letter-spacing: -0.05pt !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
-    hyphens: manual !important;   /* "Over-time" at its soft hyphen, never "Overti-me" */
+    hyphens: manual !important;   /* "Over / time" at its <wbr>, never "Overti-me" */
 }
 
 .report-unified-table th.th-group {
@@ -4102,18 +4102,16 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: block;
 }
 
-/* A leave's name under a date ("Sick Leave"): small, so the row stays low. */
-.report-unified-table td .print-day-note {
-    display: block;
-    font-size: calc(var(--pt-sub) * var(--fit, 1)) !important;
-    line-height: 1.05 !important;
-    white-space: normal;
-}
-
 /* A group of people of one occupation, its name in the Name column (Baldy, 12-11-2026), on a
    band of Feriiz blue, the one colour on the white sheet ("kasih warna biru nya feriiz… yang
    warna nya tajem, soal nya ini aku pusing lihat nya"; the meeting of 10-11, 01:25:48: colour
    only on the occupation header). */
+/* An occupation's row never stays alone at the bottom of a page, away from its people. */
+.report-unified-table tr.tr-group {
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
 .report-unified-table tr.tr-group td {
     background: #2975BB !important;
     border-color: #2975BB !important;
@@ -4510,15 +4508,6 @@ body[data-page="print-preview"] {
     text-align: left;
 }
 
-.pp-grid tr.is-all th,
-.pp-grid tr.is-all td {
-    background: #F8FAFC;
-}
-
-.pp-grid tr.is-all .pp-opt {
-    font-weight: 600;
-}
-
 .pp-opt {
     display: flex;
     align-items: center;
@@ -4629,12 +4618,12 @@ body[data-page="print-preview"] {
     }
 }
 
-/* Landscape on whatever paper the print dialog has (Baldy, 12-11-2026, A2 printed the A4 sheet
-   small over 14 sheets: "dia ga support beberapa versi ya coba tangani, kalau emang misal ga
-   muat gapapa ga ketampil"). The sheet is 100% wide, so it fills A4, A3 or A2, and the type
-   grows with the paper (WIDER PAPER above). It was "A4 landscape" from 12-11 to v3.7.106. */
+/* No size or orientation of our own: the print dialog's Paper size AND Layout (portrait or
+   landscape) win. A page that names its size or orientation makes Chrome hide the dialog's
+   Layout (Baldy, 13-11-2026: "kenapa gada landscape potrait nya ketika udah di print"). The sheet
+   is 100% wide, so it fills A4, A3 or A2, standing or lying, and the type grows with the paper
+   (WIDER PAPER above). It was "A4 landscape" until v3.7.106, "landscape" until v3.7.113. */
 @page feriiz-preview {
-    size: landscape;
     margin: 6mm 5mm;
 }
 
@@ -4642,20 +4631,11 @@ body[data-page="print-preview"] #ppSheet {
     page: feriiz-preview;
 }
 
-/* Portrait (Baldy, 13-11-2026: "tetep harus ada ya potriat dan landscape nya"): the paper stands
-   up on screen and the page prints standing, on whatever paper the dialog has. */
+/* Portrait in the preview (13-11-2026): the paper stands up on screen. What prints follows the
+   print dialog's Layout. */
 .pp-paper.is-portrait {
     width: 210mm;
     min-height: 297mm;
-}
-
-@page feriiz-preview-portrait {
-    size: portrait;
-    margin: 6mm 5mm;
-}
-
-body[data-page="print-preview"] #ppSheet.is-portrait {
-    page: feriiz-preview-portrait;
 }
 
 @media print {

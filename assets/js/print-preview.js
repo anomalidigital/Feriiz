@@ -141,10 +141,8 @@
         return (d.dow >= 0 ? DAY_SHORT[d.dow] + ' ' : '') + d.label;
     }
 
+    // Each date with its Period and Overtime; no "All dates" row (Baldy, 13-11-2026: "gausah ada all days").
     function datesSection() {
-        var n = job.dates.length;
-        var onP = job.dates.filter(function (d) { return fieldOn('p', d.date); }).length;
-        var onO = job.dates.filter(function (d) { return fieldOn('o', d.date); }).length;
         var rows = job.dates.map(function (d) {
             var p = fieldOn('p', d.date), o = fieldOn('o', d.date);
             return '<tr>' +
@@ -157,9 +155,6 @@
         return '<section class="pp-section" aria-labelledby="ppDatesTitle">' +
             '<h2 class="pp-section-title" id="ppDatesTitle">Dates</h2>' +
             '<table class="pp-grid"><thead><tr><th scope="col">Date</th><th scope="col">Period<br>(daily)</th><th scope="col">Overtime<br>(hour)</th></tr></thead><tbody>' +
-            '<tr class="is-all"><th scope="row"><label class="pp-opt">' + box('dates', '', tri(onP + onO, 2 * n), 'Every date') + '<span>All dates</span></label></th>' +
-                '<td>' + box('field', ' data-field="p"', tri(onP, n), 'Period (daily), every date') + '</td>' +
-                '<td>' + box('field', ' data-field="o"', tri(onO, n), 'Overtime (hour), every date') + '</td></tr>' +
             rows + '</tbody></table></section>';
     }
 
@@ -191,14 +186,13 @@
 
     function personOn(row) { return !state.rows[row.code]; }
 
+    // The occupations, each unfolding to its people; no "All people" row (Baldy, 13-11-2026: "ini
+    // occupation bukan people, all people nya di apus").
     function peopleSection() {
         var groups = window.FeriizPrintSheet.groups(job.rows);
-        var on = job.rows.filter(personOn).length;
         return '<section class="pp-section" aria-labelledby="ppPeopleTitle">' +
-            '<h2 class="pp-section-title" id="ppPeopleTitle">People</h2>' +
+            '<h2 class="pp-section-title" id="ppPeopleTitle">Occupation</h2>' +
             '<ul class="pp-list">' +
-            '<li><label class="pp-opt pp-strong">' + box('people', '', tri(on, job.rows.length)) + '<span>All people</span>' +
-                '<span class="pp-count">' + on + ' / ' + job.rows.length + '</span></label></li>' +
             groups.map(function (g) {
                 var gOn = g.rows.filter(personOn).length;
                 var open = Boolean(state.open[g.name]);
@@ -258,10 +252,6 @@
             setCut(field + ':' + key, !fieldOn(field, key));
         } else if (kind === 'date') {
             setAll(cutKeys(['p', 'o'], job.dates.filter(function (d) { return d.date === key; })), cutOn, setCut);
-        } else if (kind === 'field') {
-            setAll(cutKeys([field], job.dates), cutOn, setCut);
-        } else if (kind === 'dates') {
-            setAll(cutKeys(['p', 'o'], job.dates), cutOn, setCut);
         } else if (kind === 'col') {
             setHidden(key, Boolean(state.hidden[key]));
         } else if (kind === 'colgroup') {
@@ -271,8 +261,6 @@
         } else if (kind === 'group') {
             var group = window.FeriizPrintSheet.groups(job.rows).filter(function (g) { return g.name === key; })[0];
             if (group) setAll(group.rows.map(function (r) { return r.code; }), function (c) { return !state.rows[c]; }, setPerson);
-        } else if (kind === 'people') {
-            setAll(job.rows.map(function (r) { return r.code; }), function (c) { return !state.rows[c]; }, setPerson);
         }
         render();
         // The same box keeps the keyboard focus after drawing again.
@@ -295,7 +283,7 @@
     function nothingLeft() { return count(state.rows) >= job.rows.length; }
 
     function summary() {
-        if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Tick someone under People, or Reset.';
+        if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Tick an occupation or a person under Occupation, or Reset.';
         var mode = state.mode === 'client'
             ? 'For the client: every day with data prints the Set Default of its occupation. '
             : systemData() ? 'Internal, system data: each day as the machine recorded it, before imports and Add Hours. '
@@ -309,7 +297,7 @@
         if (cols) parts.push(cols + (cols === 1 ? ' column' : ' columns') + ' left out');
         var people = count(state.rows);
         if (people) parts.push(people + (people === 1 ? ' person' : ' people') + ' left out');
-        if (!parts.length) return mode + 'The paper is what prints, on A4 ' + state.layout + '; A3 or A2 in the print dialog gets the same sheet, larger. Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
+        if (!parts.length) return mode + 'The paper shows A4 ' + state.layout + '; in the print dialog pick the same Layout (A3 or A2 there gets the same sheet, larger). Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
         return mode + parts.join(' · ') + '. The totals and the pay count only what prints.';
     }
 
@@ -325,9 +313,8 @@
         $('ppLayout').querySelectorAll('button[data-layout]').forEach(function (btn) {
             btn.setAttribute('aria-pressed', String(btn.dataset.layout === state.layout));
         });
-        // The paper on screen and the page it prints on stand up for Portrait.
+        // The paper on screen stands up for Portrait; what prints follows the print dialog's Layout.
         $('ppPaper').classList.toggle('is-portrait', state.layout === 'portrait');
-        $('ppSheet').classList.toggle('is-portrait', state.layout === 'portrait');
     }
 
     function onLayoutClick(e) {

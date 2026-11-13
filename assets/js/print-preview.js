@@ -106,9 +106,10 @@
         return { mode: mode, cut: withPrefs ? modeCut(mode) : {}, rows: {} };
     }
 
-    // screen: the sheet also draws its one table for this page (print-report.js screenTable).
-    function view() {
-        return { hidden: {}, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', screen: true };
+    // screen: the sheet draws its one table for this page (print-report.js screenTable); for
+    // paper (screen false) the tables fitted to a wide and a narrow page.
+    function view(forPaper) {
+        return { hidden: {}, cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', screen: !forPaper };
     }
 
     /* ---------- the panel ---------- */
@@ -302,13 +303,18 @@
             render();
         });
         $('ppPrint').addEventListener('click', printSheet);
-        // "Save as PDF" names the file after the sheet, as the Report's print did; the top of each
-        // page says when it printed.
+        // On print: the sheet fitted to the paper (its tables measured now, with Poppins in), the
+        // file named after the sheet as the Report's print did, the top of each page saying when it
+        // printed. After it, the page's own table again.
         window.addEventListener('beforeprint', function () {
-            document.title = window.FeriizPrintSheet.identifier(job, view());
-            window.FeriizPrintSheet.pageBoxes(job, view(), 'feriiz-preview');
+            $('ppSheet').innerHTML = window.FeriizPrintSheet.render(job, view(true));
+            document.title = window.FeriizPrintSheet.identifier(job, view(true));
+            window.FeriizPrintSheet.pageBoxes(job, view(true), 'feriiz-preview');
         });
-        window.addEventListener('afterprint', function () { document.title = pageTitle; });
+        window.addEventListener('afterprint', function () {
+            document.title = pageTitle;
+            $('ppSheet').innerHTML = window.FeriizPrintSheet.render(job, view());
+        });
     }
 
     if (document.readyState === 'loading') {

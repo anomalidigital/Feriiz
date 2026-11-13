@@ -4010,6 +4010,35 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     display: none !important;
 }
 
+/* On paper a table lays out by what it holds, at the type measuredFit found: titles over their
+   words, a name on two lines at most, figures whole (13-11-2026; colgroup widths in mm before). */
+.report-print-fit--wide .report-print-table,
+.report-print-fit--narrow .report-print-table {
+    table-layout: auto !important;
+}
+
+.report-print-fit--wide .print-emp-name,
+.report-print-fit--narrow .print-emp-name,
+.report-print-measure .print-emp-name {
+    min-width: 8.5em;
+    max-width: 11em;
+}
+
+/* Where measuredFit lays a table out: off screen, as narrow as it can be. */
+.report-print-document.report-print-measure {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100000px !important;
+    visibility: hidden !important;
+}
+
+.report-print-measure .report-print-table {
+    table-layout: auto !important;
+    width: min-content !important;
+    max-width: none !important;
+}
+
 @container (max-width: 249.9mm) {
     .report-print-document > .report-print-fit--wide {
         display: none !important;

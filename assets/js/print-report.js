@@ -565,19 +565,47 @@
     // A table's totals, money and payment columns, in the order they print.
     function tailColumns(tail) { return tail ? tail.totals.concat(tail.emp, tail.cli, tail.pay) : []; }
 
-    /* How the sheet lies on the paper (Baldy, 13-11-2026: a month on A4 printed words broken
-       into letters and money over money, "gak harus fit banget… bakal jadi kacau balau…
-       sesuaikan di semua kondisi"). One table, the rows going right as in the Report, whenever it
-       fits at FIT_ONE of the A4 landscape type or more: a week, Employee and Client with it
-       ("jangan di jadiin 2 tabel gitu… dia tetap baris kekanan"). Only a longer period is split,
-       every table with No and Name: the dates in even blocks as wide as the paper, then the
-       totals, money and payments (in two parts, Employee and Client each with its Total Payment,
-       when one is too wide), each at FIT_MIN or more; then every table takes the same type, at
-       most the A4 one. A3 and A2 grow the type with the paper (the tiers in style.css), so the
-       same plan holds there. */
-    var FIT_ONE = 0.6;
+    /* How the sheet lies on the paper. It is ONE table, the rows going right as in the Report,
+       Employee and Client side by side, at the type the browser measures it needs on the page
+       (measuredFit): titles over their words, names on two lines, figures whole (Baldy,
+       13-11-2026: "pas di print tetep harus ada di kanan jangan di pindahin di bawah… semua
+       muat dan jelas"; "jangan di gabung, tetep di pisah gapapa, walau paling font nya jadi
+       kecil"). A week prints so on A4 portrait and landscape. Only when its figures would be
+       under MIN_FIGURE_PT (a month, say) is the sheet split (sheetPlan): every table with No and
+       Name, the dates in even blocks as wide as the paper, the totals, money and payments after
+       the last dates when they fit there (else in a table of their own, Employee and Client
+       each with its Total Payment when one is too wide), each at FIT_MIN or more, every table at
+       the same type, at most the A4 one (a month on A4 printed words broken into letters and
+       money over money before: "gak harus fit banget… bakal jadi kacau balau"). A3 and A2 grow
+       the type with the paper (the tiers in style.css), so the same plan holds there. Until
+       13-11-2026 the widths were estimated in mm, too cautiously: a week in portrait split. */
+    var MIN_FIGURE_PT = 4;
     var FIT_MIN = 0.85;
     var FIT_MAX = 1.4;
+
+    // The type (--fit) a table takes to fill a page widthMM wide, the browser laying it out off
+    // screen in a sheet of that width (so the paper's type tier applies): its narrowest width
+    // (style.css .report-print-measure) times the type is the page's, at most `most`.
+    function measuredFit(html, widthMM, most) {
+        var box = document.createElement('div');
+        box.className = 'report-print-document report-print-measure';
+        box.style.width = widthMM + 'mm';
+        box.innerHTML = html;
+        document.body.appendChild(box);
+        var section = box.querySelector('.report-print-section');
+        var table = box.querySelector('table');
+        var room = box.clientWidth;
+        var fit = 1;
+        // Widths follow the type all but the padding, so two layouts are enough.
+        for (var i = 0; i < 2 && section && table; i++) {
+            section.style.setProperty('--fit', fit.toFixed(3));
+            var width = table.getBoundingClientRect().width;
+            if (!width || !room) break;
+            fit = Math.min(most, fit * room / width * (i ? 0.99 : 1));
+        }
+        box.remove();
+        return fit;
+    }
 
     function sheetPlan(job, view, cols, printed, figures, dates, narrow) {
         var w = columnWidths(job, view, cols, printed, figures, dates);
@@ -591,7 +619,7 @@
         var all = { totals: cols.totals, emp: cols.emp, cli: cols.cli, pay: cols.pay };
         var tailW = partW(all);
         var tables;
-        if (room / (idW + sumOf(dates.map(dayW)) + tailW) >= FIT_ONE) {
+        if (!dates.length) {
             tables = [{ dates: dates, tail: tailW ? all : null }];
         } else {
             var tails = [];
@@ -661,7 +689,7 @@
 
         var html = '<div class="report-print-section' + (isNext ? ' is-next' : '') + '" style="--fit:' + ctx.scale.toFixed(3) + '">' +
             '<table class="report-print-table report-unified-table"' + (ctx.width ? ' style="--sheet-w:' + ctx.width.toFixed(1) + 'mm"' : '') + '>';
-        html += '<colgroup>' + t.widths.map(function (w) { return '<col style="width:' + (w / t.total * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
+        if (ctx.width) html += '<colgroup>' + t.widths.map(function (w) { return '<col style="width:' + (w / t.total * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
 
         // Header rows
         html += '<thead><tr><th' + rs + ' class="th-no">No</th><th' + rs + ' class="th-name">Name</th>';
@@ -799,19 +827,32 @@
            wider take the wide fit, A4 portrait the narrow one (Baldy, 13-11-2026: the Print
            Configuration's Landscape | Portrait went, "jangan samain banget dengan yang di print…
            ketika print mungkin besaran nya beda"). */
-        [false, true].forEach(function (narrow) {
-            var plan = sheetPlan(job, view, cols, printed, figures, dates, narrow);
-            var ctx = { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: plan.scale, cameIn: cameIn, personDays: personDays };
+        // view.screen: the Print Configuration's own table only; the fits for paper are drawn when
+        // it prints (measuring them takes a moment, print-preview.js beforeprint).
+        var all = { totals: cols.totals, emp: cols.emp, cli: cols.cli, pay: cols.pay };
+        var whole = { dates: dates, tail: tailColumns(all).length ? all : null };
+        (view.screen ? [] : [false, true]).forEach(function (narrow) {
+            var ctx = { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: 1, cameIn: cameIn, personDays: personDays };
+            // One table when its figures are MIN_FIGURE_PT or more; the type tier of the paper is
+            // A4 landscape's (9.5pt figures) wide, A4 portrait's (7pt) narrow.
+            var fit = measuredFit(tableHTML(whole, false, ctx), narrow ? 200 : A4_WIDTH, FIT_MAX);
+            var tables = [whole];
+            if (fit * (narrow ? 7 : 9.5) < MIN_FIGURE_PT && dates.length) {
+                var plan = sheetPlan(job, view, cols, printed, figures, dates, narrow);
+                tables = plan.tables;
+                fit = plan.scale;
+            }
+            ctx.scale = fit;
             html += '<div class="report-print-fit report-print-fit--' + (narrow ? 'narrow' : 'wide') + '">';
-            plan.tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
+            tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
             html += '</div>';
         });
         // The Print Configuration shows one table of everything instead (screenTable).
         if (view.screen) {
-            var whole = screenTable(job, view, cols, printed, figures, dates);
+            var onScreen = screenTable(job, view, cols, printed, figures, dates);
             html += '<div class="report-print-fit report-print-fit--screen">' +
-                tableHTML(whole, false, { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: 1, cameIn: cameIn,
-                                          personDays: personDays, width: whole.total }) + '</div>';
+                tableHTML(onScreen, false, { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: 1, cameIn: cameIn,
+                                             personDays: personDays, width: onScreen.total }) + '</div>';
         }
 
         // The admin who printed it and the date, after the last table.

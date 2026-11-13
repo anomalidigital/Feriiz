@@ -293,7 +293,7 @@
         if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Tick someone under People, or Reset.';
         var mode = state.mode === 'client'
             ? 'For the client: every day with data prints the Set Default of its occupation. '
-            : original() ? 'Internal, original: each day as the machine recorded it, before imports, Add Log and Delete Log. '
+            : original() ? 'Internal, original: each day as the machine recorded it, before imports and Add Hours. '
             : 'Internal: the Report\'s own data, the newest version of each day. ';
         var parts = [];
         FIELDS.forEach(function (f) {

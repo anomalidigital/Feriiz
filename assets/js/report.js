@@ -516,9 +516,15 @@
         return shortDate(toISO(d)) + ', ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     }
 
+    // Add Hours (13-11-2026) keeps a day's totals; an Add Log of before kept clock times, and a
+    // Delete Log of before emptied the logs (both still play from the History).
+    function hoursVersion(b) {
+        return Object.keys(b.cells || {}).some(function (k) { return b.cells[k] && b.cells[k].hours != null; });
+    }
+
     function versionName(b) {
         var kind = kindOf(b);
-        return kind === 'add' ? 'Add Log' : kind === 'delete' ? 'Delete Log' : 'Import';
+        return kind === 'add' ? (hoursVersion(b) ? 'Add Hours' : 'Add Log') : kind === 'delete' ? 'Delete Log' : 'Import';
     }
 
     // Who changed a day last, and how: the tooltip of a changed day.
@@ -1355,17 +1361,6 @@
         if (toggle) toggle.disabled = selected.length === 0;
         if (deselectBtn) deselectBtn.style.display = selected.length > 0 ? '' : 'none';
 
-        var hasLogs = selected.some(function (cell) {
-            return (cell.dataset.inTime && cell.dataset.inTime.trim() !== '') ||
-                   (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
-        });
-
-        // Imported days keep their logs, so Delete Log works on them too (Baldy, 04-11-2026:
-        // "kenapa ga bisa delete log?").
-        var deleteBtn = document.querySelector('#batchUpdateDropdown button[data-action="delete"]');
-        if (deleteBtn) {
-            deleteBtn.disabled = !hasLogs;
-        }
 
         syncDayHeaderSelections();
     }
@@ -1467,15 +1462,16 @@
     /* =============================================
        BATCH UPDATE MODAL
        ============================================= */
-    var activeAction = 'add';
-
-    /* Add Log takes the day's totals, Total Hour and Total Overtime, not its clock times (Baldy,
+    /* Add Hours takes the day's totals, Total Hour and Total Overtime, not its clock times (Baldy,
        13-11-2026: "iya jadi di ganti ya… mereka minta nya gitu"; meeting 10-11-2026, 00:37-00:41:
        "cuma isi lapan, sebelahnya satu… total hour sama total overtime… jamnya itu ngambilnya
        dari jam itu aja default"). Daily is 1 when Total Hour reaches the day's Default Hours, 0.5
        below, 0 at 0; overtime is whole hours. A missing log in or log out takes the working time;
-       a log the day has stays. Each Save is a version, the original stays in the History. From
-       04-11 to 13-11-2026 it set a log in and a log out time. */
+       a log the day has stays. Each Save is a new version over the day and the newest counts, the
+       original stays in the History, so there is no Delete Log any more (Baldy, 13-11-2026: "dia
+       simpat nya menambahkan, dan menimpa yang lama nya… delete nya itu jadi gausah"; a wrong day
+       gets Add Hours again). It was "Add Log" and set a log in and a log out time from 04-11 to
+       13-11-2026. */
     function prefillAddLog(cells) {
         var hoursInput = document.getElementById('batchUpdateHours');
         var otInput = document.getElementById('batchUpdateOT');
@@ -1497,64 +1493,28 @@
             'A missing log in or log out takes the working time (' + start + ' - ' + end + '); a log the day has stays, and the original stays in the History.';
     }
 
-    function showBatchModal(action) {
+    // Batch Update > Add Hours, for the ticked days.
+    function showBatchModal() {
         var selected = getSelectedCells();
         if (selected.length === 0) {
-            if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
+            if (window.FeriizNotify) FeriizNotify.warning('Tick at least one day first.', 'No day ticked');
             return;
         }
-        activeAction = action;
-
-        // Close dropdown
         var dd = document.getElementById('batchUpdateDropdown');
         if (dd) dd.classList.remove('show');
 
-        // Delete actions go to confirmation modal
-        if (action === 'delete') {
-            var hasLogs = selected.some(function (cell) {
-                return (cell.dataset.inTime && cell.dataset.inTime.trim() !== '') ||
-                       (cell.dataset.outTime && cell.dataset.outTime.trim() !== '');
-            });
-            if (!hasLogs) {
-                if (window.FeriizNotify) FeriizNotify.warning('The selected cells do not contain a log to delete.', 'No log found');
-                return;
-            }
-            showDeleteConfirm(action, selected);
-            return;
-        }
-
-        // Add Log modal
         var modal = document.getElementById('batchUpdateModal');
         var title = document.getElementById('batchUpdateTitle');
         var note = document.getElementById('batchUpdateNote');
         var cellSum = document.getElementById('batchSelectedSummary');
         var empSum = document.getElementById('batchEmployeeSummary');
 
-        if (title) title.textContent = 'Add Log';
+        if (title) title.textContent = 'Add Hours';
         prefillAddLog(selected);
         if (note) note.value = '';
-        if (cellSum) cellSum.textContent = selected.length + ' log';
+        if (cellSum) cellSum.textContent = selected.length + (selected.length === 1 ? ' day' : ' days');
         if (empSum) empSum.textContent = getAffectedEmployeeCount() + ' employee';
         if (modal) modal.classList.add('show');
-    }
-
-    function showDeleteConfirm(action, selected) {
-        var modal = document.getElementById('deleteConfirmModal');
-        var title = document.getElementById('deleteConfirmTitle');
-        var msg = document.getElementById('deleteConfirmMessage');
-        var cellSum = document.getElementById('deleteSelectedSummary');
-        var empSum = document.getElementById('deleteEmployeeSummary');
-
-        if (title) title.textContent = 'Delete Log';
-        if (msg) msg.textContent = 'Are you sure you want to delete the selected log? This action cannot be undone.';
-        if (cellSum) cellSum.textContent = selected.length + ' log';
-        if (empSum) empSum.textContent = getAffectedEmployeeCount() + ' employee';
-        if (modal) modal.classList.add('show');
-    }
-
-    function closeDeleteConfirm() {
-        var modal = document.getElementById('deleteConfirmModal');
-        if (modal) modal.classList.remove('show');
     }
 
     function closeBatchModal() {
@@ -1609,10 +1569,10 @@
         });
     }
 
-    // Add Log and Delete Log are changes like an import (Baldy, 05-11-2026: "dia kaya mengubah
-    // juga"): each Save is one version in the History of the ticked days it changes (a day that
-    // already has these times gets none), and the newest version is what a day shows. The table
-    // is drawn again from the versions.
+    // Add Hours is a change like an import (Baldy, 05-11-2026: "dia kaya mengubah juga"): each Save
+    // is one version in the History of the ticked days it changes (a day that already has these
+    // totals gets none), and the newest version is what a day shows. The table is drawn again
+    // from the versions.
     function applyBatchUpdate() {
         var hoursInput = document.getElementById('batchUpdateHours');
         var otInput = document.getElementById('batchUpdateOT');
@@ -1620,58 +1580,49 @@
         var noteValue = noteInput ? noteInput.value.trim() : '';
         var selectedCells = getSelectedCells();
         var dateSummary = getBatchDateSummary(selectedCells);
-        var isAdd = activeAction === 'add';
         var updated = 0, kept = 0;
         var people = {};
 
         if (selectedCells.length === 0) {
-            if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
+            if (window.FeriizNotify) FeriizNotify.warning('Tick at least one day first.', 'No day ticked');
             return;
         }
-        var hours = 0, overtime = 0;
-        if (isAdd) {
-            hours = hoursInput && hoursInput.value.trim() !== '' ? Number(hoursInput.value) : NaN;
-            overtime = otInput && otInput.value.trim() !== '' ? Number(otInput.value) : 0;
-            var badHours = !(hours >= 0 && hours <= 24);
-            var badOvertime = !(overtime >= 0 && overtime <= 24) || Math.floor(overtime) !== overtime;
-            if (hoursInput) hoursInput.classList.toggle('is-invalid', badHours);
-            if (otInput) otInput.classList.toggle('is-invalid', badOvertime);
-            if (badHours || badOvertime) {
-                (badHours ? hoursInput : otInput).focus();
-                if (window.FeriizNotify) {
-                    FeriizNotify.warning(badHours ? 'Fill in Total Hour, from 0 to 24.' : 'Total Overtime is whole hours, from 0 to 24: 1 or 2, not 1.5.', 'Log not saved');
-                }
-                return;
+        var hours = hoursInput && hoursInput.value.trim() !== '' ? Number(hoursInput.value) : NaN;
+        var overtime = otInput && otInput.value.trim() !== '' ? Number(otInput.value) : 0;
+        var badHours = !(hours >= 0 && hours <= 24);
+        var badOvertime = !(overtime >= 0 && overtime <= 24) || Math.floor(overtime) !== overtime;
+        if (hoursInput) hoursInput.classList.toggle('is-invalid', badHours);
+        if (otInput) otInput.classList.toggle('is-invalid', badOvertime);
+        if (badHours || badOvertime) {
+            (badHours ? hoursInput : otInput).focus();
+            if (window.FeriizNotify) {
+                FeriizNotify.warning(badHours ? 'Fill in Total Hour, from 0 to 24.' : 'Total Overtime is whole hours, from 0 to 24: 1 or 2, not 1.5.', 'Hours not saved');
             }
+            return;
         }
 
         // Who changed the days and when, for their History.
         var account = currentAccount();
-        var version = { id: (isAdd ? 'ADD-' : 'DEL-') + Date.now().toString(36).toUpperCase(), kind: isAdd ? 'add' : 'delete',
-                        at: new Date().toISOString(), by: account.name, role: account.role, note: isAdd ? noteValue : '', cells: {} };
+        var version = { id: 'ADD-' + Date.now().toString(36).toUpperCase(), kind: 'add',
+                        at: new Date().toISOString(), by: account.name, role: account.role, note: noteValue, cells: {} };
 
         selectedCells.forEach(function (cell) {
             var code = cell.closest('tr').dataset.employeeCode;
             var date = cell.dataset.date;
             var s = dayState(code, date);
-            if (isAdd) {
-                // The day's totals, with the working time for a missing log; the machine's
-                // original stays in the History and in Show history (Arcon: machine times are
-                // never lost). A day these totals would not change gets no version.
-                var employee = (window.FERIIZ_DATA && window.FERIIZ_DATA.findEmployeeByCode(code)) || { code: code };
-                var period = periodOf(code, date);
-                var work = workTimeOf(code);
-                var totals = { hours: hours, ot: overtime, daily: hours >= period - 1e-9 ? 1 : hours > 0 ? 0.5 : 0,
-                               inTime: work.start, outTime: work.end };
-                if (!afterVersion(employee, date, s, version, totals)) {
-                    kept++;
-                    return;
-                }
-                version.cells[code + '|' + date] = totals;
-            } else {
-                if (!s.inTime && !s.outTime) return;
-                version.cells[code + '|' + date] = {};
+            // The day's totals, with the working time for a missing log; the machine's original
+            // stays in the History and in Show history (Arcon: machine times are never lost). A day
+            // these totals would not change gets no version.
+            var employee = (window.FERIIZ_DATA && window.FERIIZ_DATA.findEmployeeByCode(code)) || { code: code };
+            var period = periodOf(code, date);
+            var work = workTimeOf(code);
+            var totals = { hours: hours, ot: overtime, daily: hours >= period - 1e-9 ? 1 : hours > 0 ? 0.5 : 0,
+                           inTime: work.start, outTime: work.end };
+            if (!afterVersion(employee, date, s, version, totals)) {
+                kept++;
+                return;
             }
+            version.cells[code + '|' + date] = totals;
             people[code] = true;
             updated++;
         });
@@ -1686,22 +1637,17 @@
             applyReportFilters();
         }
         if (!window.FeriizNotify) return;
-        if (isAdd && !updated) {
+        if (!updated) {
             FeriizNotify.info('The ticked days already have these totals, so nothing was changed.', 'Nothing to change');
             return;
         }
-        if (!updated) return;
         var count = Object.keys(people).length;
         var who = count + (count === 1 ? ' employee' : ' employees');
-        if (isAdd) {
-            FeriizNotify.success(hours + 'h and ' + overtime + 'h overtime set on ' + updated + (updated === 1 ? ' day' : ' days') +
-                ' for ' + who + ' on ' + dateSummary + '; the originals stay in the History.' +
-                (noteValue ? ' A note was attached.' : '') +
-                (kept === 1 ? ' 1 day already had these totals.' : kept ? ' ' + kept + ' days already had these totals.' : '') +
-                ' What changed is yellow.', 'Log added');
-        } else {
-            FeriizNotify.success('The logs of ' + updated + (updated === 1 ? ' day' : ' days') + ' (' + who + ') on ' + dateSummary + ' were deleted. What changed is yellow.', 'Log deleted');
-        }
+        FeriizNotify.success(hours + 'h and ' + overtime + 'h overtime set on ' + updated + (updated === 1 ? ' day' : ' days') +
+            ' for ' + who + ' on ' + dateSummary + '; the originals stay in the History.' +
+            (noteValue ? ' A note was attached.' : '') +
+            (kept === 1 ? ' 1 day already had these totals.' : kept ? ' ' + kept + ' days already had these totals.' : '') +
+            ' What changed is yellow.', 'Hours added');
     }
 
     /* =============================================
@@ -2209,7 +2155,7 @@
         }
         if (plan.cells.length) {
             html += '<p class="import-keep"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>' +
-                'An import changes Daily and Overtime only: the log in and log out stay as the machine recorded them. Set other times with Add Log. ' +
+                'An import changes Daily and Overtime only: the log in and log out stay as the machine recorded them. For a few days, Add Hours sets a day\'s hours by hand. ' +
                 'Only the changed days are imported: Show history puts each next to its original, what changed in yellow.' +
                 (plan.same ? ' The days the same as now stay as they are, with no History.' : '') + '</p>';
         }
@@ -2470,12 +2416,12 @@
                         else openTemplateRemove();
                         return;
                     }
-                    showBatchModal(btn.dataset.action);
+                    if (btn.dataset.action === 'add') showBatchModal();
                 });
             });
         }
 
-        // Add Log Modal
+        // Add Hours window
         var closeBtn = document.getElementById('batchUpdateClose');
         var cancelBtn = document.getElementById('batchUpdateCancel');
         var saveBtn = document.getElementById('batchUpdateSave');
@@ -2492,29 +2438,14 @@
         if (noteModal) noteModal.addEventListener('click', function (e) {
             if (e.target === noteModal) closeLogNote();
         });
-        // Esc closes the open Add Log, Delete Log or note window without doing anything, as
-        // Esc does on every Bootstrap window.
+        // Esc closes the open Add Hours or note window without doing anything, as Esc does on
+        // every Bootstrap window.
         document.addEventListener('keydown', function (e) {
             if (e.key !== 'Escape') return;
-            [['batchUpdateModal', closeBatchModal], ['deleteConfirmModal', closeDeleteConfirm], ['logNoteModal', closeLogNote]].forEach(function (m) {
+            [['batchUpdateModal', closeBatchModal], ['logNoteModal', closeLogNote]].forEach(function (m) {
                 var el = document.getElementById(m[0]);
                 if (el && el.classList.contains('show')) m[1]();
             });
-        });
-
-        // Delete Confirmation Modal
-        var delConfirmModal = document.getElementById('deleteConfirmModal');
-        var delCloseBtn = document.getElementById('deleteConfirmClose');
-        var delCancelBtn = document.getElementById('deleteConfirmCancel');
-        var delYesBtn = document.getElementById('deleteConfirmYes');
-        if (delCloseBtn) delCloseBtn.addEventListener('click', closeDeleteConfirm);
-        if (delCancelBtn) delCancelBtn.addEventListener('click', closeDeleteConfirm);
-        if (delYesBtn) delYesBtn.addEventListener('click', function () {
-            closeDeleteConfirm();
-            applyBatchUpdate();
-        });
-        if (delConfirmModal) delConfirmModal.addEventListener('click', function (e) {
-            if (e.target === delConfirmModal) closeDeleteConfirm();
         });
 
         // Fields toggle

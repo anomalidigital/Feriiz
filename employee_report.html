@@ -7,14 +7,14 @@
     <title>Feriiz - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.111">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.111">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.112">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.112">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.111" defer></script>
-    <script src="assets/js/app.js?v=3.7.111" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.111" defer></script>
-    <script src="assets/js/report.js?v=3.7.111" defer></script>
-    <script src="assets/js/print-report.js?v=3.7.111" defer></script>
+    <script src="assets/js/data.js?v=3.7.112" defer></script>
+    <script src="assets/js/app.js?v=3.7.112" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.112" defer></script>
+    <script src="assets/js/report.js?v=3.7.112" defer></script>
+    <script src="assets/js/print-report.js?v=3.7.112" defer></script>
 </head>
 
 <body data-page="employee-report">
@@ -56,9 +56,8 @@
                             <i class="fa-solid fa-chevron-down"></i>
                         </button>
                         <div class="batch-update-dropdown" id="batchUpdateDropdown">
-                            <button type="button" data-action="add">Add Log</button>
-                            <div class="batch-dropdown-divider"></div>
-                            <button type="button" data-action="delete">Delete Log</button>
+                            <!-- Add Hours: a new version over the day, the newest counts; no Delete Log (Baldy, 13-11-2026) -->
+                            <button type="button" data-action="add">Add Hours</button>
                             <div class="batch-dropdown-divider"></div>
                             <button type="button" data-action="assign">Assign Request</button>
                             <div class="batch-dropdown-divider"></div>
@@ -148,7 +147,7 @@
                                     <input type="checkbox" class="filter-original" id="filterOriginal">
                                     <span>Show history</span>
                                 </label>
-                                <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="A day an import, Add Log or Delete Log changed shows its newest version on the left and the original on the right, what changed in yellow. The numbers stay the same." aria-label="About Show history"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                                <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="A day an import or Add Hours changed shows its newest version on the left and the original on the right, what changed in yellow. The numbers stay the same." aria-label="About Show history"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
                             </div>
                         </div>
 
@@ -285,7 +284,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.7.111</div>
+            <div class="version-text">version : 3.7.112</div>
             <!-- 20 people a page, like Employees and Activity (Baldy, 04-11-2026) -->
             <div class="table-pager report-pager">
                 <div class="pagination-info" id="reportPageInfo"></div>
@@ -294,47 +293,18 @@
         </div>
     </main>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal-overlay" id="deleteConfirmModal">
-        <div class="report-fix-card" style="width:440px;">
-            <div class="report-fix-header">
-                <h2 id="deleteConfirmTitle">Delete Log</h2>
-                <button class="modal-close-btn" type="button" id="deleteConfirmClose">&times;</button>
-            </div>
-            <div class="report-fix-body">
-                <p id="deleteConfirmMessage" style="font-size:14px;color:#344054;margin:0 0 16px;line-height:1.6;">
-                    Are you sure you want to delete the selected log? This action cannot be undone.
-                </p>
-                <div class="report-fix-summary">
-                    <div>
-                        <span>Selected Log</span>
-                        <strong id="deleteSelectedSummary">0 log</strong>
-                    </div>
-                    <div>
-                        <span>Employee</span>
-                        <strong id="deleteEmployeeSummary">0 employee</strong>
-                    </div>
-                </div>
-            </div>
-            <div class="report-fix-footer">
-                <button class="btn btn-outline" type="button" id="deleteConfirmCancel">Cancel</button>
-                <button class="btn btn-danger" type="button" id="deleteConfirmYes">Yes, Delete</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Batch Update Modal -->
     <div class="modal-overlay report-fix-modal" id="batchUpdateModal">
         <div class="report-fix-card">
             <div class="report-fix-header">
-                <h2 id="batchUpdateTitle">Add Log</h2>
+                <h2 id="batchUpdateTitle">Add Hours</h2>
                 <button class="modal-close-btn" type="button" id="batchUpdateClose">&times;</button>
             </div>
             <div class="report-fix-body">
                 <div class="report-fix-summary">
                     <div>
-                        <span>Selected Log</span>
-                        <strong id="batchSelectedSummary">0 log</strong>
+                        <span>Selected Days</span>
+                        <strong id="batchSelectedSummary">0 day</strong>
                     </div>
                     <div>
                         <span>Employee</span>

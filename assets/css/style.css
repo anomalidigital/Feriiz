@@ -3967,6 +3967,23 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     break-inside: auto !important;
 }
 
+/* A long period prints as several tables (sheetPlan). A next one keeps together on what is left
+   of the page when it fits there, else it starts the next page; on the preview's paper a dashed
+   line shows where it begins. */
+.report-print-section.is-next {
+    margin-top: 5mm !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+@media screen {
+    .pp-paper .report-print-section.is-next {
+        margin-top: 6mm !important;
+        padding-top: 6mm;
+        border-top: 1px dashed #cbd5e1;
+    }
+}
+
 /* ================================  TABLE  =============================== */
 /* `table-layout: fixed` + `width: 100%` is what guarantees the sheet always
    fits the chosen paper — the table can never push past the page box, so no
@@ -4038,19 +4055,9 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     overflow-wrap: break-word !important;
 }
 
-/* Column widths. Only the two identity columns are pinned; every other
-   column shares the remaining space evenly, which keeps the grid even
-   no matter how many days or rate columns are switched on. */
-.report-unified-table td.td-no,
-.report-unified-table th.th-no {
-    width: 3.2% !important;
-}
-
-.report-unified-table td.td-name,
-.report-unified-table th.th-name {
-    width: 11% !important;
-}
-
+/* Column widths come from each table's <colgroup> (print-report.js, columnWidths): every column
+   as wide as what it holds. No and Name were pinned here at 3.2% and 11% until 13-11-2026, which
+   overrode those widths: a wide No, and a long name broken over two lines. */
 .report-unified-table td.td-no {
     text-align: left !important;
     color: var(--ink-muted) !important;
@@ -4508,6 +4515,12 @@ body[data-page="print-preview"] {
     text-align: left;
 }
 
+/* A date left out whole: greyed, its Period and Overtime boxes off. */
+.pp-grid tr.is-off th,
+.pp-grid tr.is-off td {
+    color: #98A2B3;
+}
+
 .pp-opt {
     display: flex;
     align-items: center;
@@ -4615,6 +4628,11 @@ body[data-page="print-preview"] {
         flex-basis: auto;
         width: 100%;
         max-height: none;
+    }
+
+    /* As wide as the window, so the paper scrolls inside it and the page itself does not. */
+    .pp-paper-scroll {
+        align-self: stretch;
     }
 }
 

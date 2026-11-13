@@ -376,6 +376,7 @@
         var cut = view.cut || {};
         var days = 0, ot = 0, req = {}, reqTotal = 0;
         job.dates.forEach(function (d) {
+            if (cut['d:' + d.date]) return;   // a date left out whole
             var e = sheetDay(row, d.date, view.client, view.system);
             if (!e) return;
             if (!cut['p:' + d.date]) {
@@ -404,7 +405,8 @@
         var cols = sheetColumns(job, { hidden: (view && view.hidden) || {} });
         var parts = [job.startYYMMDD + '_' + job.endYYMMDD,
                      String(job.project.name || '').toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_\-&]/g, '')];
-        if (job.dates.length) parts.push('DAILY');
+        var cutDates = (view && view.cut) || {};
+        if (job.dates.some(function (d) { return !cutDates['d:' + d.date]; })) parts.push('DAILY');
         if (view && view.system && !view.client) parts.push('SYSTEM');
         if (cols.emp.length) parts.push('EMPLOYEE');
         if (cols.cli.length) parts.push('CLIENT');
@@ -450,12 +452,12 @@
     }
 
     /* How wide each column must be, in mm on A4 landscape at the A4 type sizes: its widest
-       figure, its longest name (two lines past 22 letters) or the longest word of its header.
-       The sheet then takes the type that fills the 287mm between the margins (bigger when the
-       sheet has room, smaller for a long period, from 0.6 to 1.4 times), and every column gets
-       its share of the width, so none is left half empty (Baldy, 13-11-2026: "coloms nya ini
-       itu baik nya gimana… cuma nanti bakal menyisahkan… font nya juga perbesar, takutnya pas
-       di print ga keliatan"). A3 and A2 grow the type with the paper, so the fit holds there. */
+       figure, its longest name (two lines past 22 letters) or the longest word of its header
+       (columnWidths). The sheet then takes the type that fills the 287mm between the margins and
+       every column gets its share of the width, so none is left half empty (Baldy, 13-11-2026:
+       "coloms nya ini itu baik nya gimana… cuma nanti bakal menyisahkan… font nya juga
+       perbesar"); a period too long for one table is split (sheetPlan). A3 and A2 grow the type
+       with the paper, so the fit holds there. */
     var PT_MM = 0.3528;
     var A4_WIDTH = 287;
 
@@ -469,32 +471,212 @@
 
     function figureMM(chars, bold) { return textMM(Math.max(chars, 1), bold ? 0.64 : 0.6, 9.5) + 1.1; }
 
-    function sheetFit(job, view, cols, printed, figures) {
+    // How wide each column must be, in mm at the A4 landscape type: No and Name, each date's
+    // Period and Overtime, and the totals, money and payments by their key. A name is measured
+    // at its widest letters (0.68 em: "Bambang Ramadhani" printed at 0.665) with room for its
+    // padding, which does not shrink with the type, so it keeps to one line up to 22 letters;
+    // "No" has that room too (it broke as "N / o" in a table at 0.86).
+    function columnWidths(job, view, cols, printed, figures, dates) {
         var maxOf = function (fn) { return printed.reduce(function (m, row) { return Math.max(m, fn(row)); }, 0); };
-        var need = [Math.max(textMM(String(printed.length).length, 0.6, 8) + 1.1, headMM('No')),
-                    Math.max(textMM(Math.min(22, maxOf(function (r) { return r.name.length; })), 0.62, 8.3) + 2.4, headMM('Name'))];
-        job.dates.forEach(function (d) {
+        var id = [Math.max(textMM(String(printed.length).length, 0.6, 8) + 1.1, headMM('No') + 1.2),
+                  Math.max(textMM(Math.min(22, maxOf(function (r) { return r.name.length; })), 0.68, 8.3) + 2.8, headMM('Name'))];
+        var days = {};
+        dates.forEach(function (d) {
             var p = 1, o = 1;
             printed.forEach(function (row) {
                 var e = sheetDay(row, d.date, view.client, view.system);
                 if (e) { p = Math.max(p, figure(e.d).length); o = Math.max(o, String(e.ot).length); }
             });
-            need.push(Math.max(figureMM(p), headMM('Period<br>(daily)')), Math.max(figureMM(o), headMM('Overtime<br>(hour)')));
+            days[d.date] = [Math.max(figureMM(p), headMM('Period<br>(daily)')), Math.max(figureMM(o), headMM('Overtime<br>(hour)'))];
         });
+        var col = {};
         cols.totals.forEach(function (c) {
-            need.push(Math.max(figureMM(maxOf(function (row) { var f = figures[row.code]; return String(c.f === 'days' ? figure(f.days) : f.ot).length; })), headMM(c.label)));
+            col[c.key] = Math.max(figureMM(maxOf(function (row) { var f = figures[row.code]; return String(c.f === 'days' ? figure(f.days) : f.ot).length; })), headMM(c.label));
         });
         cols.emp.concat(cols.cli).forEach(function (c) {
-            need.push(Math.max(figureMM(maxOf(function (row) { return moneyText(c, figures[row.code]).length; })), headMM(c.label)));
+            col[c.key] = Math.max(figureMM(maxOf(function (row) { return moneyText(c, figures[row.code]).length; })), headMM(c.label));
         });
         cols.pay.forEach(function (c) {
-            need.push(Math.max(figureMM(maxOf(function (row) { return rupiah(figures[row.code].pay[c.f]).length; }), true), headMM(c.label)));
+            col[c.key] = Math.max(figureMM(maxOf(function (row) { return rupiah(figures[row.code].pay[c.f]).length; }), true), headMM(c.label));
         });
-        var total = need.reduce(function (a, b) { return a + b; }, 0);
-        // A4 portrait has 200mm inside the margins and the base type sizes, about 3/4 of the A4
-        // landscape ones the widths were measured in: 200 / 0.75.
-        var room = view.portrait ? 266 : A4_WIDTH;
-        return { widths: need, total: total, scale: Math.max(0.6, Math.min(1.4, room / total)) };
+        return { id: id, days: days, col: col };
+    }
+
+    function sumOf(list) { return list.reduce(function (a, b) { return a + b; }, 0); }
+
+    // A table's totals, money and payment columns, in the order they print.
+    function tailColumns(tail) { return tail ? tail.totals.concat(tail.emp, tail.cli, tail.pay) : []; }
+
+    /* How the sheet lies on the paper (Baldy, 13-11-2026: a month on A4 printed words broken
+       into letters and money over money, "gak harus fit banget… bakal jadi kacau balau…
+       sesuaikan di semua kondisi"). One table when it all fits at FIT_MIN of the A4 landscape
+       type or more (a week for the client, the usual print). Otherwise the sheet is split and
+       every table has No and Name: the totals, money and payments in a table of their own (or
+       two, the Employee part and the Client part, each with its Total Payment, when one is too
+       wide), and the dates in even blocks as wide as the paper. Every table takes the same type,
+       at most the A4 one when split. A3 and A2 grow the type with the paper (the tiers in
+       style.css), so the same plan holds there. */
+    var FIT_MIN = 0.85;
+    var FIT_MAX = 1.4;
+
+    function sheetPlan(job, view, cols, printed, figures, dates) {
+        var w = columnWidths(job, view, cols, printed, figures, dates);
+        // Inside the margins, in mm: A4 landscape 287, A4 portrait 200, where the type tiers
+        // start at about 3/4 of the landscape type (tier).
+        var room = view.portrait ? 200 : A4_WIDTH;
+        var tier = view.portrait ? 0.75 : 1;
+        var idW = sumOf(w.id);
+        var dayW = function (d) { return w.days[d.date][0] + w.days[d.date][1]; };
+        var partW = function (part) { return sumOf(tailColumns(part).map(function (c) { return w.col[c.key]; })); };
+        var all = { totals: cols.totals, emp: cols.emp, cli: cols.cli, pay: cols.pay };
+        var tailW = partW(all);
+        var tables;
+        if (room / (idW + sumOf(dates.map(dayW)) + tailW) >= FIT_MIN) {
+            tables = [{ dates: dates, tail: tailW ? all : null }];
+        } else {
+            var tails = [];
+            if (room / (idW + tailW) >= FIT_MIN) {
+                if (tailW) tails.push(all);
+            } else {
+                var payOf = function (g) { return cols.pay.filter(function (c) { return c.f === g; }); };
+                [{ totals: cols.totals, emp: [], cli: [], pay: [] },
+                 { totals: [], emp: cols.emp, cli: [], pay: payOf('emp') },
+                 { totals: [], emp: [], cli: cols.cli, pay: payOf('cli') }].forEach(function (part) {
+                    if (!partW(part)) return;
+                    var last = tails[tails.length - 1];
+                    var joined = last && { totals: last.totals.concat(part.totals), emp: last.emp.concat(part.emp),
+                                           cli: last.cli.concat(part.cli), pay: last.pay.concat(part.pay) };
+                    if (joined && room / (idW + partW(joined)) >= FIT_MIN) tails[tails.length - 1] = joined;
+                    else tails.push(part);
+                });
+            }
+            // The type the tails allow, at most the A4 one, and the dates in even blocks at it.
+            var type = Math.max(0.6, tails.reduce(function (s, part) { return Math.min(s, room / (idW + partW(part))); }, 1));
+            tables = [];
+            if (dates.length) {
+                var per = Math.max(1, Math.floor((room / type - idW) / (sumOf(dates.map(dayW)) / dates.length)));
+                per = Math.ceil(dates.length / Math.ceil(dates.length / per));   // even blocks, the last the smallest
+                for (var i = 0; i < dates.length; i += per) tables.push({ dates: dates.slice(i, i + per), tail: null });
+                // The first part of the tail sits after the last dates when it fits there at that
+                // type (the totals alone, often), as in one table, not in a narrow table of its own.
+                var lastBlock = tables[tables.length - 1];
+                if (tails.length && room / (idW + sumOf(lastBlock.dates.map(dayW)) + partW(tails[0])) >= type) lastBlock.tail = tails.shift();
+            }
+            tails.forEach(function (part) { tables.push({ dates: [], tail: part }); });
+        }
+        tables.forEach(function (t) {
+            t.widths = w.id.slice();
+            t.dates.forEach(function (d) { t.widths.push(w.days[d.date][0], w.days[d.date][1]); });
+            tailColumns(t.tail).forEach(function (c) { t.widths.push(w.col[c.key]); });
+            t.total = sumOf(t.widths);
+        });
+        var fit = Math.min.apply(null, tables.map(function (t) { return room / t.total; }));
+        var most = tables.length > 1 ? 1 : FIT_MAX;
+        // --fit scales the tier's type: in portrait the tier is about 3/4 of the landscape type.
+        return { tables: tables, scale: Math.max(0.6, Math.min(most, fit)) / tier };
+    }
+
+    // One table of the sheet: No and Name, its dates, and the totals, money and payments it holds.
+    function tableHTML(t, isNext, ctx) {
+        var view = ctx.view, cut = ctx.cut, printed = ctx.printed, figures = ctx.figures;
+        var tail = t.tail;
+        var money = tail ? tail.emp.concat(tail.cli) : [];
+        var span = 2 + t.dates.length * 2 + tailColumns(tail).length;
+        // Two header rows when a date or a money group has its columns under it.
+        var rs = t.dates.length || money.length ? ' rowspan="2"' : '';
+
+        var html = '<div class="report-print-section' + (isNext ? ' is-next' : '') + '" style="--fit:' + ctx.scale.toFixed(3) + '"><table class="report-print-table report-unified-table">';
+        html += '<colgroup>' + t.widths.map(function (w) { return '<col style="width:' + (w / t.total * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
+
+        // Header rows
+        html += '<thead><tr><th' + rs + ' class="th-no">No</th><th' + rs + ' class="th-name">Name</th>';
+        t.dates.forEach(function (d) { html += '<th colspan="2" class="th-group th-date-grp">' + dateHead(d) + '</th>'; });
+        if (tail) {
+            tail.totals.forEach(function (c) { html += '<th' + rs + ' class="' + c.cls + '">' + headHTML(c.label) + '</th>'; });
+            if (tail.emp.length) html += '<th colspan="' + tail.emp.length + '" class="th-group th-emp-grp">Employee (IDR)</th>';
+            if (tail.cli.length) html += '<th colspan="' + tail.cli.length + '" class="th-group th-cli-grp">Client (IDR)</th>';
+            tail.pay.forEach(function (c) { html += '<th' + rs + ' class="th-total-pay">' + headHTML(c.label) + '</th>'; });
+        }
+        html += '</tr>';
+        if (rs) {
+            html += '<tr>';
+            t.dates.forEach(function () { html += '<th>Period<br>(daily)</th><th>' + headHTML('Overtime<br>(hour)') + '</th>'; });
+            money.forEach(function (c) { html += '<th>' + headHTML(c.label) + '</th>'; });
+            html += '</tr>';
+        }
+        html += '</thead><tbody>';
+
+        // Rows, by occupation, each group numbered from 1.
+        groupsOf(printed).forEach(function (group) {
+            html += '<tr class="tr-group"><td class="td-no"></td><td class="td-group" colspan="' + (span - 1) + '">' + escapeHTML(group.name) + '</td></tr>';
+            group.rows.forEach(function (row, index) {
+                var f = figures[row.code];
+                html += '<tr><td class="td-no">' + (index + 1) + '</td>';
+                html += '<td class="td-name"><div class="print-emp-name">' + escapeHTML(row.name) + '</div></td>';
+                t.dates.forEach(function (d) {
+                    var e = sheetDay(row, d.date, view.client, view.system);
+                    html += '<td class="td-daily-period">' + (cut['p:' + d.date] ? '' : periodText(e)) + '</td>';
+                    html += '<td class="td-daily-ot">' + (cut['o:' + d.date] ? '' : overtimeText(e)) + '</td>';
+                });
+                if (tail) {
+                    tail.totals.forEach(function (c) {
+                        html += '<td class="' + (c.f === 'days' ? 'td-total-days' : 'td-total-ot') + '">' + (c.f === 'days' ? figure(f.days) : f.ot) + '</td>';
+                    });
+                    money.forEach(function (c) {
+                        html += '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + '">' + moneyText(c, f) + '</td>';
+                    });
+                    tail.pay.forEach(function (c) { html += '<td class="td-payment">' + rupiah(f.pay[c.f]) + '</td>'; });
+                }
+                html += '</tr>';
+            });
+        });
+
+        html += '</tbody><tfoot>';
+        var sum = function (fn) { return printed.reduce(function (a, row) { return a + fn(figures[row.code]); }, 0); };
+
+        // "Jumlah Orang Per Hari" (Arcon's sheet): how many of the printed people came in on each
+        // date whose Period prints, and with the totals those person-days under Total Period.
+        if (t.dates.length) {
+            html += '<tr class="tr-people-row"><td colspan="2" class="td-total-label">Jumlah Orang Per Hari</td>';
+            t.dates.forEach(function (d) {
+                html += '<td colspan="2" class="td-people-count">' + (cut['p:' + d.date] ? '' : ctx.cameIn[d.date]) + '</td>';
+            });
+            if (tail) {
+                tail.totals.forEach(function (c) {
+                    html += '<td class="' + (c.f === 'days' ? 'td-people-count' : '') + '">' + (c.f === 'days' ? ctx.personDays : '') + '</td>';
+                });
+                var restCols = money.length + tail.pay.length;
+                if (restCols) html += '<td colspan="' + restCols + '"></td>';
+            }
+            html += '</tr>';
+        }
+
+        // Total row: the printed people's figures. Without dates the totals have their sums too;
+        // with dates and no money or payments it would hold only its label, so it is left out.
+        if (tail && (!t.dates.length || money.length || tail.pay.length)) {
+            if (t.dates.length) {
+                html += '<tr class="tr-total-row"><td colspan="' + (2 + t.dates.length * 2 + tail.totals.length) + '" class="td-total-label">Total</td>';
+            } else {
+                html += '<tr class="tr-total-row"><td colspan="2" class="td-total-label">Total</td>';
+                tail.totals.forEach(function (c) {
+                    html += '<td class="td-total-cell">' + (c.f === 'days' ? figure(sum(function (f) { return f.days; })) : sum(function (f) { return f.ot; })) + '</td>';
+                });
+            }
+            money.forEach(function (c) {
+                var group = c.group;
+                var text = '';
+                if (c.f === 'sub') text = rupiah(sum(function (f) { return f[group].sub; }));
+                else if (c.f === 'totalR' || c.f === 'totalOT') text = rupiah(sum(function (f) { return f[group][c.f]; }));
+                else if (c.f === 'add') text = rupiah(sum(function (f) { return f.req[c.id] ? f.req[c.id].a : 0; }));
+                else if (c.f === 'addtotal') text = rupiah(sum(function (f) { return f.add; }));
+                html += '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + ' td-total-cell">' + text + '</td>';
+            });
+            tail.pay.forEach(function (c) {
+                html += '<td class="td-payment td-total-cell">' + rupiah(sum(function (f) { return f.pay[c.f]; })) + '</td>';
+            });
+            html += '</tr>';
+        }
+        return html + '</tfoot></table></div>';
     }
 
     function renderPrintSheet(job, view) {
@@ -503,8 +685,9 @@
         var rowsOff = view.rowsOff || {};
         var cols = sheetColumns(job, view);
         var printed = job.rows.filter(function (r) { return !rowsOff[r.code]; });
-        var moneyCols = cols.emp.concat(cols.cli);
-        var span = 2 + job.dates.length * 2 + cols.totals.length + moneyCols.length + cols.pay.length;
+        // A date left out whole has no column (Baldy, 13-11-2026: the box before a date "hari nya
+        // yang ke hide sebaris"); its Period and Overtime off keep the column, empty.
+        var dates = job.dates.filter(function (d) { return !cut['d:' + d.date]; });
 
         // Header: what the sheet is, and the filter when one is on (a job saved before 3.7.71
         // still says "All active data (No filter)").
@@ -521,94 +704,17 @@
         }
         html += '</div>';
 
-        // One wide table, each column as wide as what it holds and the type as big as fits
-        // (sheetFit). Until 13-11-2026 the widths were fixed weights.
         var figures = {};
         printed.forEach(function (row) { figures[row.code] = rowFigures(row, job, view); });
-        var fit = sheetFit(job, view, cols, printed, figures);
-
-        html += '<div class="report-print-section" style="--fit:' + fit.scale.toFixed(3) + '"><table class="report-print-table report-unified-table">';
-        html += '<colgroup>' + fit.widths.map(function (w) { return '<col style="width:' + (w / fit.total * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
-
-        // Header rows
-        html += '<thead><tr><th rowspan="2" class="th-no">No</th><th rowspan="2" class="th-name">Name</th>';
-        job.dates.forEach(function (d) { html += '<th colspan="2" class="th-group th-date-grp">' + dateHead(d) + '</th>'; });
-        cols.totals.forEach(function (c) { html += '<th rowspan="2" class="' + c.cls + '">' + headHTML(c.label) + '</th>'; });
-        if (cols.emp.length) html += '<th colspan="' + cols.emp.length + '" class="th-group th-emp-grp">Employee (IDR)</th>';
-        if (cols.cli.length) html += '<th colspan="' + cols.cli.length + '" class="th-group th-cli-grp">Client (IDR)</th>';
-        cols.pay.forEach(function (c) { html += '<th rowspan="2" class="th-total-pay">' + headHTML(c.label) + '</th>'; });
-        html += '</tr><tr>';
-        job.dates.forEach(function () { html += '<th>Period<br>(daily)</th><th>' + headHTML('Overtime<br>(hour)') + '</th>'; });
-        moneyCols.forEach(function (c) { html += '<th>' + headHTML(c.label) + '</th>'; });
-        html += '</tr></thead><tbody>';
-
-        function moneyCell(c, f) {
-            return '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + '">' + moneyText(c, f) + '</td>';
-        }
-
-        // Rows, by occupation, each group numbered from 1.
-        groupsOf(printed).forEach(function (group) {
-            html += '<tr class="tr-group"><td class="td-no"></td><td class="td-group" colspan="' + (span - 1) + '">' + escapeHTML(group.name) + '</td></tr>';
-            group.rows.forEach(function (row, index) {
-                var f = figures[row.code];
-                html += '<tr><td class="td-no">' + (index + 1) + '</td>';
-                html += '<td class="td-name"><div class="print-emp-name">' + escapeHTML(row.name) + '</div></td>';
-                job.dates.forEach(function (d) {
-                    var e = sheetDay(row, d.date, view.client, view.system);
-                    html += '<td class="td-daily-period">' + (cut['p:' + d.date] ? '' : periodText(e)) + '</td>';
-                    html += '<td class="td-daily-ot">' + (cut['o:' + d.date] ? '' : overtimeText(e)) + '</td>';
-                });
-                cols.totals.forEach(function (c) {
-                    html += '<td class="' + (c.f === 'days' ? 'td-total-days' : 'td-total-ot') + '">' + (c.f === 'days' ? figure(f.days) : f.ot) + '</td>';
-                });
-                moneyCols.forEach(function (c) { html += moneyCell(c, f); });
-                cols.pay.forEach(function (c) { html += '<td class="td-payment">' + rupiah(f.pay[c.f]) + '</td>'; });
-                html += '</tr>';
-            });
+        var cameIn = {};
+        var personDays = 0;
+        dates.forEach(function (d) {
+            cameIn[d.date] = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client, view.system); return e && e.w; }).length;
+            if (!cut['p:' + d.date]) personDays += cameIn[d.date];
         });
-
-        html += '</tbody><tfoot>';
-
-        // "Jumlah Orang Per Hari" (Arcon's sheet): how many of the printed people came in on each
-        // date whose Period prints, and those person-days under Total Period.
-        if (job.dates.length) {
-            var personDays = 0;
-            html += '<tr class="tr-people-row"><td colspan="2" class="td-total-label">Jumlah Orang Per Hari</td>';
-            job.dates.forEach(function (d) {
-                if (cut['p:' + d.date]) {
-                    html += '<td colspan="2" class="td-people-count"></td>';
-                    return;
-                }
-                var count = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client, view.system); return e && e.w; }).length;
-                personDays += count;
-                html += '<td colspan="2" class="td-people-count">' + count + '</td>';
-            });
-            cols.totals.forEach(function (c) {
-                html += '<td class="' + (c.f === 'days' ? 'td-people-count' : '') + '">' + (c.f === 'days' ? personDays : '') + '</td>';
-            });
-            var restCols = moneyCols.length + cols.pay.length;
-            if (restCols) html += '<td colspan="' + restCols + '"></td>';
-            html += '</tr>';
-        }
-
-        // Total row: the printed people's figures.
-        var sum = function (fn) {
-            return printed.reduce(function (a, row) { return a + fn(figures[row.code]); }, 0);
-        };
-        html += '<tr class="tr-total-row"><td colspan="' + (2 + job.dates.length * 2 + cols.totals.length) + '" class="td-total-label">Total</td>';
-        moneyCols.forEach(function (c) {
-            var group = c.group;
-            var text = '';
-            if (c.f === 'sub') text = rupiah(sum(function (f) { return f[group].sub; }));
-            else if (c.f === 'totalR' || c.f === 'totalOT') text = rupiah(sum(function (f) { return f[group][c.f]; }));
-            else if (c.f === 'add') text = rupiah(sum(function (f) { return f.req[c.id] ? f.req[c.id].a : 0; }));
-            else if (c.f === 'addtotal') text = rupiah(sum(function (f) { return f.add; }));
-            html += '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + ' td-total-cell">' + text + '</td>';
-        });
-        cols.pay.forEach(function (c) {
-            html += '<td class="td-payment td-total-cell">' + rupiah(sum(function (f) { return f.pay[c.f]; })) + '</td>';
-        });
-        html += '</tr></tfoot></table></div>';
+        var plan = sheetPlan(job, view, cols, printed, figures, dates);
+        var ctx = { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: plan.scale, cameIn: cameIn, personDays: personDays };
+        plan.tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
 
         // Footer
         html += '<div class="report-print-footer">' +

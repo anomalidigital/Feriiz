@@ -71,7 +71,7 @@
         var days = {};
         weekdays().forEach(function (dow) {
             var dates = job.dates.filter(function (d) { return d.dow === dow; });
-            FIELDS.forEach(function (f) {
+            FIELDS.concat([['d']]).forEach(function (f) {
                 if (dates.every(function (d) { return state.cut[f[0] + ':' + d.date]; })) (days[dow] = days[dow] || {})[f[0]] = true;
             });
         });
@@ -103,7 +103,7 @@
         job.dates.forEach(function (d) {
             var rule = days[d.dow];
             if (!rule) return;
-            FIELDS.forEach(function (f) { if (rule[f[0]]) s.cut[f[0] + ':' + d.date] = true; });
+            FIELDS.concat([['d']]).forEach(function (f) { if (rule[f[0]]) s.cut[f[0] + ':' + d.date] = true; });
         });
         return s;
     }
@@ -137,19 +137,27 @@
 
     function fieldOn(f, date) { return !state.cut[f + ':' + date]; }
 
+    function dayOn(date) { return !state.cut['d:' + date]; }
+
     function dateLabel(d) {
         return (d.dow >= 0 ? DAY_SHORT[d.dow] + ' ' : '') + d.label;
     }
 
-    // Each date with its Period and Overtime; no "All dates" row (Baldy, 13-11-2026: "gausah ada all days").
+    /* Each date with its Period and Overtime; no "All dates" row (Baldy, 13-11-2026: "gausah ada all
+       days"). The box before a date leaves the whole date out, its column too ("aku kira… ketika
+       di un checklist itu bakal mengapus hari nya… coba deh mungkin yang di kiri itu hari nya yang
+       ke hide sebaris"); Period and Overtime only empty their own cells, the column stays (the
+       meeting of 10-11: a Sunday printed empty under its date). */
     function datesSection() {
         var rows = job.dates.map(function (d) {
+            var on = dayOn(d.date);
             var p = fieldOn('p', d.date), o = fieldOn('o', d.date);
-            return '<tr>' +
-                '<th scope="row"><label class="pp-opt">' + box('date', ' data-key="' + esc(d.date) + '"', tri((p ? 1 : 0) + (o ? 1 : 0), 2), 'All of ' + d.label) +
+            var off = on ? '' : ' disabled';
+            return '<tr' + (on ? '' : ' class="is-off"') + '>' +
+                '<th scope="row"><label class="pp-opt">' + box('date', ' data-key="' + esc(d.date) + '"', on ? 'all' : 'none', d.label + ', the whole date') +
                     '<span>' + esc(dateLabel(d)) + '</span></label></th>' +
-                '<td>' + box('cell', ' data-key="' + esc(d.date) + '" data-field="p"', p ? 'all' : 'none', 'Period (daily), ' + d.label) + '</td>' +
-                '<td>' + box('cell', ' data-key="' + esc(d.date) + '" data-field="o"', o ? 'all' : 'none', 'Overtime (hour), ' + d.label) + '</td>' +
+                '<td>' + box('cell', ' data-key="' + esc(d.date) + '" data-field="p"' + off, p ? 'all' : 'none', 'Period (daily), ' + d.label) + '</td>' +
+                '<td>' + box('cell', ' data-key="' + esc(d.date) + '" data-field="o"' + off, o ? 'all' : 'none', 'Overtime (hour), ' + d.label) + '</td>' +
             '</tr>';
         }).join('');
         return '<section class="pp-section" aria-labelledby="ppDatesTitle">' +
@@ -234,14 +242,6 @@
     function setHidden(key, on) { if (on) delete state.hidden[key]; else state.hidden[key] = true; }
     function setPerson(code, on) { if (on) delete state.rows[code]; else state.rows[code] = true; }
 
-    function cutKeys(fields, dates) {
-        var keys = [];
-        dates.forEach(function (d) { fields.forEach(function (f) { keys.push(f + ':' + d.date); }); });
-        return keys;
-    }
-
-    function cutOn(key) { return !state.cut[key]; }
-
     function onPanelChange(e) {
         var input = e.target.closest('input[data-pp]');
         if (!input) return;
@@ -251,7 +251,7 @@
         if (kind === 'cell') {
             setCut(field + ':' + key, !fieldOn(field, key));
         } else if (kind === 'date') {
-            setAll(cutKeys(['p', 'o'], job.dates.filter(function (d) { return d.date === key; })), cutOn, setCut);
+            setCut('d:' + key, !dayOn(key));
         } else if (kind === 'col') {
             setHidden(key, Boolean(state.hidden[key]));
         } else if (kind === 'colgroup') {
@@ -289,15 +289,17 @@
             : systemData() ? 'Internal, system data: each day as the machine recorded it, before imports and Add Hours. '
             : 'Internal: the Report\'s own data, the newest version of each day. ';
         var parts = [];
+        var gone = job.dates.filter(function (d) { return !dayOn(d.date); }).length;
+        if (gone) parts.push(gone + (gone === 1 ? ' date' : ' dates') + ' left out');
         FIELDS.forEach(function (f) {
-            var off = job.dates.filter(function (d) { return !fieldOn(f[0], d.date); }).length;
+            var off = job.dates.filter(function (d) { return dayOn(d.date) && !fieldOn(f[0], d.date); }).length;
             if (off) parts.push(f[1] + ' off on ' + off + (off === 1 ? ' date' : ' dates'));
         });
         var cols = count(state.hidden);
         if (cols) parts.push(cols + (cols === 1 ? ' column' : ' columns') + ' left out');
         var people = count(state.rows);
         if (people) parts.push(people + (people === 1 ? ' person' : ' people') + ' left out');
-        if (!parts.length) return mode + 'The paper shows A4 ' + state.layout + '; in the print dialog pick the same Layout (A3 or A2 there gets the same sheet, larger). Untick a date\'s Period or Overtime, a column or a person in the panel to leave it out.';
+        if (!parts.length) return mode + 'The paper shows A4 ' + state.layout + '; in the print dialog pick the same Layout (A3 or A2 there gets the same sheet, larger). Untick a date to leave it out, or only its Period or Overtime to leave them empty; a column or a person goes the same way.';
         return mode + parts.join(' · ') + '. The totals and the pay count only what prints.';
     }
 

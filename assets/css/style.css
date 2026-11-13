@@ -3965,7 +3965,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     max-width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
-    font-size: var(--pt-body) !important;
+    font-size: calc(var(--pt-body) * var(--fit, 1)) !important;
 }
 
 .report-unified-table thead,
@@ -3984,7 +3984,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 .report-print-table th {
     background: #ffffff !important;
     color: var(--ink-strong) !important;
-    font-size: var(--pt-head) !important;
+    font-size: calc(var(--pt-head) * var(--fit, 1)) !important;
     font-weight: 600 !important;
     padding: var(--cell-pad-y) var(--head-pad-x) !important;
     border: 0.15mm solid var(--rule-strong) !important;
@@ -3994,12 +3994,12 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     letter-spacing: -0.05pt !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
-    hyphens: none !important;
+    hyphens: manual !important;   /* "Over-time" at its soft hyphen, never "Overti-me" */
 }
 
 .report-unified-table th.th-group {
     background: #ffffff !important;
-    font-size: var(--pt-group) !important;
+    font-size: calc(var(--pt-group) * var(--fit, 1)) !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.3pt !important;
@@ -4018,7 +4018,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     vertical-align: middle !important;
     color: var(--ink) !important;
     background: #ffffff !important;
-    font-size: var(--pt-body) !important;
+    font-size: calc(var(--pt-body) * var(--fit, 1)) !important;
     font-weight: 400 !important;
     line-height: 1.15 !important;
     text-align: left !important;
@@ -4080,15 +4080,22 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 .report-unified-table tbody td.td-total-ot,
 .report-unified-table tbody td.td-rate,
 .report-unified-table tbody td.td-payment {
-    font-size: var(--pt-figure) !important;
+    font-size: calc(var(--pt-figure) * var(--fit, 1)) !important;
     line-height: 1.1 !important;
+    white-space: nowrap;
+}
+
+/* The weekday in Indonesian over each date (13-11-2026). */
+.report-unified-table th .th-weekday {
+    display: block;
 }
 
 /* A leave's name under a date ("Sick Leave"): small, so the row stays low. */
 .report-unified-table td .print-day-note {
     display: block;
-    font-size: var(--pt-sub) !important;
+    font-size: calc(var(--pt-sub) * var(--fit, 1)) !important;
     line-height: 1.05 !important;
+    white-space: normal;
 }
 
 /* A group of people of one occupation, its name in the Name column (Baldy, 12-11-2026), on a
@@ -4104,7 +4111,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .report-unified-table tr.tr-group td.td-group {
-    font-size: var(--pt-name) !important;
+    font-size: calc(var(--pt-name) * var(--fit, 1)) !important;
     font-weight: 700 !important;
     color: #fff !important;
     padding-left: 1.4mm !important;
@@ -4120,7 +4127,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .report-unified-table tfoot td {
-    font-size: var(--pt-total) !important;
+    font-size: calc(var(--pt-total) * var(--fit, 1)) !important;
     font-weight: 700 !important;
     background: #ffffff !important;
     border-top: 0.3mm solid #475569 !important;
@@ -4149,7 +4156,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 .print-emp-name {
     font-weight: 600 !important;
     color: var(--ink-strong) !important;
-    font-size: var(--pt-name) !important;
+    font-size: calc(var(--pt-name) * var(--fit, 1)) !important;
     line-height: 1.2 !important;
 }
 
@@ -4188,11 +4195,12 @@ body[data-page="employee-report"] .report-print-footer {
 }
 
 @media print {
-    /* Page geometry — matches the legacy Feriiz PDF (9mm top/bottom, 8.5mm sides).
-       No `size` is declared on purpose: the paper size and orientation the user
+    /* Page geometry: thin margins, 6mm top/bottom and 5mm at the sides (meeting 10-11-2026,
+       00:11:24: "margin… dibikin nol… minimal"; a printer cannot print to the very edge; it was
+       9mm / 6mm). No `size` is declared on purpose: the paper size and orientation the user
        picks in the print dialog (A4/A3/Letter, portrait/landscape) must win. */
     @page {
-        margin: 9mm 6mm;
+        margin: 6mm 5mm;
     }
 
     html,
@@ -4583,7 +4591,7 @@ body[data-page="print-preview"] {
     width: 297mm;
     min-height: 210mm;
     margin: 0;
-    padding: 9mm 6mm;
+    padding: 6mm 5mm;
     background: #fff;
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
 }
@@ -4615,7 +4623,7 @@ body[data-page="print-preview"] {
    grows with the paper (WIDER PAPER above). It was "A4 landscape" from 12-11 to v3.7.106. */
 @page feriiz-preview {
     size: landscape;
-    margin: 9mm 6mm;
+    margin: 6mm 5mm;
 }
 
 body[data-page="print-preview"] #ppSheet {

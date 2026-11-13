@@ -418,6 +418,74 @@
         return String(e.ot);
     }
 
+    // A date's header on paper: the weekday in Indonesian over the date (Baldy, 13-11-2026:
+    // "mereka juga mau itu ada harinya juga… hari nya itu pake bahasa indonesia"; meeting
+    // 10-11-2026, 00:12:30: "tambahin tulisan hari").
+    var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    function dateHead(d) {
+        var day = d.dow >= 0 ? d.dow : (fromISO(d.date) ? fromISO(d.date).getDay() : -1);
+        return (day >= 0 ? '<span class="th-weekday">' + HARI[day] + '</span>' : '') + escapeHTML(d.label);
+    }
+
+    // A header as printed: "Overtime" may break as "Over-time" in a narrow column, never "Overti-me".
+    function headHTML(label) { return String(label).replace(/Overtime/g, 'Over&shy;time'); }
+
+    // What a money cell says: the rates and totals as the Report writes them, the additional
+    // columns "-" when there is nothing to pay.
+    function moneyText(c, f) {
+        var group = c.group === 'emp' ? f.emp : f.cli;
+        if (c.f === 'sub') return rupiah(group.sub);
+        if (c.f === 'add') return f.req[c.id] ? idr(f.req[c.id].a) : '-';
+        if (c.f === 'addtotal') return f.add ? idr(f.add) : '-';
+        return idr(group[c.f]);
+    }
+
+    /* How wide each column must be, in mm on A4 landscape at the A4 type sizes: its widest
+       figure, its longest name (two lines past 22 letters) or the longest word of its header.
+       The sheet then takes the type that fills the 287mm between the margins (bigger when the
+       sheet has room, smaller for a long period, from 0.6 to 1.4 times), and every column gets
+       its share of the width, so none is left half empty (Baldy, 13-11-2026: "coloms nya ini
+       itu baik nya gimana… cuma nanti bakal menyisahkan… font nya juga perbesar, takutnya pas
+       di print ga keliatan"). A3 and A2 grow the type with the paper, so the fit holds there. */
+    var PT_MM = 0.3528;
+    var A4_WIDTH = 287;
+
+    function textMM(chars, em, pt) { return chars * em * pt * PT_MM; }
+
+    function headMM(label) {
+        var longest = String(headHTML(label)).replace(/&shy;/g, '- ').replace(/<br>/gi, ' ').replace(/<[^>]+>/g, ' ')
+            .split(/\s+/).reduce(function (m, w) { return Math.max(m, w.length); }, 0);
+        return textMM(longest, 0.6, 6.2) + 0.6;
+    }
+
+    function figureMM(chars, bold) { return textMM(Math.max(chars, 1), bold ? 0.64 : 0.6, 9.5) + 1.1; }
+
+    function sheetFit(job, view, cols, printed, figures) {
+        var maxOf = function (fn) { return printed.reduce(function (m, row) { return Math.max(m, fn(row)); }, 0); };
+        var need = [Math.max(textMM(String(printed.length).length, 0.6, 8) + 1.1, headMM('No')),
+                    Math.max(textMM(Math.min(22, maxOf(function (r) { return r.name.length; })), 0.62, 8.3) + 2.4, headMM('Name'))];
+        job.dates.forEach(function (d) {
+            var p = 1, o = 1;
+            printed.forEach(function (row) {
+                var e = sheetDay(row, d.date, view.client, view.original);
+                if (e && !e.r) { p = Math.max(p, figure(e.d).length); o = Math.max(o, String(e.ot).length); }
+            });
+            need.push(Math.max(figureMM(p), headMM('Period<br>(daily)')), Math.max(figureMM(o), headMM('Overtime<br>(hour)')));
+        });
+        cols.totals.forEach(function (c) {
+            need.push(Math.max(figureMM(maxOf(function (row) { var f = figures[row.code]; return String(c.f === 'days' ? figure(f.days) : f.ot).length; })), headMM(c.label)));
+        });
+        cols.emp.concat(cols.cli).forEach(function (c) {
+            need.push(Math.max(figureMM(maxOf(function (row) { return moneyText(c, figures[row.code]).length; })), headMM(c.label)));
+        });
+        cols.pay.forEach(function (c) {
+            need.push(Math.max(figureMM(maxOf(function (row) { return rupiah(figures[row.code].pay[c.f]).length; }), true), headMM(c.label)));
+        });
+        var total = need.reduce(function (a, b) { return a + b; }, 0);
+        return { widths: need, total: total, scale: Math.max(0.6, Math.min(1.4, A4_WIDTH / total)) };
+    }
+
     function renderPrintSheet(job, view) {
         view = view || {};
         var cut = view.cut || {};
@@ -439,50 +507,29 @@
         }
         html += '</div>';
 
-        // One wide table. Proportional column widths: without them the browser splits the
-        // columns evenly, which starves the money columns while the day columns sit half empty.
-        // The Name column is wide enough for most names on one line, so the rows stay low
-        // (Baldy, 12-11-2026: "tolong ini di dempet dempetin aja ya"; it was 3.5).
-        var W = { no: 0.7, name: 7, dayPeriod: 1.62, dayOT: 1.62, totals: 2.4, money: 4.4, pay: 4.6 };
-        var colW = [W.no, W.name];
-        job.dates.forEach(function () { colW.push(W.dayPeriod, W.dayOT); });
-        cols.totals.forEach(function () { colW.push(W.totals); });
-        moneyCols.forEach(function () { colW.push(W.money); });
-        cols.pay.forEach(function () { colW.push(W.pay); });
-        var colTotal = colW.reduce(function (a, b) { return a + b; }, 0);
+        // One wide table, each column as wide as what it holds and the type as big as fits
+        // (sheetFit). Until 13-11-2026 the widths were fixed weights.
+        var figures = {};
+        printed.forEach(function (row) { figures[row.code] = rowFigures(row, job, view); });
+        var fit = sheetFit(job, view, cols, printed, figures);
 
-        html += '<div class="report-print-section"><table class="report-print-table report-unified-table">';
-        html += '<colgroup>' + colW.map(function (w) { return '<col style="width:' + (w / colTotal * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
+        html += '<div class="report-print-section" style="--fit:' + fit.scale.toFixed(3) + '"><table class="report-print-table report-unified-table">';
+        html += '<colgroup>' + fit.widths.map(function (w) { return '<col style="width:' + (w / fit.total * 100).toFixed(3) + '%">'; }).join('') + '</colgroup>';
 
         // Header rows
         html += '<thead><tr><th rowspan="2" class="th-no">No</th><th rowspan="2" class="th-name">Name</th>';
-        job.dates.forEach(function (d) { html += '<th colspan="2" class="th-group th-date-grp">' + escapeHTML(d.label) + '</th>'; });
-        cols.totals.forEach(function (c) { html += '<th rowspan="2" class="' + c.cls + '">' + c.label + '</th>'; });
+        job.dates.forEach(function (d) { html += '<th colspan="2" class="th-group th-date-grp">' + dateHead(d) + '</th>'; });
+        cols.totals.forEach(function (c) { html += '<th rowspan="2" class="' + c.cls + '">' + headHTML(c.label) + '</th>'; });
         if (cols.emp.length) html += '<th colspan="' + cols.emp.length + '" class="th-group th-emp-grp">Employee (IDR)</th>';
         if (cols.cli.length) html += '<th colspan="' + cols.cli.length + '" class="th-group th-cli-grp">Client (IDR)</th>';
-        cols.pay.forEach(function (c) { html += '<th rowspan="2" class="th-total-pay">' + c.label + '</th>'; });
+        cols.pay.forEach(function (c) { html += '<th rowspan="2" class="th-total-pay">' + headHTML(c.label) + '</th>'; });
         html += '</tr><tr>';
-        job.dates.forEach(function () { html += '<th>Period<br>(daily)</th><th>Overtime<br>(hour)</th>'; });
-        moneyCols.forEach(function (c) { html += '<th>' + c.label + '</th>'; });
+        job.dates.forEach(function () { html += '<th>Period<br>(daily)</th><th>' + headHTML('Overtime<br>(hour)') + '</th>'; });
+        moneyCols.forEach(function (c) { html += '<th>' + headHTML(c.label) + '</th>'; });
         html += '</tr></thead><tbody>';
 
-        var figures = {};
-        printed.forEach(function (row) { figures[row.code] = rowFigures(row, job, view); });
-
-        // A money cell of a person: the rates and totals as the Report writes them, the
-        // additional columns "-" when there is nothing to pay.
         function moneyCell(c, f) {
-            var group = c.group === 'emp' ? f.emp : f.cli;
-            if (c.f === 'sub') return '<td class="td-rate td-subtotal">' + rupiah(group.sub) + '</td>';
-            var text;
-            if (c.f === 'add') {
-                text = f.req[c.id] ? idr(f.req[c.id].a) : '-';
-            } else if (c.f === 'addtotal') {
-                text = f.add ? idr(f.add) : '-';
-            } else {
-                text = idr(group[c.f]);
-            }
-            return '<td class="td-rate">' + text + '</td>';
+            return '<td class="td-rate' + (c.f === 'sub' ? ' td-subtotal' : '') + '">' + moneyText(c, f) + '</td>';
         }
 
         // Rows, by occupation, each group numbered from 1.

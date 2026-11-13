@@ -213,10 +213,15 @@
        yang filter itu di matiin dulu show histori nya"). Ticked, a day with a log in counts its
        occupation's Default Hours as its newest data: Daily 1, the default hours and overtime,
        whatever the clock says, also a day missing its log out. Its logs stay as the machine
-       recorded them, the machine's own count is its original (Filter > Show history), and an
-       import or Add Hours still changes the day after it. A weekday set to 0 hours counts its
-       logs. The default is not a change: such a day is not yellow. From 02-11 to 05-11-2026 every
-       project counted this way; then the real times ("pake waktu yang aseli"). */
+       recorded them and the machine's own count is its original (Filter > Show history). The
+       Default Hours come over every version, an import or Add Hours too (Baldy, 13-11-2026: "set
+       default itu yang paling teratas ya, jadi add hour dan import itu nomor 2 mereka… yang dari
+       sistem tetep ada juga… set default itu bisa di bilang sama kaya import atau add hours dia
+       mengapdate"); a version still gives a day without logs its logs, so the day counts. In a
+       date's History they are its last column. A weekday set to 0 hours counts its logs. The
+       default is not a change: such a day is yellow only when a version gave it other logs. From
+       02-11 to 05-11-2026 every project counted this way; then the real times ("pake waktu yang
+       aseli"). */
     var DEFAULT_VERSION = { id: 'DEFAULT', kind: 'default', cells: {} };
 
     function usesDefault() {
@@ -412,7 +417,8 @@
     }
 
     // A day after its versions, oldest first, up to and with `upTo` (null: none, the machine's
-    // original). The newest decides: an import sets the numbers and leaves the log in and log
+    // original; undefined: all, with the Default Hours over them when the project uses them, as
+    // with upTo DEFAULT_VERSION). The newest decides: an import sets the numbers and leaves the log in and log
     // out as the machine recorded them (meeting 05-11-2026, 1:50:56: "langsung ganti yang
     // itunya tanpa ngeganti jam kerjanya mereka"; until then a day it raised to Daily 1 took the
     // working time as its logs); Add Log sets logs and Delete Log empties them, after which the
@@ -425,7 +431,6 @@
         var s = { off: off, inTime: off ? '' : rec.inTime || '', outTime: off ? '' : rec.outTime || '',
                   inNote: off ? '' : rec.inNote || '', outNote: off ? '' : rec.outNote || '', numbers: null, last: null };
         if (upTo === null) return s;
-        applyDefault(s, code, date);
         var batches = projectImports().batches;
         for (var i = 0; i < batches.length; i++) {
             var b = batches[i], c = b.cells[key];
@@ -433,6 +438,7 @@
             stepDay(s, b, c, code, date);
             if (b === upTo) break;
         }
+        if (upTo === undefined || upTo === DEFAULT_VERSION) applyDefault(s, code, date);
         return s;
     }
 
@@ -615,7 +621,10 @@
     // (issue, see dayIssue); else ''. In a yellow day a log still missing keeps a red box ("yang
     // ada missing dia juga merah ya", CSS .day-changed .log-empty-row). No blue.
     function dayMark(employee, date, s, count, issue) {
-        if (s.last && s.last !== DEFAULT_VERSION) {
+        if (s.last === DEFAULT_VERSION) {
+            var d = dayState(employee.code, date, null);
+            if (s.inTime !== d.inTime || s.outTime !== d.outTime) return 'day-changed';
+        } else if (s.last) {
             var o = dayState(employee.code, date, null);
             var oc = logCount(employee.code, date, o.inTime, o.outTime);
             if (s.inTime !== o.inTime || s.outTime !== o.outTime || Number(count.daily) !== oc.daily ||
@@ -637,8 +646,21 @@
         return dayLine(employee, date, dayState(employee.code, date, upTo));
     }
 
+    // Did version b change this person's day (the Default Hours: do they count on it now)?
+    function touchedBy(employee, date, b) {
+        return b === DEFAULT_VERSION ? dayState(employee.code, date).last === DEFAULT_VERSION : Boolean(b.cells[employee.code + '|' + date]);
+    }
+
+    // A date's versions for its History: the imports and Add Hours, then the Default Hours when
+    // they count for someone the Report shows.
+    function historyOn(date) {
+        var batches = versionsOn(date);
+        if (usesDefault() && peopleInOccupations().some(function (e) { return touchedBy(e, date, DEFAULT_VERSION); })) batches = batches.concat([DEFAULT_VERSION]);
+        return batches;
+    }
+
     function historyValueHTML(employee, date, b) {
-        if (!b.cells[employee.code + '|' + date]) return '<span class="import-history-none">–</span>';
+        if (!touchedBy(employee, date, b)) return '<span class="import-history-none">–</span>';
         var s = dayState(employee.code, date, b);
         var c = stateCount(employee, date, s);
         var mark = dayMark(employee, date, s, c, dayIssue(employee.code, date, s));
@@ -686,7 +708,7 @@
     }
 
     function openImportHistory(date) {
-        var batches = versionsOn(date);
+        var batches = historyOn(date);
         if (batches.length < 2) return;
         if (!historyModal) historyModal = buildHistoryModal();
         var last = batches.length - 1;
@@ -694,6 +716,9 @@
         historyModal.querySelector('#importHistoryContext').textContent = projectContext.name + ' · ' +
             DAY_NAMES[fromISO(date).getDay()] + ', ' + shortDate(date) + ' · ' + batches.length + ' changes' + (occ ? ' · ' + occ : '');
         historyModal.querySelector('#importHistoryHead').innerHTML = '<tr><th>Name</th>' + batches.map(function (b, i) {
+            if (b === DEFAULT_VERSION) {
+                return '<th class="is-current">#' + (i + 1) + ' · Default Hours · now<small>Project Settings</small></th>';
+            }
             var who = accountOf(b.by, b.role);
             var tip = b.file || (b.note ? 'Note: ' + b.note : '');
             return '<th' + (i === last ? ' class="is-current"' : '') + (tip ? ' title="' + escapeHTML(tip) + '"' : '') + '>' +
@@ -704,7 +729,7 @@
         // People whose day one of the versions changed come first.
         var rows = peopleInOccupations().map(function (e) {
             var key = e.code + '|' + date;
-            var touched = batches.filter(function (b) { return b.cells[key]; });
+            var touched = batches.filter(function (b) { return touchedBy(e, date, b); });
             if (!touched.length) return null;
             var prev = snapshot(e, date, null);
             var changed = touched.some(function (b) {
@@ -1096,7 +1121,7 @@
             var th = document.createElement('th');
             var split = splitDates[date];
             var label = DAY_NAMES[fromISO(date).getDay()] + ' ' + fromISO(date).getDate();
-            var changes = showOriginal() ? versionsOn(date).length : 0;
+            var changes = showOriginal() ? historyOn(date).length : 0;
             var history = changes > 1
                 ? '<button type="button" class="import-history-btn" data-date="' + date + '" title="Changed ' + changes + ' times. Click for the history."' +
                     ' aria-label="History of ' + label + ', ' + changes + ' changes"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>' + changes + '</button>'
@@ -1495,7 +1520,8 @@
         var end = ((projectContext && projectContext.workEnd) || '17:00');
         var hint = document.getElementById('batchUpdateHint');
         if (hint) hint.textContent = 'Daily is 1 from ' + (list.length === 1 ? list[0] + ' hours' : 'the Default Hours') + ', 0.5 below, 0 at 0. Overtime is whole hours. ' +
-            'A missing log in or log out takes the working time (' + start + ' - ' + end + '); a log the day has stays, and the original stays in the History.';
+            'A missing log in or log out takes the working time (' + start + ' - ' + end + '); a log the day has stays, and the original stays in the History.' +
+            (usesDefault() ? ' This project uses its Default Hours (Settings): a day with a log in counts them, over Add Hours.' : '');
     }
 
     // Batch Update > Add Hours, for the ticked days.

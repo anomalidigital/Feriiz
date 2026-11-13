@@ -4005,7 +4005,8 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
    landscape and wider, and for a narrow one, A4 portrait. The sheet's own width on the paper the
    print dialog has picks one (13-11-2026); the Print Configuration's A4 landscape paper shows
    the wide one. */
-.report-print-fit--narrow {
+.report-print-fit--narrow,
+.report-print-fit--screen {
     display: none !important;
 }
 
@@ -4603,43 +4604,11 @@ body[data-page="print-preview"] {
     list-style: none;
 }
 
-.pp-list .pp-sub {
-    padding-left: 24px;
-}
-
-.pp-list .pp-list {
-    margin-top: 6px;
-}
-
-.pp-group-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
 .pp-count {
     margin-left: auto;
     color: var(--feriiz-text-hint);
     font-size: 11px;
     white-space: nowrap;
-}
-
-.pp-expand {
-    flex: 0 0 auto;
-    width: 28px;
-    height: 28px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--feriiz-text-hint);
-    cursor: pointer;
-}
-
-.pp-expand:hover,
-.pp-expand:focus-visible {
-    background: #EEF1F5;
-    color: var(--feriiz-text);
 }
 
 .pp-state {
@@ -4652,13 +4621,15 @@ body[data-page="print-preview"] {
     text-align: center;
 }
 
-/* A4 landscape on screen, the paper a wide report is printed on; another paper chosen in the
-   print dialog gets the same sheet, fitted to it (see @page feriiz-preview). */
+/* The Print Configuration's paper: as wide as the room beside the panel, wider when its one
+   table needs it (it then scrolls sideways in .pp-paper-scroll), the rows going right as in
+   the Report (Baldy, 13-11-2026: "di kanan kosong kok isi aja… kita gausah samain dengan ukuran
+   hasil"). It was a sheet of A4 landscape until then. What prints fits the print dialog's paper
+   (see @page feriiz-preview and the wide and narrow fits). */
 .pp-paper {
     box-sizing: border-box;
-    flex: 0 0 auto;
-    width: 297mm;
-    min-height: 210mm;
+    width: max-content;
+    min-width: 100%;
     margin: 0;
     padding: 8mm 5mm;
     background: #fff;
@@ -4671,6 +4642,43 @@ body[data-page="print-preview"] {
     .pp-paper .report-print-document {
         display: block;
         position: relative;
+        container-type: normal;   /* sized by its table here, not by the paper */
+    }
+
+    /* The type of A4 landscape on screen, whatever the window's width. */
+    .pp-paper .report-print-document > * {
+        --pt-title: 17pt;
+        --pt-subtitle: 8.5pt;
+        --pt-meta-label: 6.5pt;
+        --pt-meta-value: 8.5pt;
+        --pt-filter: 7.5pt;
+        --pt-group: 8.4pt;
+        --pt-head: 6.2pt;
+        --pt-body: 8pt;
+        --pt-figure: 9.5pt;
+        --pt-name: 8.3pt;
+        --pt-sub: 6.8pt;
+        --pt-total: 6.2pt;
+        --pt-footer: 7.5pt;
+        --cell-pad-y: 0.5mm;
+        --cell-pad-x: 0.55mm;
+        --head-pad-x: 0.3mm;
+    }
+
+    /* One table on screen (screenTable); the wide and narrow fits are for paper. */
+    .pp-paper .report-print-document > .report-print-fit--wide,
+    .pp-paper .report-print-document > .report-print-fit--narrow {
+        display: none !important;
+    }
+
+    .pp-paper .report-print-document > .report-print-fit--screen {
+        display: block !important;
+    }
+
+    .pp-paper .report-print-fit--screen .report-print-table {
+        width: var(--sheet-w) !important;
+        min-width: 100% !important;
+        max-width: none !important;
     }
 }
 

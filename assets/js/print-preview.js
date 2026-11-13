@@ -11,12 +11,13 @@
      nya… atau overtime nya aja"). A date left out has no column; a field off prints empty under
      its header (meeting 05-11, 1:38: the Sunday header stays). Neither counts in the totals and
      the pay.
-   - Occupation: the people by occupation, A to Z, as the sheet groups them.
+   - Occupation: each occupation on or off, A to Z, as the sheet groups them; no person alone
+     (Baldy, 13-11-2026: "ini hide nya by occupation deh jangan segala ada hide employee").
+   The paper here is one table, the rows going right as in the Report and filling the width
+   ("di kanan kosong kok isi aja… kita gausah samain dengan ukuran hasil"); on paper the sheet
+   fits itself to the print dialog's paper and Layout and may split a long period.
    The columns are the Report's own, from its Columns menu; this panel's Columns is gone (Baldy,
    13-11-2026: "colums ini gausah ada gausah ga perlu, ini cuma ada di report project aja").
-   An occupation's box is three-way, as in the occupation filters: a tick when all are on, a
-   minus when some are, empty when none is; ticked or with its minus it turns them all off,
-   empty it turns them all on.
    For: Internal | Client (meeting 05-11-2026, 0:34:01): Client prints every day with data at
    the Set Default of the person's occupation, without changing the Report, and without the
    workers' pay (the Employee columns). A date or a field off on every date of a weekday (Sundays,
@@ -106,21 +107,19 @@
         return hidden;
     }
 
-    // mode: 'internal' or 'client'; cut: a date or one of its fields off; rows: people left out;
-    // open: the occupations unfolded. Internal prints the Report's newest data: its Data: Latest |
-    // System went on 13-11-2026 ("ga di minta deh kayanya apus dulu").
+    // mode: 'internal' or 'client'; cut: a date or one of its fields off; rows: the people of the
+    // occupations left out. Internal prints the Report's newest data: its Data: Latest | System
+    // went on 13-11-2026 ("ga di minta deh kayanya apus dulu").
     function freshState(mode, withPrefs) {
-        return { mode: mode, cut: withPrefs ? modeCut(mode) : {}, rows: {}, open: {} };
+        return { mode: mode, cut: withPrefs ? modeCut(mode) : {}, rows: {} };
     }
 
+    // screen: the sheet also draws its one table for this page (print-report.js screenTable).
     function view() {
-        return { hidden: hiddenFor(state.mode), cut: state.cut, rowsOff: state.rows, client: state.mode === 'client' };
+        return { hidden: hiddenFor(state.mode), cut: state.cut, rowsOff: state.rows, client: state.mode === 'client', screen: true };
     }
 
     /* ---------- the panel ---------- */
-    // 'all', 'some' or 'none' of these are on.
-    function tri(on, total) { return !on ? 'none' : on === total ? 'all' : 'some'; }
-
     function box(kind, attrs, st, label) {
         return '<input type="checkbox" class="form-check-input" data-pp="' + kind + '"' + attrs + ' data-state="' + st + '"' +
             (label ? ' aria-label="' + esc(label) + '"' : '') + '>';
@@ -157,30 +156,19 @@
             rows + '</tbody></table></section>';
     }
 
-    function personOn(row) { return !state.rows[row.code]; }
+    function groupOn(g) { return !g.rows.some(function (row) { return state.rows[row.code]; }); }
 
-    // The occupations, each unfolding to its people; no "All people" row (Baldy, 13-11-2026: "ini
-    // occupation bukan people, all people nya di apus").
+    // The occupations, each with how many people it has; on or off as a whole (Baldy, 13-11-2026:
+    // "ini hide nya by occupation deh jangan segala ada hide employee"; "ini occupation bukan
+    // people, all people nya di apus").
     function peopleSection() {
         var groups = window.FeriizPrintSheet.groups(job.rows);
         return '<section class="pp-section" aria-labelledby="ppPeopleTitle">' +
             '<h2 class="pp-section-title" id="ppPeopleTitle">Occupation</h2>' +
             '<ul class="pp-list">' +
             groups.map(function (g) {
-                var gOn = g.rows.filter(personOn).length;
-                var open = Boolean(state.open[g.name]);
-                return '<li class="pp-group">' +
-                    '<div class="pp-group-head">' +
-                        '<label class="pp-opt">' + box('group', ' data-key="' + esc(g.name) + '"', tri(gOn, g.rows.length)) + '<span>' + esc(g.name) + '</span>' +
-                            '<span class="pp-count">' + gOn + ' / ' + g.rows.length + '</span></label>' +
-                        '<button type="button" class="pp-expand" data-group="' + esc(g.name) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the people of ' + esc(g.name) + '">' +
-                            '<i class="fa-solid fa-chevron-' + (open ? 'up' : 'down') + '" aria-hidden="true"></i></button>' +
-                    '</div>' +
-                    (open ? '<ul class="pp-list">' + g.rows.map(function (row) {
-                        return '<li class="pp-sub"><label class="pp-opt">' + box('person', ' data-key="' + esc(row.code) + '"', personOn(row) ? 'all' : 'none') +
-                            '<span>' + esc(row.name) + '</span></label></li>';
-                    }).join('') + '</ul>' : '') +
-                '</li>';
+                return '<li><label class="pp-opt">' + box('group', ' data-key="' + esc(g.name) + '"', groupOn(g) ? 'all' : 'none') +
+                    '<span>' + esc(g.name) + '</span><span class="pp-count">' + g.rows.length + '</span></label></li>';
             }).join('') +
             '</ul></section>';
     }
@@ -191,18 +179,11 @@
         panel.innerHTML = datesSection() + peopleSection();
         panel.querySelectorAll('input[data-state]').forEach(function (input) {
             input.checked = input.dataset.state === 'all';
-            input.indeterminate = input.dataset.state === 'some';
         });
         panel.scrollTop = scroll;
     }
 
     /* ---------- changes from the panel ---------- */
-    // Ticked or with its minus, an occupation's box turns its people off; empty, it turns them on.
-    function setAll(keys, isOn, setter) {
-        var anyOn = keys.some(isOn);
-        keys.forEach(function (k) { setter(k, !anyOn); });
-    }
-
     function setCut(key, on) { if (on) delete state.cut[key]; else state.cut[key] = true; }
     function setPerson(code, on) { if (on) delete state.rows[code]; else state.rows[code] = true; }
 
@@ -216,11 +197,12 @@
             setCut(field + ':' + key, !fieldOn(field, key));
         } else if (kind === 'date') {
             setCut('d:' + key, !dayOn(key));
-        } else if (kind === 'person') {
-            setPerson(key, Boolean(state.rows[key]));
         } else if (kind === 'group') {
             var group = window.FeriizPrintSheet.groups(job.rows).filter(function (g) { return g.name === key; })[0];
-            if (group) setAll(group.rows.map(function (r) { return r.code; }), function (c) { return !state.rows[c]; }, setPerson);
+            if (group) {
+                var on = !groupOn(group);
+                group.rows.forEach(function (row) { setPerson(row.code, on); });
+            }
         }
         render();
         // The same box keeps the keyboard focus after drawing again.
@@ -229,21 +211,11 @@
         if (again) again.focus();
     }
 
-    function onPanelClick(e) {
-        var btn = e.target.closest('button[data-group]');
-        if (!btn) return;
-        var name = btn.dataset.group;
-        state.open[name] = !state.open[name];
-        renderPanel();
-        var again = $('ppPanel').querySelector('button[data-group="' + name.replace(/"/g, '\\"') + '"]');
-        if (again) again.focus();
-    }
-
     /* ---------- the page ---------- */
     function nothingLeft() { return count(state.rows) >= job.rows.length; }
 
     function summary() {
-        if (nothingLeft()) return 'Everyone is left out, so there is nothing to print. Tick an occupation or a person under Occupation, or Reset.';
+        if (nothingLeft()) return 'Every occupation is left out, so there is nothing to print. Tick one under Occupation, or Reset.';
         var mode = state.mode === 'client'
             ? 'For the client: every day with data prints the Set Default of its occupation, without the workers\' pay. '
             : 'Internal: the Report\'s own data, the newest version of each day. ';
@@ -254,9 +226,9 @@
             var off = job.dates.filter(function (d) { return dayOn(d.date) && !fieldOn(f[0], d.date); }).length;
             if (off) parts.push(f[1] + ' off on ' + off + (off === 1 ? ' date' : ' dates'));
         });
-        var people = count(state.rows);
-        if (people) parts.push(people + (people === 1 ? ' person' : ' people') + ' left out');
-        if (!parts.length) return mode + 'The columns are the Report\'s. Untick a date, its Period or Overtime, or a person to leave it out. The paper and its Layout are picked in the print dialog; the sheet fits itself to them.';
+        var occs = window.FeriizPrintSheet.groups(job.rows).filter(function (g) { return !groupOn(g); }).length;
+        if (occs) parts.push(occs + (occs === 1 ? ' occupation' : ' occupations') + ' left out');
+        if (!parts.length) return mode + 'The columns are the Report\'s. Untick a date, its Period or Overtime, or an occupation to leave it out. On paper the sheet fits the paper and Layout picked in the print dialog; a long period prints in several tables.';
         return mode + parts.join(' · ') + '. The totals and the pay count only what prints.';
     }
 
@@ -333,12 +305,9 @@
         $('ppPaper').hidden = false;
 
         $('ppPanel').addEventListener('change', onPanelChange);
-        $('ppPanel').addEventListener('click', onPanelClick);
         $('ppMode').addEventListener('click', onModeClick);
         $('ppReset').addEventListener('click', function () {
-            var open = state.open;
             state = freshState(state.mode, false);
-            state.open = open;
             render();
         });
         $('ppPrint').addEventListener('click', printSheet);

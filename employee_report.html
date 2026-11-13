@@ -7,14 +7,14 @@
     <title>Feriiz - Employee Report</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.116">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.116">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.117">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.117">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.116" defer></script>
-    <script src="assets/js/app.js?v=3.7.116" defer></script>
-    <script src="assets/js/request-templates.js?v=3.7.116" defer></script>
-    <script src="assets/js/report.js?v=3.7.116" defer></script>
-    <script src="assets/js/print-report.js?v=3.7.116" defer></script>
+    <script src="assets/js/data.js?v=3.7.117" defer></script>
+    <script src="assets/js/app.js?v=3.7.117" defer></script>
+    <script src="assets/js/request-templates.js?v=3.7.117" defer></script>
+    <script src="assets/js/report.js?v=3.7.117" defer></script>
+    <script src="assets/js/print-report.js?v=3.7.117" defer></script>
 </head>
 
 <body data-page="employee-report">
@@ -108,35 +108,22 @@
                             <option>3D Artist</option>
                         </select>
 
-                        <!-- Log Status: two questions about a day, its log in and its log out, each All / With / Without
-                             (Baldy, 12-11-2026: "log in : ada, log out : ada… intinya in ada dia tampil"; four ticks before) -->
+                        <!-- Log Status: one choice for a day's logs (Baldy, 13-11-2026, from the backend: a day cannot
+                             miss its log in alone, a lone tap is the log in; "filter ini masih terlalu ribet dan kita bisa
+                             sederhanaain"). Log In and Log Out rows, each All / With / Without, 12-11-2026. -->
                         <div class="log-filter-head">
                             <label class="feriiz-u-110" id="logStatusLabel">Log Status</label>
-                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Pick what a day must have. Log In With shows every day with a log in, whatever its log out. Both on All shows every day, days off and leave too." aria-label="About Log Status"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
+                            <button type="button" class="tpl-help" data-bs-toggle="tooltip" data-bs-title="Complete: a log in and a log out. Missing Out: a log in without its log out. No Log: a working day without any log. All shows every day, days off and leave too." aria-label="About Log Status"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></button>
                         </div>
-                        <div class="log-status-fields" role="group" aria-labelledby="logStatusLabel">
-                            <div class="log-status-field" role="radiogroup" aria-label="Log In">
-                                <span class="log-status-name" aria-hidden="true">Log In</span>
-                                <div class="log-seg">
-                                    <input type="radio" class="btn-check filter-log-in" name="filterLogIn" id="filterLogInAll" value="" checked>
-                                    <label class="log-seg-btn" for="filterLogInAll">All</label>
-                                    <input type="radio" class="btn-check filter-log-in" name="filterLogIn" id="filterLogInWith" value="with">
-                                    <label class="log-seg-btn" for="filterLogInWith">With</label>
-                                    <input type="radio" class="btn-check filter-log-in" name="filterLogIn" id="filterLogInWithout" value="without">
-                                    <label class="log-seg-btn" for="filterLogInWithout">Without</label>
-                                </div>
-                            </div>
-                            <div class="log-status-field" role="radiogroup" aria-label="Log Out">
-                                <span class="log-status-name" aria-hidden="true">Log Out</span>
-                                <div class="log-seg">
-                                    <input type="radio" class="btn-check filter-log-out" name="filterLogOut" id="filterLogOutAll" value="" checked>
-                                    <label class="log-seg-btn" for="filterLogOutAll">All</label>
-                                    <input type="radio" class="btn-check filter-log-out" name="filterLogOut" id="filterLogOutWith" value="with">
-                                    <label class="log-seg-btn" for="filterLogOutWith">With</label>
-                                    <input type="radio" class="btn-check filter-log-out" name="filterLogOut" id="filterLogOutWithout" value="without">
-                                    <label class="log-seg-btn" for="filterLogOutWithout">Without</label>
-                                </div>
-                            </div>
+                        <div class="log-seg log-status-seg" role="radiogroup" aria-labelledby="logStatusLabel">
+                            <input type="radio" class="btn-check filter-log" name="filterLog" id="filterLogAll" value="" checked>
+                            <label class="log-seg-btn" for="filterLogAll">All</label>
+                            <input type="radio" class="btn-check filter-log" name="filterLog" id="filterLogComplete" value="complete">
+                            <label class="log-seg-btn" for="filterLogComplete">Complete</label>
+                            <input type="radio" class="btn-check filter-log" name="filterLog" id="filterLogMissingOut" value="missing-out">
+                            <label class="log-seg-btn" for="filterLogMissingOut">Missing Out</label>
+                            <input type="radio" class="btn-check filter-log" name="filterLog" id="filterLogNone" value="none">
+                            <label class="log-seg-btn" for="filterLogNone">No Log</label>
                         </div>
 
                         <!-- Shown once a day has a change -->
@@ -284,7 +271,7 @@
         </div>
 
         <div class="fixed-bottom-bar">
-            <div class="version-text">version : 3.7.116</div>
+            <div class="version-text">version : 3.7.117</div>
             <!-- 20 people a page, like Employees and Activity (Baldy, 04-11-2026) -->
             <div class="table-pager report-pager">
                 <div class="pagination-info" id="reportPageInfo"></div>

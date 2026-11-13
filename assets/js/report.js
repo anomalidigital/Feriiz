@@ -57,8 +57,7 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        logIn: '',             // Log Status: '' (All), 'with' or 'without' a log in
-        logOut: '',            //   and the same for the log out (LOG_FIELDS)
+        log: '',               // Log Status: '' (All), 'complete', 'missing-out' or 'none' (LOG_CHOICES)
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -1162,48 +1161,40 @@
     /* =============================================
        FILTERS
        ============================================= */
-    /* Log Status asks two things about a day, its log in and its log out, each All, With or
-       Without (Baldy, 12-11-2026: "log in : ada, log out : ada / log in : ada, Log out : tidak /
-       log in : tidak, log out : ada / log in : tidak, Log out : tidak… intinya in ada dia
-       tampil, nah kalau in nya gada dia ga ketampil"; then "saran mu aja deh"). Log In With
-       shows every day someone logged in, whatever its log out; each of the four kinds of day is
-       one With / Without pair. A day the filter leaves out is blank (v3.7.105). Days off and
-       days a request covers have no log to ask about, so they show only when both are All.
-       Before: four ticks, one per kind of day (12-11, v3.7.97); Log In / Log Out boxes (11-11);
-       one choice of five (09-11). */
-    var LOG_FIELDS = {
-        logIn: { box: 'filter-log-in', word: 'log in' },
-        logOut: { box: 'filter-log-out', word: 'log out' }
-    };
+    /* Log Status is one choice about a day's logs: All, Complete (a log in and a log out),
+       Missing Out (a log in without its log out) or No Log (a working day without any). A day
+       cannot miss its log in alone: the attendance system takes a lone tap as the log in, even
+       at 16:59 on an 08:00–17:00 project (Baldy, 13-11-2026, from the backend: "sistem kita itu
+       tidak bisa missing in… kalau dia missing in dia pasti juga missing out… intinya dia tidak
+       bisa missing in, missing out bisa, soal nya filter ini masih terlalu ribet"). A day the
+       filter leaves out is blank (v3.7.105); days off and days a request covers have no log to
+       ask about, so they show only under All. Before: Log In and Log Out rows, each All / With /
+       Without (12-11, v3.7.107); four ticks (v3.7.97); one choice of five (09-11). */
+    var LOG_CHOICES = { complete: 'Complete', 'missing-out': 'Missing Out', none: 'No Log' };
 
-    function getDraftLogs() {
-        var draft = {};
-        Object.keys(LOG_FIELDS).forEach(function (f) {
-            var on = document.querySelector('.' + LOG_FIELDS[f].box + ':checked');
-            draft[f] = on && (on.value === 'with' || on.value === 'without') ? on.value : '';
-        });
-        return draft;
+    function getDraftLog() {
+        var on = document.querySelector('.filter-log:checked');
+        return on && LOG_CHOICES[on.value] ? on.value : '';
     }
 
-    function setLogDraft(state) {
-        Object.keys(LOG_FIELDS).forEach(function (f) {
-            document.querySelectorAll('.' + LOG_FIELDS[f].box).forEach(function (box) { box.checked = box.value === (state[f] || ''); });
-        });
+    function setLogDraft(choice) {
+        document.querySelectorAll('.filter-log').forEach(function (box) { box.checked = box.value === (choice || ''); });
     }
 
     function logFiltersOn() {
-        return Boolean(appliedReportFilters.logIn || appliedReportFilters.logOut);
+        return Boolean(appliedReportFilters.log);
     }
 
-    function logFieldMatches(choice, has) { return !choice || (choice === 'with') === has; }
-
-    // A day as it stands (its newest version): does it have a log in, a log out.
+    // A day as it stands (its newest version): its log in, its log out.
     function cellMatchesLogFilters(cell) {
-        if (!logFiltersOn()) return true;
+        var choice = appliedReportFilters.log;
+        if (!choice) return true;
         var hasIn = Boolean(cell.dataset.inTime);
         var hasOut = Boolean(cell.dataset.outTime);
         if (!hasIn && !hasOut && !cell.dataset.missing) return false;   // a day off or a request
-        return logFieldMatches(appliedReportFilters.logIn, hasIn) && logFieldMatches(appliedReportFilters.logOut, hasOut);
+        if (choice === 'complete') return hasIn && hasOut;
+        if (choice === 'missing-out') return hasIn && !hasOut;
+        return !hasIn && !hasOut;   // 'none'
     }
 
     function rowMatchesLogFilters(row) {
@@ -1276,7 +1267,7 @@
     function paginateRows() {
         // A new search or filter starts again on the first page.
         var key = JSON.stringify([((document.getElementById('reportSearch') || {}).value || '').trim(),
-            appliedReportFilters.occupations, appliedReportFilters.logIn, appliedReportFilters.logOut]);
+            appliedReportFilters.occupations, appliedReportFilters.log]);
         if (key !== pageFilterKey) {
             pageFilterKey = key;
             reportPage = 1;
@@ -1394,14 +1385,12 @@
             html += '<span class="filter-indicator-chip">Occupation: ' + escapeHTML(name) +
                 '<button class="filter-chip-close" data-filter-type="occupation" data-value="' + escapeHTML(value) + '" aria-label="Remove ' + escapeHTML(name) + ' from the occupation filter">&times;</button></span>';
         });
-        // One chip per Log Status field that is not All ("With log in"), so one can go alone.
-        Object.keys(LOG_FIELDS).forEach(function (f) {
-            var choice = appliedReportFilters[f];
-            if (!choice) return;
-            var name = (choice === 'with' ? 'With ' : 'Without ') + LOG_FIELDS[f].word;
-            html += '<span class="filter-indicator-chip">' + name +
-                '<button class="filter-chip-close" data-filter-type="log" data-value="' + f + '" aria-label="Remove ' + name + ' from the Log Status filter">&times;</button></span>';
-        });
+        // The Log Status choice when it is not All ("Missing Out").
+        if (appliedReportFilters.log) {
+            var logName = LOG_CHOICES[appliedReportFilters.log];
+            html += '<span class="filter-indicator-chip">' + logName +
+                '<button class="filter-chip-close" data-filter-type="log" aria-label="Remove ' + logName + ' from the Log Status filter">&times;</button></span>';
+        }
         if (appliedReportFilters.original) {
             html += '<span class="filter-indicator-chip">Show history' +
                 '<button class="filter-chip-close" data-filter-type="original" aria-label="Show the default hours again">&times;</button></span>';
@@ -1426,8 +1415,8 @@
                     }
                     if (appliedReportFilters.original) showDays(currentVisibleDates.slice(), true);
                 } else if (type === 'log') {
-                    if (LOG_FIELDS[btn.dataset.value]) appliedReportFilters[btn.dataset.value] = '';
-                    setLogDraft(appliedReportFilters);
+                    appliedReportFilters.log = '';
+                    setLogDraft('');
                 }
                 applyReportFilters();
             });
@@ -2297,9 +2286,7 @@
                 var wasOriginal = appliedReportFilters.original;
                 var wasOccupations = JSON.stringify(appliedReportFilters.occupations);
                 var originalBox = document.getElementById('filterOriginal');
-                var logs = getDraftLogs();
-                appliedReportFilters.logIn = logs.logIn;
-                appliedReportFilters.logOut = logs.logOut;
+                appliedReportFilters.log = getDraftLog();
                 appliedReportFilters.occupations = (window.FeriizFilters && window.FeriizFilters.getOccupationValues)
                     ? window.FeriizFilters.getOccupationValues(document)
                     : [];
@@ -2319,11 +2306,10 @@
                 var wasOriginal = appliedReportFilters.original;
                 var originalBox = document.getElementById('filterOriginal');
                 resetDateDraft();
-                setLogDraft({ logIn: '', logOut: '' });
+                setLogDraft('');
                 if (originalBox) originalBox.checked = false;
                 if (window.FeriizFilters && window.FeriizFilters.resetOccupationFilter) window.FeriizFilters.resetOccupationFilter(document);
-                appliedReportFilters.logIn = '';
-                appliedReportFilters.logOut = '';
+                appliedReportFilters.log = '';
                 appliedReportFilters.occupations = [];
                 appliedReportFilters.occupationLabels = [];
                 appliedReportFilters.range = null;

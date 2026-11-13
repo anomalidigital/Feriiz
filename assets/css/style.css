@@ -7338,29 +7338,23 @@ div.report-layout .report-search-input {
     margin-bottom: 0;
 }
 
-/* Log Status: Log In and Log Out, each a row of All / With / Without (12-11-2026). */
-.log-status-fields {
-    display: grid;
-    gap: 8px;
+/* Log Status: one row, All / Complete / Missing Out / No Log (13-11-2026; Log In and Log Out
+   rows of three before). */
+.log-status-seg {
+    grid-auto-columns: auto;   /* each as wide as its word, "Missing Out" on one line */
     margin-bottom: 18px;
 }
 
-.log-status-field {
-    display: grid;
-    grid-template-columns: 56px minmax(0, 1fr);
-    align-items: center;
-    gap: 8px;
-}
-
-.log-status-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: #344054;
+.log-status-seg .log-seg-btn {
+    padding-left: 6px;
+    padding-right: 6px;
+    white-space: nowrap;
 }
 
 .log-seg {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     border: 1px solid #E2E8F0;
     border-radius: 8px;
     overflow: hidden;

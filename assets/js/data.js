@@ -355,6 +355,16 @@
             API.projects = data.projects || [];
             API.employees = data.employees || [];
             API.attendance = data.attendance || [];
+            // A lone tap is the log in: the attendance system has no day with a log out and no log
+            // in, it cuts the day off and takes the tap as the log in, even at 16:59 on an
+            // 08:00–17:00 project (Baldy, 13-11-2026, from the backend). The generated dataset has
+            // 1,460 such days (taps from 16:00 to 19:59); they become a log in without its log out.
+            API.attendance.forEach(function (r) {
+                if (!r.inTime && r.outTime) {
+                    r.inTime = r.outTime;
+                    r.outTime = '';
+                }
+            });
             API.employees.forEach(function (e) { API._empByCode[e.code] = e; });
             applyOccupationEdits();
             API.projects.forEach(function (p) {

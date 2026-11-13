@@ -2714,6 +2714,18 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 }
 
 /* Add Log: what a set time and an empty time do (Baldy, 05-11-2026). */
+/* Add Log: Total Hour and Total Overtime side by side (13-11-2026). */
+.report-fix-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.report-fix-input.is-invalid {
+    border-color: #E74C3C;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+}
+
 .report-fix-hint {
     margin: -8px 0 16px;
     font-size: 12px;

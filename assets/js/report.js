@@ -426,7 +426,16 @@
     // One version b, its cell c, on a day's state s, as dayState plays them.
     function stepDay(s, b, c, code, date) {
         var kind = kindOf(b);
-        if (kind === 'add') {
+        if (kind === 'add' && c.hours != null) {
+            // Add Log by totals (13-11-2026): the numbers count, and a missing log in or log out
+            // takes the working time; a log the day has stays.
+            if (c.hours > 0) {
+                if (!s.inTime) { s.inTime = c.inTime; s.inNote = b.note || ''; }
+                if (!s.outTime) { s.outTime = c.outTime; s.outNote = b.note || ''; }
+            }
+            s.numbers = { daily: c.daily, ot: c.ot, work: c.hours };
+        } else if (kind === 'add') {
+            // Add Log by clock times (04-11 to 13-11-2026).
             if (c.inTime) { s.inTime = c.inTime; s.inNote = b.note || ''; }
             if (c.outTime) { s.outTime = c.outTime; s.outNote = b.note || ''; }
             s.numbers = null;
@@ -472,16 +481,18 @@
     // the same rule as the print's: "tidak ada setengah seperti 1.30"). An imported 1.5 is 1 too.
     function wholeHours(h) { return Math.max(0, Math.floor(round2(h) + 1e-9)); }
 
-    // What a day shows and counts now: the newest import's numbers, else its logs'. A Daily the
-    // import left as it was keeps the hours the logs make, so a plain download and import
-    // changes nothing on screen; a changed Daily counts Daily x the file's Period.
+    // What a day shows and counts now: the newest import's or Add Log's numbers, else its logs'.
+    // Add Log gives its own Total Hour; a Daily an import left as it was keeps the hours the logs
+    // make, so a plain download and import changes nothing on screen; a changed Daily counts
+    // Daily x the file's Period.
     function stateCount(employee, date, s) {
         var logs = logCount(employee.code, date, s.inTime, s.outTime);
         var imp = s.numbers;
         if (!imp) return logs;
         return {
             daily: imp.daily,
-            work: imp.daily !== logs.daily ? round2((Number(imp.daily) || 0) * importHours(employee, imp).period) : logs.work,
+            work: imp.work != null ? round2(imp.work)
+                : imp.daily !== logs.daily ? round2((Number(imp.daily) || 0) * importHours(employee, imp).period) : logs.work,
             ot: wholeHours(imp.ot)
         };
     }
@@ -1458,25 +1469,33 @@
        ============================================= */
     var activeAction = 'add';
 
-    // Add Log asks for the log in and the log out at once (Baldy, 04-11-2026). A time sets that log:
-    // a missing one is added, an existing one replaced (Baldy, 05-11-2026: a custom log, "dari jam
-    // 07:00 ke jam 08:00", is done here; the original stays in the History). An empty time keeps
-    // that log as it is. A time starts at the project's working hours (meeting 1:28) only when
-    // every ticked day is missing that log, so a real log is never replaced by accident.
+    /* Add Log takes the day's totals, Total Hour and Total Overtime, not its clock times (Baldy,
+       13-11-2026: "iya jadi di ganti ya… mereka minta nya gitu"; meeting 10-11-2026, 00:37-00:41:
+       "cuma isi lapan, sebelahnya satu… total hour sama total overtime… jamnya itu ngambilnya
+       dari jam itu aja default"). Daily is 1 when Total Hour reaches the day's Default Hours, 0.5
+       below, 0 at 0; overtime is whole hours. A missing log in or log out takes the working time;
+       a log the day has stays. Each Save is a version, the original stays in the History. From
+       04-11 to 13-11-2026 it set a log in and a log out time. */
     function prefillAddLog(cells) {
-        var inInput = document.getElementById('batchUpdateIn');
-        var outInput = document.getElementById('batchUpdateOut');
-        var start = ((projectContext && projectContext.workStart) || '08:00') + ':00';
-        var end = ((projectContext && projectContext.workEnd) || '17:00') + ':00';
-        var states = cells.map(function (cell) { return dayState(cell.closest('tr').dataset.employeeCode, cell.dataset.date); });
-        if (inInput) inInput.value = states.every(function (s) { return !s.inTime; }) ? start : '';
-        if (outInput) outInput.value = states.every(function (s) { return !s.outTime; }) ? end : '';
+        var hoursInput = document.getElementById('batchUpdateHours');
+        var otInput = document.getElementById('batchUpdateOT');
+        var periods = {};
+        cells.forEach(function (cell) { periods[round2(periodOf(cell.closest('tr').dataset.employeeCode, cell.dataset.date))] = true; });
+        var list = Object.keys(periods);
+        if (hoursInput) {
+            hoursInput.value = list.length === 1 ? list[0] : '';
+            hoursInput.classList.remove('is-invalid');
+        }
+        if (otInput) {
+            otInput.value = '0';
+            otInput.classList.remove('is-invalid');
+        }
+        var start = ((projectContext && projectContext.workStart) || '08:00');
+        var end = ((projectContext && projectContext.workEnd) || '17:00');
         var hint = document.getElementById('batchUpdateHint');
-        if (hint) hint.textContent = 'A time you set replaces the log a day already has (the original stays in the History); an empty time keeps it. Working time: ' + start + ' - ' + end + '.';
+        if (hint) hint.textContent = 'Daily is 1 from ' + (list.length === 1 ? list[0] + ' hours' : 'the Default Hours') + ', 0.5 below, 0 at 0. Overtime is whole hours. ' +
+            'A missing log in or log out takes the working time (' + start + ' - ' + end + '); a log the day has stays, and the original stays in the History.';
     }
-
-    // "08:00" from a time field reads as "08:00:00", like the machine's logs.
-    function clockValue(v) { return /^\d{2}:\d{2}$/.test(v) ? v + ':00' : v; }
 
     function showBatchModal(action) {
         var selected = getSelectedCells();
@@ -1595,27 +1614,35 @@
     // already has these times gets none), and the newest version is what a day shows. The table
     // is drawn again from the versions.
     function applyBatchUpdate() {
-        var inInput = document.getElementById('batchUpdateIn');
-        var outInput = document.getElementById('batchUpdateOut');
-        var inValue = inInput ? clockValue(inInput.value) : '';
-        var outValue = outInput ? clockValue(outInput.value) : '';
+        var hoursInput = document.getElementById('batchUpdateHours');
+        var otInput = document.getElementById('batchUpdateOT');
         var noteInput = document.getElementById('batchUpdateNote');
         var noteValue = noteInput ? noteInput.value.trim() : '';
         var selectedCells = getSelectedCells();
         var dateSummary = getBatchDateSummary(selectedCells);
         var isAdd = activeAction === 'add';
-        var updated = 0;
-        var addedIns = 0, addedOuts = 0, replaced = 0, kept = 0;
+        var updated = 0, kept = 0;
         var people = {};
 
         if (selectedCells.length === 0) {
             if (window.FeriizNotify) FeriizNotify.warning('Select at least one report cell first.', 'No log selected');
             return;
         }
-        if (isAdd && !inValue && !outValue) {
-            if (inInput) inInput.focus();
-            if (window.FeriizNotify) FeriizNotify.warning('Set a log in or a log out time before saving.', 'Log not saved');
-            return;
+        var hours = 0, overtime = 0;
+        if (isAdd) {
+            hours = hoursInput && hoursInput.value.trim() !== '' ? Number(hoursInput.value) : NaN;
+            overtime = otInput && otInput.value.trim() !== '' ? Number(otInput.value) : 0;
+            var badHours = !(hours >= 0 && hours <= 24);
+            var badOvertime = !(overtime >= 0 && overtime <= 24) || Math.floor(overtime) !== overtime;
+            if (hoursInput) hoursInput.classList.toggle('is-invalid', badHours);
+            if (otInput) otInput.classList.toggle('is-invalid', badOvertime);
+            if (badHours || badOvertime) {
+                (badHours ? hoursInput : otInput).focus();
+                if (window.FeriizNotify) {
+                    FeriizNotify.warning(badHours ? 'Fill in Total Hour, from 0 to 24.' : 'Total Overtime is whole hours, from 0 to 24: 1 or 2, not 1.5.', 'Log not saved');
+                }
+                return;
+            }
         }
 
         // Who changed the days and when, for their History.
@@ -1628,18 +1655,19 @@
             var date = cell.dataset.date;
             var s = dayState(code, date);
             if (isAdd) {
-                // Each time set adds that log or replaces it; the machine's original stays in the
-                // History and in Show history (Arcon: machine times are never lost).
-                var setIn = Boolean(inValue && inValue !== s.inTime);
-                var setOut = Boolean(outValue && outValue !== s.outTime);
-                if (!setIn && !setOut) {
+                // The day's totals, with the working time for a missing log; the machine's
+                // original stays in the History and in Show history (Arcon: machine times are
+                // never lost). A day these totals would not change gets no version.
+                var employee = (window.FERIIZ_DATA && window.FERIIZ_DATA.findEmployeeByCode(code)) || { code: code };
+                var period = periodOf(code, date);
+                var work = workTimeOf(code);
+                var totals = { hours: hours, ot: overtime, daily: hours >= period - 1e-9 ? 1 : hours > 0 ? 0.5 : 0,
+                               inTime: work.start, outTime: work.end };
+                if (!afterVersion(employee, date, s, version, totals)) {
                     kept++;
                     return;
                 }
-                var added = {};
-                if (setIn) { added.inTime = inValue; addedIns++; if (s.inTime) replaced++; }
-                if (setOut) { added.outTime = outValue; addedOuts++; if (s.outTime) replaced++; }
-                version.cells[code + '|' + date] = added;
+                version.cells[code + '|' + date] = totals;
             } else {
                 if (!s.inTime && !s.outTime) return;
                 version.cells[code + '|' + date] = {};
@@ -1659,19 +1687,17 @@
         }
         if (!window.FeriizNotify) return;
         if (isAdd && !updated) {
-            FeriizNotify.info('The ticked days already have these times, so nothing was changed.', 'Nothing to change');
+            FeriizNotify.info('The ticked days already have these totals, so nothing was changed.', 'Nothing to change');
             return;
         }
         if (!updated) return;
         var count = Object.keys(people).length;
         var who = count + (count === 1 ? ' employee' : ' employees');
         if (isAdd) {
-            var added = [addedIns ? addedIns + ' log in' : '', addedOuts ? addedOuts + ' log out' : ''].filter(Boolean).join(' and ');
-            FeriizNotify.success(added + ' set for ' + who + ' on ' + dateSummary + '.' +
-                (replaced === 1 ? ' 1 replaced a log the day had; the original stays in the History.'
-                    : replaced ? ' ' + replaced + ' replaced logs the days had; the originals stay in the History.' : '') +
-                (noteValue ? ' A note was attached to each new log.' : '') +
-                (kept === 1 ? ' 1 day already had these times.' : kept ? ' ' + kept + ' days already had these times.' : '') +
+            FeriizNotify.success(hours + 'h and ' + overtime + 'h overtime set on ' + updated + (updated === 1 ? ' day' : ' days') +
+                ' for ' + who + ' on ' + dateSummary + '; the originals stay in the History.' +
+                (noteValue ? ' A note was attached.' : '') +
+                (kept === 1 ? ' 1 day already had these totals.' : kept ? ' ' + kept + ' days already had these totals.' : '') +
                 ' What changed is yellow.', 'Log added');
         } else {
             FeriizNotify.success('The logs of ' + updated + (updated === 1 ? ' day' : ' days') + ' (' + who + ') on ' + dateSummary + ' were deleted. What changed is yellow.', 'Log deleted');

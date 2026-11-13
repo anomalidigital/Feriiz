@@ -7,13 +7,14 @@
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.121">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.121">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.122">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.122">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.121" defer></script>
-    <script src="assets/js/app.js?v=3.7.121" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.121" defer></script>
-    <script src="assets/js/occupation-manager.js?v=3.7.121" defer></script>
+    <script src="assets/js/data.js?v=3.7.122" defer></script>
+    <script src="assets/js/app.js?v=3.7.122" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.122" defer></script>
+    <script src="assets/js/occupation-manager.js?v=3.7.122" defer></script>
+    <script src="assets/js/employee-import.js?v=3.7.122" defer></script>
 </head>
 
 <body data-page="employees">
@@ -41,9 +42,10 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary">
-                    <i class="fa-solid fa-file-export"></i>
-                    Export
+                <!-- Import XLSX (13-11-2026; was an Export with nothing behind it): the Report's Import dialog for the live Feriiz's employee file (assets/js/employee-import.js) -->
+                <button class="btn btn-primary" type="button" id="importEmployeesBtn">
+                    <i class="fa-solid fa-file-excel"></i>
+                    Import XLSX
                 </button>
                 <button class="btn btn-primary" type="button" id="manageOccupationsBtn">
                     <i class="fa-solid fa-briefcase"></i>
@@ -102,7 +104,7 @@
                 <nav id="paginationButtons" aria-label="Employee pages"></nav>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.121</div>
+        <div class="feriiz-u-032">version : 3.7.122</div>
     </main>
 
     <script>
@@ -310,6 +312,20 @@
             });
             document.getElementById('manageOccupationsBtn').addEventListener('click', function () {
                 window.FERIIZ_DATA.ready.then(function () { window.FeriizOccupations.open(onOccupationsChange); });
+            });
+            // Import XLSX: new employees go on top, as Add Employee puts them; the table, the
+            // Occupation filter and the counts follow.
+            document.getElementById('importEmployeesBtn').addEventListener('click', function () {
+                window.FERIIZ_DATA.ready.then(function () {
+                    window.FeriizEmployeeImport.open({
+                        employees: function () { return employeesState.all; },
+                        onImported: function (added) {
+                            for (var i = added.length - 1; i >= 0; i--) employeesState.all.unshift(added[i]);
+                            document.querySelector('[data-stat="employees"]').textContent = employeesState.all.length.toLocaleString('id-ID');
+                            onOccupationsChange();
+                        }
+                    });
+                });
             });
         });
     </script>

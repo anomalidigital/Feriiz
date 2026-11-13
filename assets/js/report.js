@@ -207,6 +207,30 @@
         return def ? { work: def.work, ot: def.ot } : null;
     }
 
+    /* Use Default Hours in this project (Project Settings, 13-11-2026; the meeting of 10-11-2026,
+       00:29:00: "kalo dia di-check, ini kita pake settingan ini, akan selalu… cuman, in sama outnya
+       tetep sama"; Baldy: "ketika di checklist ini bakal yang buat yang terbaru dari sistem… kaya
+       yang filter itu di matiin dulu show histori nya"). Ticked, a day with a log in counts its
+       occupation's Default Hours as its newest data: Daily 1, the default hours and overtime,
+       whatever the clock says, also a day missing its log out. Its logs stay as the machine
+       recorded them, the machine's own count is its original (Filter > Show history), and an
+       import or Add Hours still changes the day after it. A weekday set to 0 hours counts its
+       logs. The default is not a change: such a day is not yellow. From 02-11 to 05-11-2026 every
+       project counted this way; then the real times ("pake waktu yang aseli"). */
+    var DEFAULT_VERSION = { id: 'DEFAULT', kind: 'default', cells: {} };
+
+    function usesDefault() {
+        return Boolean(projectContext && projectContext.defaultHours && projectContext.defaultHours.useInReport);
+    }
+
+    function applyDefault(s, code, date) {
+        if (!usesDefault() || s.off || !s.inTime) return;
+        var def = dayDefault(date, code);
+        if (!def) return;
+        s.numbers = { daily: 1, ot: def.ot, work: def.work };
+        s.last = DEFAULT_VERSION;
+    }
+
     // For the print: the Set Default of a day, and the admin who prints (named under the sheet).
     window.FeriizReport = { setDefaultFor: setDefaultFor, account: function () { return currentAccount(); } };
 
@@ -401,6 +425,7 @@
         var s = { off: off, inTime: off ? '' : rec.inTime || '', outTime: off ? '' : rec.outTime || '',
                   inNote: off ? '' : rec.inNote || '', outNote: off ? '' : rec.outNote || '', numbers: null, last: null };
         if (upTo === null) return s;
+        applyDefault(s, code, date);
         var batches = projectImports().batches;
         for (var i = 0; i < batches.length; i++) {
             var b = batches[i], c = b.cells[key];
@@ -512,11 +537,13 @@
 
     function versionName(b) {
         var kind = kindOf(b);
-        return kind === 'add' ? (hoursVersion(b) ? 'Add Hours' : 'Add Log') : kind === 'delete' ? 'Delete Log' : 'Import';
+        return kind === 'add' ? (hoursVersion(b) ? 'Add Hours' : 'Add Log') : kind === 'delete' ? 'Delete Log'
+            : kind === 'default' ? 'Default Hours' : 'Import';
     }
 
     // Who changed a day last, and how: the tooltip of a changed day.
     function versionText(b) {
+        if (b === DEFAULT_VERSION) return 'Default Hours of this project (Settings). The machine\'s own hours are under Filter > Show history.';
         var who = accountOf(b.by, b.role);
         var what = kindOf(b) === 'import' ? 'Imported' + (b.file ? ' from ' + b.file : '') : versionName(b);
         return what + ' by ' + who.name + ' · ' + who.role + (b.at ? ', ' + stampText(b.at) : '') + '.' + (b.note ? ' Note: ' + b.note : '');
@@ -588,7 +615,7 @@
     // (issue, see dayIssue); else ''. In a yellow day a log still missing keeps a red box ("yang
     // ada missing dia juga merah ya", CSS .day-changed .log-empty-row). No blue.
     function dayMark(employee, date, s, count, issue) {
-        if (s.last) {
+        if (s.last && s.last !== DEFAULT_VERSION) {
             var o = dayState(employee.code, date, null);
             var oc = logCount(employee.code, date, o.inTime, o.outTime);
             if (s.inTime !== o.inTime || s.outTime !== o.outTime || Number(count.daily) !== oc.daily ||
@@ -2063,7 +2090,7 @@
     }
 
     // Show history has something to show once a day has a change (an import, Add Log or Delete Log).
-    function originalAvailable() { return hasImports(); }
+    function originalAvailable() { return hasImports() || usesDefault(); }
 
     function syncDataFilter() {
         var block = document.getElementById('reportDataFilter');

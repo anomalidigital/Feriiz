@@ -7111,6 +7111,27 @@ div.report-layout .report-search-input {
     color: var(--feriiz-text-hint);
 }
 
+/* Use Default Hours in this project, at the bottom of the hours (13-11-2026). */
+.occ-hours-use {
+    margin: 16px 16px 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--feriiz-border-soft);
+}
+
+.occ-hours-use .form-check-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--feriiz-text);
+}
+
+.occ-hours-use-help {
+    margin: 4px 0 0 1.5em;
+    max-width: 72ch;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--feriiz-text-hint);
+}
+
 /* ============================================
    MANAGE OCCUPATIONS (Employees, 12-11-2026)
    Laid out like Manage Employee: a name to add, a search, then a grey box of white rows,

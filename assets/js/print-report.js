@@ -187,8 +187,7 @@
     // One person's day as the Report has it: d = the Daily (0, 0.5 or 1), ot = overtime hours,
     // w = came in (Jumlah Orang Per Hari counts it), req = the requests given that day (Uang Makan…) for their
     // columns, r = the name of an accepted request on a day off work, off = a day off, and for a
-    // day with data s = [hours, overtime] of the client print's Set Default, and for a day a version
-    // changed o = [Daily, overtime, day off 1/0] as the machine had it (the Internal "System" data).
+    // day with data s = [hours, overtime] of the client print's Set Default.
     function dayEntry(tr, date, idx) {
         var e = { d: 0, ot: 0, w: false, req: [], r: '', off: false };
         var dayTd = tr.querySelector('td.day-col[data-date="' + date + '"]');
@@ -212,8 +211,6 @@
             if (def) e.s = [def.work, def.ot];
         }
         if (!e.off && dayTd.dataset.request) e.r = dayTd.dataset.request;
-        var orig = window.FeriizReport && window.FeriizReport.originalFor ? window.FeriizReport.originalFor(tr.dataset.employeeCode, date) : null;
-        if (orig) e.o = [orig.daily, orig.ot, orig.off ? 1 : 0];
         return e;
     }
 
@@ -247,6 +244,8 @@
             endYYMMDD: range.endYYMMDD,
             filter: getFilterSummary(),
             generated: new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            // The admin who printed it, named at the end of the sheet (13-11-2026).
+            printedBy: window.FeriizReport && window.FeriizReport.account ? window.FeriizReport.account().name : '',
             pageUrl: window.location.href,
             dates: dates,
             emp: {
@@ -359,14 +358,14 @@
         }).map(function (name) { return { name: name || 'No occupation', rows: byName[name] }; });
     }
 
-    // A day as the sheet prints and counts it: as the Report has it, in the client print a day
-    // with data at its Set Default, in the Internal "System" data as the machine had it. Overtime
-    // in whole hours.
-    function sheetDay(row, date, client, system) {
+    // A day as the sheet prints and counts it: as the Report has it (its newest version), in the
+    // client print a day with data at its Set Default. Overtime in whole hours. The Internal print's
+    // "System" data, each day as the machine recorded it (v3.7.110–3.7.115), is taken out (Baldy,
+    // 13-11-2026: "ga di minta deh kayanya apus dulu").
+    function sheetDay(row, date, client) {
         var e = row.days[date];
         if (!e) return null;
         if (client && e.s) return { d: 1, ot: wholeHours(e.s[1]), w: true, req: e.req || [], r: '', off: false };
-        if (!client && system && e.o) return { d: Number(e.o[0]) || 0, ot: wholeHours(e.o[1]), w: Number(e.o[0]) > 0, req: e.req || [], r: '', off: Boolean(e.o[2]) };
         return { d: Number(e.d) || 0, ot: wholeHours(e.ot), w: Boolean(e.w), req: e.req || [], r: e.r || '', off: Boolean(e.off) };
     }
 
@@ -377,7 +376,7 @@
         var days = 0, ot = 0, req = {}, reqTotal = 0;
         job.dates.forEach(function (d) {
             if (cut['d:' + d.date]) return;   // a date left out whole
-            var e = sheetDay(row, d.date, view.client, view.system);
+            var e = sheetDay(row, d.date, view.client);
             if (!e) return;
             if (!cut['p:' + d.date]) {
                 days += e.d;
@@ -407,7 +406,6 @@
                      String(job.project.name || '').toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_\-&]/g, '')];
         var cutDates = (view && view.cut) || {};
         if (job.dates.some(function (d) { return !cutDates['d:' + d.date]; })) parts.push('DAILY');
-        if (view && view.system && !view.client) parts.push('SYSTEM');
         if (cols.emp.length) parts.push('EMPLOYEE');
         if (cols.cli.length) parts.push('CLIENT');
         return parts.join('_');
@@ -440,6 +438,65 @@
     // A header as printed: "Overtime" may break as "Over / time" in a narrow column, no hyphen
     // (Baldy, 13-11-2026: "overtime gausah ada '-'"), never "Overti-me".
     function headHTML(label) { return String(label).replace(/Overtime/g, 'Over<wbr>time'); }
+
+    /* What the real system's print has and ours lacked (Baldy, 13-11-2026, with two prints of
+       it: "di printnan dia tambahin ini aja ya"; "di pages kedua juga ada text itu nya dan ada
+       nama admin nya, di kita kan gada ya… adain dong"): the period under the project; at the top
+       of every page when it printed and the file's name (the sheet's identifier); at the end the
+       admin who printed it, with the date. Chrome writes its own date and title only when its
+       "Headers and footers" is ticked and the page margin has room, which our 6mm had not, so
+       the sheet sets them in the page's margin boxes (pageBoxes), with the page number. */
+    var DAY_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var MONTH_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+                    'October', 'November', 'December'];
+
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+    // "Mon, 09 November 2026"; with the whole weekday "Friday, 13 November 2026".
+    function longDate(d, wholeDay) {
+        var day = DAY_EN[d.getDay()];
+        return (wholeDay ? day : day.slice(0, 3)) + ', ' + pad2(d.getDate()) + ' ' + MONTH_EN[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    // The Report's period, its first and last date: "Mon, 09 November 2026 - Sun, 15 November 2026".
+    function periodLine(job) {
+        var first = job.dates.length ? fromISO(job.dates[0].date) : null;
+        var last = job.dates.length ? fromISO(job.dates[job.dates.length - 1].date) : null;
+        if (!first || !last) return job.period || '';
+        return first.getTime() === last.getTime() ? longDate(first) : longDate(first) + ' - ' + longDate(last);
+    }
+
+    // When it prints, as Chrome writes it in its header: "13/11/2026, 10:59".
+    function printedStamp(now) {
+        return pad2(now.getDate()) + '/' + pad2(now.getMonth() + 1) + '/' + now.getFullYear() + ', ' +
+            pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+    }
+
+    function cssString(s) { return '"' + String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]+/g, ' ') + '"'; }
+
+    // The margin boxes of every printed page: when it prints at the top left, the file's name at
+    // the top right, the page number at the bottom right. page: the named page ('feriiz-preview'
+    // in the Print preview) or '' for the Report's own print.
+    function pageBoxes(job, view, page) {
+        var box = 'font-family: Poppins, Arial, sans-serif; font-size: 6.5pt; line-height: 1.2; color: #475569;';
+        var top = box + ' vertical-align: bottom; padding-bottom: 1.6mm;';
+        return '@page' + (page ? ' ' + page : '') + ' {' +
+            ' @top-left { content: ' + cssString(printedStamp(new Date())) + '; ' + top + ' }' +
+            ' @top-right { content: ' + cssString(sheetIdentifier(job, view)) + '; ' + top + ' }' +
+            ' @bottom-right { content: counter(page) " / " counter(pages); ' + box + ' vertical-align: top; padding-top: 1.6mm; }' +
+            ' }';
+    }
+
+    // Puts them on the page, in a <style> of their own that each print replaces.
+    function setPageBoxes(job, view, page) {
+        var st = document.getElementById('feriizPageBoxes');
+        if (!st) {
+            st = document.createElement('style');
+            st.id = 'feriizPageBoxes';
+            document.head.appendChild(st);
+        }
+        st.textContent = pageBoxes(job, view, page);
+    }
 
     // What a money cell says: the rates and totals as the Report writes them, the additional
     // columns "-" when there is nothing to pay.
@@ -484,7 +541,7 @@
         dates.forEach(function (d) {
             var p = 1, o = 1;
             printed.forEach(function (row) {
-                var e = sheetDay(row, d.date, view.client, view.system);
+                var e = sheetDay(row, d.date, view.client);
                 if (e) { p = Math.max(p, figure(e.d).length); o = Math.max(o, String(e.ot).length); }
             });
             days[d.date] = [Math.max(figureMM(p), headMM('Period<br>(daily)')), Math.max(figureMM(o), headMM('Overtime<br>(hour)'))];
@@ -614,7 +671,7 @@
                 html += '<tr><td class="td-no">' + (index + 1) + '</td>';
                 html += '<td class="td-name"><div class="print-emp-name">' + escapeHTML(row.name) + '</div></td>';
                 t.dates.forEach(function (d) {
-                    var e = sheetDay(row, d.date, view.client, view.system);
+                    var e = sheetDay(row, d.date, view.client);
                     html += '<td class="td-daily-period">' + (cut['p:' + d.date] ? '' : periodText(e)) + '</td>';
                     html += '<td class="td-daily-ot">' + (cut['o:' + d.date] ? '' : overtimeText(e)) + '</td>';
                 });
@@ -693,11 +750,17 @@
         // still says "All active data (No filter)").
         // Under the project only the person, on an Employee Report's print: no "Attendance & Payroll
         // Summary" line and no data note (Baldy, 13-11-2026, "di hapus").
+        // Then the period. Above it, on screen only, what the top of every printed page says
+        // (pageBoxes); the paper has it in its margin.
+        var now = new Date();
         var person = job.employeePage ? String(job.subtitle || '').split(' • ')[0] : '';
-        var html = '<div class="report-print-header">' +
+        var html = '<div class="report-print-running" aria-hidden="true"><span>' + escapeHTML(printedStamp(now)) + '</span>' +
+                '<span>' + escapeHTML(sheetIdentifier(job, view)) + '</span></div>' +
+            '<div class="report-print-header">' +
             '<div class="report-print-title-group">' +
                 '<h1 class="report-print-project-title">' + escapeHTML(job.title) + '</h1>' +
                 (person ? '<p class="report-print-project-subtitle">' + escapeHTML(person) + '</p>' : '') +
+                '<p class="report-print-period">' + escapeHTML(periodLine(job)) + '</p>' +
             '</div>';
         if (job.filter && job.filter !== 'All active data (No filter)') {
             html += '<div class="report-print-filter-summary"><strong>Active Filter:</strong> ' + escapeHTML(job.filter) + '</div>';
@@ -709,12 +772,17 @@
         var cameIn = {};
         var personDays = 0;
         dates.forEach(function (d) {
-            cameIn[d.date] = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client, view.system); return e && e.w; }).length;
+            cameIn[d.date] = printed.filter(function (row) { var e = sheetDay(row, d.date, view.client); return e && e.w; }).length;
             if (!cut['p:' + d.date]) personDays += cameIn[d.date];
         });
         var plan = sheetPlan(job, view, cols, printed, figures, dates);
         var ctx = { cols: cols, view: view, cut: cut, printed: printed, figures: figures, scale: plan.scale, cameIn: cameIn, personDays: personDays };
         plan.tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
+
+        // The admin who printed it and the date, after the last table.
+        html += '<div class="report-print-signoff">' +
+            (job.printedBy ? '<div class="report-print-signoff-name">' + escapeHTML(job.printedBy) + '</div>' : '') +
+            '<div class="report-print-signoff-date">' + escapeHTML(longDate(now, true)) + '</div></div>';
 
         // Footer
         html += '<div class="report-print-footer">' +
@@ -771,6 +839,7 @@
         }
         var job = collectPrintJob();
         printDoc.innerHTML = renderPrintSheet(job, {});
+        setPageBoxes(job, {}, '');
         var identifier = sheetIdentifier(job, {});
         if (!originalTitle) {
             originalTitle = document.title;
@@ -853,11 +922,8 @@
     // The Print preview tab draws the same sheet.
     window.FeriizPrintSheet = {
         load: loadJob,
-        // Does any printed day differ from what the machine recorded (the Internal "System" data)?
-        hasSystemData: function (job) {
-            return job.rows.some(function (row) { return Object.keys(row.days).some(function (d) { return Boolean(row.days[d].o); }); });
-        },
         render: renderPrintSheet,
+        pageBoxes: setPageBoxes,
         identifier: sheetIdentifier,
         columns: allColumns,
         groups: groupsOf

@@ -3951,6 +3951,46 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-weight: 400 !important;
 }
 
+/* The period under the project, as the real system prints it (13-11-2026). */
+.report-print-title-group p.report-print-period {
+    margin: 0.8mm 0 0 0 !important;
+    font-size: var(--pt-subtitle) !important;
+    font-weight: 600 !important;
+    color: var(--ink-strong) !important;
+}
+
+/* What the top of every printed page says (the page's margin boxes, print-report.js pageBoxes),
+   shown on the preview's paper in the same place; never printed from here. */
+.report-print-running {
+    display: none !important;
+}
+
+@media screen {
+    .pp-paper .report-print-running {
+        display: flex !important;
+        position: absolute;
+        top: -4.6mm;
+        left: 0;
+        right: 0;
+        justify-content: space-between;
+        gap: 4mm;
+        font-size: 6.5pt;
+        line-height: 1.2;
+        color: #475569;
+    }
+}
+
+/* The admin who printed it and the date, after the last table (13-11-2026). */
+.report-print-signoff {
+    margin-top: 4mm !important;
+    font-size: var(--pt-subtitle) !important;
+    line-height: 1.5 !important;
+    color: var(--ink) !important;
+    break-before: avoid !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
 .report-print-filter-summary {
     font-size: var(--pt-filter) !important;
     color: #334155 !important;
@@ -4212,12 +4252,13 @@ body[data-page="employee-report"] .report-print-footer {
 }
 
 @media print {
-    /* Page geometry: thin margins, 6mm top/bottom and 5mm at the sides (meeting 10-11-2026,
+    /* Page geometry: thin margins, 8mm top/bottom and 5mm at the sides (meeting 10-11-2026,
        00:11:24: "margin… dibikin nol… minimal"; a printer cannot print to the very edge; it was
-       9mm / 6mm). No `size` is declared on purpose: the paper size and orientation the user
+       9mm / 6mm, then 6mm / 5mm until the top and bottom held the page's own header and number,
+       13-11-2026). No `size` is declared on purpose: the paper size and orientation the user
        picks in the print dialog (A4/A3/Letter, portrait/landscape) must win. */
     @page {
-        margin: 6mm 5mm;
+        margin: 8mm 5mm;
     }
 
     html,
@@ -4605,15 +4646,17 @@ body[data-page="print-preview"] {
     width: 297mm;
     min-height: 210mm;
     margin: 0;
-    padding: 6mm 5mm;
+    padding: 8mm 5mm;
     background: #fff;
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
 }
 
 @media screen {
-    /* The sheet on the paper; its type follows the paper's width (WIDER PAPER), A4 landscape here. */
+    /* The sheet on the paper; its type follows the paper's width (WIDER PAPER), A4 landscape here.
+       Positioned, so the page's header line (.report-print-running) sits in the paper's margin. */
     .pp-paper .report-print-document {
         display: block;
+        position: relative;
     }
 }
 
@@ -4642,7 +4685,7 @@ body[data-page="print-preview"] {
    is 100% wide, so it fills A4, A3 or A2, standing or lying, and the type grows with the paper
    (WIDER PAPER above). It was "A4 landscape" until v3.7.106, "landscape" until v3.7.113. */
 @page feriiz-preview {
-    margin: 6mm 5mm;
+    margin: 8mm 5mm;   /* the top and bottom hold the page's header and number (pageBoxes) */
 }
 
 body[data-page="print-preview"] #ppSheet {

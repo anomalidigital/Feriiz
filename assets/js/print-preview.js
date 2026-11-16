@@ -27,14 +27,17 @@
    with data at the Set Default of the person's occupation (Daily 1 when its hours make a full
    working day, else 0.5), without changing the Report; its columns are the Report's too, the
    Employee ones included (Baldy, 13-11-2026: "fungsi client cuma buat ubah data nya menjadi
-   sesuai set default nya, untuk coloms nya itu jangan di ubah"; it left them out before). A date
-   or a field off on every date of a weekday (Sundays, say) is kept for the project's next print
-   of that kind.
+   sesuai set default nya, untuk coloms nya itu jangan di ubah"; it left them out before).
+   Nothing is remembered: every print starts with every date and field on, in both modes (Baldy,
+   16-11-2026: "itu bener jangan sampe mengingat"). Until then a weekday left out on every date
+   (a Sunday, say) was kept for the project's next print without a word, so a print could come
+   out without its Sundays and nobody knew why.
    ============================================= */
 (function () {
     'use strict';
 
-    var PREFS_KEY = 'feriiz_print_prefs_v1';
+    // What the page kept for each project until v3.7.130; removed from the browser on opening.
+    var OLD_PREFS_KEY = 'feriiz_print_prefs_v1';
     var DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     var FIELDS = [['p', 'Period (daily)'], ['o', 'Overtime (hour)']];
     var job = null;
@@ -48,65 +51,11 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    /* ---------- what is kept for the project's next print ---------- */
-    function readPrefs() {
-        try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch (e) { return {}; }
-    }
-
-    // { internal: { days }, client: { days } } for the project (06-11 kept one set: Internal). The
-    // columns and the layout kept until 13-11-2026 are not read any more.
-    function projectPrefs() {
-        var p = readPrefs()[job.project.code] || {};
-        return p.internal || p.client ? p : { internal: p };
-    }
-
-    function weekdays() {
-        var seen = {};
-        job.dates.forEach(function (d) { if (d.dow >= 0) seen[d.dow] = true; });
-        return Object.keys(seen).map(Number).sort();
-    }
-
-    function savePrefs() {
-        var all = readPrefs();
-        var mine = projectPrefs();
-        var days = {};
-        weekdays().forEach(function (dow) {
-            var dates = job.dates.filter(function (d) { return d.dow === dow; });
-            FIELDS.concat([['d']]).forEach(function (f) {
-                if (dates.every(function (d) { return state.cut[f[0] + ':' + d.date]; })) (days[dow] = days[dow] || {})[f[0]] = true;
-            });
-        });
-        mine[state.mode] = { days: days };
-        delete mine.layout;
-        all[job.project.code] = mine;
-        try { localStorage.setItem(PREFS_KEY, JSON.stringify(all)); } catch (e) { /* kept for this tab only */ }
-    }
-
-    // What a mode starts with: the weekdays kept for it (left out whole, or a field off), else
-    // every date on.
-    function modeCut(mode) {
-        var p = projectPrefs()[mode];
-        var cut = {};
-        if (!p) return cut;
-        var days = p.days || {};
-        if (Array.isArray(days)) {   // weekdays blanked whole, 06-11 to 11-11-2026
-            var both = {};
-            days.forEach(function (d) { both[d] = { p: true, o: true }; });
-            days = both;
-        }
-        job.dates.forEach(function (d) {
-            var rule = days[d.dow];
-            if (!rule) return;
-            FIELDS.concat([['d']]).forEach(function (f) { if (rule[f[0]]) cut[f[0] + ':' + d.date] = true; });
-        });
-        return cut;
-    }
-
     // mode: 'internal' or 'client'; cut: a date or one of its fields off. Internal prints the
     // Report's newest data: its Data: Latest | System went on 13-11-2026 ("ga di minta deh kayanya
     // apus dulu").
-    function freshState(mode, withPrefs) {
-        return { mode: mode, cut: withPrefs ? modeCut(mode) : {} };
+    function freshState(mode) {
+        return { mode: mode, cut: {} };
     }
 
     // screen: the sheet draws its one table for this page (print-report.js screenTable); for
@@ -134,29 +83,30 @@
     // "03 Nov" of "03 Nov 2026": the year is in the period under the title.
     function shortLabel(d) { return String(d.label).replace(/\s+\d{4}$/, ''); }
 
-    /* The dates going right, as on the sheet, a column each with three boxes: the Date itself, its
-       Period (daily), its Overtime (hour). No "All dates" box (Baldy, 13-11-2026: "gausah ada all
-       days"). The Date box leaves the whole date out, its column too ("aku kira… ketika di un
-       checklist itu bakal mengapus hari nya"); Period and Overtime only empty their own cells, the
-       column stays (the meeting of 10-11: a Sunday printed empty under its date). */
+    /* The dates going right, as on the sheet. A date's own box is in its header, under the date
+       (Baldy, 16-11-2026, of a "Date" row under "Dates": "gausah aja ada date nya"): off, the whole
+       date goes, its column too ("aku kira… ketika di un checklist itu bakal mengapus hari nya").
+       Under it its Period (daily) and Overtime (hour) only empty their own cells, the column stays
+       (the meeting of 10-11: a Sunday printed empty under its date); with the date off they show
+       empty and cannot be ticked. No "All dates" box (13-11-2026: "gausah ada all days"). */
     function datesTable() {
-        var head = '', whole = '', fields = { p: '', o: '' };
+        var head = '', fields = { p: '', o: '' };
         job.dates.forEach(function (d) {
             var on = dayOn(d.date);
             var cls = on ? '' : ' class="is-off"';
             var key = ' data-key="' + esc(d.date) + '"';
-            head += '<th scope="col"' + cls + '>' + (d.dow >= 0 ? '<span class="pp-date-dow">' + DAY_SHORT[d.dow] + '</span>' : '') +
-                '<span class="pp-date-day">' + esc(shortLabel(d)) + '</span></th>';
-            whole += '<td' + cls + '>' + cellBox('date', key, on ? 'all' : 'none', d.label + ', the whole date') + '</td>';
+            head += '<th scope="col"' + cls + '><label class="pp-date">' +
+                (d.dow >= 0 ? '<span class="pp-date-dow">' + DAY_SHORT[d.dow] + '</span>' : '') +
+                '<span class="pp-date-day">' + esc(shortLabel(d)) + '</span>' +
+                box('date', key, on ? 'all' : 'none', d.label + ', the whole date') + '</label></th>';
             FIELDS.forEach(function (f) {
                 fields[f[0]] += '<td' + cls + '>' + cellBox('cell', key + ' data-field="' + f[0] + '"',
-                    fieldOn(f[0], d.date) ? 'all' : 'none', f[1] + ', ' + d.label, !on) + '</td>';
+                    on && fieldOn(f[0], d.date) ? 'all' : 'none', f[1] + ', ' + d.label, !on) + '</td>';
             });
         });
         return '<table class="pp-dates-grid">' +
             '<thead><tr><th scope="col" class="pp-dates-title">Dates</th>' + head + '</tr></thead>' +
-            '<tbody><tr><th scope="row">Date</th>' + whole + '</tr>' +
-            FIELDS.map(function (f) { return '<tr><th scope="row">' + f[1] + '</th>' + fields[f[0]] + '</tr>'; }).join('') +
+            '<tbody>' + FIELDS.map(function (f) { return '<tr><th scope="row">' + f[1] + '</th>' + fields[f[0]] + '</tr>'; }).join('') +
             '</tbody></table>';
     }
 
@@ -201,16 +151,14 @@
         $('ppSheet').innerHTML = window.FeriizPrintSheet.render(job, view());
         window.FeriizPrintSheet.pageBoxes(job, view(), 'feriiz-preview');
         renderDates();
-        savePrefs();
         renderMode();
     }
 
-    // Another mode takes its own dates (what is kept for its weekdays).
+    // Another mode keeps the dates as they are: they say what prints, whichever the data.
     function onModeClick(e) {
         var btn = e.target.closest('button[data-mode]');
         if (!btn || btn.dataset.mode === state.mode) return;
         state.mode = btn.dataset.mode;
-        state.cut = modeCut(state.mode);
         render();
         var again = $('ppMode').querySelector('button[data-mode="' + state.mode + '"]');
         if (again) again.focus();
@@ -247,7 +195,8 @@
         // leave the dates beside them more room.
         $('ppContext').innerHTML = esc((job.employeePage ? job.subtitle.split(' • ')[0] + ' · ' : '') + job.title) +
             '<span class="pp-period">' + esc(job.period) + '</span>';
-        state = freshState('internal', true);
+        try { localStorage.removeItem(OLD_PREFS_KEY); } catch (e) { /* nothing kept */ }
+        state = freshState('internal');
         render();
         $('ppState').hidden = true;
         $('ppDates').hidden = false;
@@ -256,7 +205,7 @@
         $('ppDates').addEventListener('change', onDatesChange);
         $('ppMode').addEventListener('click', onModeClick);
         $('ppReset').addEventListener('click', function () {
-            state = freshState(state.mode, false);
+            state = freshState(state.mode);
             render();
         });
         $('ppPrint').addEventListener('click', function () { window.print(); });

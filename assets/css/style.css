@@ -4207,6 +4207,16 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     page-break-after: avoid;
 }
 
+/* An occupation and its people on one page: when they do not fit on what is left of a page, the
+   whole group starts the next one (Baldy, 16-11-2026: "kalau… dia terlalu banyak dan menyebabkan
+   mereka bakal terpisah… mending mereka itu ya di pages baru aja agar mereka tersatu… kalau
+   terpisah giini bakal membingungkan"). A group longer than a page starts a page and goes on to
+   the next, as it must. */
+.report-unified-table tbody.tbody-group {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
 .report-unified-table tr.tr-group td {
     background: #2975BB !important;
     border-color: #2975BB !important;

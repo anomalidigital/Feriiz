@@ -581,7 +581,9 @@
        13-11-2026 the widths were estimated in mm, too cautiously: a week in portrait split. */
     var MIN_FIGURE_PT = 4;
     var FIT_MIN = 0.85;
-    var FIT_MAX = 1.4;
+    // At most the A4 type on paper (9.5pt figures there): larger type made an occupation of 17
+    // taller than a page, so it could not keep together (16-11-2026; 1.4 from 13-11).
+    var FIT_MAX = 1;
 
     // The type (--fit) a table takes to fill a page widthMM wide, the browser laying it out off
     // screen in a sheet of that width (so the paper's type tier applies): its narrowest width
@@ -707,11 +709,12 @@
             money.forEach(function (c) { html += '<th>' + headHTML(c.label) + '</th>'; });
             html += '</tr>';
         }
-        html += '</thead><tbody>';
+        html += '</thead>';
 
-        // Rows, by occupation, each group numbered from 1.
+        // Rows, by occupation, each group numbered from 1, each in a body of its own so it keeps
+        // together on paper (style.css tbody.tbody-group).
         groupsOf(printed).forEach(function (group) {
-            html += '<tr class="tr-group"><td class="td-no"></td><td class="td-group" colspan="' + (span - 1) + '">' + escapeHTML(group.name) + '</td></tr>';
+            html += '<tbody class="tbody-group"><tr class="tr-group"><td class="td-no"></td><td class="td-group" colspan="' + (span - 1) + '">' + escapeHTML(group.name) + '</td></tr>';
             group.rows.forEach(function (row, index) {
                 var f = figures[row.code];
                 html += '<tr><td class="td-no">' + (index + 1) + '</td>';
@@ -732,9 +735,10 @@
                 }
                 html += '</tr>';
             });
+            html += '</tbody>';
         });
 
-        html += '</tbody><tfoot>';
+        html += '<tfoot>';
         var sum = function (fn) { return printed.reduce(function (a, row) { return a + fn(figures[row.code]); }, 0); };
 
         // "Jumlah Orang Per Hari" (Arcon's sheet): how many of the printed people came in on each

@@ -1,7 +1,7 @@
 /* =============================================
    FERIIZ — Print Options (report_print.html, 06-11-2026)
    The Report's Print opens this tab with the sheet it would print (print-report.js,
-   FeriizPrintSheet), and the dates above it decide what prints. It was "Print preview" until
+   FeriizPrintSheet), and the dates in its toolbar decide what prints. It was "Print preview" until
    13-11-2026 (Baldy: "print konfigurasi kali ya namanya jangan print preview"), then "Print
    Configuration" until 16-11-2026 ("print opstions aja kali": configuration sounded like setting
    up the system, not choosing what this printout holds). The paper here
@@ -9,8 +9,9 @@
    and the sheet fits itself to them (print-report.js: a wide fit and a narrow fit), so the
    Landscape | Portrait of this page is gone ("ga perlu deh, kita kayanya jangan samain banget
    dengan yang di print").
-   - Dates, in a strip above the paper, going right as on the sheet (Baldy, 16-11-2026: "yang
-     dates itu mungkin pindahin ke atas kali ya dan rapikan"; a panel beside the paper before):
+   - Dates, in the toolbar between the title and the buttons, going right as on the sheet (Baldy,
+     16-11-2026: "yang dates itu mungkin pindahin ke atas kali ya dan rapikan", then "navigasi atas
+     kosong, jadi date nya taro sana aja"; a panel beside the paper before):
      each date whole, or only its Period (daily) or Overtime (hour) ("bisa hapus daily nya… atau
      overtime nya aja"). A date left out has no column; a field off prints empty under its header
      (meeting 05-11, 1:38: the Sunday header stays). Neither counts in the totals and the pay.
@@ -114,7 +115,7 @@
         return { hidden: {}, cut: state.cut, client: state.mode === 'client', screen: !forPaper };
     }
 
-    /* ---------- the dates above the paper ---------- */
+    /* ---------- the dates, in the toolbar ---------- */
     function box(kind, attrs, st, label) {
         return '<input type="checkbox" class="form-check-input" data-pp="' + kind + '"' + attrs + ' data-state="' + st + '"' +
             (label ? ' aria-label="' + esc(label) + '"' : '') + '>';
@@ -242,7 +243,10 @@
         }
         pageTitle = 'Feriiz - Print Options - ' + (job.project.name || 'Report');
         document.title = pageTitle;
-        $('ppContext').textContent = (job.employeePage ? job.subtitle.split(' • ')[0] + ' · ' : '') + job.title + ' · ' + job.period;
+        // The project (and the person, from an employee's Report) over the period: two short lines
+        // leave the dates beside them more room.
+        $('ppContext').innerHTML = esc((job.employeePage ? job.subtitle.split(' • ')[0] + ' · ' : '') + job.title) +
+            '<span class="pp-period">' + esc(job.period) + '</span>';
         state = freshState('internal', true);
         render();
         $('ppState').hidden = true;

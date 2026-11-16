@@ -7,22 +7,23 @@
     <title>Feriiz - Print Options</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.129">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.129">
-    <script src="assets/js/print-report.js?v=3.7.129" defer></script>
-    <script src="assets/js/print-preview.js?v=3.7.129" defer></script>
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.130">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.130">
+    <script src="assets/js/print-report.js?v=3.7.130" defer></script>
+    <script src="assets/js/print-preview.js?v=3.7.130" defer></script>
 </head>
 
 <!-- The Report's Print opens this tab (06-11-2026). The paper shows the sheet: one table here, the
      rows going right as in the Report; on paper it fits the paper and Layout of the print dialog.
-     The dates above it (16-11-2026; a panel beside it before) leave a date, or only its Period or
-     Overtime, out. Only the paper reaches the printer. -->
+     The dates in the toolbar (16-11-2026; a panel beside the paper before) leave a date, or only
+     its Period or Overtime, out. Only the paper reaches the printer. -->
 <body data-page="print-preview">
     <header class="pp-toolbar">
         <div class="pp-title">
             <h1>Print Options</h1>
             <p id="ppContext"></p>
         </div>
+        <section class="pp-dates" id="ppDates" aria-label="Dates that print" hidden></section>
         <div class="pp-actions">
             <div class="pp-mode" id="ppMode" role="group" aria-label="Print for">
                 <span class="pp-mode-label">For</span>
@@ -37,7 +38,6 @@
 
     <main class="pp-stage" id="ppStage">
         <div class="pp-state" id="ppState" role="status">Preparing the print options…</div>
-        <section class="pp-dates" id="ppDates" aria-label="Dates that print" hidden></section>
         <div class="pp-paper-scroll">
             <div class="pp-paper" id="ppPaper" hidden>
                 <div class="report-print-document" id="ppSheet"></div>

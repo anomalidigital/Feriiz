@@ -4469,8 +4469,8 @@ body[data-page="employee-report"] .report-print-footer {
 
 /* ============================================
    PRINT OPTIONS (report_print.html, 06-11-2026; "Print preview" until 13-11-2026)
-   The Report's Print opens this tab: the sheet as one table, and above it since 16-11-2026 the
-   dates, to leave a date, or only its Period or Overtime, out (a panel beside the paper from
+   The Report's Print opens this tab: the sheet as one table, and in its toolbar since 16-11-2026
+   the dates, to leave a date, or only its Period or Overtime, out (a panel beside the paper from
    12-11-2026, with columns and occupations too). Only the paper reaches the printer.
    ============================================ */
 /* No sidebar here: the toolbar sits above the paper, not beside it (body is a flex row in the app). */
@@ -4490,14 +4490,15 @@ body[data-page="print-preview"] {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 16px;
-    padding: 12px 24px;
+    padding: 8px 24px;
     background: #fff;
     border-bottom: 1px solid var(--feriiz-border-soft);
 }
 
 .pp-title {
-    min-width: 0;
-    margin-right: auto;
+    flex: 0 1 auto;
+    min-width: 120px;
+    max-width: 240px;
 }
 
 .pp-title h1 {
@@ -4512,11 +4513,18 @@ body[data-page="print-preview"] {
     color: var(--feriiz-text-hint);
 }
 
+/* The period on its own line, under the project. */
+.pp-period {
+    display: block;
+}
+
 .pp-actions {
     display: flex;
+    flex: 0 0 auto;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+    margin-left: auto;
 }
 
 .pp-mode {
@@ -4572,15 +4580,16 @@ body[data-page="print-preview"] {
     overflow-x: auto;
 }
 
-/* What prints, above the paper (16-11-2026; a panel beside it before): the dates going right as
-   on the sheet, each a column of three boxes, its Date, its Period (daily), its Overtime (hour).
-   A long period scrolls sideways under its row names. */
+/* What prints, in the toolbar between the title and the buttons, where the room was empty (Baldy,
+   16-11-2026: "navigasi atas kosong, jadi date nya taro sana aja"; above the paper in v3.7.129, a
+   panel beside it before): the dates going right as on the sheet, each a column of three boxes,
+   its Date, its Period (daily), its Overtime (hour). A long period scrolls sideways under its row
+   names. The toolbar stays in view, so the dates do too. */
 .pp-dates {
-    margin-bottom: 16px;
-    padding: 8px 16px;
-    border: 1px solid var(--feriiz-border-soft);
-    border-radius: 12px;
-    background: #fff;
+    flex: 1 1 0;
+    min-width: 240px;
+    padding-left: 16px;
+    border-left: 1px solid var(--feriiz-border-soft);
 }
 
 .pp-dates-scroll {
@@ -4595,7 +4604,7 @@ body[data-page="print-preview"] {
 
 .pp-dates-grid th,
 .pp-dates-grid td {
-    min-width: 56px;
+    min-width: 48px;
     padding: 0 4px;
     border-bottom: 1px solid #EEF1F5;
     text-align: center;
@@ -4609,16 +4618,16 @@ body[data-page="print-preview"] {
 
 /* Each date: the weekday over the day. */
 .pp-dates-grid thead th {
-    padding: 8px 4px;
+    padding: 0 4px 4px;
     border-bottom-color: #E4E7EC;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.25;
 }
 
 .pp-date-dow {
     display: block;
     color: var(--feriiz-text-hint);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 400;
 }
 
@@ -4638,7 +4647,8 @@ body[data-page="print-preview"] {
 }
 
 .pp-dates-grid thead th.pp-dates-title {
-    font-size: 14px;
+    color: var(--feriiz-text-hint);
+    vertical-align: bottom;
 }
 
 /* The whole cell takes the click. */
@@ -4646,13 +4656,15 @@ body[data-page="print-preview"] {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 36px;
+    min-height: 22px;
     margin: 0;
     cursor: pointer;
 }
 
 .pp-hit .form-check-input {
     flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
     margin: 0;
 }
 
@@ -4668,6 +4680,28 @@ body[data-page="print-preview"] {
 
 .pp-dates-grid .is-off .pp-date-dow {
     color: inherit;
+}
+
+/* A narrower window: the dates go under the title and the buttons, across the toolbar, and the
+   toolbar scrolls away with the page (in view, it would hold too much of the screen). */
+@media (max-width: 1199.98px) {
+    .pp-toolbar {
+        position: static;
+    }
+
+    /* The buttons wrap to a second line rather than run off a phone's screen. */
+    .pp-actions {
+        flex: 0 1 auto;
+    }
+
+    .pp-dates {
+        order: 3;
+        flex: 1 1 100%;
+        min-width: 0;
+        padding: 8px 0 0;
+        border-left: 0;
+        border-top: 1px solid var(--feriiz-border-soft);
+    }
 }
 
 .pp-state {

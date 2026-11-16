@@ -4178,20 +4178,23 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     padding-right: 1mm !important;
 }
 
-/* day / hour figures — centred */
+/* The figures were all left-aligned, as in the old Feriiz PDF, until 16-11-2026, when the client
+   marked up a print: "Angka Center SUN-TOTAL" and "Angka Nominal di kanan/Right". */
+/* day / hour figures, each date's Period and Overtime and the two totals: centred */
 .report-unified-table td.td-daily-period,
 .report-unified-table td.td-daily-ot,
 .report-unified-table td.td-total-days,
 .report-unified-table td.td-total-ot {
-    text-align: left !important;
+    text-align: center !important;
     font-variant-numeric: tabular-nums !important;
 }
 
-/* money — right aligned so the digits line up down the column */
+/* money, rates, subtotals, additional columns and payments: right-aligned, so the thousands line
+   up down the column */
 .report-unified-table td.td-rate,
 .report-unified-table td.td-payment,
 .report-unified-table td.td-subtotal {
-    text-align: left !important;
+    text-align: right !important;
     font-variant-numeric: tabular-nums !important;
 }
 
@@ -4274,8 +4277,15 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     letter-spacing: 0.3pt !important;
 }
 
+/* The TOTAL row as the columns over it: days and hours centred, money right-aligned. */
 .report-unified-table tfoot td.td-total-cell {
+    text-align: center !important;
     font-variant-numeric: tabular-nums !important;
+}
+
+.report-unified-table tfoot td.td-total-cell.td-rate,
+.report-unified-table tfoot td.td-total-cell.td-payment {
+    text-align: right !important;
 }
 
 /* "Jumlah Orang Per Hari": the people who worked on each date, centred under it */

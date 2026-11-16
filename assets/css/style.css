@@ -4166,8 +4166,9 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 /* Column widths come from each table's <colgroup> (print-report.js, columnWidths): every column
    as wide as what it holds. No and Name were pinned here at 3.2% and 11% until 13-11-2026, which
    overrode those widths: a wide No, and a long name broken over two lines. */
+/* The number in the middle of its column (16-11-2026, the client's marked-up print: "Center"). */
 .report-unified-table td.td-no {
-    text-align: left !important;
+    text-align: center !important;
     color: var(--ink-muted) !important;
 }
 
@@ -4239,24 +4240,16 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     page-break-inside: avoid;
 }
 
-.report-unified-table tr.tr-group td {
-    background: var(--band, #DDE9F5) !important;
-    border-color: var(--band-rule, #BFD6EB) !important;
-    color: var(--band-ink, #1D5C96) !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-}
-
-/* One band across: no line between the No cell and the name. */
-.report-unified-table tr.tr-group td.td-no {
-    border-right-color: var(--band, #DDE9F5) !important;
-}
-
+/* The colour only in the Name column (16-11-2026, the client's marked-up print: "Warna nya hanya
+   di kolom ini"); the row's other cells stay white. It was a band across the whole row. */
 .report-unified-table tr.tr-group td.td-group {
+    background: var(--band, #DDE9F5) !important;
+    color: var(--band-ink, #1D5C96) !important;
     font-size: calc(var(--pt-name) * var(--fit, 1)) !important;
     font-weight: 700 !important;
-    color: var(--band-ink, #1D5C96) !important;
     padding-left: 1.4mm !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
 
 /* --- footer TOTAL row --- */

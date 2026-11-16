@@ -329,6 +329,8 @@
         var addCols = (job.cli.add || []).map(function (a) {
             return { key: a.total ? 'cli:addtotal' : 'cli:add:' + a.id, f: a.total ? 'addtotal' : 'add', id: a.id, label: escapeHTML(a.name), group: 'cli' };
         });
+        // Total Payment Employee prints when the Report shows the Employee columns (16-11-2026, on
+        // the client's marked-up print asking for it: Baldy, "kayanya untuk yang ini udah di atasin").
         var pay = [];
         if (job.emp.active) pay.push({ key: 'pay:emp', f: 'emp', label: 'Total Payment<br>Employee<br>(IDR)', group: 'emp' });
         if (job.cli.active) pay.push({ key: 'pay:cli', f: 'cli', label: 'Total Payment<br>Client<br>(IDR)', group: 'cli' });
@@ -426,14 +428,15 @@
         return String(e.ot);
     }
 
-    // A date's header on paper: the weekday in Indonesian over the date (Baldy, 13-11-2026:
-    // "mereka juga mau itu ada harinya juga… hari nya itu pake bahasa indonesia"; meeting
-    // 10-11-2026, 00:12:30: "tambahin tulisan hari").
-    var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    // A date's header on paper: the weekday over the date (meeting 10-11-2026, 00:12:30: "tambahin
+    // tulisan hari"), in three English letters as the old Feriiz printed it (16-11-2026, on the
+    // client's marked-up print: "3 huruf bahasa inggris aja (kaya feriiz sebelumnya)"; it was the
+    // Indonesian name, MINGGU, SENIN…, from 13-11-2026).
+    var DAY3 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     function dateHead(d) {
         var day = d.dow >= 0 ? d.dow : (fromISO(d.date) ? fromISO(d.date).getDay() : -1);
-        return (day >= 0 ? '<span class="th-weekday">' + HARI[day] + '</span>' : '') + escapeHTML(d.label);
+        return (day >= 0 ? '<span class="th-weekday">' + DAY3[day] + '</span>' : '') + escapeHTML(d.label);
     }
 
     // A header as printed: "Overtime" may break as "Over / time" in a narrow column, no hyphen
@@ -714,7 +717,10 @@
         // Rows, by occupation, each group numbered from 1, each in a body of its own so it keeps
         // together on paper (style.css tbody.tbody-group).
         groupsOf(printed).forEach(function (group) {
-            html += '<tbody class="tbody-group"><tr class="tr-group"><td class="td-no"></td><td class="td-group" colspan="' + (span - 1) + '">' + escapeHTML(group.name) + '</td></tr>';
+            // The occupation's row: its name, coloured, in the Name column only, the other cells
+            // white (16-11-2026, the client's marked-up print: "Warna nya hanya di kolom ini").
+            html += '<tbody class="tbody-group"><tr class="tr-group"><td class="td-no"></td><td class="td-group">' + escapeHTML(group.name) + '</td>' +
+                new Array(span - 1).join('<td></td>') + '</tr>';
             group.rows.forEach(function (row, index) {
                 var f = figures[row.code];
                 html += '<tr><td class="td-no">' + (index + 1) + '</td>';

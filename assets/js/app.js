@@ -1018,6 +1018,9 @@ function feriizLogout() {
             surplus = both ? Math.max(0, worked - Math.max(span, scheduled)) : 0;
             attendance = (inTime ? cell(inTime) : blank()) + (outTime ? cell(outTime) : blank()) +
                 (both ? cell(clock(worked)) : blank());
+            // A working day without its log out, or without any log, is red, as in the Report
+            // (Baldy, 16-11-2026: "kalau misal ada yang missing coloms list nya merah kali ya").
+            if (!inTime || !outTime) rowClass = ' class="attendance-missing-row"';
         }
 
         return {

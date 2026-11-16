@@ -3376,6 +3376,16 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
     background: #EAF5FB;
 }
 
+/* A working day that misses its log out, or every log: red with the Report's danger bar, as a
+   missing day there (16-11-2026). Days off, other projects' days and request days are not. */
+.attendance-table tbody tr.attendance-missing-row td {
+    background: var(--feriiz-flag-danger);
+}
+
+.attendance-table tbody tr.attendance-missing-row td:first-child {
+    box-shadow: inset 4px 0 0 var(--feriiz-danger);
+}
+
 .attendance-table .attendance-total-row td {
     background: #F8FAFC;
 }

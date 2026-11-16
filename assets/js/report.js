@@ -57,7 +57,7 @@
 
     // Dropdown controls are drafts. Only Apply is allowed to replace this state.
     var appliedReportFilters = {
-        log: '',               // Log Status: '' (All), 'complete', 'missing-out' or 'none' (LOG_CHOICES)
+        log: '',               // Log Status: '' (All), 'in', 'complete', 'missing-out' or 'none' (LOG_CHOICES)
         occupations: [],
         occupationLabels: [],
         range: null,           // { start, end } chosen in the filter; null = the default week
@@ -1225,8 +1225,11 @@
     /* =============================================
        FILTERS
        ============================================= */
-    /* Log Status is one choice about a day's logs: All, Complete (a log in and a log out),
-       Missing Out (a log in without its log out) or No Log (a working day without any). A day
+    /* Log Status is one choice about a day's logs: All, Log In (a log in, with or without its log
+       out: who came, what the admin asks for most; Baldy, 16-11-2026: "intinya ada in nya aja itu
+       tampil, yang missing log itu jangan tampil, kalau misal In dan out nya ada itu tampil juga"),
+       Complete (a log in and a log out), Missing Out (a log in without its log out) or No Log (a
+       working day without any). A day
        cannot miss its log in alone: the attendance system takes a lone tap as the log in, even
        at 16:59 on an 08:00–17:00 project (Baldy, 13-11-2026, from the backend: "sistem kita itu
        tidak bisa missing in… kalau dia missing in dia pasti juga missing out… intinya dia tidak
@@ -1234,7 +1237,7 @@
        filter leaves out is blank (v3.7.105); days off and days a request covers have no log to
        ask about, so they show only under All. Before: Log In and Log Out rows, each All / With /
        Without (12-11, v3.7.107); four ticks (v3.7.97); one choice of five (09-11). */
-    var LOG_CHOICES = { complete: 'Complete', 'missing-out': 'Missing Out', none: 'No Log' };
+    var LOG_CHOICES = { 'in': 'Log In', complete: 'Complete', 'missing-out': 'Missing Out', none: 'No Log' };
 
     function getDraftLog() {
         var on = document.querySelector('.filter-log:checked');
@@ -1256,6 +1259,7 @@
         var hasIn = Boolean(cell.dataset.inTime);
         var hasOut = Boolean(cell.dataset.outTime);
         if (!hasIn && !hasOut && !cell.dataset.missing) return false;   // a day off or a request
+        if (choice === 'in') return hasIn;
         if (choice === 'complete') return hasIn && hasOut;
         if (choice === 'missing-out') return hasIn && !hasOut;
         return !hasIn && !hasOut;   // 'none'

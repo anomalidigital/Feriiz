@@ -7416,8 +7416,8 @@ div.report-layout .report-search-input {
 
 /* Log Status: one row, All / Complete / Missing Out / No Log (13-11-2026; Log In and Log Out
    rows of three before). */
-.log-status-seg {
-    grid-auto-columns: auto;   /* each as wide as its word, "Missing Out" on one line */
+.log-seg.log-status-seg {
+    grid-auto-columns: auto;   /* each as wide as its word, "Missing Out" on one line (five since 16-11) */
     margin-bottom: 18px;
 }
 

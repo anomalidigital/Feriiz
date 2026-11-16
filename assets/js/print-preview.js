@@ -1,8 +1,10 @@
 /* =============================================
-   FERIIZ — Print Configuration (report_print.html, 06-11-2026)
+   FERIIZ — Print Options (report_print.html, 06-11-2026)
    The Report's Print opens this tab with the sheet it would print (print-report.js,
    FeriizPrintSheet), and one panel beside it decides what prints. It was "Print preview" until
-   13-11-2026 (Baldy: "print konfigurasi kali ya namanya jangan print preview"): the paper here
+   13-11-2026 (Baldy: "print konfigurasi kali ya namanya jangan print preview"), then "Print
+   Configuration" until 16-11-2026 ("print opstions aja kali": configuration sounded like setting
+   up the system, not choosing what this printout holds). The paper here
    shows the sheet, not each printed page. The print dialog's paper and Layout decide the pages,
    and the sheet fits itself to them (print-report.js: a wide fit and a narrow fit), so the
    Landscape | Portrait of this page is gone ("ga perlu deh, kita kayanya jangan samain banget
@@ -279,14 +281,14 @@
         var id = new URL(location.href).searchParams.get('job');
         job = id && window.FeriizPrintSheet ? window.FeriizPrintSheet.load(id) : null;
         if (!job) {
-            fail('This print configuration is no longer available. Go back to the Report and press Print again.');
+            fail('These print options are no longer available. Go back to the Report and press Print again.');
             return;
         }
         if (!job.rows.length) {
             fail('There is nobody to print. Go back to the Report and change its filters.');
             return;
         }
-        pageTitle = 'Feriiz - Print Configuration - ' + (job.project.name || 'Report');
+        pageTitle = 'Feriiz - Print Options - ' + (job.project.name || 'Report');
         document.title = pageTitle;
         $('ppContext').textContent = (job.employeePage ? job.subtitle.split(' • ')[0] + ' · ' : '') + job.title + ' · ' + job.period;
         $('ppSummary').tabIndex = -1;

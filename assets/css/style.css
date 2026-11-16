@@ -4013,7 +4013,7 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 
 /* The sheet's tables in two fits (print-report.js renderPrintSheet): for a wide page, A4
    landscape and wider, and for a narrow one, A4 portrait. The sheet's own width on the paper the
-   print dialog has picks one (13-11-2026); the Print Configuration's A4 landscape paper shows
+   print dialog has picks one (13-11-2026); the Print Options's A4 landscape paper shows
    the wide one. */
 .report-print-fit--narrow,
 .report-print-fit--screen {
@@ -4676,7 +4676,7 @@ body[data-page="print-preview"] {
     text-align: center;
 }
 
-/* The Print Configuration's paper: as wide as the room beside the panel, wider when its one
+/* The Print Options's paper: as wide as the room beside the panel, wider when its one
    table needs it (it then scrolls sideways in .pp-paper-scroll), the rows going right as in
    the Report (Baldy, 13-11-2026: "di kanan kosong kok isi aja… kita gausah samain dengan ukuran
    hasil"). It was a sheet of A4 landscape until then. What prints fits the print dialog's paper

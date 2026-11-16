@@ -173,7 +173,7 @@
        What the Report prints, as data: every filtered row (all pages), every date, the
        columns the Columns picker shows, and for each person and day what the sheet prints
        and what the totals count, by the Report's own rules (report.js updateVisibleTotals).
-       The sheet is drawn from it, so the Print Configuration tab can leave days and people out
+       The sheet is drawn from it, so the Print Options tab can leave days and people out
        and count again.
        ============================================= */
     function projectCode() {
@@ -477,7 +477,7 @@
 
     // The margin boxes of every printed page: when it prints at the top left, the file's name at
     // the top right, the page number at the bottom right. page: the named page ('feriiz-preview'
-    // in the Print Configuration) or '' for the Report's own print.
+    // in the Print Options) or '' for the Report's own print.
     function pageBoxes(job, view, page) {
         var box = 'font-family: Poppins, Arial, sans-serif; font-size: 6.5pt; line-height: 1.2; color: #475569;';
         var top = box + ' vertical-align: bottom; padding-bottom: 1.6mm;';
@@ -666,7 +666,7 @@
         return { tables: tables, scale: Math.max(0.6, Math.min(most, fit)) / tier };
     }
 
-    // The Print Configuration's table: everything in one, at the A4 landscape type, as wide as it
+    // The Print Options's table: everything in one, at the A4 landscape type, as wide as it
     // needs; the screen scrolls it sideways like the Report and it fills the width when narrower
     // (Baldy, 13-11-2026: "di kanan kosong kok isi aja… walau pas di print beda itu gapapa
     // wajar… kita gausah samain dengan ukuran hasil").
@@ -831,7 +831,7 @@
            wider take the wide fit, A4 portrait the narrow one (Baldy, 13-11-2026: the Print
            Configuration's Landscape | Portrait went, "jangan samain banget dengan yang di print…
            ketika print mungkin besaran nya beda"). */
-        // view.screen: the Print Configuration's own table only; the fits for paper are drawn when
+        // view.screen: the Print Options's own table only; the fits for paper are drawn when
         // it prints (measuring them takes a moment, print-preview.js beforeprint).
         var all = { totals: cols.totals, emp: cols.emp, cli: cols.cli, pay: cols.pay };
         var whole = { dates: dates, tail: tailColumns(all).length ? all : null };
@@ -851,7 +851,7 @@
             tables.forEach(function (t, i) { html += tableHTML(t, i > 0, ctx); });
             html += '</div>';
         });
-        // The Print Configuration shows one table of everything instead (screenTable).
+        // The Print Options shows one table of everything instead (screenTable).
         if (view.screen) {
             var onScreen = screenTable(job, view, cols, printed, figures, dates);
             html += '<div class="report-print-fit report-print-fit--screen">' +
@@ -874,7 +874,7 @@
 
     /* =============================================
        PRINT FROM THE REPORT
-       The Print button opens the Print Configuration tab (report_print.html) with the job, where
+       The Print button opens the Print Options tab (report_print.html) with the job, where
        the sheet can lose columns, days and people before it prints (Baldy, 06-11-2026; the
        meeting of 05-11, 1:55: "begitu di-print, kamu buka dulu new tab"). The browser's own
        Print (Ctrl+P) still prints the Report's sheet as it is.
@@ -969,8 +969,8 @@
 
         // No preview (pop-ups blocked, or no room to keep the job): print here, as before.
         if (window.FeriizNotify) {
-            window.FeriizNotify.warning(id ? 'The browser blocked the Print Configuration tab, so the report prints from here.'
-                : 'The Print Configuration could not be prepared, so the report prints from here.', 'Print Configuration');
+            window.FeriizNotify.warning(id ? 'The browser blocked the Print Options tab, so the report prints from here.'
+                : 'The Print Options could not be prepared, so the report prints from here.', 'Print Options');
         }
         if (printButton) {
             printButton.disabled = true;
@@ -999,7 +999,7 @@
         });
     }
 
-    // The Print Configuration tab draws the same sheet.
+    // The Print Options tab draws the same sheet.
     window.FeriizPrintSheet = {
         load: loadJob,
         render: renderPrintSheet,

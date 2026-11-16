@@ -4230,15 +4230,12 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     page-break-after: avoid;
 }
 
-/* An occupation and its people on one page: when they do not fit on what is left of a page, the
-   whole group starts the next one (Baldy, 16-11-2026: "kalau… dia terlalu banyak dan menyebabkan
-   mereka bakal terpisah… mending mereka itu ya di pages baru aja agar mereka tersatu… kalau
-   terpisah giini bakal membingungkan"). A group longer than a page starts a page and goes on to
-   the next, as it must. */
-.report-unified-table tbody.tbody-group {
-    break-inside: avoid;
-    page-break-inside: avoid;
-}
+/* An occupation's people may go on to the next page: the rows flow on, page after page (Baldy,
+   16-11-2026: "kalau kepisah ya kepisah"). From v3.7.124 to v3.7.132 each occupation kept
+   together (tbody.tbody-group, break-inside: avoid), so a group that did not fit on what was left
+   of a page started the next one ("mending mereka itu ya di pages baru aja agar mereka
+   tersatu"). Each occupation is still a tbody of its own; only its row (above) never stays alone
+   at the bottom of a page. */
 
 /* The colour only in the Name column (16-11-2026, the client's marked-up print: "Warna nya hanya
    di kolom ini"); the row's other cells stay white. It was a band across the whole row. */

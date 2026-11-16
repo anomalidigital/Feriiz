@@ -4085,9 +4085,15 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     font-size: calc(var(--pt-body) * var(--fit, 1)) !important;
 }
 
+/* The column titles print once, at the top of their table, not again on every page: the old
+   Feriiz did not repeat them (Baldy, 16-11-2026: "ini di atasnya gausah ada ini ya, soal nya yang
+   lama tidak ada"). They stay with the rows under them. The page's own header line (when it
+   printed, the file name, the page) is on every page (pageBoxes). */
 .report-unified-table thead,
 .report-print-table thead {
-    display: table-header-group !important; /* repeat header on every page */
+    display: table-row-group !important;
+    break-after: avoid;
+    page-break-after: avoid;
 }
 
 .report-unified-table tr,

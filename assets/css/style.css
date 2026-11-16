@@ -3928,6 +3928,10 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     --tint: #f1f5f9;
     --tint-soft: #f8fafc;
     --accent: #2563eb;
+    /* The occupation band: a light tint of Feriiz blue, its name in a dark one (5.6:1). */
+    --band: #DDE9F5;
+    --band-rule: #BFD6EB;
+    --band-ink: #1D5C96;
 }
 
 /* ===============================  HEADER  =============================== */
@@ -4216,7 +4220,9 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 /* A group of people of one occupation, its name in the Name column (Baldy, 12-11-2026), on a
    band of Feriiz blue, the one colour on the white sheet ("kasih warna biru nya feriiz… yang
    warna nya tajem, soal nya ini aku pusing lihat nya"; the meeting of 10-11, 01:25:48: colour
-   only on the occupation header). */
+   only on the occupation header). Since 16-11-2026 a light tint of that blue with the name in a
+   dark one (--band): the solid band with white type took a lot of ink (the client: "Birunya agar
+   lebih soft ya, biar gak boros tinta"). */
 /* An occupation's row never stays alone at the bottom of a page, away from its people. */
 .report-unified-table tr.tr-group {
     break-after: avoid;
@@ -4234,17 +4240,22 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 }
 
 .report-unified-table tr.tr-group td {
-    background: #2975BB !important;
-    border-color: #2975BB !important;
-    color: #fff !important;
+    background: var(--band, #DDE9F5) !important;
+    border-color: var(--band-rule, #BFD6EB) !important;
+    color: var(--band-ink, #1D5C96) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+}
+
+/* One band across: no line between the No cell and the name. */
+.report-unified-table tr.tr-group td.td-no {
+    border-right-color: var(--band, #DDE9F5) !important;
 }
 
 .report-unified-table tr.tr-group td.td-group {
     font-size: calc(var(--pt-name) * var(--fit, 1)) !important;
     font-weight: 700 !important;
-    color: #fff !important;
+    color: var(--band-ink, #1D5C96) !important;
     padding-left: 1.4mm !important;
 }
 
@@ -4457,10 +4468,10 @@ body[data-page="employee-report"] .report-print-footer {
 }
 
 /* ============================================
-   PRINT PREVIEW (report_print.html, 06-11-2026)
-   The Report's Print opens this tab: the sheet exactly as it prints, on A4 landscape paper,
-   and since 12-11-2026 one panel beside it to leave a date's Period or Overtime, a column or a
-   person out. Only the paper reaches the printer.
+   PRINT OPTIONS (report_print.html, 06-11-2026; "Print preview" until 13-11-2026)
+   The Report's Print opens this tab: the sheet as one table, and above it since 16-11-2026 the
+   dates, to leave a date, or only its Period or Overtime, out (a panel beside the paper from
+   12-11-2026, with columns and occupations too). Only the paper reaches the printer.
    ============================================ */
 /* No sidebar here: the toolbar sits above the paper, not beside it (body is a flex row in the app). */
 body[data-page="print-preview"] {
@@ -4551,119 +4562,112 @@ body[data-page="print-preview"] {
     font-weight: 600;
 }
 
-.pp-summary {
-    flex-basis: 100%;
-    margin: 0;
-    font-size: 12px;
-    color: var(--feriiz-text-hint);
-}
-
-.pp-summary.is-warning {
-    color: var(--feriiz-danger);
-    font-weight: 600;
-}
-
 .pp-stage {
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
     padding: 24px;
 }
 
-/* The paper scrolls sideways on its own when the window is narrow. The stage itself must not
-   scroll: an overflow there held the panel, so it went up with the page (Baldy, 12-11-2026:
-   "yang aku kotakin itu dia ikut scroll jadi nya fixed"). */
+/* The paper scrolls sideways on its own when its table is wider than the window; the page itself
+   does not. */
 .pp-paper-scroll {
-    flex: 1 1 auto;
-    min-width: 0;
     overflow-x: auto;
 }
 
-/* What prints: dates (Period / Overtime), columns and people, each an on/off box. */
-.pp-panel {
-    position: sticky;
-    top: 112px;
-    flex: 0 0 300px;
-    max-height: calc(100vh - 136px);
-    overflow-y: auto;
-    padding: 16px;
+/* What prints, above the paper (16-11-2026; a panel beside it before): the dates going right as
+   on the sheet, each a column of three boxes, its Date, its Period (daily), its Overtime (hour).
+   A long period scrolls sideways under its row names. */
+.pp-dates {
+    margin-bottom: 16px;
+    padding: 8px 16px;
     border: 1px solid var(--feriiz-border-soft);
     border-radius: 12px;
     background: #fff;
 }
 
-.pp-section + .pp-section {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--feriiz-border-soft);
+.pp-dates-scroll {
+    overflow-x: auto;
 }
 
-.pp-section-title {
-    margin: 0 0 8px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.pp-grid {
-    width: 100%;
-    border-collapse: collapse;
+.pp-dates-grid {
+    border-collapse: separate;   /* the row names keep their lines while the dates scroll */
+    border-spacing: 0;
     font-size: 12px;
 }
 
-.pp-grid th,
-.pp-grid td {
-    padding: 6px 4px;
+.pp-dates-grid th,
+.pp-dates-grid td {
+    min-width: 56px;
+    padding: 0 4px;
     border-bottom: 1px solid #EEF1F5;
     text-align: center;
     vertical-align: middle;
+    white-space: nowrap;
 }
 
-.pp-grid thead th {
+.pp-dates-grid tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+/* Each date: the weekday over the day. */
+.pp-dates-grid thead th {
+    padding: 8px 4px;
+    border-bottom-color: #E4E7EC;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.pp-date-dow {
+    display: block;
     color: var(--feriiz-text-hint);
     font-size: 11px;
-    font-weight: 600;
-    line-height: 1.2;
+    font-weight: 400;
 }
 
-.pp-grid tbody th {
-    font-weight: 400;
+/* "Dates" and the row names stay on the left while a long period scrolls. */
+.pp-dates-grid tr > th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 0;
+    padding-right: 16px;
+    background: #fff;
     text-align: left;
 }
 
-/* A date left out whole: greyed, its Period and Overtime boxes off. */
-.pp-grid tr.is-off th,
-.pp-grid tr.is-off td {
-    color: #98A2B3;
+.pp-dates-grid tbody th {
+    font-weight: 400;
 }
 
-.pp-opt {
+.pp-dates-grid thead th.pp-dates-title {
+    font-size: 14px;
+}
+
+/* The whole cell takes the click. */
+.pp-hit {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    min-height: 36px;
     margin: 0;
-    font-size: 12px;
     cursor: pointer;
 }
 
-.pp-opt .form-check-input,
-.pp-grid .form-check-input {
+.pp-hit .form-check-input {
     flex: 0 0 auto;
     margin: 0;
 }
 
-.pp-list {
-    display: grid;
-    gap: 6px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+.pp-hit.is-disabled {
+    cursor: default;
 }
 
-.pp-count {
-    margin-left: auto;
-    color: var(--feriiz-text-hint);
-    font-size: 11px;
-    white-space: nowrap;
+/* A date left out: its column greyed, its Period and Overtime boxes off. */
+.pp-dates-grid .is-off {
+    background: #F8FAFC;
+    color: #98A2B3;
+}
+
+.pp-dates-grid .is-off .pp-date-dow {
+    color: inherit;
 }
 
 .pp-state {
@@ -4676,7 +4680,7 @@ body[data-page="print-preview"] {
     text-align: center;
 }
 
-/* The Print Options's paper: as wide as the room beside the panel, wider when its one
+/* The Print Options's paper: as wide as the window, wider when its one
    table needs it (it then scrolls sideways in .pp-paper-scroll), the rows going right as in
    the Report (Baldy, 13-11-2026: "di kanan kosong kok isi aja… kita gausah samain dengan ukuran
    hasil"). It was a sheet of A4 landscape until then. What prints fits the print dialog's paper
@@ -4737,25 +4741,6 @@ body[data-page="print-preview"] {
     }
 }
 
-/* On a narrow screen the panel goes above the paper. */
-@media (max-width: 1100px) {
-    .pp-stage {
-        flex-direction: column;
-    }
-
-    .pp-panel {
-        position: static;
-        flex-basis: auto;
-        width: 100%;
-        max-height: none;
-    }
-
-    /* As wide as the window, so the paper scrolls inside it and the page itself does not. */
-    .pp-paper-scroll {
-        align-self: stretch;
-    }
-}
-
 /* No size or orientation of our own: the print dialog's Paper size AND Layout (portrait or
    landscape) win. A page that names its size or orientation makes Chrome hide the dialog's
    Layout (Baldy, 13-11-2026: "kenapa gada landscape potrait nya ketika udah di print"). The sheet
@@ -4773,7 +4758,7 @@ body[data-page="print-preview"] #ppSheet {
 @media print {
     body[data-page="print-preview"] .pp-toolbar,
     body[data-page="print-preview"] .pp-state,
-    body[data-page="print-preview"] .pp-panel {
+    body[data-page="print-preview"] .pp-dates {
         display: none !important;
     }
 

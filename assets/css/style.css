@@ -3221,12 +3221,11 @@ div.report-layout .selectable-report-table tbody tr td.day-col {
 /* Manage Employee: each person's occupation at the end of the row (meeting 05-11-2026, 1:10:04). */
 .manage-emp-occ { margin-left:auto; padding-left:12px; color:var(--feriiz-text-hint); font-size:12px; text-align:right; }
 /* Manage Occupation (project Settings, 17-11-2026), the same dialog. Its Save Changes is off (the
-   faded .feriiz-u-298) only while nothing is ticked. Taking off an occupation the project's
-   employees have asks first, in the footer, as Employees > Occupations does. */
+   faded .feriiz-u-298) only while nothing is ticked. An occupation the project's employees have
+   is not taken off: Save says so in the footer, as Employees > Occupations asks there. */
 .feriiz-u-298.manage-occ-save:enabled { opacity:1; pointer-events:auto; }
 .manage-occ-foot { gap:16px; }
 .manage-occ-ask { flex:1 1 180px; font-size:13px; font-weight:600; color:#B42318; }
-.manage-occ-confirm { padding:10px 24px; border-radius:6px; font-weight:600; }
 .feriiz-u-288 { display:none; flex-direction:column; height:100%; }
 .feriiz-u-289 { flex:1; width:100%; border:1px solid #e5e5e5; border-radius:10px; padding:20px; font-family:monospace; font-size:13px; color:#333; resize:none; outline:none; margin-bottom:16px; }
 .feriiz-u-290 { display:none; color:#de3a46; font-size:12px; background:#fff2f4; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #ffccd3; }

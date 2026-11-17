@@ -7,11 +7,11 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.138">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.138">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.139">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.139">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.138" defer></script>
-    <script src="assets/js/app.js?v=3.7.138" defer></script>
+    <script src="assets/js/data.js?v=3.7.139" defer></script>
+    <script src="assets/js/app.js?v=3.7.139" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026): its Default Hours. The Public Holidays panel beside them
@@ -29,11 +29,13 @@
        bisa add occupation, nah ini sistem nya kita buat sama seperti manage employee di project
        activity, nah bedanya paling ini ga bisa import code aja"): the Manage Employee dialog of
        Activity for occupations, without Import Code. The rows are the project's occupations
-       (FERIIZ_DATA.projectOccupations): the ones saved there; before that, those of its employees.
-       One its employees have can be unticked, and Save Changes then asks first, in the footer as
-       Employees > Occupations does ("kalau misal ada yang di unassign itu tinggal kasih peringatan
-       ketika dia save"). An employee assigned on Activity whose occupation the project does not
-       have adds it here (addProjectOccupations), a row at 8/2.
+       (FERIIZ_DATA.projectOccupations): the ones saved there and always those of its employees.
+       One its employees have can be unticked, but Save Changes does not take it off: the footer
+       says to take those employees off first ("kalau misal ada yang di unassign itu tinggal kasih
+       peringatan ketika dia save", then "menurutku ga bisa di remove ya, paling take off dulu
+       employee nya, baru occupation nya"), and OK ticks it again. An employee assigned on
+       Activity whose occupation the project does not have adds it here (addProjectOccupations),
+       a row at 8/2.
      - Use Default Hours in this project (13-11-2026; the meeting of 10-11-2026, 00:28:02 and
        01:11:50: "paling bawah nanti ada checklist… use this default", per project; Baldy: "buat
        internal juga mereka mau ada default juga bukan hanya untuk client"): saved with the hours
@@ -77,7 +79,7 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.138</div>
+        <div class="feriiz-u-032">version : 3.7.139</div>
     </main>
 
     <!-- Manage Occupation: the Manage Employee dialog of Activity (project_employees.html), its
@@ -121,8 +123,7 @@
                 <div class="feriiz-u-296">
                     <button class="btn btn-outline feriiz-u-297" type="button" id="manageOccCancel">Cancel</button>
                     <button class="btn btn-primary feriiz-u-298 manage-occ-save" type="button" id="manageOccSave">Save Changes</button>
-                    <button class="btn btn-outline feriiz-u-297" type="button" id="manageOccKeep" hidden>Keep</button>
-                    <button class="btn btn-danger manage-occ-confirm" type="button" id="manageOccConfirm" hidden>Yes, take off</button>
+                    <button class="btn btn-outline feriiz-u-297" type="button" id="manageOccKeep" hidden>OK</button>
                 </div>
             </div>
         </div>
@@ -279,7 +280,7 @@
             // suggestions find a row and end with "+ Add New Occupation", the list with a tick per
             // occupation, Selected, Cancel and Save Changes. Nothing changes until Save Changes.
             var ticked = {};                      // name -> true while the dialog is open
-            var asking = [];                      // unticked occupations with employees, asked about on Save
+            var asking = [];                      // unticked occupations that still have employees, held on Save
 
             function $(id) { return document.getElementById(id); }
 
@@ -387,25 +388,25 @@
                 return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
             }
 
-            // The footer as Selected / Cancel / Save Changes, or as the question before taking off
-            // occupations the project's employees still have, with Keep / Yes, take off.
+            // The footer as Selected / Cancel / Save Changes, or as the warning that occupations the
+            // project's employees still have stay until those employees are taken off, with OK.
             function showAsk(names) {
                 asking = names;
                 var on = names.length > 0;
                 if (on) {
                     var n = names.reduce(function (sum, name) { return sum + peopleOf(name); }, 0);
                     $('manageOccAsk').textContent = andList(names) + (names.length === 1 ? ' still has ' : ' still have ') +
-                        peopleText(n) + ' in this project. Take ' + (names.length === 1 ? 'it' : 'them') + ' off anyway?';
+                        peopleText(n) + ' in this project, so ' + (names.length === 1 ? 'it stays' : 'they stay') +
+                        '. Take ' + (n === 1 ? 'that employee' : 'those employees') + ' off in Manage Employees on Activity first.';
                 }
                 $('manageOccAsk').hidden = !on;
                 $('manageOccSelected').hidden = on;
                 $('manageOccCancel').hidden = on;
                 $('manageOccSave').hidden = on;
                 $('manageOccKeep').hidden = !on;
-                $('manageOccConfirm').hidden = !on;
             }
 
-            // Save Changes: asks first when an unticked occupation still has employees here.
+            // Save Changes: held when an unticked occupation still has employees here.
             function onSaveClick() {
                 var held = [];
                 document.querySelectorAll('.manage-occ-cb').forEach(function (cb) {
@@ -416,7 +417,7 @@
                 $('manageOccKeep').focus();
             }
 
-            // Keep: they are ticked again.
+            // OK: they are ticked again; Save Changes then keeps the rest.
             function keepAsked() {
                 asking.forEach(function (name) {
                     ticked[name] = true;
@@ -473,7 +474,6 @@
                 $('manageOccCancel').addEventListener('click', closeManageOccupations);
                 $('manageOccSave').addEventListener('click', onSaveClick);
                 $('manageOccKeep').addEventListener('click', keepAsked);
-                $('manageOccConfirm').addEventListener('click', saveManagedOccupations);
                 $('manageOccModal').addEventListener('click', function (e) { if (e.target === this) closeManageOccupations(); });
                 $('manageOccModal').addEventListener('keydown', function (e) {
                     if (e.key !== 'Escape') return;

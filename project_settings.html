@@ -7,11 +7,11 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.137">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.137">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.138">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.138">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.137" defer></script>
-    <script src="assets/js/app.js?v=3.7.137" defer></script>
+    <script src="assets/js/data.js?v=3.7.138" defer></script>
+    <script src="assets/js/app.js?v=3.7.138" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026): its Default Hours. The Public Holidays panel beside them
@@ -29,10 +29,11 @@
        bisa add occupation, nah ini sistem nya kita buat sama seperti manage employee di project
        activity, nah bedanya paling ini ga bisa import code aja"): the Manage Employee dialog of
        Activity for occupations, without Import Code. The rows are the project's occupations
-       (FERIIZ_DATA.projectOccupations): the ones ticked there and always those of its employees,
-       so an occupation with people here is ticked and cannot be taken off. An employee assigned
-       on Activity whose occupation the project does not have adds it here (addProjectOccupations),
-       a row marked New at 8/2.
+       (FERIIZ_DATA.projectOccupations): the ones saved there; before that, those of its employees.
+       One its employees have can be unticked, and Save Changes then asks first, in the footer as
+       Employees > Occupations does ("kalau misal ada yang di unassign itu tinggal kasih peringatan
+       ketika dia save"). An employee assigned on Activity whose occupation the project does not
+       have adds it here (addProjectOccupations), a row at 8/2.
      - Use Default Hours in this project (13-11-2026; the meeting of 10-11-2026, 00:28:02 and
        01:11:50: "paling bawah nanti ada checklist… use this default", per project; Baldy: "buat
        internal juga mereka mau ada default juga bukan hanya untuk client"): saved with the hours
@@ -76,7 +77,7 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.137</div>
+        <div class="feriiz-u-032">version : 3.7.138</div>
     </main>
 
     <!-- Manage Occupation: the Manage Employee dialog of Activity (project_employees.html), its
@@ -114,11 +115,14 @@
                     </div>
                 </div>
             </div>
-            <div class="feriiz-u-292">
-                <span class="feriiz-u-293">Selected: <span id="selectedOccCount" class="feriiz-u-294">0</span> Occupations</span>
+            <div class="feriiz-u-292 manage-occ-foot">
+                <span class="feriiz-u-293" id="manageOccSelected">Selected: <span id="selectedOccCount" class="feriiz-u-294">0</span> Occupations</span>
+                <span class="manage-occ-ask" id="manageOccAsk" role="alert" hidden></span>
                 <div class="feriiz-u-296">
                     <button class="btn btn-outline feriiz-u-297" type="button" id="manageOccCancel">Cancel</button>
                     <button class="btn btn-primary feriiz-u-298 manage-occ-save" type="button" id="manageOccSave">Save Changes</button>
+                    <button class="btn btn-outline feriiz-u-297" type="button" id="manageOccKeep" hidden>Keep</button>
+                    <button class="btn btn-danger manage-occ-confirm" type="button" id="manageOccConfirm" hidden>Yes, take off</button>
                 </div>
             </div>
         </div>
@@ -275,6 +279,7 @@
             // suggestions find a row and end with "+ Add New Occupation", the list with a tick per
             // occupation, Selected, Cancel and Save Changes. Nothing changes until Save Changes.
             var ticked = {};                      // name -> true while the dialog is open
+            var asking = [];                      // unticked occupations with employees, asked about on Save
 
             function $(id) { return document.getElementById(id); }
 
@@ -291,14 +296,11 @@
                 return names.sort(function (a, b) { return a.localeCompare(b); });
             }
 
-            // An occupation with employees in the project stays ticked: they bring it.
+            // Each row says how many of the project's employees have the occupation.
             function occRow(name) {
                 var n = peopleOf(name);
-                var locked = n > 0;
-                return '<label class="feriiz-u-284' + (locked ? ' is-locked' : '') + '"' +
-                        (locked ? ' title="Employees of this project have this occupation, so it stays."' : '') + '>' +
-                    '<input type="checkbox" class="manage-occ-cb feriiz-u-285" data-name="' + esc(name) + '"' +
-                        (ticked[name] || locked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
+                return '<label class="feriiz-u-284">' +
+                    '<input type="checkbox" class="manage-occ-cb feriiz-u-285" data-name="' + esc(name) + '"' + (ticked[name] ? ' checked' : '') + '>' +
                     '<span class="feriiz-u-286">' + esc(name) + '</span>' +
                     (n ? '<span class="manage-emp-occ">' + peopleText(n) + '</span>' : '') +
                 '</label>';
@@ -381,6 +383,52 @@
                 if (window.FeriizNotify) FeriizNotify.success(name + ' is on the occupation list now and ticked here. Save Changes to keep it in this project.', 'Occupation added');
             }
 
+            function andList(names) {
+                return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+            }
+
+            // The footer as Selected / Cancel / Save Changes, or as the question before taking off
+            // occupations the project's employees still have, with Keep / Yes, take off.
+            function showAsk(names) {
+                asking = names;
+                var on = names.length > 0;
+                if (on) {
+                    var n = names.reduce(function (sum, name) { return sum + peopleOf(name); }, 0);
+                    $('manageOccAsk').textContent = andList(names) + (names.length === 1 ? ' still has ' : ' still have ') +
+                        peopleText(n) + ' in this project. Take ' + (names.length === 1 ? 'it' : 'them') + ' off anyway?';
+                }
+                $('manageOccAsk').hidden = !on;
+                $('manageOccSelected').hidden = on;
+                $('manageOccCancel').hidden = on;
+                $('manageOccSave').hidden = on;
+                $('manageOccKeep').hidden = !on;
+                $('manageOccConfirm').hidden = !on;
+            }
+
+            // Save Changes: asks first when an unticked occupation still has employees here.
+            function onSaveClick() {
+                var held = [];
+                document.querySelectorAll('.manage-occ-cb').forEach(function (cb) {
+                    if (!cb.checked && peopleOf(cb.dataset.name) > 0) held.push(cb.dataset.name);
+                });
+                if (!held.length) { saveManagedOccupations(); return; }
+                showAsk(held);
+                $('manageOccKeep').focus();
+            }
+
+            // Keep: they are ticked again.
+            function keepAsked() {
+                asking.forEach(function (name) {
+                    ticked[name] = true;
+                    var cb = document.querySelector('.manage-occ-cb[data-name="' + CSS.escape(name) + '"]');
+                    if (cb) cb.checked = true;
+                });
+                updateOccSelected();
+                applyOccFilters();
+                showAsk([]);
+                $('manageOccSave').focus();
+            }
+
             function openManageOccupations() {
                 ticked = {};
                 projectOccupations.forEach(function (o) { ticked[o.name] = true; });
@@ -388,6 +436,7 @@
                 $('manageOccSearch').value = '';
                 closeOccSuggestions();
                 renderOccList();
+                showAsk([]);
                 $('manageOccModal').classList.add('show');
                 document.body.style.overflow = 'hidden';
                 $('manageOccSearch').focus();
@@ -422,7 +471,9 @@
                 $('occManageBtn').addEventListener('click', openManageOccupations);
                 $('manageOccClose').addEventListener('click', closeManageOccupations);
                 $('manageOccCancel').addEventListener('click', closeManageOccupations);
-                $('manageOccSave').addEventListener('click', saveManagedOccupations);
+                $('manageOccSave').addEventListener('click', onSaveClick);
+                $('manageOccKeep').addEventListener('click', keepAsked);
+                $('manageOccConfirm').addEventListener('click', saveManagedOccupations);
                 $('manageOccModal').addEventListener('click', function (e) { if (e.target === this) closeManageOccupations(); });
                 $('manageOccModal').addEventListener('keydown', function (e) {
                     if (e.key !== 'Escape') return;
@@ -433,6 +484,7 @@
                 $('manageOccList').addEventListener('change', function (e) {
                     if (!e.target.classList.contains('manage-occ-cb')) return;
                     ticked[e.target.dataset.name] = e.target.checked;
+                    if (asking.length) showAsk([]);
                     updateOccSelected();
                     applyOccFilters();
                 });

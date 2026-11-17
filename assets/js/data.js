@@ -248,10 +248,11 @@
             var work = Math.max(0, Number(day && day.work) || 0);
             return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
         },
-        // A project's occupations, A to Z: the ones on its Settings page (Manage Occupations, Baldy,
-        // 17-11-2026: "di project setting tambahin manage occupation, jadi bisa add occupation"),
-        // and always those of the employees assigned to it, so an occupation with people in the
-        // project never goes. Until it is saved there, only the employees' ones.
+        // A project's occupations, A to Z: the ones saved on its Settings page (Manage Occupations,
+        // Baldy, 17-11-2026: "di project setting tambahin manage occupation, jadi bisa add
+        // occupation"); until it is saved there, those of the employees assigned to it. One its
+        // employees have can be taken off there, after a warning on Save ("kalau misal ada yang di
+        // unassign itu tinggal kasih peringatan ketika dia save").
         projectOccupations: function (project) {
             if (!project) return [];
             var seen = {};
@@ -260,8 +261,8 @@
                 var clean = String(name || '').trim();
                 if (clean && !seen[lower(clean)]) { seen[lower(clean)] = true; names.push(clean); }
             }
-            (Array.isArray(project.occupations) ? project.occupations : []).forEach(add);
-            API.employees.forEach(function (e) { if ((e.projects || []).indexOf(project.code) >= 0) add(e.occupation); });
+            if (Array.isArray(project.occupations)) project.occupations.forEach(add);
+            else API.employees.forEach(function (e) { if ((e.projects || []).indexOf(project.code) >= 0) add(e.occupation); });
             return names.sort(byName);
         },
         // Settings > Manage Occupations: the project's occupations as ticked there.

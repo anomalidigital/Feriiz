@@ -17,8 +17,10 @@
 
     // Fetched with force-cache, so change the query whenever the file changes
     // (2026-11-02: projects got defaultHours; 2026-11-10: taken out again, Default Hours are
-    // per occupation on each project's Settings page).
-    var DATA_URL = 'feriiz-data.json?v=2026-11-10';
+    // per occupation on each project's Settings page; 2026-11-17: the demo runs 9 Oct - Sat 14 Nov,
+    // a Saturday added and the dates moved two weeks, so This Week is Sunday to Saturday: Arcon
+    // asked where Saturday was, the demo's "today" had been a Friday).
+    var DATA_URL = 'feriiz-data.json?v=2026-11-17';
 
     // Transport per employee (Transport / Day, 28-10 to 12-11-2026) is gone: transport is a request
     // template given in the Report. What a browser kept of it is dropped.

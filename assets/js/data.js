@@ -224,7 +224,8 @@
         },
         // settings = { workStart, workEnd, cutOff } from Project Detail, or { defaultHours } from
         // Settings: { occupations: [{ occupation, custom, daily: { work, ot },
-        // days: { Sun: { work, ot }, ... } }] } in hours.
+        // days: { Sun: { work, ot }, ... } }] } in hours, or { occupations: [names] } from its
+        // Manage Occupations.
         saveProjectSettings: function (code, settings) {
             if (!code || !settings) return;
             var edit = projectEdits[code] || (projectEdits[code] = {});
@@ -246,6 +247,47 @@
             var day = row ? (row.days || {})[dayName] || row.daily : NEW_OCCUPATION_DAY;
             var work = Math.max(0, Number(day && day.work) || 0);
             return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
+        },
+        // A project's occupations, A to Z: the ones on its Settings page (Manage Occupations, Baldy,
+        // 17-11-2026: "di project setting tambahin manage occupation, jadi bisa add occupation"),
+        // and always those of the employees assigned to it, so an occupation with people in the
+        // project never goes. Until it is saved there, only the employees' ones.
+        projectOccupations: function (project) {
+            if (!project) return [];
+            var seen = {};
+            var names = [];
+            function add(name) {
+                var clean = String(name || '').trim();
+                if (clean && !seen[lower(clean)]) { seen[lower(clean)] = true; names.push(clean); }
+            }
+            (Array.isArray(project.occupations) ? project.occupations : []).forEach(add);
+            API.employees.forEach(function (e) { if ((e.projects || []).indexOf(project.code) >= 0) add(e.occupation); });
+            return names.sort(byName);
+        },
+        // Settings > Manage Occupations: the project's occupations as ticked there.
+        saveProjectOccupations: function (code, names) {
+            this.saveProjectSettings(code, { occupations: names.slice().sort(byName) });
+        },
+        // An employee assigned to a project brings their occupation when the project does not
+        // have it yet (Baldy, 17-11-2026: "kalau misal sebuah employee ketika di tambahin di manage
+        // employee dan dia itu occupations nya ... tidak ada occupations di project itu, maka nanti
+        // di project settings nya bertambah ya occupation baru"). Its Default Hours start at 8/2.
+        // The names that were new to the project.
+        addProjectOccupations: function (code, names) {
+            var project = this._projByCode[code];
+            if (!project) return [];
+            var list = this.projectOccupations(project);
+            var have = {};
+            list.forEach(function (n) { have[lower(n)] = true; });
+            var added = [];
+            (names || []).forEach(function (name) {
+                var clean = String(name || '').trim();
+                if (!clean || have[lower(clean)]) return;
+                have[lower(clean)] = true;
+                added.push(clean);
+            });
+            if (added.length) this.saveProjectOccupations(code, list.concat(added));
+            return added;
         },
         // Occupations, A to Z, each with how many employees have it (Employees > Manage
         // Occupations, Baldy, 12-11-2026: "tambahin tombol buat tambah occupation… ada checlist nya
@@ -275,6 +317,7 @@
             occEdits.steps.push(step);
             var cleared = occupationStep(API.employees, step);
             dropDefaultHours(gone);
+            dropProjectOccupations(gone);
             saveOccupations();
             return cleared;
         },
@@ -325,6 +368,15 @@
             if (!rows || !rows.length) return;
             var next = rows.filter(function (r) { return !gone[lower(r.occupation)]; });
             if (next.length < rows.length) API.saveProjectSettings(p.code, { defaultHours: Object.assign({}, p.defaultHours, { occupations: next }) });
+        });
+    }
+
+    // ... and the deleted occupations leave each project's own list (Settings > Manage Occupations).
+    function dropProjectOccupations(gone) {
+        API.projects.forEach(function (p) {
+            if (!Array.isArray(p.occupations)) return;
+            var next = p.occupations.filter(function (o) { return !gone[lower(o)]; });
+            if (next.length < p.occupations.length) API.saveProjectSettings(p.code, { occupations: next });
         });
     }
 

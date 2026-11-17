@@ -7,11 +7,11 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.136">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.136">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.137">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.137">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.136" defer></script>
-    <script src="assets/js/app.js?v=3.7.136" defer></script>
+    <script src="assets/js/data.js?v=3.7.137" defer></script>
+    <script src="assets/js/app.js?v=3.7.137" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026): its Default Hours. The Public Holidays panel beside them
@@ -25,6 +25,14 @@
        Saved as defaultHours.occupations; the Report, its print and Attendance read them through
        FERIIZ_DATA.defaultHoursOf. The project form has none since 10-11-2026 ("karna udah ada di
        dalam setiap project, maka ini di hapus yang ada di form nya").
+     - Manage Occupations (17-11-2026; Baldy: "di project setting tambahin manage occupation, jadi
+       bisa add occupation, nah ini sistem nya kita buat sama seperti manage employee di project
+       activity, nah bedanya paling ini ga bisa import code aja"): the Manage Employee dialog of
+       Activity for occupations, without Import Code. The rows are the project's occupations
+       (FERIIZ_DATA.projectOccupations): the ones ticked there and always those of its employees,
+       so an occupation with people here is ticked and cannot be taken off. An employee assigned
+       on Activity whose occupation the project does not have adds it here (addProjectOccupations),
+       a row marked New at 8/2.
      - Use Default Hours in this project (13-11-2026; the meeting of 10-11-2026, 00:28:02 and
        01:11:50: "paling bawah nanti ada checklist… use this default", per project; Baldy: "buat
        internal juga mereka mau ada default juga bukan hanya untuk client"): saved with the hours
@@ -53,6 +61,7 @@
             <section class="settings-panel" aria-labelledby="occHoursTitle">
                 <div class="settings-panel-head">
                     <h2 class="settings-panel-title" id="occHoursTitle">Default Hours</h2>
+                    <button class="btn btn-primary btn-sm" type="button" id="occManageBtn" hidden>Manage Occupations</button>
                 </div>
                 <div class="occ-hours" id="occHours"></div>
                 <div class="occ-hours-use" id="occUseWrap" hidden>
@@ -67,8 +76,53 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.136</div>
+        <div class="feriiz-u-032">version : 3.7.137</div>
     </main>
+
+    <!-- Manage Occupation: the Manage Employee dialog of Activity (project_employees.html), its
+         classes and words, for the project's occupations; no Import Code. -->
+    <div class="modal-overlay" id="manageOccModal" role="dialog" aria-modal="true" aria-labelledby="manageOccTitle">
+        <div class="modal-card feriiz-u-267">
+            <div class="modal-header feriiz-u-268">
+                <h2 class="feriiz-u-035" id="manageOccTitle">Manage Occupation</h2>
+                <button class="modal-close feriiz-u-195" type="button" id="manageOccClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body feriiz-u-269">
+                <div class="feriiz-u-270">
+                    <select id="occAssignedFilter" class="feriiz-u-271" aria-label="Show">
+                        <option value="all" class="feriiz-u-044">All</option>
+                        <option value="assigned" class="feriiz-u-044">Assigned</option>
+                        <option value="unassigned" class="feriiz-u-044">Unassigned</option>
+                    </select>
+                    <div class="feriiz-u-272">
+                        <i class="fa-solid fa-magnifying-glass feriiz-u-273" aria-hidden="true"></i>
+                        <input type="text" id="manageOccSearch" placeholder="Search Occupation" aria-label="Search Occupation"
+                            autocomplete="off" class="feriiz-u-274">
+                        <div class="search-autocomplete" id="occSearchAutocomplete"></div>
+                    </div>
+                </div>
+                <div class="feriiz-u-276">
+                    <div class="feriiz-u-277">
+                        <div class="feriiz-u-278">
+                            <div class="feriiz-u-279">List Occupation</div>
+                            <div class="feriiz-u-280">
+                                <span class="feriiz-u-281"><span id="totalOccLabel">Total: </span><span id="totalOccCount">0</span>
+                                    <span id="totalOccSuffix">Occupations</span></span>
+                            </div>
+                        </div>
+                        <div id="manageOccList" class="feriiz-u-283 manage-occ-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="feriiz-u-292">
+                <span class="feriiz-u-293">Selected: <span id="selectedOccCount" class="feriiz-u-294">0</span> Occupations</span>
+                <div class="feriiz-u-296">
+                    <button class="btn btn-outline feriiz-u-297" type="button" id="manageOccCancel">Cancel</button>
+                    <button class="btn btn-primary feriiz-u-298 manage-occ-save" type="button" id="manageOccSave">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         (function () {
@@ -86,16 +140,29 @@
             /* ---------- Default Hours per Occupation ---------- */
             var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             var DAY_NAMES = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
-            var projectOccupations = [];          // [{ name, people }] of the employees assigned here
+            var projectOccupations = [];          // [{ name, people }]: the project's occupations
+            var people = {};                      // occupation (lower-case) -> how many of its employees have it
 
-            // Every occupation of the employees assigned to this project, by name, with how many.
-            function occupationsOfProject(data) {
-                var count = {};
+            function lowerName(s) { return String(s || '').trim().toLowerCase(); }
+
+            function countPeople(data) {
+                people = {};
                 (data.employees || []).forEach(function (e) {
-                    if (e.occupation && (e.projects || []).indexOf(project.code) >= 0) count[e.occupation] = (count[e.occupation] || 0) + 1;
+                    if (!e.occupation || (e.projects || []).indexOf(project.code) < 0) return;
+                    people[lowerName(e.occupation)] = (people[lowerName(e.occupation)] || 0) + 1;
                 });
-                return Object.keys(count).sort(function (a, b) { return a.localeCompare(b); })
-                    .map(function (name) { return { name: name, people: count[name] }; });
+            }
+
+            function peopleOf(name) { return people[lowerName(name)] || 0; }
+
+            function peopleText(n) { return n + (n === 1 ? ' employee' : ' employees'); }
+
+            // The rows: the project's occupations (the ones ticked in Manage Occupations and those of
+            // its employees), A to Z, each with its people.
+            function loadProjectOccupations() {
+                projectOccupations = window.FERIIZ_DATA.projectOccupations(project).map(function (name) {
+                    return { name: name, people: peopleOf(name) };
+                });
             }
 
             function savedOccupations() {
@@ -125,7 +192,7 @@
                 var isNew = !entry && anySaved;
                 return '<div class="occ-hours-row is-occupation" data-occupation="' + esc(occ.name) + '">' +
                     '<div class="occ-hours-name">' + esc(occ.name) + (isNew ? ' <span class="occ-hours-new">New</span>' : '') +
-                        '<small>' + occ.people + (occ.people === 1 ? ' employee' : ' employees') + '</small></div>' +
+                        '<small>' + (occ.people ? peopleText(occ.people) : 'No employees yet') + '</small></div>' +
                     DAYS.map(function (day) {
                         var d = window.FERIIZ_DATA.defaultHoursOf(project, occ.name, day);   // 8/2 when never saved
                         return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + dayPairText(d) +
@@ -139,7 +206,7 @@
                 var useWrap = document.getElementById('occUseWrap');
                 document.getElementById('occUseDefault').checked = Boolean((project.defaultHours || {}).useInReport);
                 if (!projectOccupations.length) {
-                    box.innerHTML = '<p class="occ-hours-empty">No employee is assigned to this project yet. Their occupations show here once they are.</p>';
+                    box.innerHTML = '<p class="occ-hours-empty">This project has no occupations yet. Add them with Manage Occupations; an employee assigned to the project brings theirs.</p>';
                     document.getElementById('occSaveBtn').hidden = true;
                     useWrap.hidden = true;
                     return;
@@ -203,9 +270,191 @@
                 }
             }
 
+            /* ---------- Manage Occupations ---------- */
+            // Works as Manage Employee on Activity: All / Assigned / Unassigned, a search whose
+            // suggestions find a row and end with "+ Add New Occupation", the list with a tick per
+            // occupation, Selected, Cancel and Save Changes. Nothing changes until Save Changes.
+            var ticked = {};                      // name -> true while the dialog is open
+
+            function $(id) { return document.getElementById(id); }
+
+            // Every occupation to choose from: the list on Employees > Occupations and any other
+            // the project already has (an employee's that is not on that list).
+            function choosableOccupations() {
+                var seen = {};
+                var names = [];
+                function add(name) {
+                    if (name && !seen[lowerName(name)]) { seen[lowerName(name)] = true; names.push(name); }
+                }
+                window.FERIIZ_DATA.occupationList().forEach(function (o) { add(o.name); });
+                projectOccupations.forEach(function (o) { add(o.name); });
+                return names.sort(function (a, b) { return a.localeCompare(b); });
+            }
+
+            // An occupation with employees in the project stays ticked: they bring it.
+            function occRow(name) {
+                var n = peopleOf(name);
+                var locked = n > 0;
+                return '<label class="feriiz-u-284' + (locked ? ' is-locked' : '') + '"' +
+                        (locked ? ' title="Employees of this project have this occupation, so it stays."' : '') + '>' +
+                    '<input type="checkbox" class="manage-occ-cb feriiz-u-285" data-name="' + esc(name) + '"' +
+                        (ticked[name] || locked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
+                    '<span class="feriiz-u-286">' + esc(name) + '</span>' +
+                    (n ? '<span class="manage-emp-occ">' + peopleText(n) + '</span>' : '') +
+                '</label>';
+            }
+
+            function renderOccList() {
+                $('manageOccList').innerHTML = choosableOccupations().map(occRow).join('');
+                updateOccSelected();
+                applyOccFilters();
+            }
+
+            function updateOccSelected() {
+                var count = document.querySelectorAll('.manage-occ-cb:checked').length;
+                $('selectedOccCount').textContent = count;
+                $('manageOccSave').disabled = count === 0;
+            }
+
+            // All / Assigned / Unassigned and the search, as on Manage Employee.
+            function applyOccFilters() {
+                var filter = $('occAssignedFilter').value;
+                var query = $('manageOccSearch').value.trim().toLowerCase();
+                var visible = 0;
+                document.querySelectorAll('#manageOccList > label').forEach(function (label) {
+                    var cb = label.querySelector('.manage-occ-cb');
+                    var show = (!query || cb.dataset.name.toLowerCase().indexOf(query) >= 0) &&
+                        (filter === 'all' || (filter === 'assigned') === cb.checked);
+                    label.style.display = show ? 'flex' : 'none';
+                    if (show) visible++;
+                });
+                $('totalOccLabel').textContent = filter === 'unassigned' ? 'Showing ' : 'Total: ';
+                $('totalOccCount').textContent = visible;
+                $('totalOccSuffix').textContent = filter === 'unassigned' ? 'Unassigned' : 'Occupations';
+            }
+
+            function highlightOcc(name) {
+                var cb = document.querySelector('.manage-occ-cb[data-name="' + CSS.escape(name) + '"]');
+                if (!cb) return;
+                var label = cb.closest('label');
+                if (label.style.display === 'none') {
+                    $('occAssignedFilter').value = 'all';
+                    applyOccFilters();
+                }
+                label.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                label.classList.add('manage-emp-highlight');
+                setTimeout(function () { label.classList.remove('manage-emp-highlight'); }, 1500);
+            }
+
+            function closeOccSuggestions() { $('occSearchAutocomplete').classList.remove('show'); }
+
+            // Up to 6 occupations with the typed text, then "+ Add New Occupation".
+            function renderOccSuggestions() {
+                var box = $('occSearchAutocomplete');
+                var query = $('manageOccSearch').value.trim();
+                if (!query) { closeOccSuggestions(); return; }
+                var q = query.toLowerCase();
+                var names = choosableOccupations();
+                var html = names.filter(function (n) { return n.toLowerCase().indexOf(q) >= 0; }).slice(0, 6).map(function (n) {
+                    var at = n.toLowerCase().indexOf(q);
+                    return '<div class="ac-item" data-name="' + esc(n) + '">' + esc(n.slice(0, at)) + '<strong>' +
+                        esc(n.slice(at, at + q.length)) + '</strong>' + esc(n.slice(at + q.length)) + '</div>';
+                }).join('');
+                var exact = names.some(function (n) { return n.toLowerCase() === q; });
+                if (!exact) html += '<div class="ac-add" data-add="' + esc(query) + '"><i class="fa-solid fa-plus"></i> Add New Occupation "' + esc(query) + '"</div>';
+                box.innerHTML = html;
+                box.classList.add('show');
+            }
+
+            // A new occupation goes on the list of Employees > Occupations at once and is ticked
+            // here; the project keeps it with Save Changes.
+            function addNewOccupation(text) {
+                var problem = window.FERIIZ_DATA.addOccupation(text);
+                if (problem) { warn(problem, 'Occupation not added'); return; }
+                var name = '';
+                window.FERIIZ_DATA.occupationList().forEach(function (o) { if (lowerName(o.name) === lowerName(text)) name = o.name; });
+                ticked[name] = true;
+                $('manageOccSearch').value = '';
+                closeOccSuggestions();
+                renderOccList();
+                highlightOcc(name);
+                if (window.FeriizNotify) FeriizNotify.success(name + ' is on the occupation list now and ticked here. Save Changes to keep it in this project.', 'Occupation added');
+            }
+
+            function openManageOccupations() {
+                ticked = {};
+                projectOccupations.forEach(function (o) { ticked[o.name] = true; });
+                $('occAssignedFilter').value = 'all';
+                $('manageOccSearch').value = '';
+                closeOccSuggestions();
+                renderOccList();
+                $('manageOccModal').classList.add('show');
+                document.body.style.overflow = 'hidden';
+                $('manageOccSearch').focus();
+            }
+
+            function closeManageOccupations() {
+                $('manageOccModal').classList.remove('show');
+                document.body.style.overflow = '';
+                closeOccSuggestions();
+                $('occManageBtn').focus();
+            }
+
+            function saveManagedOccupations() {
+                var before = {};
+                projectOccupations.forEach(function (o) { before[o.name] = true; });
+                var names = [];
+                document.querySelectorAll('.manage-occ-cb:checked').forEach(function (cb) { names.push(cb.dataset.name); });
+                var added = names.filter(function (n) { return !before[n]; });
+                var removed = Object.keys(before).filter(function (n) { return names.indexOf(n) < 0; });
+                window.FERIIZ_DATA.saveProjectOccupations(project.code, names);
+                loadProjectOccupations();
+                renderOccupationHours();
+                closeManageOccupations();
+                if (window.FeriizNotify) {
+                    FeriizNotify.success(projectOccupations.length + (projectOccupations.length === 1 ? ' occupation' : ' occupations') + ' in this project.' +
+                        (added.length ? ' Added: ' + added.join(', ') + ', at 8/2 until you set them.' : '') +
+                        (removed.length ? ' Taken off: ' + removed.join(', ') + '.' : ''), 'Occupations saved');
+                }
+            }
+
+            function wireManageOccupations() {
+                $('occManageBtn').addEventListener('click', openManageOccupations);
+                $('manageOccClose').addEventListener('click', closeManageOccupations);
+                $('manageOccCancel').addEventListener('click', closeManageOccupations);
+                $('manageOccSave').addEventListener('click', saveManagedOccupations);
+                $('manageOccModal').addEventListener('click', function (e) { if (e.target === this) closeManageOccupations(); });
+                $('manageOccModal').addEventListener('keydown', function (e) {
+                    if (e.key !== 'Escape') return;
+                    if ($('occSearchAutocomplete').classList.contains('show')) closeOccSuggestions();
+                    else closeManageOccupations();
+                });
+                $('occAssignedFilter').addEventListener('change', applyOccFilters);
+                $('manageOccList').addEventListener('change', function (e) {
+                    if (!e.target.classList.contains('manage-occ-cb')) return;
+                    ticked[e.target.dataset.name] = e.target.checked;
+                    updateOccSelected();
+                    applyOccFilters();
+                });
+                $('manageOccSearch').addEventListener('input', renderOccSuggestions);
+                $('occSearchAutocomplete').addEventListener('click', function (e) {
+                    var add = e.target.closest('.ac-add');
+                    if (add) { addNewOccupation(add.dataset.add); return; }
+                    var item = e.target.closest('.ac-item');
+                    if (!item) return;
+                    $('manageOccSearch').value = '';
+                    closeOccSuggestions();
+                    highlightOcc(item.dataset.name);
+                });
+                document.addEventListener('click', function (e) {
+                    if (!$('manageOccSearch').contains(e.target) && !$('occSearchAutocomplete').contains(e.target)) closeOccSuggestions();
+                });
+            }
+
             document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('occSaveBtn').addEventListener('click', function () { if (project) saveOccupationHours(); });
                 document.getElementById('occHours').addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
+                wireManageOccupations();
 
                 if (!window.FERIIZ_DATA) return;
                 var code = new URLSearchParams(location.search).get('project');
@@ -216,8 +465,10 @@
                     link.textContent = project.name;
                     link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);
                     document.title = 'Feriiz - ' + project.name + ' - Settings';
-                    projectOccupations = occupationsOfProject(data);
+                    countPeople(data);
+                    loadProjectOccupations();
                     renderOccupationHours();
+                    document.getElementById('occManageBtn').hidden = false;
                 });
             });
         })();

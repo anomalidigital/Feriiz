@@ -1444,11 +1444,20 @@ body {
             user-select: none;
         }
 
-        #projectModal .project-working-day-help {
-            margin: 8px 0 0;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #6B7480;
+        /* A section title with its "?" (Working Day): the icon dark enough on the grey bar. */
+        #projectModal h3.project-section-help {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #projectModal h3.project-section-help .tpl-help {
+            color: #555;
+        }
+
+        #projectModal h3.project-section-help .tpl-help:hover,
+        #projectModal h3.project-section-help .tpl-help:focus-visible {
+            color: #2975BB;
         }
 
         #projectModal .project-working-hour-grid input {

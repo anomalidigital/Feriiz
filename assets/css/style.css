@@ -1432,10 +1432,16 @@ body {
             gap: 16px;
         }
 
-        /* Over the white of every #projectModal input (!important there too). */
-        #projectModal #projWorkingHour[readonly] {
+        /* Not a field to click (Baldy, 18-11-2026: "kalau bisa jangan sampe bisa di klik gini"):
+           disabled, so no caret and no focus, but its figure reads as plainly as the others.
+           Over the white of every #projectModal input (!important there too). */
+        #projectModal #projWorkingHour:disabled {
             background: #F4F5F7 !important;
+            color: #333 !important;
+            -webkit-text-fill-color: #333;
+            opacity: 1;
             cursor: default;
+            user-select: none;
         }
 
         #projectModal .project-working-day-help {

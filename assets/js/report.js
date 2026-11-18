@@ -166,7 +166,8 @@
        DEFAULT HOURS (Baldy, 02-11-2026; per occupation since 10-11-2026)
        Each occupation in a project has the Hours and Overtime of its working day, per
        weekday (Projects > Settings > Default Hours; Arcon's "8/2"); one never saved there has
-       8/2 every day. The project form's own Default Hours were taken out on 10-11-2026
+       the project's Working Day every day (Project Detail, 18-11-2026: 8/2 for 08:00-17:00).
+       The project form's own Default Hours were taken out on 10-11-2026
        ("karna udah ada di dalam setiap project, maka ini di hapus yang ada di form nya").
        The Hours are the day's Time Period: the hours a full day (Daily 1) needs. From 02-11 to 05-11-2026 a
        complete day counted the default Hours and Overtime whatever the clock said; since

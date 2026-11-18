@@ -7,12 +7,12 @@
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.139">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.139">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.140">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.140">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.139" defer></script>
-    <script src="assets/js/app.js?v=3.7.139" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.139" defer></script>
+    <script src="assets/js/data.js?v=3.7.140" defer></script>
+    <script src="assets/js/app.js?v=3.7.140" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.140" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -249,7 +249,7 @@
             window.addProjectEmployee = function (name) { openProjectEmployeeForm(null, name); };
 
             // An employee assigned here whose occupation the project does not have yet adds it to
-            // the project's Settings, a Default Hours row at 8/2 (Baldy, 17-11-2026: "kalau misal
+            // the project's Settings, a Default Hours row at its Working Day (Baldy, 17-11-2026: "kalau misal
             // sebuah employee ketika di tambahin di manage employee dan dia itu occupations nya
             // ketika di assign tidak ada occupations di project itu, maka nanti di project settings
             // nya bertambah ya occupation baru"). Used by Manage Employees too.
@@ -257,8 +257,10 @@
                 if (!state.project || !window.FERIIZ_DATA || !window.FERIIZ_DATA.addProjectOccupations) return [];
                 var added = window.FERIIZ_DATA.addProjectOccupations(state.project.code, names);
                 if (added.length && window.FeriizNotify) {
+                    var day = window.FERIIZ_DATA.projectWorkingDay(state.project);
+                    var dayText = day.work + (day.ot ? '/' + day.ot : '');
                     FeriizNotify.info(added.join(', ') + (added.length === 1 ? ' is' : ' are') + ' new to this project, so ' +
-                        (added.length === 1 ? 'it was' : 'they were') + ' added to its Settings with Default Hours of 8/2 until set there.',
+                        (added.length === 1 ? 'it was' : 'they were') + ' added to its Settings with the project\'s Working Day, ' + dayText + ', until set there.',
                         added.length === 1 ? 'Occupation added to Settings' : 'Occupations added to Settings');
                 }
                 return added;
@@ -375,7 +377,7 @@
         })();
         </script>
 
-        <div class="feriiz-u-032">version : 3.7.139</div>
+        <div class="feriiz-u-032">version : 3.7.140</div>
     </main>
 
     <script>

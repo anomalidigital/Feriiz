@@ -34,8 +34,16 @@
     try { projectEdits = JSON.parse(localStorage.getItem(PROJECT_KEY) || '{}') || {}; } catch (e) { projectEdits = {}; }
 
     // The Default Hours of an occupation never saved on its project's Settings page: 8/2 every
-    // day (Baldy, 10-11-2026).
+    // day (Baldy, 10-11-2026); since 18-11-2026 the project's Working Day (projectWorkingDay),
+    // which is 8/2 for 08:00-17:00 and an Overtime never set. These are its fallbacks.
     var NEW_OCCUPATION_DAY = { work: 8, ot: 2 };
+
+    // "08:00" -> minutes, or null.
+    function clockMinutes(text) {
+        var m = /^(\d{1,2})[:.](\d{2})$/.exec(String(text || '').trim());
+        if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return null;
+        return Number(m[1]) * 60 + Number(m[2]);
+    }
 
     // The occupations as Employees > Manage Occupations left them (Baldy, 12-11-2026): { list:
     // the names, steps: ['delete', [names]] in the order they were done }. The steps are done
@@ -222,7 +230,7 @@
             assignedEdits[projectCode + '|' + employeeCode] = list;
             try { localStorage.setItem(ASSIGNED_KEY, JSON.stringify(assignedEdits)); } catch (e) { /* kept for this page only */ }
         },
-        // settings = { workStart, workEnd, cutOff } from Project Detail, or { defaultHours } from
+        // settings = { workStart, workEnd, cutOff, defaultOvertime } from Project Detail, or { defaultHours } from
         // Settings: { occupations: [{ occupation, custom, daily: { work, ot },
         // days: { Sun: { work, ot }, ... } }] } in hours, or { occupations: [names] } from its
         // Manage Occupations.
@@ -234,17 +242,40 @@
             if (project) Object.keys(edit).forEach(function (k) { project[k] = edit[k]; });
             try { localStorage.setItem(PROJECT_KEY, JSON.stringify(projectEdits)); } catch (e) { /* kept for this page only */ }
         },
+        // The working hours of a day from Start to End ("08:00", "17:00"), less the hour of break
+        // when there is room for one: 8 of 08:00-17:00, as the Report counts a full working day
+        // (Baldy, 13-11-2026). An End before the Start is the next day. 0 when either is not a time.
+        workingHours: function (start, end) {
+            var a = clockMinutes(start);
+            var b = clockMinutes(end);
+            if (a == null || b == null) return 0;
+            var span = (b > a ? b - a : b + 24 * 60 - a) / 60;
+            return Math.round((span > 1 ? span - 1 : span) * 100) / 100;
+        },
+        // A project's Working Day, { work, ot } in hours (Project Detail, Baldy, 18-11-2026: "di
+        // project detail tambahin colom lagi namanya working day, jadi ini tuh buat default nya
+        // project itu, cuma cukup 2 coloms aja working hour yang sehari dan overtime nya"). The
+        // working hour comes from its Working Time and cannot be typed ("working hour nya itu dia
+        // bakal otomatis keisi ketika working time nya di isi... tidak bisa di ganti"); the
+        // overtime is set there (defaultOvertime), 2 until it is. A new occupation on the project's
+        // Settings page starts at it every day ("ketika ada occupation baru di sana dia waktu nya
+        // lansung mengikuti working day dari project nya").
+        projectWorkingDay: function (project) {
+            var work = API.workingHours((project && project.workStart) || '08:00', (project && project.workEnd) || '17:00');
+            var ot = project && project.defaultOvertime != null && project.defaultOvertime !== '' ? Number(project.defaultOvertime) : NEW_OCCUPATION_DAY.ot;
+            return { work: work || NEW_OCCUPATION_DAY.work, ot: Math.max(0, ot || 0) };
+        },
         // The Default Hours of an occupation in a project on one weekday ('Mon'): its row on the
-        // project's Settings page, { work, ot } in hours. One never saved there has 8/2 every
-        // day; a day saved as 0 hours has none, so its real logs count (null). The Report, its
-        // print, Attendance and Settings itself all read it here.
+        // project's Settings page, { work, ot } in hours. One never saved there has the project's
+        // Working Day every day; a day saved as 0 hours has none, so its real logs count (null).
+        // The Report, its print, Attendance and Settings itself all read it here.
         defaultHoursOf: function (project, occupation, dayName) {
             var rows = (project && project.defaultHours && project.defaultHours.occupations) || [];
             var row = null;
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].occupation === occupation) { row = rows[i]; break; }
             }
-            var day = row ? (row.days || {})[dayName] || row.daily : NEW_OCCUPATION_DAY;
+            var day = row ? (row.days || {})[dayName] || row.daily : API.projectWorkingDay(project);
             var work = Math.max(0, Number(day && day.work) || 0);
             return work > 0 ? { work: work, ot: Math.max(0, Number(day.ot) || 0) } : null;
         },
@@ -272,7 +303,8 @@
         // An employee assigned to a project brings their occupation when the project does not
         // have it yet (Baldy, 17-11-2026: "kalau misal sebuah employee ketika di tambahin di manage
         // employee dan dia itu occupations nya ... tidak ada occupations di project itu, maka nanti
-        // di project settings nya bertambah ya occupation baru"). Its Default Hours start at 8/2.
+        // di project settings nya bertambah ya occupation baru"). Its Default Hours start at the
+        // project's Working Day.
         // The names that were new to the project.
         addProjectOccupations: function (code, names) {
             var project = this._projByCode[code];

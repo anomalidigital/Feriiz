@@ -7,11 +7,11 @@
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.139">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.139">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.140">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.140">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.139" defer></script>
-    <script src="assets/js/app.js?v=3.7.139" defer></script>
+    <script src="assets/js/data.js?v=3.7.140" defer></script>
+    <script src="assets/js/app.js?v=3.7.140" defer></script>
 </head>
 
 <body data-page="projects">
@@ -74,7 +74,7 @@
                 <nav id="projectsPager" aria-label="Project pages"></nav>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.139</div>
+        <div class="feriiz-u-032">version : 3.7.140</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -142,9 +142,29 @@
                             </div>
                         </div>
 
-                        <!-- No Default Hours here since 10-11-2026: each occupation has its own on the
-                             project's Settings page ("karna udah ada di dalam setiap project, maka ini di
-                             hapus yang ada di form nya"). -->
+                        <!-- Working Day (Baldy, 18-11-2026: "di project detail tambahin colom lagi namanya
+                             working day, jadi ini tuh buat default nya project itu, cuma cukup 2 coloms aja
+                             working hour yang sehari dan overtime nya"): the project's default day. The
+                             Working Hour follows the Working Time, less the hour of break, and cannot be
+                             typed; the Overtime is set here. A new occupation on the project's Settings
+                             starts at these hours every day. The Default Hours per occupation stay on
+                             Settings (taken out of this form on 10-11-2026). -->
+                        <div class="mb-4">
+                            <h3 class="feriiz-u-202">Working Day</h3>
+                            <div class="project-working-day-grid">
+                                <div>
+                                    <label class="feriiz-u-203" for="projWorkingHour">Working Hour</label>
+                                    <div class="unit-input"><input type="text" id="projWorkingHour" class="feriiz-u-205" readonly
+                                        aria-describedby="projWorkingDayHelp"><span class="unit-input-suffix">h</span></div>
+                                </div>
+                                <div>
+                                    <label class="feriiz-u-203" for="projDefaultOvertime">Overtime</label>
+                                    <div class="unit-input"><input type="text" id="projDefaultOvertime" class="feriiz-u-205" inputmode="decimal"
+                                        placeholder="2" aria-describedby="projWorkingDayHelp"><span class="unit-input-suffix">h</span></div>
+                                </div>
+                            </div>
+                            <p class="project-working-day-help" id="projWorkingDayHelp">The Working Hour follows the Working Time, less a 1-hour break. A new occupation on this project's Settings starts at these hours.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -243,6 +263,10 @@
             document.getElementById('projStartHour').value = (project && project.workStart) || '';
             document.getElementById('projEndHour').value = (project && project.workEnd) || '';
             document.getElementById('projCutOffHour').value = (project && project.cutOff) || '';
+            var overtime = project && project.defaultOvertime != null && project.defaultOvertime !== '' ? project.defaultOvertime : 2;
+            document.getElementById('projDefaultOvertime').value = overtime;
+            document.getElementById('projDefaultOvertime').classList.remove('is-invalid');
+            refreshWorkingHour();
             if (pAdvContent) pAdvContent.style.display = '';
             if (pAdvLeft) pAdvLeft.style.display = '';
             if (footer) footer.style.display = 'flex';
@@ -275,6 +299,29 @@
             if (text) text.textContent = isOpening ? 'Hide Penalty & Config' : 'Show Penalty & Config';
         }
 
+        // Working Day: the Working Hour as the Working Time gives it (empty until both hours are
+        // written; the placeholder is what 08:00-17:00 gives).
+        function hoursText(h) { return String(Math.round(h * 100) / 100); }
+
+        function refreshWorkingHour() {
+            var data = window.FERIIZ_DATA;
+            if (!data || !data.workingHours) return;
+            var field = document.getElementById('projWorkingHour');
+            var hours = data.workingHours(document.getElementById('projStartHour').value, document.getElementById('projEndHour').value);
+            field.value = hours ? hoursText(hours) : '';
+            field.placeholder = hoursText(data.workingHours('08:00', '17:00'));
+        }
+
+        // The Overtime typed, in hours, or null when it is not a number of hours that fits the day.
+        function readDefaultOvertime() {
+            var text = document.getElementById('projDefaultOvertime').value.trim().replace(',', '.');
+            if (!text) return 0;
+            if (!/^\d+(\.\d+)?$/.test(text)) return null;
+            var ot = Number(text);
+            var work = Number(document.getElementById('projWorkingHour').value) || 8;
+            return work + ot <= 24 ? ot : null;
+        }
+
         function closeProjectModal() {
             document.getElementById('projectModal').classList.remove('show');
             document.body.style.overflow = '';
@@ -297,6 +344,15 @@
                 return;
             }
 
+            var defaultOvertime = readDefaultOvertime();
+            if (defaultOvertime == null) {
+                var otInput = document.getElementById('projDefaultOvertime');
+                otInput.classList.add('is-invalid');
+                otInput.focus();
+                if (window.FeriizNotify) FeriizNotify.warning('Working Day overtime: write the hours, like 2, so the day stays within 24 hours.', 'Project not saved');
+                return;
+            }
+
             if (isNew && projectList.some(function (p) { return p.code === code; })) {
                 if (codeInput) codeInput.focus();
                 if (window.FeriizNotify) FeriizNotify.warning(code + ' is already used by another project.', 'Project not saved');
@@ -312,10 +368,12 @@
                 target.workStart = document.getElementById('projStartHour').value || target.workStart;
                 target.workEnd = document.getElementById('projEndHour').value || target.workEnd;
                 target.cutOff = document.getElementById('projCutOffHour').value || target.cutOff;
+                target.defaultOvertime = defaultOvertime;
                 if (isNew) projectList.unshift(target);
                 if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {
                     window.FERIIZ_DATA.saveProjectSettings(code, {
-                        workStart: target.workStart, workEnd: target.workEnd, cutOff: target.cutOff
+                        workStart: target.workStart, workEnd: target.workEnd, cutOff: target.cutOff,
+                        defaultOvertime: defaultOvertime
                     });
                 }
                 refreshProjects();
@@ -329,6 +387,10 @@
         document.getElementById('projectModal').addEventListener('click', function (e) {
             if (e.target === this) closeProjectModal();
         });
+        ['projStartHour', 'projEndHour'].forEach(function (id) {
+            document.getElementById(id).addEventListener('input', refreshWorkingHour);
+        });
+        document.getElementById('projDefaultOvertime').addEventListener('input', function () { this.classList.remove('is-invalid'); });
     </script>
 
 

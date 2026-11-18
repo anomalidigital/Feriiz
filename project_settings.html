@@ -7,11 +7,11 @@
     <title>Feriiz - Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.139">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.139">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.140">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.140">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.139" defer></script>
-    <script src="assets/js/app.js?v=3.7.139" defer></script>
+    <script src="assets/js/data.js?v=3.7.140" defer></script>
+    <script src="assets/js/app.js?v=3.7.140" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026): its Default Hours. The Public Holidays panel beside them
@@ -21,7 +21,10 @@
        row each and a field per day written hours/overtime, as Arcon's sheet (Baldy, 10-11-2026:
        "jangan all occupation… tunjukin semua aja… berdasarkan employee yang di assign di project").
        An occupation never set here, e.g. a new employee's, starts at 8/2 every day ("ketika
-       occupations nya ada yang baru dia set default nya 8/2 semua dari minggu sampe sabtu").
+       occupations nya ada yang baru dia set default nya 8/2 semua dari minggu sampe sabtu"); since
+       18-11-2026 at the project's Working Day (Project Detail: the Working Hour from its Working
+       Time and its Overtime; "ketika ada occupation baru di sana dia waktu nya lansung mengikuti
+       working day dari project nya"), 8/2 for 08:00-17:00.
        Saved as defaultHours.occupations; the Report, its print and Attendance read them through
        FERIIZ_DATA.defaultHoursOf. The project form has none since 10-11-2026 ("karna udah ada di
        dalam setiap project, maka ini di hapus yang ada di form nya").
@@ -35,7 +38,7 @@
        peringatan ketika dia save", then "menurutku ga bisa di remove ya, paling take off dulu
        employee nya, baru occupation nya"), and OK ticks it again. An employee assigned on
        Activity whose occupation the project does not have adds it here (addProjectOccupations),
-       a row at 8/2.
+       a row at the project's Working Day.
      - Use Default Hours in this project (13-11-2026; the meeting of 10-11-2026, 00:28:02 and
        01:11:50: "paling bawah nanti ada checklist… use this default", per project; Baldy: "buat
        internal juga mereka mau ada default juga bukan hanya untuk client"): saved with the hours
@@ -79,7 +82,7 @@
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.139</div>
+        <div class="feriiz-u-032">version : 3.7.140</div>
     </main>
 
     <!-- Manage Occupation: the Manage Employee dialog of Activity (project_employees.html), its
@@ -184,6 +187,9 @@
                 return m ? { work: Number(m[1]), ot: m[2] ? Number(m[2]) : 0 } : null;
             }
 
+            // The project's Working Day as "8/2" (Project Detail).
+            function workingDayText() { return dayPairText(window.FERIIZ_DATA.projectWorkingDay(project)); }
+
             function dayPairText(d) {
                 var work = Number(d && d.work) || 0;
                 var ot = Number(d && d.ot) || 0;
@@ -191,7 +197,8 @@
             }
 
             // A row per occupation: its name and people, then a field per day. One never saved here
-            // starts at 8/2 every day and says "New", once the project has saved any.
+            // starts at the project's Working Day every day and says "New", once the project has
+            // saved any.
             function occupationRow(occ, saved, anySaved) {
                 var entry = saved[occ.name];
                 var isNew = !entry && anySaved;
@@ -199,9 +206,9 @@
                     '<div class="occ-hours-name">' + esc(occ.name) + (isNew ? ' <span class="occ-hours-new">New</span>' : '') +
                         '<small>' + (occ.people ? peopleText(occ.people) : 'No employees yet') + '</small></div>' +
                     DAYS.map(function (day) {
-                        var d = window.FERIIZ_DATA.defaultHoursOf(project, occ.name, day);   // 8/2 when never saved
+                        var d = window.FERIIZ_DATA.defaultHoursOf(project, occ.name, day);   // the Working Day when never saved
                         return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + dayPairText(d) +
-                            '" placeholder="8/2" aria-label="' + esc(occ.name) + ', ' + DAY_NAMES[day] + ', hours/overtime">';
+                            '" placeholder="' + workingDayText() + '" aria-label="' + esc(occ.name) + ', ' + DAY_NAMES[day] + ', hours/overtime">';
                     }).join('') +
                 '</div>';
             }
@@ -463,7 +470,7 @@
                 closeManageOccupations();
                 if (window.FeriizNotify) {
                     FeriizNotify.success(projectOccupations.length + (projectOccupations.length === 1 ? ' occupation' : ' occupations') + ' in this project.' +
-                        (added.length ? ' Added: ' + added.join(', ') + ', at 8/2 until you set them.' : '') +
+                        (added.length ? ' Added: ' + added.join(', ') + ', at the Working Day ' + workingDayText() + ' until you set them.' : '') +
                         (removed.length ? ' Taken off: ' + removed.join(', ') + '.' : ''), 'Occupations saved');
                 }
             }

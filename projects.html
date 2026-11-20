@@ -7,11 +7,11 @@
     <title>Feriiz - Projects</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.142">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.142">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.143">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.143">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.142" defer></script>
-    <script src="assets/js/app.js?v=3.7.142" defer></script>
+    <script src="assets/js/data.js?v=3.7.143" defer></script>
+    <script src="assets/js/app.js?v=3.7.143" defer></script>
 </head>
 
 <body data-page="projects">
@@ -74,7 +74,7 @@
                 <nav id="projectsPager" aria-label="Project pages"></nav>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.142</div>
+        <div class="feriiz-u-032">version : 3.7.143</div>
     </main>
 
     <!-- Project Modal Overlay -->
@@ -132,13 +132,15 @@
                         <div class="mb-4">
                             <h3 class="feriiz-u-202">
                                 Working Time</h3>
+                            <!-- data-time (app.js): the ":" goes in as the figures are typed, "0800" ->
+                                 "08:00" (Baldy, 20-11-2026), as on the employee form. -->
                             <div class="project-working-hour-grid">
                                 <div><label class="feriiz-u-203" for="projStartHour">Start Hour</label>
-                                    <input type="text" id="projStartHour" placeholder="08:00"></div>
+                                    <input type="text" id="projStartHour" placeholder="08:00" data-time maxlength="5" inputmode="numeric" autocomplete="off"></div>
                                 <div><label class="feriiz-u-203" for="projEndHour">End Hour</label>
-                                    <input type="text" id="projEndHour" placeholder="17:00"></div>
+                                    <input type="text" id="projEndHour" placeholder="17:00" data-time maxlength="5" inputmode="numeric" autocomplete="off"></div>
                                 <div><label class="feriiz-u-203" for="projCutOffHour">Cut Off Hour</label>
-                                    <input type="text" id="projCutOffHour" placeholder="23:59"></div>
+                                    <input type="text" id="projCutOffHour" placeholder="00:00" data-time maxlength="5" inputmode="numeric" autocomplete="off"></div>
                             </div>
                         </div>
 
@@ -302,6 +304,12 @@
             if (text) text.textContent = isOpening ? 'Hide Penalty & Config' : 'Show Penalty & Config';
         }
 
+        // A time field as saved: "8:30" -> "08:30"; one that cannot be read stays as typed.
+        function timeOf(id) {
+            var value = document.getElementById(id).value.trim();
+            return (window.FeriizTime && window.FeriizTime.clock(value)) || value;
+        }
+
         // Working Day: the Working Hour as the Working Time gives it (empty until both hours are
         // written; the placeholder is what 08:00-17:00 gives).
         function hoursText(h) { return String(Math.round(h * 100) / 100); }
@@ -372,9 +380,9 @@
             if (target) {
                 target.name = name;
                 target.type = document.getElementById('projTypeInput').value;
-                target.workStart = document.getElementById('projStartHour').value || target.workStart;
-                target.workEnd = document.getElementById('projEndHour').value || target.workEnd;
-                target.cutOff = document.getElementById('projCutOffHour').value || target.cutOff;
+                target.workStart = timeOf('projStartHour') || target.workStart;
+                target.workEnd = timeOf('projEndHour') || target.workEnd;
+                target.cutOff = timeOf('projCutOffHour') || target.cutOff;
                 target.defaultOvertime = defaultOvertime;
                 if (isNew) projectList.unshift(target);
                 if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {

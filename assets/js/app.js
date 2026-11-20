@@ -1315,3 +1315,54 @@ function feriizLogout() {
         fillAlts();
     }
 })();
+
+/* Time fields: any <input data-time> puts its own ":" in as the figures are typed, so "0800"
+   is "08:00" (Baldy, 18-11-2026: "aku misal lansung 0000 gitu jadi aneh"; 20-11-2026: "kalau
+   diisi dia lansung ada ':' nya jadi '00:00' dia auto benerin", for every form with a time).
+   An hour from 3 on has one figure ("830" -> "8:30"), a ":" or "." typed is kept, and leaving
+   the field writes it in full ("8:30" -> "08:30") with an input event, so the page sees it.
+   Used by the project's Working Time and the employee form (Start, End and Cut Off Hour).
+   FeriizTime.clock(text) -> "HH:MM", or null for an empty or wrong time. */
+(function () {
+    'use strict';
+
+    // "8.00", "8:00", "800", "0800" or "08:00:00" -> "08:00"; '' or a wrong time -> null.
+    function clock(text) {
+        var s = String(text == null ? '' : text).trim();
+        var m = /^(\d{1,2})[:.](\d{2})(?::\d{2})?$/.exec(s) || /^(\d{1,2})(\d{2})$/.exec(s);
+        if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return null;
+        return (m[1].length === 1 ? '0' : '') + m[1] + ':' + m[2];
+    }
+
+    function mask(raw) {
+        var typed = /^(\d{1,2})[:.](\d{0,2})/.exec(raw);
+        if (typed) return typed[1] + ':' + typed[2];
+        var d = String(raw).replace(/\D/g, '').slice(0, 4);
+        var hourLength = d.charAt(0) >= '3' ? 1 : 2;
+        return d.length > hourLength ? d.slice(0, hourLength) + ':' + d.slice(hourLength, hourLength + 2) : d;
+    }
+
+    function isTimeField(el) {
+        return !!(el && el.matches && el.matches('input[data-time]'));
+    }
+
+    // Capture, so a page's own input handler already reads the time with its ":".
+    document.addEventListener('input', function (e) {
+        var el = e.target;
+        if (!isTimeField(el) || String(e.inputType || '').indexOf('delete') === 0) return;
+        var masked = mask(el.value);
+        if (masked !== el.value) el.value = masked;
+    }, true);
+
+    document.addEventListener('focusout', function (e) {
+        var el = e.target;
+        if (!isTimeField(el)) return;
+        var full = clock(el.value);
+        if (full && full !== el.value) {
+            el.value = full;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }, true);
+
+    window.FeriizTime = { clock: clock, mask: mask };
+})();

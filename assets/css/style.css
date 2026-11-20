@@ -3950,12 +3950,12 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
     --pt-meta-value: 6pt;
     --pt-filter: 5pt;
     --pt-group: 7pt;     /* EMPLOYEE / CLIENT band */
-    --pt-head: 4.8pt;    /* column headers */
+    --pt-head: 6pt;      /* column headers; 4.8pt until 19-11-2026 ("kecil banget"), now as the body */
     --pt-body: 6pt;      /* data cells */
     --pt-figure: 7pt;    /* the numbers, bigger than the words (Baldy, 12-11-2026) */
-    --pt-name: 6.2pt;
+    --pt-name: 7pt;      /* names as big as the figures (19-11-2026: "name itu kecil banget"; 6.2pt before) */
     --pt-sub: 5pt;       /* occupation under the name */
-    --pt-total: 5pt;     /* footer TOTAL row — holds the widest figures */
+    --pt-total: 6.3pt;   /* footer TOTAL row, nine tenths of the figures (5pt before) */
     --pt-footer: 5pt;
     --cell-pad-y: 0.4mm;
     --cell-pad-x: 0.35mm;
@@ -4207,10 +4207,13 @@ div.report-layout .report-table tbody td.filtered-out-cell > * {
 /* Column widths come from each table's <colgroup> (print-report.js, columnWidths): every column
    as wide as what it holds. No and Name were pinned here at 3.2% and 11% until 13-11-2026, which
    overrode those widths: a wide No, and a long name broken over two lines. */
-/* The number in the middle of its column (16-11-2026, the client's marked-up print: "Center"). */
+/* The number in the middle of its column (16-11-2026, the client's marked-up print: "Center"),
+   as big as the other figures (19-11-2026). */
 .report-unified-table td.td-no {
     text-align: center !important;
     color: var(--ink-muted) !important;
+    font-size: calc(var(--pt-figure) * var(--fit, 1)) !important;
+    font-variant-numeric: tabular-nums !important;
 }
 
 .report-unified-table td.td-name {
@@ -4453,12 +4456,12 @@ body[data-page="employee-report"] .report-print-footer {
         --pt-meta-value: 8.5pt;
         --pt-filter: 7.5pt;
         --pt-group: 8.4pt;
-        --pt-head: 6.2pt;
+        --pt-head: 7.6pt;
         --pt-body: 8pt;
         --pt-figure: 9.5pt;
-        --pt-name: 8.3pt;
+        --pt-name: 9.5pt;
         --pt-sub: 6.8pt;
-        --pt-total: 6.2pt;
+        --pt-total: 8.5pt;
         --pt-footer: 7.5pt;
         --cell-pad-y: 0.5mm;
         --cell-pad-x: 0.55mm;
@@ -4474,12 +4477,12 @@ body[data-page="employee-report"] .report-print-footer {
         --pt-meta-value: 11pt;
         --pt-filter: 9.5pt;
         --pt-group: 11.5pt;
-        --pt-head: 8.6pt;
+        --pt-head: 10.4pt;
         --pt-body: 11pt;
         --pt-figure: 13pt;
-        --pt-name: 11.5pt;
+        --pt-name: 13pt;
         --pt-sub: 9pt;
-        --pt-total: 8.6pt;
+        --pt-total: 11.7pt;
         --pt-footer: 9.5pt;
         --cell-pad-y: 0.7mm;
         --cell-pad-x: 0.8mm;
@@ -4495,12 +4498,12 @@ body[data-page="employee-report"] .report-print-footer {
         --pt-meta-value: 15pt;
         --pt-filter: 13pt;
         --pt-group: 16pt;
-        --pt-head: 12pt;
+        --pt-head: 14.5pt;
         --pt-body: 15.5pt;
         --pt-figure: 18pt;
-        --pt-name: 16pt;
+        --pt-name: 18pt;
         --pt-sub: 12.5pt;
-        --pt-total: 12pt;
+        --pt-total: 16.2pt;
         --pt-footer: 13pt;
         --cell-pad-y: 1mm;
         --cell-pad-x: 1.1mm;
@@ -4794,7 +4797,8 @@ body[data-page="print-preview"] {
         container-type: normal;   /* sized by its table here, not by the paper */
     }
 
-    /* The type of A4 landscape on screen, whatever the window's width. */
+    /* The type of A4 landscape on screen, grown with the table when it is stretched wider than it
+       needs (print-preview.js fitScreen). */
     .pp-paper .report-print-document > * {
         --pt-title: 17pt;
         --pt-subtitle: 8.5pt;
@@ -4802,12 +4806,12 @@ body[data-page="print-preview"] {
         --pt-meta-value: 8.5pt;
         --pt-filter: 7.5pt;
         --pt-group: 8.4pt;
-        --pt-head: 6.2pt;
+        --pt-head: 7.6pt;
         --pt-body: 8pt;
         --pt-figure: 9.5pt;
-        --pt-name: 8.3pt;
+        --pt-name: 9.5pt;
         --pt-sub: 6.8pt;
-        --pt-total: 6.2pt;
+        --pt-total: 8.5pt;
         --pt-footer: 7.5pt;
         --cell-pad-y: 0.5mm;
         --cell-pad-x: 0.55mm;

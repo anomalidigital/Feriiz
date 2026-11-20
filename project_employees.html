@@ -7,12 +7,12 @@
     <title>Feriiz - Anomali - Activity</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.142">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.142">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.143">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.143">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.142" defer></script>
-    <script src="assets/js/app.js?v=3.7.142" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.142" defer></script>
+    <script src="assets/js/data.js?v=3.7.143" defer></script>
+    <script src="assets/js/app.js?v=3.7.143" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.143" defer></script>
 </head>
 
 <body data-page="project-activity">
@@ -178,8 +178,10 @@
                 var tr = document.createElement('tr');
                 tr.innerHTML =
                     '<td>' +
+                        // No Edit here since 19-11-2026: an employee's details are edited on the
+                        // Employees page only (Baldy: "edit form employee itu di hapus... jadi nya
+                        // employee detail itu adanya di employee pages aja").
                         '<div class="action-cell">' +
-                            '<button type="button" class="btn-icon edit-project-employee-btn" title="Edit" aria-label="Edit ' + emp.name + '"><i class="fa-solid fa-pen-to-square"></i></button>' +
                             '<a href="project_employee_attendance.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Attendance"><i class="fa-solid fa-calendar-check"></i></a>' +
                             '<a href="employee_report.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Report"><i class="fa-regular fa-file-lines"></i></a>' +
                             '<a href="employee_personal_request.html?project=' + state.project.code + '&employee=' + emp.code + '" class="btn-icon" title="Assigned Requests"><i class="fa-solid fa-clipboard-list"></i></a>' +
@@ -202,14 +204,11 @@
                 tr.querySelector('img').addEventListener('error', function () {
                     if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;
                 });
-                tr.querySelector('.edit-project-employee-btn').addEventListener('click', function () {
-                    openProjectEmployeeForm(emp);
-                });
                 return tr;
             }
 
             function copyFormValues(target, v) {
-                ['firstName', 'middleName', 'lastName', 'occupation', 'pin', 'phone', 'email', 'gender', 'birthDate', 'note', 'status', 'role',
+                ['firstName', 'middleName', 'lastName', 'occupation', 'pin', 'phone', 'email', 'gender', 'birthDate', 'status', 'role',
                  'workingDays', 'dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
                     target[k] = v[k];
                 });
@@ -220,28 +219,23 @@
                 return target;
             }
 
-            // Edit and add both use the shared employee form (assets/js/employee-form.js).
+            // "+ Add New Employee" (Manage Employees) uses the shared employee form
+            // (assets/js/employee-form.js); editing an employee is on the Employees page only.
             function openProjectEmployeeForm(emp, prefillName) {
                 window.FeriizEmployeeForm.open({
-                    employee: emp,
+                    employee: null,
                     project: state.project,
                     prefillName: prefillName,
-                    onSave: function (v, isNew) {
-                        var occupationBefore = emp ? emp.occupation : '';
-                        if (isNew || v.occupation !== occupationBefore) window.addProjectOccupations([v.occupation]);
-                        if (isNew) {
-                            var added = copyFormValues({
-                                code: 'NEW' + Date.now().toString(36).toUpperCase(),
-                                projects: [state.project.code]
-                            }, v);
-                            state.all.unshift(added);
-                            var stat = document.querySelector('[data-stat="employees"]');
-                            if (stat) stat.textContent = state.all.length.toLocaleString('id-ID');
-                            applyFilter();
-                        } else {
-                            copyFormValues(emp, v);
-                            renderPage();
-                        }
+                    onSave: function (v) {
+                        window.addProjectOccupations([v.occupation]);
+                        var added = copyFormValues({
+                            code: 'NEW' + Date.now().toString(36).toUpperCase(),
+                            projects: [state.project.code]
+                        }, v);
+                        state.all.unshift(added);
+                        var stat = document.querySelector('[data-stat="employees"]');
+                        if (stat) stat.textContent = state.all.length.toLocaleString('id-ID');
+                        applyFilter();
                     }
                 });
             }
@@ -377,7 +371,7 @@
         })();
         </script>
 
-        <div class="feriiz-u-032">version : 3.7.142</div>
+        <div class="feriiz-u-032">version : 3.7.143</div>
     </main>
 
     <script>

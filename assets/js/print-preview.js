@@ -147,9 +147,29 @@
         });
     }
 
+    // The table on screen fills the paper; when the paper is wider than the table needs, its type
+    // grows with it, at most 1.6 times (Baldy, 19-11-2026: "kecil banget masalah nya buat fild fild
+    // nya yang dia harusnya bisa besar karna coloms nya besar"). Figures at 1 fill their columns at
+    // the table's own width, so at k times that width k times the type fills them the same.
+    var SCREEN_FIT_MAX = 1.6;
+    function fitScreen() {
+        var section = document.querySelector('#ppSheet .report-print-fit--screen .report-print-section');
+        var table = section && section.querySelector('table');
+        if (!table) return;
+        section.style.setProperty('--fit', '1');
+        table.style.setProperty('min-width', '0', 'important');   // over the sheet's min-width: 100% !important
+        var own = table.getBoundingClientRect().width;
+        table.style.removeProperty('min-width');
+        var room = section.getBoundingClientRect().width;
+        if (!own || !room) return;
+        var fit = Math.max(1, Math.min(SCREEN_FIT_MAX, room / own));
+        section.style.setProperty('--fit', fit.toFixed(3));
+    }
+
     function render() {
         $('ppSheet').innerHTML = window.FeriizPrintSheet.render(job, view());
         window.FeriizPrintSheet.pageBoxes(job, view(), 'feriiz-preview');
+        fitScreen();
         renderDates();
         renderMode();
     }
@@ -220,7 +240,15 @@
         window.addEventListener('afterprint', function () {
             document.title = pageTitle;
             $('ppSheet').innerHTML = window.FeriizPrintSheet.render(job, view());
+            fitScreen();
         });
+        var resizing = 0;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizing);
+            resizing = setTimeout(fitScreen, 150);
+        });
+        // Poppins changes the widths once it is in.
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitScreen);
     }
 
     if (document.readyState === 'loading') {

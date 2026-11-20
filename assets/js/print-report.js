@@ -584,9 +584,12 @@
        13-11-2026 the widths were estimated in mm, too cautiously: a week in portrait split. */
     var MIN_FIGURE_PT = 4;
     var FIT_MIN = 0.85;
-    // At most the A4 type on paper (9.5pt figures there): larger type made an occupation of 17
-    // taller than a page, so it could not keep together (16-11-2026; 1.4 from 13-11).
-    var FIT_MAX = 1;
+    // At most 1.3 times the A4 type on paper (9.5pt figures there -> 12.4pt), so a table with few
+    // columns grows into its page instead of small type in wide columns (Baldy, 19-11-2026: "boleh
+    // di besarin deh kecil banget... harusnya bisa besar karna coloms nya besar"). It was 1 from
+    // 16-11-2026 while an occupation kept together on a page (larger type made one of 17 taller
+    // than a page); occupations may split since v3.7.133. 1.4 from 13-11.
+    var FIT_MAX = 1.3;
 
     // The type (--fit) a table takes to fill a page widthMM wide, the browser laying it out off
     // screen in a sheet of that width (so the paper's type tier applies): its narrowest width

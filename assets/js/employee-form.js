@@ -171,6 +171,18 @@
         return '<input type="text" id="' + p + name + '" name="' + name + '" class="feriiz-u-259" autocomplete="off"' + (extra || '') + '>';
     }
 
+    // A time typed as figures, its ":" put in as it is typed (data-time, app.js; Baldy,
+    // 20-11-2026), as on the project's Settings. It was the browser's own time field.
+    function timeInput(p, name, example) {
+        return '<input type="text" id="' + p + name + '" name="' + name + '" class="feriiz-u-259" data-time maxlength="5" inputmode="numeric" autocomplete="off" placeholder="' + example + '">';
+    }
+
+    // "8:30" or "08:30:00" -> "08:30"; a time that cannot be read stays as typed (validate says so).
+    function clockOf(v) {
+        var t = window.FeriizTime && window.FeriizTime.clock(v);
+        return t || String(v == null ? '' : v).trim();
+    }
+
     function rate(p, name, label) {
         return field(p, name, label,
             '<div class="rate-input"><span class="rate-icon">Rp</span>' +
@@ -208,14 +220,13 @@
                     field(p, 'status', 'Status', '<select id="' + p + 'status" name="status" class="feriiz-u-260">' +
                         '<option>Active</option><option>Inactive</option></select>') +
                 '</div>' +
-                '<div class="mb-3">' +
-                    field(p, 'note', 'Note', '<textarea id="' + p + 'note" name="note" class="feriiz-u-261"></textarea>') +
-                '</div>' +
+                // No Note field (Baldy, 20-11-2026: "di employee detail itu di ilangin ya untuk note
+                // nya"); a note an employee already has is left as it is.
                 '<div class="feriiz-u-039"><span class="feriiz-u-040">Working Time</span></div>' +
                 '<div class="feriiz-u-262">' +
-                    field(p, 'startHour', 'Start Hour', '<input type="time" id="' + p + 'startHour" name="startHour" class="feriiz-u-259">') +
-                    field(p, 'endHour', 'End Hour', '<input type="time" id="' + p + 'endHour" name="endHour" class="feriiz-u-259">') +
-                    field(p, 'cutOff', 'Cut Off Hour', '<input type="time" id="' + p + 'cutOff" name="cutOff" class="feriiz-u-259">') +
+                    field(p, 'startHour', 'Start Hour', timeInput(p, 'startHour', '08:00')) +
+                    field(p, 'endHour', 'End Hour', timeInput(p, 'endHour', '17:00')) +
+                    field(p, 'cutOff', 'Cut Off Hour', timeInput(p, 'cutOff', '00:00')) +
                 '</div>' +
                 '<div class="feriiz-u-048" role="group" aria-label="Working days">' + days + '</div>' +
             '</div>' +
@@ -263,10 +274,9 @@
         setVal(form, 'birthDate', e.birthDate || '');
         setVal(form, 'gender', e.gender || '');
         setVal(form, 'status', e.status || 'Active');
-        setVal(form, 'note', e.note || '');
-        setVal(form, 'startHour', e.workStart || (project && project.workStart) || '08:00');
-        setVal(form, 'endHour', e.workEnd || (project && project.workEnd) || '17:00');
-        setVal(form, 'cutOff', e.cutOff || (project && project.cutOff) || '');
+        setVal(form, 'startHour', clockOf(e.workStart || (project && project.workStart) || '08:00'));
+        setVal(form, 'endHour', clockOf(e.workEnd || (project && project.workEnd) || '17:00'));
+        setVal(form, 'cutOff', clockOf(e.cutOff || (project && project.cutOff) || ''));
         var days = e.workingDays || (project && project.workingDays) || DAYS;
         form.querySelectorAll('[name="workingDays"]').forEach(function (cb) { cb.checked = days.indexOf(cb.value) >= 0; });
         setVal(form, 'role', e.role || 'Employee');
@@ -286,7 +296,7 @@
 
     function read(form) {
         var v = {};
-        ['firstName', 'middleName', 'lastName', 'code', 'occupation', 'pin', 'phone', 'birthDate', 'gender', 'status', 'note',
+        ['firstName', 'middleName', 'lastName', 'code', 'occupation', 'pin', 'phone', 'birthDate', 'gender', 'status',
          'startHour', 'endHour', 'cutOff', 'role', 'email'].forEach(function (k) {
             var el = form.querySelector('[name="' + k + '"]');
             v[k] = el ? el.value.trim() : '';
@@ -294,6 +304,7 @@
         ['dailyRate', 'overtimeRate', 'clientDailyRate', 'clientOvertimeRate'].forEach(function (k) {
             v[k] = Number(digits(form.querySelector('[name="' + k + '"]').value)) || 0;
         });
+        ['startHour', 'endHour', 'cutOff'].forEach(function (k) { v[k] = clockOf(v[k]); });
         v.workingDays = Array.prototype.filter.call(form.querySelectorAll('[name="workingDays"]'), function (cb) { return cb.checked; })
             .map(function (cb) { return cb.value; });
         v.name = [v.firstName, v.middleName, v.lastName].filter(Boolean).join(' ');
@@ -311,7 +322,11 @@
         check('firstName', !v.firstName, 'Enter the first name.');
         check('pin', !!v.pin && !/^\d{4,6}$/.test(v.pin), 'Pin is 4 to 6 digits.');
         check('email', !!v.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email), 'Enter a valid email address.');
-        check('endHour', !!(v.startHour && v.endHour && v.endHour <= v.startHour), 'End hour is before the start hour.');
+        var timeOk = function (t) { return !t || !!(window.FeriizTime && window.FeriizTime.clock(t)); };
+        check('startHour', !timeOk(v.startHour), 'Start Hour: write the time as hours:minutes, like 08:00.');
+        check('endHour', !timeOk(v.endHour) || !!(v.startHour && v.endHour && v.endHour <= v.startHour),
+            timeOk(v.endHour) ? 'End hour is before the start hour.' : 'End Hour: write the time as hours:minutes, like 17:00.');
+        check('cutOff', !timeOk(v.cutOff), 'Cut Off Hour: write the time as hours:minutes, like 00:00.');
         if (problems.length) {
             problems[0].el.focus();
             if (window.FeriizNotify) {

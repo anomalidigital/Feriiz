@@ -7973,3 +7973,219 @@ div.report-layout .report-table thead th.col-cli-addtotal {
         padding: 0 10px !important;
     }
 }
+
+/* ============================================
+   FACE DATA (Employees, 24-11-2026; face-data.js)
+   The face photos the face recognition learns each employee from, more than one each. The
+   table shows how many with the first three; the window is laid out like Manage Occupations:
+   a grid of photos with a tick each, "Add photos", and Delete once photos are ticked.
+   ============================================ */
+.facd-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: -4px -8px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: var(--feriiz-radius);
+    background: none;
+    color: var(--feriiz-text);
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.facd-cell:hover {
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary);
+}
+
+.facd-cell:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 2px;
+}
+
+/* Nobody to recognise yet: an amber mark, the words in the hint grey (amber text would be too
+   faint on white). */
+.facd-cell.is-empty {
+    color: var(--feriiz-text-hint);
+}
+
+.facd-cell.is-empty i {
+    color: var(--feriiz-warning);
+    font-size: 16px;
+}
+
+.facd-cell.is-empty:hover,
+.facd-cell.is-empty:hover i {
+    color: var(--feriiz-primary);
+}
+
+.facd-stack {
+    display: inline-flex;
+}
+
+.facd-stack img {
+    width: 26px;
+    height: 26px;
+    margin-left: -9px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #F4F5F7;
+}
+
+.facd-stack img:first-child {
+    margin-left: 0;
+}
+
+.facd-dialog {
+    max-width: 720px;
+}
+
+.facd-body {
+    position: relative;
+}
+
+.facd-intro {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--feriiz-text-hint);
+}
+
+.facd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 16px 12px;
+    align-items: start;
+}
+
+.facd-tile {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.facd-tile img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: 10px;
+    object-fit: cover;
+    background: #F4F5F7;
+}
+
+.facd-tile.is-picked img {
+    border-color: var(--feriiz-primary);
+    box-shadow: 0 0 0 2px var(--feriiz-primary);
+}
+
+.facd-tick {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    padding: 3px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.facd-tick .form-check-input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.facd-date {
+    font-size: 12px;
+    color: var(--feriiz-text-hint);
+}
+
+.facd-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    aspect-ratio: 1 / 1;
+    padding: 12px;
+    border: 1.5px dashed #B8C2CC;
+    border-radius: 10px;
+    background: #FAFBFC;
+    color: var(--feriiz-primary);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.facd-add i {
+    margin-bottom: 6px;
+    font-size: 22px;
+}
+
+.facd-add-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.facd-add-hint {
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--feriiz-text-hint);
+}
+
+.facd-add:hover {
+    border-color: var(--feriiz-primary);
+    background: var(--feriiz-primary-soft);
+}
+
+.facd-add:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 2px;
+}
+
+/* No photo yet: the add box across the window, the reason under it. */
+.facd-add.is-wide {
+    grid-column: 1 / -1;
+    aspect-ratio: auto;
+    min-height: 168px;
+}
+
+.facd-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--feriiz-text-hint);
+}
+
+/* Photos dragged over the window. */
+.facd-drop {
+    position: absolute;
+    inset: 8px;
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px dashed var(--feriiz-primary);
+    border-radius: 12px;
+    background: rgba(235, 243, 250, 0.94);
+    color: var(--feriiz-primary);
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.facd-body.is-dragging .facd-drop {
+    display: flex;
+}
+
+@media (max-width: 575.98px) {
+    .facd-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

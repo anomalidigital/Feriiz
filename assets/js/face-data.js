@@ -256,7 +256,8 @@
 
         box.classList.add('facd-editor');
         box.innerHTML =
-            '<div class="feriiz-u-039 facd-head"><span class="feriiz-u-040">Face Data</span><span class="facd-count"></span></div>' +
+            // The bar says only its name; no "3 photos" (Baldy, 24-11-2026: "ini ga perlu").
+            '<div class="feriiz-u-039"><span class="feriiz-u-040">Face Data</span></div>' +
             '<p class="facd-intro">The face recognition learns this employee from these photos. Add a few, from different angles and light; click a photo to see it whole.</p>' +
             '<input type="file" class="facd-file" accept="image/jpeg,image/png,image/webp" multiple hidden>' +
             '<div class="facd-grid"></div>' +
@@ -279,8 +280,6 @@
         }
 
         function render() {
-            box.querySelector('.facd-count').textContent = draft.length ? plural(draft.length, 'photo', 'photos') : 'No photos';
-            box.querySelector('.facd-count').classList.toggle('is-empty', !draft.length);
             grid.innerHTML =
                 '<button type="button" class="facd-add" data-add>' +
                     '<i class="fa-solid fa-camera" aria-hidden="true"></i><span class="facd-add-title">Add photos</span>' +

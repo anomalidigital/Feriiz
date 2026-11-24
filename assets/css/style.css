@@ -7987,24 +7987,6 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     margin-top: 20px;
 }
 
-.facd-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.facd-count {
-    font-size: 12px;
-    font-weight: 600;
-    color: #444;
-    font-variant-numeric: tabular-nums;
-}
-
-.facd-count.is-empty {
-    color: #8A4B00;
-}
-
 .facd-intro {
     margin: 0 0 12px;
     font-size: 12px;

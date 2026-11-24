@@ -8,8 +8,9 @@
    Where: a "Face Data" section of the employee form, under Working Time (Baldy, 24-11-2026:
    "taro sini aja kali ya, di bawah nya kosong nih"; it was a window of its own, v3.7.144).
    Like every field of that form, what is added or removed is kept with Save Changes and
-   dropped when the form is closed without it. The Employees table keeps a Face Data column
-   (how many, the first three) that opens the form at this section.
+   dropped when the form is closed without it. Only there: no Face Data column on the Employees
+   table (Baldy, 24-11-2026: "gausah adain fild list face data ya… kalau mau lihat ya di employee
+   detail nya"; the column was not asked for).
    A photo clicked opens whole (the grid crops it square) in a viewer, with the previous /
    next photo (Raden, 24-11-2026: "bisa diklik buat liat lengkap fotonya ya, dipakein dialog").
 
@@ -17,7 +18,6 @@
    added photos are made small (720 px) and kept in this browser (feriiz_face_data_v1).
 
    FeriizFaceData.photos(employee)            -> [{ id, src, at }]
-   FeriizFaceData.cellHTML(employee)          -> the Employees table cell (a button)
    FeriizFaceData.editor(box, employee, opts) -> the form section in box; .list(), .focus()
        opts.host: the element the viewer goes in (the form's overlay); opts.name(): the name
    FeriizFaceData.setPhotos(employee, list)   -> keeps the list as the employee's photos
@@ -115,18 +115,6 @@
         if (isNaN(d)) return '';
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-    }
-
-    /* ---------- the Employees table cell ---------- */
-    function cellHTML(emp) {
-        var list = photos(emp);
-        var label = list.length ? plural(list.length, 'photo', 'photos') : 'No photos';
-        var stack = list.slice(0, 3).map(function (p) { return '<img src="' + p.src + '" alt="">'; }).join('');
-        return '<button type="button" class="facd-cell' + (list.length ? '' : ' is-empty') + '" data-face="' + esc(emp.code) + '"' +
-            ' aria-label="Face Data of ' + esc(emp.name) + ': ' + label + '">' +
-            (list.length ? '<span class="facd-stack" aria-hidden="true">' + stack + '</span>'
-                         : '<i class="fa-solid fa-circle-plus" aria-hidden="true"></i>') +
-            '<span>' + label + '</span></button>';
     }
 
     /* ---------- the photo viewer ----------
@@ -372,7 +360,6 @@
     window.FeriizFaceData = {
         photos: photos,
         count: function (emp) { return photos(emp).length; },
-        cellHTML: cellHTML,
         editor: editor,
         setPhotos: setPhotos
     };

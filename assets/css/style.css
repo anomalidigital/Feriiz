@@ -7978,67 +7978,8 @@ div.report-layout .report-table thead th.col-cli-addtotal {
    FACE DATA (24-11-2026; face-data.js)
    The face photos the face recognition learns each employee from, more than one each: a
    section of the employee form under Working Time (Baldy: "taro sini aja kali ya, di bawah
-   nya kosong nih"), kept with Save Changes. The Employees table shows how many with the first
-   three and opens the form there.
+   nya kosong nih"), kept with Save Changes. Only there, no column on the Employees table.
    ============================================ */
-.facd-cell {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: -4px -8px;
-    padding: 4px 8px;
-    border: 0;
-    border-radius: var(--feriiz-radius);
-    background: none;
-    color: var(--feriiz-text);
-    font-size: 13px;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-.facd-cell:hover {
-    background: var(--feriiz-primary-soft);
-    color: var(--feriiz-primary);
-}
-
-.facd-cell:focus-visible {
-    outline: 2px solid var(--feriiz-primary);
-    outline-offset: 2px;
-}
-
-/* Nobody to recognise yet: an amber mark, the words in the hint grey (amber text would be too
-   faint on white). */
-.facd-cell.is-empty {
-    color: var(--feriiz-text-hint);
-}
-
-.facd-cell.is-empty i {
-    color: var(--feriiz-warning);
-    font-size: 16px;
-}
-
-.facd-cell.is-empty:hover,
-.facd-cell.is-empty:hover i {
-    color: var(--feriiz-primary);
-}
-
-.facd-stack {
-    display: inline-flex;
-}
-
-.facd-stack img {
-    width: 26px;
-    height: 26px;
-    margin-left: -9px;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #F4F5F7;
-}
-
-.facd-stack img:first-child {
-    margin-left: 0;
-}
 
 /* The section, in the form's own grey-bar style. */
 .facd-editor {

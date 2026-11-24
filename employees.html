@@ -7,15 +7,15 @@
     <title>Feriiz - Employees</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.145">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.145">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.146">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.146">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.145" defer></script>
-    <script src="assets/js/app.js?v=3.7.145" defer></script>
-    <script src="assets/js/employee-form.js?v=3.7.145" defer></script>
-    <script src="assets/js/occupation-manager.js?v=3.7.145" defer></script>
-    <script src="assets/js/face-data.js?v=3.7.145" defer></script>
-    <script src="assets/js/employee-import.js?v=3.7.145" defer></script>
+    <script src="assets/js/data.js?v=3.7.146" defer></script>
+    <script src="assets/js/app.js?v=3.7.146" defer></script>
+    <script src="assets/js/face-data.js?v=3.7.146" defer></script>
+    <script src="assets/js/employee-form.js?v=3.7.146" defer></script>
+    <script src="assets/js/occupation-manager.js?v=3.7.146" defer></script>
+    <script src="assets/js/employee-import.js?v=3.7.146" defer></script>
 </head>
 
 <body data-page="employees">
@@ -106,7 +106,7 @@
                 <nav id="paginationButtons" aria-label="Employee pages"></nav>
             </div>
         </div>
-        <div class="feriiz-u-032">version : 3.7.145</div>
+        <div class="feriiz-u-032">version : 3.7.146</div>
     </main>
 
     <script>
@@ -118,14 +118,16 @@
             perPage: 20
         };
 
-        // Add and edit use the shared employee form (assets/js/employee-form.js).
-        function openEmployeeForm(emp) {
+        // Add and edit use the shared employee form (assets/js/employee-form.js). focus
+        // 'faceData': at its Face Data section (from the table's Face Data column).
+        function openEmployeeForm(emp, focus) {
             // Schedule and overtime defaults come from the employee's first project.
             var project = emp && emp.projects && emp.projects.length
                 ? window.FERIIZ_DATA.findProjectByCode(emp.projects[0]) : null;
             window.FeriizEmployeeForm.open({
                 employee: emp,
                 project: project,
+                focus: focus,
                 onSave: function (v, isNew) {
                     var target = emp || {
                         code: 'NEW' + Date.now().toString(36).toUpperCase(),
@@ -154,6 +156,7 @@
                     target.clientDailyRate = v.clientDailyRate;
                     target.clientOvertimeRate = v.clientOvertimeRate;
                     if (isNew) employeesState.all.unshift(target);
+                    if (v.facePhotos && window.FeriizFaceData) window.FeriizFaceData.setPhotos(target, v.facePhotos);
                     window.FeriizFilters?.setOccupationPeople(employeesState.all);
                     applyEmployeeFilter();
                     document.querySelector('[data-stat="employees"]').textContent = employeesState.all.length.toLocaleString('id-ID');
@@ -200,7 +203,7 @@
                 openEmployeeForm(emp);
             });
             tr.querySelector('.facd-cell').addEventListener('click', function () {
-                window.FeriizFaceData.open(emp, renderPage);
+                openEmployeeForm(emp, 'faceData');
             });
             tr.querySelector('img').addEventListener('error', function () {
                 if (this.dataset.fallback && this.src !== this.dataset.fallback) this.src = this.dataset.fallback;

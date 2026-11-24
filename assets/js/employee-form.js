@@ -6,8 +6,9 @@
    content: every field has its name, the missing fields were added,
    rates are in Rupiah, and the password is reset by link.
 
-   FeriizEmployeeForm.open({ employee, project, prefillName, onSave })
-       Shows the form in the overlay. employee = null means "add".
+   FeriizEmployeeForm.open({ employee, project, prefillName, onSave, focus })
+       Shows the form in the overlay. employee = null means "add". focus 'faceData' opens it
+       at the Face Data section (assets/js/face-data.js; values.facePhotos is its list).
    FeriizEmployeeForm.mount(container, { employee, project, onSave })
        Renders the same form inline (Employee Detail page).
 
@@ -229,6 +230,9 @@
                     field(p, 'cutOff', 'Cut Off Hour', timeInput(p, 'cutOff', '00:00')) +
                 '</div>' +
                 '<div class="feriiz-u-048" role="group" aria-label="Working days">' + days + '</div>' +
+                // Face Data under Working Time, where the column had room (Baldy, 24-11-2026),
+                // filled by face-data.js; kept with Save Changes like the fields above.
+                (window.FeriizFaceData ? '<div class="facd-slot"></div>' : '') +
             '</div>' +
             '<div>' +
                 '<div class="feriiz-u-039"><span class="feriiz-u-040">Account Configuration</span></div>' +
@@ -305,6 +309,7 @@
             v[k] = Number(digits(form.querySelector('[name="' + k + '"]').value)) || 0;
         });
         ['startHour', 'endHour', 'cutOff'].forEach(function (k) { v[k] = clockOf(v[k]); });
+        v.facePhotos = form._faceEditor ? form._faceEditor.list() : null;
         v.workingDays = Array.prototype.filter.call(form.querySelectorAll('[name="workingDays"]'), function (cb) { return cb.checked; })
             .map(function (cb) { return cb.value; });
         v.name = [v.firstName, v.middleName, v.lastName].filter(Boolean).join(' ');
@@ -380,6 +385,20 @@
         });
     }
 
+    // The Face Data section (face-data.js), its photo viewer in `host`.
+    function mountFaceData(form, employee, host) {
+        var slot = form.querySelector('.facd-slot');
+        form._faceEditor = slot && window.FeriizFaceData ? window.FeriizFaceData.editor(slot, employee, {
+            host: host,
+            name: function () {
+                return ['firstName', 'middleName', 'lastName'].map(function (k) {
+                    var el = form.querySelector('[name="' + k + '"]');
+                    return el ? el.value.trim() : '';
+                }).filter(Boolean).join(' ');
+            }
+        }) : null;
+    }
+
     /* ---------- overlay (same look as the original Activity form) ---------- */
     var overlay = null;
     var state = { employee: null, project: null, onSave: null, isNew: true };
@@ -439,6 +458,7 @@
             bindOccupation(form);
             bindReset(form, function () { return state.employee; });
             fill(form, state.employee, state.project, opts.prefillName);
+            mountFaceData(form, state.employee, overlay);
             overlay.querySelector('#employeeFormTitle').textContent = state.isNew ? 'Add Employee' : 'Employee Detail';
             // Opened from another overlay (Manage Employees) the page stays locked after closing.
             if (!overlay.classList.contains('show')) {
@@ -447,6 +467,11 @@
             }
             overlay.classList.add('show');
             document.body.style.overflow = 'hidden';
+            // opts.focus 'faceData': opened from the Employees table's Face Data column.
+            if (opts.focus === 'faceData' && form._faceEditor) {
+                form._faceEditor.focus();
+                return;
+            }
             var first = form.querySelector('[name="firstName"]');
             if (first) first.focus();
         },
@@ -460,6 +485,7 @@
             bindOccupation(form);
             bindReset(form, function () { return opts.employee; });
             fill(form, opts.employee, opts.project);
+            mountFaceData(form, opts.employee, container);
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var v = read(form);

@@ -7975,10 +7975,11 @@ div.report-layout .report-table thead th.col-cli-addtotal {
 }
 
 /* ============================================
-   FACE DATA (Employees, 24-11-2026; face-data.js)
-   The face photos the face recognition learns each employee from, more than one each. The
-   table shows how many with the first three; the window is laid out like Manage Occupations:
-   a grid of photos with a tick each, "Add photos", and Delete once photos are ticked.
+   FACE DATA (24-11-2026; face-data.js)
+   The face photos the face recognition learns each employee from, more than one each: a
+   section of the employee form under Working Time (Baldy: "taro sini aja kali ya, di bawah
+   nya kosong nih"), kept with Save Changes. The Employees table shows how many with the first
+   three and opens the form there.
    ============================================ */
 .facd-cell {
     display: inline-flex;
@@ -8039,42 +8040,57 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     margin-left: 0;
 }
 
-.facd-dialog {
-    max-width: 720px;
+/* The section, in the form's own grey-bar style. */
+.facd-editor {
+    position: relative;
+    margin-top: 20px;
 }
 
-.facd-body {
-    position: relative;
+.facd-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.facd-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+    font-variant-numeric: tabular-nums;
+}
+
+.facd-count.is-empty {
+    color: #8A4B00;
 }
 
 .facd-intro {
-    margin: 0 0 16px;
-    font-size: 13px;
+    margin: 0 0 12px;
+    font-size: 12px;
+    line-height: 1.5;
     color: var(--feriiz-text-hint);
 }
 
 .facd-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-    gap: 16px 12px;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 8px;
     align-items: start;
 }
 
 .facd-tile {
     position: relative;
-    display: grid;
-    gap: 6px;
-    margin: 0;
+    min-width: 0;
 }
 
-/* The photo is a button: it opens the viewer (24-11-2026). */
+/* The photo is a button: it opens the viewer. */
 .facd-view {
     position: relative;
     display: block;
     width: 100%;
     padding: 0;
     border: 0;
-    border-radius: 10px;
+    border-radius: 8px;
     background: none;
     cursor: zoom-in;
 }
@@ -8084,7 +8100,7 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 1px solid var(--feriiz-border-soft);
-    border-radius: 10px;
+    border-radius: 8px;
     object-fit: cover;
     background: #F4F5F7;
     transition: filter 0.15s ease;
@@ -8101,16 +8117,16 @@ div.report-layout .report-table thead th.col-cli-addtotal {
 
 .facd-zoom {
     position: absolute;
-    right: 8px;
-    bottom: 8px;
+    right: 5px;
+    bottom: 5px;
     display: grid;
     place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
     background: rgba(17, 24, 39, 0.62);
     color: #fff;
-    font-size: 12px;
+    font-size: 10px;
     opacity: 0;
     transition: opacity 0.15s ease;
 }
@@ -8120,33 +8136,32 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     opacity: 1;
 }
 
-.facd-tile.is-picked .facd-view img {
-    border-color: var(--feriiz-primary);
-    box-shadow: 0 0 0 2px var(--feriiz-primary);
-}
-
-.facd-tick {
+/* Remove: a round x on the photo's corner, its target 24 px. */
+.facd-remove {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    display: flex;
-    margin: 0;
-    padding: 3px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.92);
+    top: -6px;
+    right: -6px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #5B6573;
+    color: #fff;
+    font-size: 11px;
     cursor: pointer;
+    transition: background-color 0.15s ease;
 }
 
-.facd-tick .form-check-input {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    cursor: pointer;
+.facd-remove:hover {
+    background: var(--feriiz-danger);
 }
 
-.facd-date {
-    font-size: 12px;
-    color: var(--feriiz-text-hint);
+.facd-remove:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 1px;
 }
 
 .facd-add {
@@ -8154,11 +8169,11 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
     aspect-ratio: 1 / 1;
-    padding: 12px;
+    padding: 6px;
     border: 1.5px dashed #B8C2CC;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #FAFBFC;
     color: var(--feriiz-primary);
     text-align: center;
@@ -8167,19 +8182,13 @@ div.report-layout .report-table thead th.col-cli-addtotal {
 }
 
 .facd-add i {
-    margin-bottom: 6px;
-    font-size: 22px;
+    font-size: 18px;
 }
 
 .facd-add-title {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.facd-add-hint {
     font-size: 11.5px;
-    line-height: 1.35;
-    color: var(--feriiz-text-hint);
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 .facd-add:hover {
@@ -8192,47 +8201,57 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     outline-offset: 2px;
 }
 
-/* No photo yet: the add box across the window, the reason under it. */
-.facd-add.is-wide {
-    grid-column: 1 / -1;
-    aspect-ratio: auto;
-    min-height: 168px;
-}
-
+/* No photo yet: why it matters, beside the add box. */
 .facd-empty {
-    grid-column: 1 / -1;
+    grid-column: 2 / -1;
+    align-self: center;
     margin: 0;
-    text-align: center;
-    font-size: 13px;
-    color: var(--feriiz-text-hint);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #8A4B00;
 }
 
-/* Photos dragged over the window. */
+.facd-pending {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--feriiz-primary);
+}
+
+.facd-pending[hidden] {
+    display: none;
+}
+
+/* Photos dragged over the section. */
 .facd-drop {
     position: absolute;
-    inset: 8px;
+    inset: 0;
     z-index: 2;
     display: none;
     align-items: center;
     justify-content: center;
     gap: 8px;
     border: 2px dashed var(--feriiz-primary);
-    border-radius: 12px;
+    border-radius: 10px;
     background: rgba(235, 243, 250, 0.94);
     color: var(--feriiz-primary);
+    font-size: 13px;
     font-weight: 600;
     pointer-events: none;
 }
 
-.facd-body.is-dragging .facd-drop {
+.facd-editor.is-dragging .facd-drop {
     display: flex;
 }
 
-/* The viewer: the whole photo on a dark ground over the window, previous / next beside it. */
+/* The viewer: the whole photo on a dark ground over the form, previous / next beside it. */
 .facd-viewer {
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 30;
     display: flex;
     flex-direction: column;
     background: rgba(12, 16, 22, 0.92);
@@ -8317,10 +8336,6 @@ div.report-layout .report-table thead th.col-cli-addtotal {
 }
 
 @media (max-width: 575.98px) {
-    .facd-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .facd-viewer-stage {
         gap: 8px;
         padding: 0 8px 16px;

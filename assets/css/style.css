@@ -8065,10 +8065,21 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     display: grid;
     gap: 6px;
     margin: 0;
-    cursor: pointer;
 }
 
-.facd-tile img {
+/* The photo is a button: it opens the viewer (24-11-2026). */
+.facd-view {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    cursor: zoom-in;
+}
+
+.facd-view img {
     display: block;
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -8076,9 +8087,40 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     border-radius: 10px;
     object-fit: cover;
     background: #F4F5F7;
+    transition: filter 0.15s ease;
 }
 
-.facd-tile.is-picked img {
+.facd-view:hover img {
+    filter: brightness(0.94);
+}
+
+.facd-view:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 2px;
+}
+
+.facd-zoom {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(17, 24, 39, 0.62);
+    color: #fff;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.facd-view:hover .facd-zoom,
+.facd-view:focus-visible .facd-zoom {
+    opacity: 1;
+}
+
+.facd-tile.is-picked .facd-view img {
     border-color: var(--feriiz-primary);
     box-shadow: 0 0 0 2px var(--feriiz-primary);
 }
@@ -8088,9 +8130,11 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     top: 8px;
     left: 8px;
     display: flex;
+    margin: 0;
     padding: 3px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.92);
+    cursor: pointer;
 }
 
 .facd-tick .form-check-input {
@@ -8184,8 +8228,105 @@ div.report-layout .report-table thead th.col-cli-addtotal {
     display: flex;
 }
 
+/* The viewer: the whole photo on a dark ground over the window, previous / next beside it. */
+.facd-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background: rgba(12, 16, 22, 0.92);
+}
+
+.facd-viewer[hidden] {
+    display: none;
+}
+
+.facd-viewer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+}
+
+.facd-viewer-text {
+    min-width: 0;
+}
+
+.facd-viewer-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.facd-viewer-meta {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.72);
+    font-variant-numeric: tabular-nums;
+}
+
+.facd-viewer-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 16px 24px;
+}
+
+.facd-viewer-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: min(100% - 128px, 960px);
+    max-height: calc(100vh - 120px);
+    border-radius: 8px;
+    object-fit: contain;
+    background: #1F2630;
+}
+
+.facd-viewer-btn {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 17px;
+    transition: background-color 0.15s ease;
+}
+
+.facd-viewer-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.facd-viewer-btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+.facd-viewer-btn[hidden] {
+    display: none;
+}
+
 @media (max-width: 575.98px) {
     .facd-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .facd-viewer-stage {
+        gap: 8px;
+        padding: 0 8px 16px;
+    }
+
+    .facd-viewer-img {
+        max-width: calc(100% - 104px);
     }
 }

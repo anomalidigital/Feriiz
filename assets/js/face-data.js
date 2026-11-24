@@ -8,6 +8,9 @@
    One window per employee, laid out like Manage Occupations: photos in a grid with a tick
    each, "Add photos" (pick or drop JPG / PNG files), and Delete that shows only once photos
    are ticked, asking first. A change is kept at once, as in Manage Occupations.
+   A photo clicked opens whole (the grid crops it square) in a viewer over the window, with
+   the previous / next photo (Raden, 24-11-2026: "bisa diklik buat liat lengkap fotonya ya,
+   dipakein dialog").
 
    Until the API has them, sample employees get placeholder silhouettes (no real faces), and
    added photos are made small (480 px) and kept in this browser (feriiz_face_data_v1).
@@ -20,7 +23,7 @@
     'use strict';
 
     var KEY = 'feriiz_face_data_v1';
-    var MAX_SIDE = 480;                     // px, the longest side of a kept photo
+    var MAX_SIDE = 720;                     // px, the longest side of a kept photo (big enough to view whole)
     var MAX_FILE = 10 * 1024 * 1024;        // 10 MB a file
     var store = load();
     var modal = null;
@@ -28,6 +31,9 @@
     var onChange = null;
     var picked = {};                        // photo id -> true
     var asking = false;
+    var viewer = null;                      // the photo viewer, inside the window
+    var viewList = [];
+    var viewAt = 0;
 
     function esc(v) {
         return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -63,18 +69,23 @@
     function silhouette(pose, tone) {
         var grounds = ['#E6EDF4', '#ECEFE6', '#F2ECE6', '#E9E7F1'];
         var dx = pose === 1 ? -7 : pose === 2 ? 7 : 0;
-        var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">' +
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 120 120">' +
             '<rect width="120" height="120" fill="' + grounds[tone % grounds.length] + '"/>' +
             '<path d="M16 120c4-27 21-39 44-39s40 12 44 39z" fill="#B9C4CF"/>' +
             '<ellipse cx="' + (60 + dx) + '" cy="52" rx="20" ry="25" fill="#9DABBA"/></svg>';
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
+    // A date as YYYY-MM-DD in local time (toISOString would give the day before, east of UTC).
+    function isoDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
     function addDays(iso, n) {
         var d = new Date((iso || '2026-10-09') + 'T00:00:00');
         if (isNaN(d)) d = new Date('2026-10-09T00:00:00');
         d.setDate(d.getDate() + n);
-        return d.toISOString().slice(0, 10);
+        return isoDate(d);
     }
 
     // 0 to 4 sample photos an employee, the same every time; about one in six has none.
@@ -131,7 +142,7 @@
                         '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
                     '</div>' +
                     '<div class="modal-body facd-body" id="facdBody">' +
-                        '<p class="facd-intro">The face recognition learns this employee from these photos. Add a few, from different angles and light; one clear face in each.</p>' +
+                        '<p class="facd-intro">The face recognition learns this employee from these photos. Add a few, from different angles and light; one clear face in each. Click a photo to see it whole.</p>' +
                         '<input type="file" id="facdFile" accept="image/jpeg,image/png,image/webp" multiple hidden>' +
                         '<div class="facd-grid" id="facdGrid"></div>' +
                         '<div class="facd-drop" aria-hidden="true"><i class="fa-solid fa-cloud-arrow-up"></i> Drop the photos to add them</div>' +
@@ -146,6 +157,8 @@
         });
         el.querySelector('#facdGrid').addEventListener('click', function (e) {
             if (e.target.closest('[data-add]')) el.querySelector('#facdFile').click();
+            var view = e.target.closest('[data-view]');
+            if (view) openViewer(view.dataset.view);
         });
         el.querySelector('#facdGrid').addEventListener('change', onTick);
         el.querySelector('#facdFoot').addEventListener('click', onFootClick);
@@ -170,8 +183,98 @@
             body.classList.remove('is-dragging');
             addFiles(e.dataTransfer.files);
         });
-        el.addEventListener('hidden.bs.modal', function () { asking = false; picked = {}; });
+        el.addEventListener('hidden.bs.modal', function () {
+            asking = false;
+            picked = {};
+            if (viewer) viewer.hidden = true;
+        });
         return el;
+    }
+
+    /* ---------- the photo viewer ----------
+       Inside the window's element, so Bootstrap's focus trap keeps the focus in it, and its
+       Esc closes the viewer only (stopped before it reaches the window). */
+    function buildViewer() {
+        var el = document.createElement('div');
+        el.className = 'facd-viewer';
+        el.hidden = true;
+        el.setAttribute('role', 'dialog');
+        el.setAttribute('aria-modal', 'true');
+        el.setAttribute('aria-labelledby', 'facdViewerTitle');
+        el.innerHTML =
+            '<div class="facd-viewer-bar">' +
+                '<div class="facd-viewer-text">' +
+                    '<p class="facd-viewer-title" id="facdViewerTitle"></p>' +
+                    '<p class="facd-viewer-meta" id="facdViewerMeta"></p>' +
+                '</div>' +
+                '<button type="button" class="facd-viewer-btn" data-close aria-label="Close the photo"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
+            '</div>' +
+            '<div class="facd-viewer-stage" data-backdrop>' +
+                '<button type="button" class="facd-viewer-btn is-nav" data-prev aria-label="Previous photo"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>' +
+                '<img class="facd-viewer-img" id="facdViewerImg" alt="">' +
+                '<button type="button" class="facd-viewer-btn is-nav" data-next aria-label="Next photo"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>' +
+            '</div>';
+        modal.appendChild(el);
+        el.addEventListener('click', function (e) {
+            if (e.target.closest('[data-close]') || e.target.hasAttribute('data-backdrop')) closeViewer();
+            else if (e.target.closest('[data-prev]')) stepViewer(-1);
+            else if (e.target.closest('[data-next]')) stepViewer(1);
+        });
+        el.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                closeViewer();
+            } else if (e.key === 'ArrowLeft') {
+                stepViewer(-1);
+            } else if (e.key === 'ArrowRight') {
+                stepViewer(1);
+            } else if (e.key === 'Tab') {
+                // Round its own buttons, not the window under it.
+                var stops = Array.prototype.filter.call(el.querySelectorAll('button'), function (b) { return !b.hidden; });
+                var i = stops.indexOf(document.activeElement);
+                e.preventDefault();
+                stops[(i + (e.shiftKey ? -1 : 1) + stops.length) % stops.length].focus();
+            }
+        });
+        return el;
+    }
+
+    function showViewerPhoto() {
+        var p = viewList[viewAt];
+        var when = longDate(p.at);
+        var img = viewer.querySelector('#facdViewerImg');
+        img.src = p.src;
+        img.alt = 'Face photo of ' + current.name + (when ? ', added ' + when : '');
+        viewer.querySelector('#facdViewerTitle').textContent = current.name;
+        viewer.querySelector('#facdViewerMeta').textContent = 'Photo ' + (viewAt + 1) + ' of ' + viewList.length + (when ? ' \u00b7 Added ' + when : '');
+        var many = viewList.length > 1;
+        viewer.querySelector('[data-prev]').hidden = !many;
+        viewer.querySelector('[data-next]').hidden = !many;
+    }
+
+    function openViewer(id) {
+        viewList = photos(current);
+        viewAt = Math.max(0, viewList.map(function (p) { return p.id; }).indexOf(id));
+        if (!viewList.length) return;
+        if (!viewer) viewer = buildViewer();
+        showViewerPhoto();
+        viewer.hidden = false;
+        viewer.querySelector('[data-close]').focus();
+    }
+
+    function stepViewer(by) {
+        if (viewList.length < 2) return;
+        viewAt = (viewAt + by + viewList.length) % viewList.length;
+        showViewerPhoto();
+    }
+
+    // Back on the photo it ended on, in the grid.
+    function closeViewer() {
+        var id = viewList[viewAt] && viewList[viewAt].id;
+        viewer.hidden = true;
+        var back = id && modal.querySelector('[data-view="' + id + '"]');
+        (back || modal.querySelector('[data-add]')).focus();
     }
 
     function hasFiles(e) {
@@ -181,12 +284,16 @@
     function tileHTML(p) {
         var on = !!picked[p.id];
         var when = longDate(p.at);
-        return '<label class="facd-tile' + (on ? ' is-picked' : '') + '">' +
-            '<img src="' + p.src + '" alt="Face photo' + (when ? ' added ' + when : '') + '">' +
-            '<span class="facd-tick"><input type="checkbox" class="form-check-input" data-pick="' + esc(p.id) + '"' + (on ? ' checked' : '') +
-                ' aria-label="Tick the photo' + (when ? ' added ' + when : '') + '"></span>' +
+        // The photo opens the viewer; the tick in its corner selects it for Delete.
+        return '<div class="facd-tile' + (on ? ' is-picked' : '') + '">' +
+            '<button type="button" class="facd-view" data-view="' + esc(p.id) + '" aria-label="See the photo' + (when ? ' added ' + when : '') + ' whole">' +
+                '<img src="' + p.src + '" alt="">' +
+                '<span class="facd-zoom" aria-hidden="true"><i class="fa-solid fa-expand"></i></span>' +
+            '</button>' +
+            '<label class="facd-tick"><input type="checkbox" class="form-check-input" data-pick="' + esc(p.id) + '"' + (on ? ' checked' : '') +
+                ' aria-label="Tick the photo' + (when ? ' added ' + when : '') + '"></label>' +
             '<span class="facd-date">' + (when ? 'Added ' + when : 'Added') + '</span>' +
-        '</label>';
+        '</div>';
     }
 
     function addTileHTML(empty) {
@@ -307,7 +414,7 @@
         }
         if (!good.length) return;
         Promise.all(good.map(function (f) { return shrink(f).catch(function () { return null; }); })).then(function (srcs) {
-            var today = new Date().toISOString().slice(0, 10);
+            var today = isoDate(new Date());
             var e = entry(emp.code);
             var added = 0;
             srcs.forEach(function (src, i) {

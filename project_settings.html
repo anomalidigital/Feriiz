@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feriiz - Settings</title>
+    <title>Feriiz - Work Hours</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.148">
-    <link rel="stylesheet" href="assets/css/style.css?v=3.7.148">
+    <link rel="stylesheet" href="assets/css/customize.css?v=3.7.149">
+    <link rel="stylesheet" href="assets/css/style.css?v=3.7.149">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
-    <script src="assets/js/data.js?v=3.7.148" defer></script>
-    <script src="assets/js/app.js?v=3.7.148" defer></script>
+    <script src="assets/js/data.js?v=3.7.149" defer></script>
+    <script src="assets/js/app.js?v=3.7.149" defer></script>
 </head>
 
 <!-- A project's Settings (Baldy, 10-11-2026): its Default Hours. The Public Holidays panel beside them
@@ -45,6 +45,25 @@
        as defaultHours.useInReport. Ticked, every day with a log in counts its occupation's hours
        and overtime here as its newest data, over any import or Add Hours ("set default itu yang
        paling teratas"), in the Report and in both prints (report.js, applyDefault). -->
+<!-- Work Hours (24-11-2026; "Settings" until then). Baldy, after briefing Pak Stef: "sub page nya
+     pertama coba kamu ubah dari settings ke > Time atau apa yang bagus ya"; the page holds the
+     project's hours, so Work Hours (jam kerja), plainer than Time. Not loud ("gausah blak blakan
+     secara desain"): the project form's grey section bars, the same fields.
+     - Project Detail is as it was (Baldy, 24-11-2026: "ini working time dan working day itu
+       balikin ke form project detail", then "tampilan awal kayanya ga gini deh coba cek yang
+       lama... makesure"): Working Time, Working Day, Check In/Out Tolerance and Penalty &
+       Config are there, as live. Here: the Default Hours, which start at that Working Day.
+     - Default Hours: a tick per occupation (Pak Stef: "chclist per occupation, jadi yang di
+       chechlist dia lah occupation yang akan menggunakan set default untuk sistem absensi"),
+       instead of one "Use Default Hours in this project" for all. A ticked occupation counts its
+       hours in attendance (the Report and both prints) on every day with a log in; the others
+       count their real logs. Every row's hours still go to the Client print.
+     - Each occupation lists its people ("tambahin dropdown di setiap occupations nya itu kaya ada
+       daftar orang nya"), and a person can be moved to another occupation in this project only
+       ("secara master nya dia tetep misal nya sebagai tukang kayu… tapi dia di assign ke tukang
+       baru"): occupationOverrides, read through FERIIZ_DATA.projectOccupationOf by the Report,
+       its print, Activity and Attendance. Their own occupation on Employees stays.
+     Everything waits for Save in the save bar, as before. -->
 <body data-page="project-settings">
     <!-- Sidebar -->
     <aside class="sidebar"></aside>
@@ -57,32 +76,63 @@
                     <span>&gt;</span>
                     <a href="project_employees.html" id="settingsProjectLink" data-project-name>Project</a>
                     <span>&gt;</span>
-                    <span class="feriiz-u-057">Settings</span>
+                    <span class="feriiz-u-057">Work Hours</span>
                 </div>
-                <h1 class="page-title">Settings</h1>
+                <h1 class="page-title">Work Hours</h1>
             </div>
         </div>
 
-        <div class="settings-grid">
-            <section class="settings-panel" aria-labelledby="occHoursTitle">
-                <div class="settings-panel-head">
-                    <h2 class="settings-panel-title" id="occHoursTitle">Default Hours</h2>
-                    <button class="btn btn-primary btn-sm" type="button" id="occManageBtn" hidden>Manage Occupations</button>
+        <!-- Laid out again on 18-11-2026 (Baldy: "secara Ui kaya ada project settings ini kaya kurang
+             rapi"; the hours are the project's, a sub page because they do not fit in Project Detail:
+             "harusnya juga mau di project detail cuma ga muat... jadi di jadiin sub pages"). Four
+             groups: the title with the project's Working Day; the option and a key to the figures;
+             the table, as wide as its columns; a save bar at the bottom of the screen that comes only
+             with unsaved changes (Polaris' contextual save bar: Save / Discard, a warning on leaving).
+             One blue button (Save); a figure the same as the Working Day is grey, a row's own dark
+             with a reset to the Working Day on its row (the inherited-value pattern), what is not
+             saved yet blue. Up / Down / Enter move between rows as in a sheet. No link to here from
+             Project Detail: the project's own menu (Settings) is the way in (Baldy, 18-11-2026:
+             "ini harusnya tidak ada disini sih, secara design sistem ini aneh"). -->
+        <!-- The project's settings on one page (Baldy, 18-11-2026: "Check In/Out Tolerance, working time,
+             dan working day nya kamu taro di settings coba deh karna biar selaras, jadi nanti di project
+             detail nya cuma yang seadanya"). Laid out as Baldy drew it (18-11-2026: "kiri atas itu
+             working time dan day, nah terus kanan nya tolerance, dan bawah paling default hour nya
+             aja... biar tidak ada space yang kosong"): the two small cards side by side on top, the
+             Default Hours across the whole width under them; stacked on a phone. One save bar for the whole page, at the bottom of the screen
+             only while something is not saved (Polaris' contextual save bar): how many changes wait,
+             Discard, Save. Baldy missed it at first ("di settigs tidak ada save nya, kamu lupa ?")
+             and, told why, kept it: "nice ide, boleh kaya gitu deh" (18-11-2026). -->
+        <div class="settings-layout wh-layout">
+            <section class="settings-panel wh-card occ-panel" aria-labelledby="occHoursTitle">
+                <div class="wh-bar occ-bar">
+                    <h2 class="wh-bar-title" id="occHoursTitle">Default Hours
+                        <button type="button" class="tpl-help" data-bs-toggle="tooltip" aria-label="About Default Hours"
+                            data-bs-title="Each occupation&#39;s hours and overtime per weekday, written hours/overtime, like 8/2; 0 leaves that day to its real logs. Grey figures are the Working Day; dark ones are the occupation&#39;s own.">
+                            <i class="fa-regular fa-circle-question" aria-hidden="true"></i></button></h2>
+                    <button class="btn btn-outline btn-sm occ-manage-btn" type="button" id="occManageBtn" hidden>
+                        <i class="fa-solid fa-list-check" aria-hidden="true"></i> Manage Occupations</button>
                 </div>
-                <div class="occ-hours" id="occHours"></div>
-                <div class="occ-hours-use" id="occUseWrap" hidden>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="occUseDefault" aria-describedby="occUseHelp">
-                        <label class="form-check-label" for="occUseDefault">Use Default Hours in this project</label>
+                <div class="occ-intro" id="occIntro" hidden>
+                    <p class="occ-intro-text">Every occupation starts at the project&#39;s Working Day (Project Detail). A ticked occupation counts these hours in attendance on each day with a log in; the others count their real logs. The Client print always uses them.</p>
+                    <span class="occ-use-count" id="occUseCount" aria-live="polite"></span>
+                </div>
+                <div class="occ-hours" id="occHours" aria-busy="true">
+                    <div class="occ-skeleton" aria-hidden="true">
+                        <div class="occ-skeleton-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                        <div class="occ-skeleton-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                        <div class="occ-skeleton-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                        <div class="occ-skeleton-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
                     </div>
-                    <p class="occ-hours-use-help" id="occUseHelp">Every day with a log in counts its occupation's hours and overtime above, over any Import or Add Hours, in the Report and in print, Internal and Client. The machine's own hours stay under Show history.</p>
-                </div>
-                <div class="settings-panel-foot">
-                    <button class="btn btn-primary btn-sm" type="button" id="occSaveBtn">Save</button>
+                    <span class="visually-hidden">Loading occupations…</span>
                 </div>
             </section>
         </div>
-        <div class="feriiz-u-032">version : 3.7.148</div>
+        <div class="occ-savebar settings-savebar" id="occSaveBar" hidden>
+            <span class="occ-savebar-status" id="occSaveStatus" role="status" aria-live="polite">Unsaved changes</span>
+            <button class="btn btn-outline btn-sm" type="button" id="occDiscardBtn">Discard</button>
+            <button class="btn btn-primary btn-sm" type="button" id="occSaveBtn">Save</button>
+        </div>
+        <div class="feriiz-u-032">version : 3.7.149</div>
     </main>
 
     <!-- Manage Occupation: the Manage Employee dialog of Activity (project_employees.html), its
@@ -150,14 +200,25 @@
             var DAY_NAMES = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
             var projectOccupations = [];          // [{ name, people }]: the project's occupations
             var people = {};                      // occupation (lower-case) -> how many of its employees have it
+            var projectPeople = [];               // the project's employees, their own records
+            var draftMoves = {};                  // employee code -> occupation chosen here, not saved yet
+            var openPeople = {};                  // occupation -> true while its people are shown
 
             function lowerName(s) { return String(s || '').trim().toLowerCase(); }
 
-            function countPeople(data) {
+            // A person's occupation in this project as saved (moved here, else their own) and as the
+            // page shows it now, with what is chosen and not saved yet.
+            function savedOccupationOf(emp) { return window.FERIIZ_DATA.projectOccupationOf(project, emp); }
+
+            function occupationOf(emp) {
+                return Object.prototype.hasOwnProperty.call(draftMoves, emp.code) ? draftMoves[emp.code] : savedOccupationOf(emp);
+            }
+
+            function countPeople() {
                 people = {};
-                (data.employees || []).forEach(function (e) {
-                    if (!e.occupation || (e.projects || []).indexOf(project.code) < 0) return;
-                    people[lowerName(e.occupation)] = (people[lowerName(e.occupation)] || 0) + 1;
+                projectPeople.forEach(function (e) {
+                    var occ = occupationOf(e);
+                    if (occ) people[lowerName(occ)] = (people[lowerName(occ)] || 0) + 1;
                 });
             }
 
@@ -165,12 +226,29 @@
 
             function peopleText(n) { return n + (n === 1 ? ' employee' : ' employees'); }
 
-            // The rows: the project's occupations (the ones ticked in Manage Occupations and those of
-            // its employees), A to Z, each with its people.
+            function peopleIn(name) {
+                return projectPeople.filter(function (e) { return lowerName(occupationOf(e)) === lowerName(name); })
+                    .sort(function (a, b) { return a.name.localeCompare(b.name); });
+            }
+
+            // How many people are in another occupation than saved.
+            function movesChanged() {
+                return projectPeople.filter(function (e) { return occupationOf(e) !== savedOccupationOf(e); }).length;
+            }
+
+            // The rows: the project's occupations (the ones ticked in Manage Occupations and those its
+            // employees have here, moves not saved yet too), A to Z, each with its people.
             function loadProjectOccupations() {
-                projectOccupations = window.FERIIZ_DATA.projectOccupations(project).map(function (name) {
-                    return { name: name, people: peopleOf(name) };
-                });
+                countPeople();
+                var seen = {};
+                var names = [];
+                function add(name) {
+                    if (name && !seen[lowerName(name)]) { seen[lowerName(name)] = true; names.push(name); }
+                }
+                window.FERIIZ_DATA.projectOccupations(project).forEach(add);
+                projectPeople.forEach(function (e) { add(occupationOf(e)); });
+                names.sort(function (a, b) { return a.localeCompare(b); });
+                projectOccupations = names.map(function (name) { return { name: name, people: peopleOf(name) }; });
             }
 
             function savedOccupations() {
@@ -187,8 +265,9 @@
                 return m ? { work: Number(m[1]), ot: m[2] ? Number(m[2]) : 0 } : null;
             }
 
-            // The project's Working Day as "8/2" (Project Detail).
-            function workingDayText() { return dayPairText(window.FERIIZ_DATA.projectWorkingDay(project)); }
+            // The project's Working Day as "8/2", as the Working Time card has it now (typed, not
+            // saved yet, counts; what cannot be read keeps the saved one).
+            function workingDayText() { return dayPairText(currentWorkingDay()); }
 
             function dayPairText(d) {
                 var work = Number(d && d.work) || 0;
@@ -196,40 +275,266 @@
                 return work ? work + (ot ? '/' + ot : '') : '0';
             }
 
-            // A row per occupation: its name and people, then a field per day. One never saved here
-            // starts at the project's Working Day every day and says "New", once the project has
-            // saved any.
-            function occupationRow(occ, saved, anySaved) {
+            // What is typed and not saved yet: occupation -> { day: text }, and occupation -> its tick.
+            // It outlives a new render, e.g. after Manage Occupations.
+            var draft = {};
+            var draftUse = {};
+
+            // Does the occupation count its Default Hours in attendance, as saved / as ticked now?
+            function savedUseOf(name) { return window.FERIIZ_DATA.usesDefaultHours(project, name); }
+
+            function useOf(name) {
+                return Object.prototype.hasOwnProperty.call(draftUse, name) ? draftUse[name] : savedUseOf(name);
+            }
+
+            function setUse(name, on) {
+                if (on === savedUseOf(name)) delete draftUse[name];
+                else draftUse[name] = on;
+            }
+
+            // A figure is grey when it is the project's Working Day, dark when the row has its own.
+            function followsWorkingDay(text) {
+                var pair = readDayPair(text);
+                var day = currentWorkingDay();
+                return Boolean(pair && pair.work === day.work && pair.ot === day.ot);
+            }
+
+            // The occupations a person can be moved to: the project's, then the rest of the list on
+            // Employees > Occupations (one of those joins the project with the person).
+            function moveOptions(selected) {
+                var have = {};
+                var inProject = projectOccupations.map(function (o) { have[lowerName(o.name)] = true; return o.name; });
+                var others = window.FERIIZ_DATA.occupationList().map(function (o) { return o.name; })
+                    .filter(function (n) { return !have[lowerName(n)]; });
+                function opt(n) { return '<option value="' + esc(n) + '"' + (n === selected ? ' selected' : '') + '>' + esc(n) + '</option>'; }
+                return '<optgroup label="In this project">' + inProject.map(opt).join('') + '</optgroup>' +
+                    (others.length ? '<optgroup label="Other occupations">' + others.map(opt).join('') + '</optgroup>' : '');
+            }
+
+            // A person in an occupation's list: who, their own occupation when moved here (yellow, as
+            // a change), the way back to it, and where they are in this project (blue while not saved).
+            function personRow(e) {
+                var now = occupationOf(e);
+                var own = e.occupation || '';
+                var moved = now !== own;
+                return '<div class="occ-person' + (moved ? ' is-moved' : '') + (now !== savedOccupationOf(e) ? ' is-dirty' : '') + '">' +
+                    '<img class="occ-person-avatar" src="' + window.FERIIZ_DATA.initialsAvatar(e.name) + '" alt="">' +
+                    '<span class="occ-person-name">' + esc(e.name) + '<small>' + esc(e.code) + '</small>' +
+                        (moved ? '<span class="occ-person-meta"><span class="occ-person-own">Own: ' + esc(own || 'none') + '</span>' +
+                            (own ? '<button type="button" class="occ-person-back" data-unmove="' + esc(e.code) + '" title="Back to ' + esc(own) + '"' +
+                                ' aria-label="Move ' + esc(e.name) + ' back to ' + esc(own) + '"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button>' : '') +
+                        '</span>' : '') + '</span>' +
+                    '<select class="occ-person-move" data-move="' + esc(e.code) + '" aria-label="Occupation of ' + esc(e.name) + ' in this project">' +
+                        moveOptions(now) + '</select>' +
+                '</div>';
+            }
+
+            function peoplePanel(occ, id) {
+                var list = peopleIn(occ.name);
+                return '<div class="occ-people" id="' + id + '" role="group" aria-label="Employees in ' + esc(occ.name) + '">' +
+                    '<p class="occ-people-note">Moving someone changes their occupation in this project only. On Employees they keep their own.</p>' +
+                    (list.length ? '<div class="occ-people-list">' + list.map(personRow).join('') + '</div>'
+                                 : '<p class="occ-people-empty">No one has this occupation in this project. Move someone here from another occupation\'s list.</p>') +
+                '</div>';
+            }
+
+            // A row per occupation: its tick, its name and people (a list that opens), then a field per
+            // day. One never saved here starts at the project's Working Day every day and says "New",
+            // once the project has saved any.
+            function occupationRow(occ, saved, anySaved, index) {
                 var entry = saved[occ.name];
                 var isNew = !entry && anySaved;
-                return '<div class="occ-hours-row is-occupation" data-occupation="' + esc(occ.name) + '">' +
-                    '<div class="occ-hours-name">' + esc(occ.name) + (isNew ? ' <span class="occ-hours-new">New</span>' : '') +
-                        '<small>' + (occ.people ? peopleText(occ.people) : 'No employees yet') + '</small></div>' +
+                var typed = draft[occ.name] || {};
+                var used = useOf(occ.name);
+                var open = Boolean(openPeople[occ.name]);
+                var panelId = 'occPeople' + index;
+                return '<div class="occ-hours-row is-occupation' + (used ? ' is-used' : '') + '" data-occupation="' + esc(occ.name) + '">' +
+                    '<label class="occ-hours-use" title="Count these hours in attendance">' +
+                        '<input class="form-check-input" type="checkbox" data-use' + (used ? ' checked' : '') +
+                        ' aria-label="' + esc(occ.name) + ' counts its Default Hours in attendance"></label>' +
+                    '<div class="occ-hours-name"><span class="occ-hours-name-line"><span class="occ-hours-name-text">' + esc(occ.name) + '</span>' +
+                        (isNew ? '<span class="occ-hours-new">New</span>' : '') + '</span>' +
+                        '<button type="button" class="occ-people-btn" data-people aria-expanded="' + open + '" aria-controls="' + panelId + '">' +
+                            (occ.people ? peopleText(occ.people) : 'No employees') +
+                            ' <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button></div>' +
                     DAYS.map(function (day) {
-                        var d = window.FERIIZ_DATA.defaultHoursOf(project, occ.name, day);   // the Working Day when never saved
-                        return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + dayPairText(d) +
-                            '" placeholder="' + workingDayText() + '" aria-label="' + esc(occ.name) + ', ' + DAY_NAMES[day] + ', hours/overtime">';
+                        // a row never saved follows the Working Day, also one typed and not saved yet
+                        var savedText = entry ? dayPairText(window.FERIIZ_DATA.defaultHoursOf(project, occ.name, day)) : workingDayText();
+                        var value = Object.prototype.hasOwnProperty.call(typed, day) ? typed[day] : savedText;
+                        return '<input type="text" class="occ-hours-day" data-day="' + day + '" value="' + esc(value) +
+                            '" data-saved="' + esc(savedText) + '" placeholder="' + workingDayText() + '" inputmode="decimal" autocomplete="off"' +
+                            ' aria-label="' + esc(occ.name) + ', ' + DAY_NAMES[day] + ', hours/overtime">';
                     }).join('') +
+                    '<span class="occ-hours-action"><button type="button" class="occ-reset" data-reset hidden' +
+                        ' aria-label="Reset ' + esc(occ.name) + ' to the Working Day" title="Reset to the Working Day">' +
+                        '<i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button></span>' +
+                '</div>' + (open ? peoplePanel(occ, panelId) : '');
+            }
+
+            function emptyState() {
+                return '<div class="occ-empty">' +
+                    '<span class="occ-empty-icon" aria-hidden="true"><i class="fa-solid fa-briefcase"></i></span>' +
+                    '<p class="occ-empty-title">No occupations in this project yet</p>' +
+                    '<p class="occ-empty-text">Add the occupations this project uses. An employee assigned here brings theirs too, at the project\'s Working Day.</p>' +
+                    '<button class="btn btn-primary btn-sm" type="button" data-manage-occupations>' +
+                        '<i class="fa-solid fa-list-check" aria-hidden="true"></i> Manage Occupations</button>' +
                 '</div>';
             }
 
             function renderOccupationHours() {
                 var box = document.getElementById('occHours');
-                var useWrap = document.getElementById('occUseWrap');
-                document.getElementById('occUseDefault').checked = Boolean((project.defaultHours || {}).useInReport);
+                box.removeAttribute('aria-busy');
+                // Empty, the one way on is the button in the middle; the head's would say it twice.
+                document.getElementById('occManageBtn').hidden = !projectOccupations.length;
+                document.getElementById('occIntro').hidden = !projectOccupations.length;
                 if (!projectOccupations.length) {
-                    box.innerHTML = '<p class="occ-hours-empty">This project has no occupations yet. Add them with Manage Occupations; an employee assigned to the project brings theirs.</p>';
-                    document.getElementById('occSaveBtn').hidden = true;
-                    useWrap.hidden = true;
+                    box.innerHTML = emptyState();
+                    refreshFields();
                     return;
                 }
-                useWrap.hidden = false;
                 var saved = savedOccupations();
                 var anySaved = Object.keys(saved).length > 0;
-                var head = '<div class="occ-hours-row is-head" aria-hidden="true"><span>Occupation</span>' +
-                    DAYS.map(function (d) { return '<span>' + d + '</span>'; }).join('') + '</div>';
-                box.innerHTML = head + projectOccupations.map(function (occ) { return occupationRow(occ, saved, anySaved); }).join('');
-                document.getElementById('occSaveBtn').hidden = false;
+                var head = '<div class="occ-hours-row is-head">' +
+                    '<label class="occ-hours-use" title="Tick or untick every occupation">' +
+                        '<input class="form-check-input" type="checkbox" data-use-all aria-label="Every occupation counts its Default Hours in attendance"></label>' +
+                    '<span class="occ-hours-head-name" aria-hidden="true">' + projectOccupations.length + (projectOccupations.length === 1 ? ' occupation' : ' occupations') + '</span>' +
+                    DAYS.map(function (d) { return '<span aria-hidden="true">' + d + '</span>'; }).join('') + '<span></span></div>';
+                box.innerHTML = head + projectOccupations.map(function (occ, i) { return occupationRow(occ, saved, anySaved, i); }).join('');
+                refreshFields();
+            }
+
+            // The box over the ticks (all, none or some) and how many occupations count their hours.
+            function refreshUse() {
+                var all = document.querySelector('#occHours [data-use-all]');
+                var on = projectOccupations.filter(function (o) { return useOf(o.name); }).length;
+                if (all) {
+                    all.checked = on > 0 && on === projectOccupations.length;
+                    all.indeterminate = on > 0 && on < projectOccupations.length;
+                }
+                document.getElementById('occUseCount').textContent = on
+                    ? on + ' of ' + projectOccupations.length + ' use them in attendance'
+                    : 'None use them in attendance';
+            }
+
+            // Each field grey or dark and blue while not saved; a row with its own hours offers its
+            // reset; the save bar comes with the first change and says how many wait.
+            function refreshFields() {
+                var changes = 0;
+                document.querySelectorAll('#occHours .occ-hours-row.is-occupation').forEach(function (row) {
+                    var own = false;
+                    row.querySelectorAll('.occ-hours-day').forEach(function (input) {
+                        var dirty = !samePair(input.value, input.dataset.saved);
+                        var same = followsWorkingDay(input.value);
+                        if (dirty) changes++;
+                        if (!same) own = true;
+                        input.classList.toggle('is-dirty', dirty);
+                        input.classList.toggle('is-working-day', same);
+                    });
+                    row.querySelector('[data-reset]').hidden = !own;
+                });
+                projectOccupations.forEach(function (o) { if (useOf(o.name) !== savedUseOf(o.name)) changes++; });
+                changes += movesChanged();
+                refreshUse();
+                var bar = document.getElementById('occSaveBar');
+                bar.classList.toggle('is-dirty', changes > 0);
+                bar.hidden = changes === 0;
+                document.getElementById('occSaveStatus').textContent =
+                    changes + (changes === 1 ? ' change not saved' : ' changes not saved');
+                return changes;
+            }
+
+            // Reset: the row's days back to the Working Day (to save like any change).
+            function resetRow(button) {
+                var row = button.closest('.occ-hours-row');
+                var occupation = row.dataset.occupation;
+                var day = workingDayText();
+                var typed = draft[occupation] || (draft[occupation] = {});
+                row.querySelectorAll('.occ-hours-day').forEach(function (input) {
+                    input.value = day;
+                    input.classList.remove('is-invalid');
+                    typed[input.dataset.day] = day;
+                });
+                refreshFields();
+                var first = row.querySelector('.occ-hours-day');
+                if (first) first.focus();
+            }
+
+            // Up / Down / Enter go to the same day on the row above or below, as in a sheet; a
+            // field's figure is selected when it is reached, so typing replaces it.
+            function onHoursKeydown(e) {
+                var input = e.target.closest('.occ-hours-day');
+                if (!input) return;
+                var down = e.key === 'ArrowDown' || (e.key === 'Enter' && !e.shiftKey);
+                var up = e.key === 'ArrowUp' || (e.key === 'Enter' && e.shiftKey);
+                if (!down && !up) return;
+                // the next occupation's row, past an open list of people
+                var next = input.closest('.occ-hours-row');
+                do { next = down ? next.nextElementSibling : next.previousElementSibling; }
+                while (next && !next.classList.contains('is-occupation'));
+                var target = next ? next.querySelector('[data-day="' + input.dataset.day + '"]') : null;
+                if (!target) return;
+                e.preventDefault();
+                target.focus();
+            }
+
+            // "8 / 2" is the same as "8/2"; what cannot be read is compared as typed.
+            function samePair(a, b) {
+                var x = readDayPair(a);
+                var y = readDayPair(b);
+                if (!x || !y) return String(a || '').trim() === String(b || '').trim();
+                return x.work === y.work && x.ot === y.ot;
+            }
+
+            function unsavedChanges() {
+                return document.getElementById('occSaveBar').classList.contains('is-dirty');
+            }
+
+            function onHoursInput(e) {
+                var input = e.target.closest('.occ-hours-day');
+                if (!input) return;
+                input.classList.remove('is-invalid');
+                var occupation = input.closest('.occ-hours-row').dataset.occupation;
+                (draft[occupation] || (draft[occupation] = {}))[input.dataset.day] = input.value;
+                refreshFields();
+            }
+
+            function discardChanges() {
+                draft = {};
+                draftUse = {};
+                draftMoves = {};
+                loadProjectOccupations();
+                renderOccupationHours();
+                if (window.FeriizNotify) FeriizNotify.info('The work hours are back as they were saved.', 'Changes discarded');
+            }
+
+            // A person to another occupation in this project (not saved yet); back to their own
+            // takes the move away.
+            function moveTo(code, occupation) {
+                var emp = null;
+                projectPeople.forEach(function (e) { if (e.code === code) emp = e; });
+                if (!emp || !occupation) return;
+                var from = occupationOf(emp);
+                if (occupation === savedOccupationOf(emp)) delete draftMoves[code];
+                else draftMoves[code] = occupation;
+                loadProjectOccupations();
+                renderOccupationHours();
+                // The focus stays in the list it left: the next person there, else its button.
+                var row = document.querySelector('#occHours .occ-hours-row[data-occupation="' + CSS.escape(from) + '"]');
+                var panel = row && row.nextElementSibling && row.nextElementSibling.classList.contains('occ-people') ? row.nextElementSibling : null;
+                var next = panel && panel.querySelector('select[data-move]');
+                (next || (row && row.querySelector('[data-people]')) || document.getElementById('occSaveBtn')).focus();
+                if (window.FeriizNotify) {
+                    FeriizNotify.info(emp.name + (occupation === (emp.occupation || '') ? ' is back in ' : ' moves to ') + occupation +
+                        ' in this project. Save to keep it.', 'Moved, not saved yet');
+                }
+            }
+
+            function togglePeople(button) {
+                var name = button.closest('.occ-hours-row').dataset.occupation;
+                openPeople[name] = !openPeople[name];
+                renderOccupationHours();
+                var again = document.querySelector('#occHours .occ-hours-row[data-occupation="' + CSS.escape(name) + '"] [data-people]');
+                if (again) again.focus();
             }
 
             // { value: [...] } to save, or { input, message } for the first field that is wrong.
@@ -238,7 +543,7 @@
                 var rows = document.querySelectorAll('#occHours .occ-hours-row.is-occupation');
                 for (var r = 0; r < rows.length; r++) {
                     var occupation = rows[r].dataset.occupation;
-                    var entry = { occupation: occupation, custom: true, daily: null, days: {} };
+                    var entry = { occupation: occupation, use: useOf(occupation), custom: true, daily: null, days: {} };
                     for (var i = 0; i < DAYS.length; i++) {
                         var input = rows[r].querySelector('[data-day="' + DAYS[i] + '"]');
                         var pair = readDayPair(input.value);
@@ -254,32 +559,80 @@
                 return { value: value };
             }
 
-            function saveOccupationHours() {
-                document.querySelectorAll('#occHours .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
-                var read = readOccupationHours();
-                if (read.input) {
-                    read.input.classList.add('is-invalid');
-                    read.input.focus();
-                    warn(read.message, 'Default hours not saved');
+            // Did the Default Hours (a figure or a tick) change?
+            function defaultHoursChanged() {
+                if (projectOccupations.some(function (o) { return useOf(o.name) !== savedUseOf(o.name); })) return true;
+                return Array.prototype.some.call(document.querySelectorAll('#occHours .occ-hours-day'), function (input) {
+                    return !samePair(input.value, input.dataset.saved);
+                });
+            }
+
+            function markInvalid(input, message, title) {
+                input.classList.add('is-invalid');
+                input.focus();
+                warn(message, title || 'Settings not saved');
+            }
+
+            // Save: the cards and, when they changed, the Default Hours; the first thing that is wrong
+            // stops it and gets the focus. Rows that were never saved here and are not touched keep
+            // following the Working Day unless the Default Hours themselves are saved.
+            function saveAll() {
+                if (!unsavedChanges()) {
+                    if (window.FeriizNotify) FeriizNotify.info('Nothing has changed since the last save.', 'All changes saved');
                     return;
                 }
-                // Only the occupations change; the rest of the project's Default Hours stays as it is.
-                // An occupation saved before whose employees left the project keeps its hours, in
-                // case one comes back.
-                var shown = {};
-                read.value.forEach(function (o) { shown[o.occupation] = true; });
-                var kept = ((project.defaultHours || {}).occupations || []).filter(function (o) { return !shown[o.occupation]; });
-                var useInReport = document.getElementById('occUseDefault').checked;
-                var defaultHours = Object.assign({}, project.defaultHours || {}, { occupations: read.value.concat(kept), useInReport: useInReport });
-                if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {
-                    window.FERIIZ_DATA.saveProjectSettings(project.code, { defaultHours: defaultHours });
+                document.querySelectorAll('.settings-layout .is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+                var settings = {};
+                var hoursChanged = defaultHoursChanged();
+                var moved = movesChanged();
+                var count = 0;
+                var using = 0;
+                if (hoursChanged) {
+                    var read = readOccupationHours();
+                    if (read.input) { markInvalid(read.input, read.message, 'Default hours not saved'); return; }
+                    // Only the occupations change; an occupation saved before whose employees left the
+                    // project keeps its hours, in case one comes back.
+                    var shown = {};
+                    read.value.forEach(function (o) { shown[o.occupation] = true; });
+                    // Those kept say their tick too, as the one tick for all (useInReport) goes.
+                    var legacyUse = Boolean((project.defaultHours || {}).useInReport);
+                    var kept = ((project.defaultHours || {}).occupations || []).filter(function (o) { return !shown[o.occupation]; })
+                        .map(function (o) { return Object.assign({}, o, { use: typeof o.use === 'boolean' ? o.use : legacyUse }); });
+                    settings.defaultHours = Object.assign({}, project.defaultHours || {}, { occupations: read.value.concat(kept) });
+                    delete settings.defaultHours.useInReport;
+                    count = read.value.length;
+                    using = read.value.filter(function (o) { return o.use; }).length;
                 }
-                project.defaultHours = defaultHours;
+                if (moved) {
+                    // Only who is not in their own occupation; their own on Employees stays.
+                    var overrides = {};
+                    projectPeople.forEach(function (e) {
+                        var occ = occupationOf(e);
+                        if (occ && occ !== (e.occupation || '')) overrides[e.code] = occ;
+                    });
+                    settings.occupationOverrides = overrides;
+                }
+                if (window.FERIIZ_DATA && window.FERIIZ_DATA.saveProjectSettings) {
+                    window.FERIIZ_DATA.saveProjectSettings(project.code, settings);
+                }
+                Object.keys(settings).forEach(function (k) { project[k] = settings[k]; });
+                draft = {};
+                draftUse = {};
+                draftMoves = {};
+                loadProjectOccupations();
                 renderOccupationHours();
                 if (window.FeriizNotify) {
-                    FeriizNotify.success('Default hours saved for ' + read.value.length + (read.value.length === 1 ? ' occupation.' : ' occupations.') +
-                        (useInReport ? ' The Report and its print use them for every day with a log in.' : ''), 'Default hours saved');
+                    FeriizNotify.success('The default hours are saved.' +
+                        (hoursChanged ? ' Default hours for ' + count + (count === 1 ? ' occupation' : ' occupations') +
+                            (using ? ', ' + using + ' of them in attendance.' : ', none of them in attendance.') : '') +
+                        (moved ? ' ' + peopleText(moved) + ' in another occupation in this project.' : ''), 'Work hours saved');
                 }
+            }
+
+            // The project's Working Day, as Project Detail saved it (its Working Time and Overtime).
+            function currentWorkingDay() {
+                if (!project || !window.FERIIZ_DATA) return { work: 8, ot: 2 };
+                return window.FERIIZ_DATA.projectWorkingDay(project);
             }
 
             /* ---------- Manage Occupations ---------- */
@@ -465,7 +818,7 @@
                 var added = names.filter(function (n) { return !before[n]; });
                 var removed = Object.keys(before).filter(function (n) { return names.indexOf(n) < 0; });
                 window.FERIIZ_DATA.saveProjectOccupations(project.code, names);
-                loadProjectOccupations();
+                loadProjectOccupations();   // people moved here and not saved keep their row
                 renderOccupationHours();
                 closeManageOccupations();
                 if (window.FeriizNotify) {
@@ -511,8 +864,63 @@
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                document.getElementById('occSaveBtn').addEventListener('click', function () { if (project) saveOccupationHours(); });
-                document.getElementById('occHours').addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
+                document.getElementById('occSaveBtn').addEventListener('click', function () { if (project) saveAll(); });
+                document.getElementById('occDiscardBtn').addEventListener('click', function () { if (project) discardChanges(); });
+                document.getElementById('occHours').addEventListener('input', onHoursInput);
+                document.getElementById('occHours').addEventListener('click', function (e) {
+                    if (e.target.closest('[data-manage-occupations]')) openManageOccupations();
+                    var reset = e.target.closest('[data-reset]');
+                    if (reset) resetRow(reset);
+                    var peopleBtn = e.target.closest('[data-people]');
+                    if (peopleBtn) togglePeople(peopleBtn);
+                    var back = e.target.closest('[data-unmove]');
+                    if (back) {
+                        projectPeople.forEach(function (p) { if (p.code === back.dataset.unmove) moveTo(p.code, p.occupation || ''); });
+                    }
+                });
+                document.getElementById('occHours').addEventListener('change', function (e) {
+                    if (!project) return;
+                    var t = e.target;
+                    if (t.matches('[data-use-all]')) {
+                        var on = t.checked;
+                        projectOccupations.forEach(function (o) { setUse(o.name, on); });
+                        document.querySelectorAll('#occHours [data-use]').forEach(function (cb) {
+                            cb.checked = on;
+                            cb.closest('.occ-hours-row').classList.toggle('is-used', on);
+                        });
+                        refreshFields();
+                    } else if (t.matches('[data-use]')) {
+                        var row = t.closest('.occ-hours-row');
+                        setUse(row.dataset.occupation, t.checked);
+                        row.classList.toggle('is-used', t.checked);
+                        refreshFields();
+                    } else if (t.matches('select[data-move]')) {
+                        moveTo(t.dataset.move, t.value);
+                    }
+                });
+                document.getElementById('occHours').addEventListener('keydown', onHoursKeydown);
+                // A click keeps the selection the focus made (the mouse up would drop it).
+                var selectedByFocus = null;
+                document.getElementById('occHours').addEventListener('focusin', function (e) {
+                    if (!e.target.classList.contains('occ-hours-day')) return;
+                    e.target.select();
+                    selectedByFocus = e.target;
+                });
+                document.getElementById('occHours').addEventListener('mouseup', function (e) {
+                    if (e.target === selectedByFocus) e.preventDefault();
+                    selectedByFocus = null;
+                });
+                // Leaving with hours typed and not saved asks first.
+                window.addEventListener('beforeunload', function (e) {
+                    if (!project || !unsavedChanges()) return;
+                    e.preventDefault();
+                    e.returnValue = '';
+                });
+                if (window.bootstrap && window.bootstrap.Tooltip) {
+                    document.querySelectorAll('.settings-layout [data-bs-toggle="tooltip"]').forEach(function (el) {
+                        window.bootstrap.Tooltip.getOrCreateInstance(el);
+                    });
+                }
                 wireManageOccupations();
 
                 if (!window.FERIIZ_DATA) return;
@@ -523,11 +931,10 @@
                     var link = document.getElementById('settingsProjectLink');
                     link.textContent = project.name;
                     link.href = 'project_employees.html?project=' + encodeURIComponent(project.code);
-                    document.title = 'Feriiz - ' + project.name + ' - Settings';
-                    countPeople(data);
+                    document.title = 'Feriiz - ' + project.name + ' - Work Hours';
+                    projectPeople = data.employees.filter(function (e) { return (e.projects || []).indexOf(project.code) >= 0; });
                     loadProjectOccupations();
                     renderOccupationHours();
-                    document.getElementById('occManageBtn').hidden = false;
                 });
             });
         })();

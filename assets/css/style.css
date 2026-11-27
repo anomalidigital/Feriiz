@@ -7166,72 +7166,613 @@ div.report-layout .report-search-input {
     box-shadow: none;
 }
 
-.settings-panel-foot {
-    display: flex;
-    justify-content: flex-end;
-    padding: 12px 16px 16px;
+/* ============================================
+   PROJECT SETTINGS > DEFAULT HOURS (laid out again 18-11-2026; Baldy: "kurang rapi")
+   Four groups: the title with the project's Working Day; the Use option and a key to the
+   figures; the table, as wide as its columns (no gap between a name and its days); the save
+   bar at the bottom of the screen, only while something is not saved (Polaris' contextual save
+   bar; Baldy: "nice ide, boleh kaya gitu deh"). One blue button, Save. A figure the same as the Working Day is grey, a row's own
+   dark (with a reset on its row), what is not saved yet blue.
+   Spacing on the 4/8px grid; colours from the --feriiz tokens.
+   ============================================ */
+/* The page (18-11-2026, as Baldy drew it): Working Time (with its Working Day) and Check In/Out
+   Tolerance side by side on top, the Default Hours across the whole width under them, so no
+   part of the screen stays empty; one column on a phone. */
+.settings-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
 }
 
-/* Default Hours per Occupation: every occupation of the project's employees, a row each and a
-   field per day written "8/2", as Arcon's own sheet. */
-.occ-hours {
+.settings-side {
     display: grid;
-    padding: 8px 16px 0;
+    gap: 24px;
+    min-width: 0;
+}
+
+@media (min-width: 768px) {
+    .settings-side {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.settings-card-body {
+    padding: 16px;
+}
+
+.settings-fields {
+    display: grid;
+    gap: 12px;
+}
+
+/* Fields as wide as what goes in them, not the card (Baldy, 18-11-2026, of the stretched ones on a
+   wide screen: "jauh banget"): a time or a number of minutes in 120-160px, the unit beside the
+   figure; they line up from the left and wrap. The penalties take words, so wider. */
+.settings-fields.is-2,
+.settings-fields.is-3 {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 160px));
+}
+
+.settings-fields.is-wide {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 240px));
+}
+
+/* The tolerance: four in a row where they fit, else In over Out (never three and one). */
+.settings-fields.is-pairs {
+    grid-template-columns: repeat(2, minmax(120px, 160px));
+}
+
+@media (min-width: 1280px) {
+    .settings-fields.is-pairs {
+        grid-template-columns: repeat(4, minmax(112px, 160px));
+    }
+}
+
+.settings-field {
+    min-width: 0;
+}
+
+.settings-field label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--feriiz-text-hint);
+}
+
+.settings-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--feriiz-border);
+    border-radius: var(--feriiz-radius);
+    background: var(--feriiz-card);
+    color: var(--feriiz-text);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.unit-input .settings-input {
+    padding-right: 28px;
+}
+
+.settings-input::placeholder {
+    color: #9AA3AE;
+}
+
+.settings-input:hover {
+    border-color: #B8C2CC;
+}
+
+.settings-input:focus {
+    outline: none;
+    border-color: var(--feriiz-primary);
+    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.15);
+}
+
+/* The Working Hour comes from the Working Time: not a field to click, its figure plain. */
+.settings-input:disabled {
+    border-color: var(--feriiz-border-soft);
+    background: #F4F5F7;
+    color: var(--feriiz-text);
+    -webkit-text-fill-color: var(--feriiz-text);
+    opacity: 1;
+    cursor: default;
+    user-select: none;
+}
+
+.settings-input.is-dirty {
+    border-color: var(--feriiz-primary);
+    background: var(--feriiz-primary-soft);
+}
+
+.settings-input.is-invalid {
+    border-color: var(--feriiz-danger);
+    background: #FDEDEB;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+}
+
+/* Working Day under the Working Time it comes from. */
+.settings-subhead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--feriiz-border-soft);
+}
+
+.settings-subtitle {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--feriiz-text);
+}
+
+.settings-layout .tpl-help {
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: -4px;
+    border-radius: 50%;
+}
+
+.settings-layout .tpl-help:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 0;
+}
+
+.settings-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 12px;
+}
+
+.settings-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    margin: -4px -8px;
+    border-radius: var(--feriiz-radius);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--feriiz-text);
+    cursor: pointer;
+}
+
+.settings-check .form-check-input {
+    margin: 0;
+    cursor: pointer;
+}
+
+.settings-check.is-dirty {
+    background: var(--feriiz-primary-soft);
+}
+
+@media (max-width: 575.98px) {
+    .settings-fields.is-2,
+    .settings-fields.is-3,
+    .settings-fields.is-pairs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.occ-panel {
+    min-width: 0;
+    overflow: visible;              /* the save bar sticks to the screen, not to the panel */
+}
+
+.occ-panel-head {
+    flex-wrap: wrap;
+}
+
+.occ-panel-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.occ-manage-btn i {
+    color: var(--feriiz-text-hint);
+}
+
+.occ-panel .tpl-help {
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: -4px;
+    border-radius: 50%;
+}
+
+.occ-panel .tpl-help:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 0;
+}
+
+/* WORK HOURS (24-11-2026): the page's sections in the project form's grey bars. Working Time
+   and Working Day are on Project Detail (Baldy: "balikin ke form project detail"). */
+.wh-card {
+    padding: 16px;
+}
+
+.wh-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-radius: 5px;
+    background: #D5D5D5;
+    color: #1a1a1a;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.wh-bar .tpl-help {
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: -4px;
+    border-radius: 50%;
+    color: #555;
+}
+
+.wh-bar .tpl-help:hover,
+.wh-bar .tpl-help:focus-visible {
+    color: var(--feriiz-primary);
+}
+
+/* Default Hours: its bar holds Manage Occupations; under it what the ticks do and how many. */
+.wh-bar.occ-bar {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 6px 6px 6px 14px;
+}
+
+.wh-bar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    margin: 0;
+    color: inherit;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.occ-bar .occ-manage-btn {
+    background: #fff;
+}
+
+.occ-intro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 24px;
+    margin: -2px 0 4px;
+}
+
+.occ-intro[hidden] {
+    display: none;
+}
+
+.occ-intro-text {
+    max-width: 80ch;
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--feriiz-text-hint);
+}
+
+.occ-use-count {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--feriiz-text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* The table: names in a column that fits them, the seven days right beside. Scrolls sideways
+   on a narrow screen with the names held at the left. */
+.occ-hours {
     overflow-x: auto;
 }
 
 .occ-hours-row {
     display: grid;
-    grid-template-columns: minmax(160px, 1fr) repeat(7, 56px);
-    gap: 6px;
+    grid-template-columns: 28px minmax(184px, 1.6fr) repeat(7, minmax(64px, 1fr)) 32px;
+    gap: 8px;
     align-items: center;
-    min-width: 600px;
+    min-width: 760px;
     padding: 8px 0;
 }
 
-.occ-hours-row + .occ-hours-row {
+.occ-hours-row + .occ-hours-row,
+.occ-people + .occ-hours-row {
     border-top: 1px solid var(--feriiz-border-soft);
+}
+
+/* The tick: does the occupation count these hours in attendance. Held at the left with the name. */
+.occ-hours-use {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    margin: 0;
+    background: var(--feriiz-card);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.occ-hours-use .form-check-input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.occ-hours-row.is-head {
+    padding: 12px 0 8px;
 }
 
 .occ-hours-row.is-head span {
     font-size: 12px;
     font-weight: 700;
-    color: var(--feriiz-text);
+    color: var(--feriiz-text-hint);
     text-align: center;
 }
 
-.occ-hours-row.is-head span:first-child {
+.occ-hours-row.is-head .occ-hours-head-name {
+    position: sticky;
+    left: 36px;
+    z-index: 1;
+    background: var(--feriiz-card);
     text-align: left;
 }
 
+.occ-hours-row.is-occupation {
+    transition: background-color 0.15s ease;
+}
+
+.occ-hours-row.is-occupation:hover,
+.occ-hours-row.is-occupation:focus-within {
+    background: #F8FAFC;
+}
+
+/* The name, and under it its people: a button that opens their list. */
 .occ-hours-name {
+    position: sticky;
+    left: 36px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    padding-right: 8px;
+    background: var(--feriiz-card);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--feriiz-text);
+    transition: background-color 0.15s ease;
+}
+
+.occ-hours-name-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 8px;
+    min-width: 0;
+}
+
+.occ-hours-row.is-occupation:hover .occ-hours-name,
+.occ-hours-row.is-occupation:focus-within .occ-hours-name,
+.occ-hours-row.is-occupation:hover .occ-hours-use,
+.occ-hours-row.is-occupation:focus-within .occ-hours-use {
+    background: #F8FAFC;
+}
+
+.occ-people-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 -6px;
+    padding: 2px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--feriiz-text-hint);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.occ-people-btn i {
+    font-size: 10px;
+    transition: transform 0.15s ease;
+}
+
+.occ-people-btn:hover,
+.occ-people-btn[aria-expanded="true"] {
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary-dark);
+}
+
+.occ-people-btn[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.occ-people-btn:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 1px;
+}
+
+/* An occupation's people, under its row: each with where they are in this project. One moved
+   here from their own occupation has it in yellow, as a change, and a way back. */
+.occ-people {
+    margin: 0 0 10px 36px;
+    padding: 12px;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: 10px;
+    background: #F6F8FA;
+}
+
+.occ-people-note {
+    margin: 0 0 10px;
+    font-size: 12px;
+    color: var(--feriiz-text-hint);
+}
+
+.occ-people-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 8px;
+}
+
+.occ-person {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) minmax(128px, 160px);
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: 8px;
+    background: var(--feriiz-card);
+}
+
+.occ-person-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.occ-person-name {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     min-width: 0;
     font-size: 13px;
     font-weight: 600;
     color: var(--feriiz-text);
+    overflow-wrap: anywhere;
+}
+
+.occ-person-name small {
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--feriiz-text-hint);
+}
+
+.occ-person-meta {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.occ-person-own {
+    padding: 1px 6px;
+    border-radius: var(--feriiz-radius-pill);
+    background: var(--feriiz-changed-tint);
+    color: var(--feriiz-changed-ink);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.occ-person-back {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--feriiz-radius);
+    background: none;
+    color: var(--feriiz-text-hint);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.occ-person-back:hover {
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary-dark);
+}
+
+.occ-person-back:focus-visible,
+.occ-person-move:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 1px;
+}
+
+.occ-person-move {
+    width: 100%;
+    min-width: 0;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--feriiz-border);
+    border-radius: var(--feriiz-radius);
+    background: var(--feriiz-card);
+    color: var(--feriiz-text);
+    font-size: 12.5px;
+}
+
+/* Moved and not saved yet: blue, as every unsaved field here. */
+.occ-person.is-dirty .occ-person-move {
+    border-color: var(--feriiz-primary);
+    background: var(--feriiz-primary-soft);
+}
+
+.occ-people-empty {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--feriiz-text-hint);
+}
+
+.occ-hours-name-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .occ-hours-name small {
-    display: block;
+    flex-basis: 100%;
     font-size: 12px;
     font-weight: 400;
     color: var(--feriiz-text-hint);
 }
 
-/* An occupation that came with a new employee and has not been saved here yet. */
+/* An occupation not saved here yet, e.g. one an employee brought. */
 .occ-hours-new {
-    margin-left: 4px;
-    padding: 1px 6px;
+    padding: 2px 6px;
     border-radius: var(--feriiz-radius-pill);
     background: var(--feriiz-primary-soft);
     color: var(--feriiz-primary-dark);
     font-size: 11px;
     font-weight: 600;
-    vertical-align: 1px;
+    line-height: 1.2;
 }
 
+/* A day: dark by default (the row's own hours), grey when it is the Working Day, blue while
+   not saved, red when it cannot be read. */
 .occ-hours-day {
+    justify-self: center;
     width: 100%;
+    max-width: 120px;
     height: 36px;
     padding: 0 4px;
     border: 1px solid var(--feriiz-border);
@@ -7239,39 +7780,232 @@ div.report-layout .report-search-input {
     background: var(--feriiz-card);
     color: var(--feriiz-text);
     font-size: 13px;
+    font-weight: 700;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.occ-hours-day.is-working-day {
+    color: var(--feriiz-text-hint);
+    font-weight: 400;
+}
+
+.occ-hours-day:hover {
+    border-color: #B8C2CC;
+}
+
+.occ-hours-day:focus {
+    outline: none;
+    border-color: var(--feriiz-primary);
+    box-shadow: 0 0 0 3px rgba(41, 117, 187, 0.15);
+}
+
+.occ-hours-day.is-dirty {
+    border-color: var(--feriiz-primary);
+    background: var(--feriiz-primary-soft);
 }
 
 .occ-hours-day.is-invalid {
     border-color: var(--feriiz-danger);
+    background: #FDEDEB;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
 }
 
-.occ-hours-empty {
-    margin: 8px 0;
+/* Reset a row to the Working Day: only on a row with its own hours, quiet until pointed at. */
+.occ-hours-action {
+    display: flex;
+    justify-content: center;
+}
+
+.occ-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--feriiz-radius);
+    background: none;
+    color: var(--feriiz-text-hint);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.occ-reset[hidden] {
+    display: none;
+}
+
+.occ-reset:hover {
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary-dark);
+}
+
+.occ-reset:focus-visible {
+    outline: 2px solid var(--feriiz-primary);
+    outline-offset: 0;
+}
+
+/* Loading: four grey rows until the occupations are read. */
+.occ-skeleton-row {
+    display: grid;
+    grid-template-columns: minmax(212px, 1.6fr) repeat(7, minmax(64px, 1fr)) 32px;
+    gap: 8px;
+    min-width: 760px;
+    padding: 12px 0;
+}
+
+.occ-skeleton-row span {
+    height: 36px;
+    border-radius: var(--feriiz-radius);
+    background: linear-gradient(90deg, #EEF1F4 0%, #F7F8FA 50%, #EEF1F4 100%);
+    background-size: 200% 100%;
+    animation: occ-shimmer 1.2s ease-in-out infinite;
+}
+
+.occ-skeleton-row span:first-child {
+    width: 60%;
+    height: 16px;
+    align-self: center;
+}
+
+@keyframes occ-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .occ-skeleton-row span { animation: none; }
+}
+
+/* No occupation yet: what the table is for and the one thing to do. */
+.occ-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 48px 16px;
+    text-align: center;
+}
+
+.occ-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    background: var(--feriiz-primary-soft);
+    color: var(--feriiz-primary);
+    font-size: 20px;
+}
+
+.occ-empty-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--feriiz-text);
+}
+
+.occ-empty-text {
+    max-width: 46ch;
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--feriiz-text-hint);
+}
+
+/* Save bar: at the end of the panel, held at the bottom of the screen while the rows go on. */
+.occ-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--feriiz-border-soft);
+    border-radius: 0 0 var(--feriiz-radius-lg) var(--feriiz-radius-lg);
+    background: var(--feriiz-card);
+    box-shadow: 0 -4px 12px rgba(16, 24, 40, 0.06);
+    animation: occ-savebar-in 0.2s ease-out;
+}
+
+.occ-savebar[hidden] {
+    display: none;
+}
+
+.settings-savebar {
+    margin-top: 16px;
+    border: 1px solid var(--feriiz-border-soft);
+    border-radius: var(--feriiz-radius-lg);
+    box-shadow: 0 -4px 16px rgba(16, 24, 40, 0.08);
+}
+
+@keyframes occ-savebar-in {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .occ-savebar { animation: none; }
+}
+
+.occ-savebar-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
     font-size: 13px;
     color: var(--feriiz-text-hint);
 }
 
-/* Use Default Hours in this project, at the bottom of the hours (13-11-2026). */
-.occ-hours-use {
-    margin: 16px 16px 0;
-    padding-top: 16px;
-    border-top: 1px solid var(--feriiz-border-soft);
+/* Something waiting: a blue dot, the count in blue. */
+.occ-savebar.is-dirty .occ-savebar-status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--feriiz-primary);
 }
 
-.occ-hours-use .form-check-label {
-    font-size: 14px;
+.occ-savebar.is-dirty .occ-savebar-status {
     font-weight: 600;
-    color: var(--feriiz-text);
+    color: var(--feriiz-primary-dark);
 }
 
-.occ-hours-use-help {
-    margin: 4px 0 0 1.5em;
-    max-width: 72ch;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--feriiz-text-hint);
+@media (max-width: 575.98px) {
+    .occ-bar .occ-manage-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* the tick column first, as on a wide screen (24-11-2026) */
+    .occ-hours-row {
+        grid-template-columns: 28px 144px repeat(7, 56px) 32px;
+        min-width: 640px;
+    }
+
+    .occ-skeleton-row {
+        grid-template-columns: 180px repeat(7, 56px) 32px;
+        min-width: 640px;
+    }
+
+    .occ-people {
+        margin-left: 0;
+    }
+
+    .occ-people-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .occ-person {
+        grid-template-columns: 28px minmax(0, 1fr) minmax(120px, 150px);
+    }
 }
 
 /* ============================================

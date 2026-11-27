@@ -183,7 +183,7 @@
         var data = window.FERIIZ_DATA;
         if (!projectContext || !data || !data.defaultHoursOf) return null;
         var emp = code ? data.findEmployeeByCode(code) : null;
-        return data.defaultHoursOf(projectContext, emp ? emp.occupation : '', dayName);
+        return data.defaultHoursOf(projectContext, emp ? data.projectOccupationOf(projectContext, emp) : '', dayName);
     }
 
     function dayDefault(date, code) { return defaultFor(DAY_NAMES[fromISO(date).getDay()], code); }
@@ -237,12 +237,21 @@
        aseli"). */
     var DEFAULT_VERSION = { id: 'DEFAULT', kind: 'default', cells: {} };
 
+    // Per occupation since 24-11-2026 (Pak Stef: a tick per occupation on the Work Hours page):
+    // only the people of a ticked occupation count its Default Hours; the others their logs.
     function usesDefault() {
-        return Boolean(projectContext && projectContext.defaultHours && projectContext.defaultHours.useInReport);
+        return Boolean(projectContext && window.FERIIZ_DATA && window.FERIIZ_DATA.anyUsesDefaultHours(projectContext));
+    }
+
+    function usesDefaultFor(code) {
+        var data = window.FERIIZ_DATA;
+        if (!projectContext || !data) return false;
+        var emp = data.findEmployeeByCode(code);
+        return Boolean(emp && data.usesDefaultHours(projectContext, data.projectOccupationOf(projectContext, emp)));
     }
 
     function applyDefault(s, code, date) {
-        if (!usesDefault() || s.off || !s.inTime) return;
+        if (!usesDefaultFor(code) || s.off || !s.inTime) return;
         var def = setDefaultFor(date, code);
         if (!def) return;
         s.numbers = { daily: def.daily, ot: def.ot, work: def.work };
@@ -562,7 +571,7 @@
 
     // Who changed a day last, and how: the tooltip of a changed day.
     function versionText(b) {
-        if (b === DEFAULT_VERSION) return 'Default Hours of this project (Settings). The machine\'s own hours are under Filter > Show history.';
+        if (b === DEFAULT_VERSION) return 'Default Hours of this project (Work Hours). The machine\'s own hours are under Filter > Show history.';
         var who = accountOf(b.by, b.role);
         var what = kindOf(b) === 'import' ? 'Imported' + (b.file ? ' from ' + b.file : '') : versionName(b);
         return what + ' by ' + who.name + ' · ' + who.role + (b.at ? ', ' + stampText(b.at) : '') + '.' + (b.note ? ' Note: ' + b.note : '');
@@ -668,7 +677,7 @@
     // they count for someone the Report shows.
     function historyOn(date) {
         var batches = versionsOn(date);
-        if (usesDefault() && peopleInOccupations().some(function (e) { return touchedBy(e, date, DEFAULT_VERSION); })) batches = batches.concat([DEFAULT_VERSION]);
+        if (usesDefault() && peopleInOccupations().some(function (e) { return usesDefaultFor(e.code) && touchedBy(e, date, DEFAULT_VERSION); })) batches = batches.concat([DEFAULT_VERSION]);
         return batches;
     }
 
@@ -730,7 +739,7 @@
             DAY_NAMES[fromISO(date).getDay()] + ', ' + shortDate(date) + ' · ' + batches.length + ' changes' + (occ ? ' · ' + occ : '');
         historyModal.querySelector('#importHistoryHead').innerHTML = '<tr><th>Name</th>' + batches.map(function (b, i) {
             if (b === DEFAULT_VERSION) {
-                return '<th class="is-current">#' + (i + 1) + ' · Default Hours · now<small>Project Settings</small></th>';
+                return '<th class="is-current">#' + (i + 1) + ' · Default Hours · now<small>Project Work Hours</small></th>';
             }
             var who = accountOf(b.by, b.role);
             var tip = b.file || (b.note ? 'Note: ' + b.note : '');
@@ -1538,7 +1547,7 @@
         var hint = document.getElementById('batchUpdateHint');
         if (hint) hint.textContent = 'Daily is 1 from ' + (list.length === 1 ? list[0] + ' hours' : 'the Default Hours') + ', 0.5 below, 0 at 0. Overtime is whole hours. ' +
             'A missing log in or log out takes the working time (' + start + ' - ' + end + '); a log the day has stays, and the original stays in the History.' +
-            (usesDefault() ? ' This project uses its Default Hours (Settings): a day with a log in counts them, over Add Hours.' : '');
+            (usesDefault() ? ' Occupations ticked on this project\'s Work Hours page count their Default Hours on a day with a log in, over Add Hours.' : '');
     }
 
     // Batch Update > Add Hours, for the ticked days.
@@ -2564,9 +2573,8 @@
         }
         resolveToday(data);
 
-        reportEmployees = data.employees.filter(function (e) {
-            return (e.projects || []).indexOf(projectContext.code) >= 0;
-        });
+        // With the occupation each has in this project (moved on its Work Hours page, else their own).
+        reportEmployees = data.projectEmployees(projectContext);
         // Employee report: the same table, narrowed to one person.
         if (employeeCode) {
             reportEmployees = reportEmployees.filter(function (e) { return e.code === employeeCode; });

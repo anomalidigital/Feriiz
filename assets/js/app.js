@@ -478,11 +478,13 @@ function feriizLogout() {
                         '<a href="project_closing.html' + projQuery + '"' + cls(cfg.sub === 'closing') + '>' +
                             '<i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Closing</span>' +
                         '</a>' +
-                        // The project's Settings: its Public Holidays (red dates, THR) and its Default Hours per
-                        // occupation, under Closing as the meeting of 05-11-2026 placed its "Setting"
-                        // (0:39:35; Baldy, 10-11-2026: "di ubah dari benefits jadi settings").
+                        // The project's Work Hours: Working Time, Working Day, Check In/Out Tolerance and
+                        // its Default Hours per occupation, under Closing as the meeting of 05-11-2026
+                        // placed its "Setting" (0:39:35). "Settings" until 24-11-2026 (Baldy after Pak
+                        // Stef: "sub page nya pertama coba kamu ubah dari settings ke > Time atau apa
+                        // yang bagus ya").
                         '<a href="project_settings.html' + projQuery + '"' + cls(cfg.sub === 'settings') + '>' +
-                            '<i class="fa-solid fa-gear"></i><span class="nav-label">Settings</span>' +
+                            '<i class="fa-solid fa-business-time"></i><span class="nav-label">Work Hours</span>' +
                         '</a>' +
                     '</div>' +
                 '</div>' +
@@ -1038,7 +1040,7 @@ function feriizLogout() {
     // Settings page for that weekday (8 when never saved there), or 0.
     function defaultSeconds(project, date) {
         if (!project || !ctx.data || !ctx.data.defaultHoursOf) return 0;
-        const occupation = ctx.employee ? ctx.employee.occupation : '';
+        const occupation = ctx.employee ? ctx.data.projectOccupationOf(project, ctx.employee) : '';
         const def = ctx.data.defaultHoursOf(project, occupation, SHORT_DAYS[fromISO(date).getDay()]);
         return def ? def.work * 3600 : 0;
     }

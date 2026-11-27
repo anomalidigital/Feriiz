@@ -230,10 +230,12 @@
             assignedEdits[projectCode + '|' + employeeCode] = list;
             try { localStorage.setItem(ASSIGNED_KEY, JSON.stringify(assignedEdits)); } catch (e) { /* kept for this page only */ }
         },
-        // settings = { workStart, workEnd, cutOff, defaultOvertime } from Project Detail, or { defaultHours } from
-        // Settings: { occupations: [{ occupation, custom, daily: { work, ot },
-        // days: { Sun: { work, ot }, ... } }] } in hours, or { occupations: [names] } from its
-        // Manage Occupations.
+        // settings = { workStart, workEnd, cutOff, defaultOvertime, tolerance, penalty } from the
+        // project's Work Hours page (Settings until 24-11-2026; on Project Detail until 18-11), or
+        // { defaultHours } from it: { occupations: [{ occupation, use, custom, daily: { work, ot },
+        // days: { Sun: { work, ot }, ... } }] } in hours, or { occupationOverrides: { code:
+        // occupation } } (people moved there), or { occupations: [names] } from its Manage
+        // Occupations.
         saveProjectSettings: function (code, settings) {
             if (!code || !settings) return;
             var edit = projectEdits[code] || (projectEdits[code] = {});
@@ -293,8 +295,46 @@
                 if (clean && !seen[lower(clean)]) { seen[lower(clean)] = true; names.push(clean); }
             }
             (Array.isArray(project.occupations) ? project.occupations : []).forEach(add);
-            API.employees.forEach(function (e) { if ((e.projects || []).indexOf(project.code) >= 0) add(e.occupation); });
+            API.employees.forEach(function (e) { if ((e.projects || []).indexOf(project.code) >= 0) add(API.projectOccupationOf(project, e)); });
             return names.sort(byName);
+        },
+        // The occupation an employee has in a project: the one the project's Work Hours page moved
+        // them to (occupationOverrides { code: occupation }), else their own on Employees, which
+        // stays as it is (Baldy after Pak Stef, 24-11-2026: "secara master nya dia tetep misal nya
+        // sebagai tukang kayu… tapi dia di assign ke tukang baru"). The project's Report, its
+        // print, Activity, Attendance and Default Hours all go by it.
+        projectOccupationOf: function (project, employee) {
+            if (!employee) return '';
+            var moved = project && project.occupationOverrides && project.occupationOverrides[employee.code];
+            return moved || employee.occupation || '';
+        },
+        // The project's employees as the project sees them: one moved there is a copy with that
+        // occupation (and masterOccupation, their own); the rest are the employees themselves.
+        projectEmployees: function (project) {
+            if (!project) return [];
+            return API.employees.filter(function (e) { return (e.projects || []).indexOf(project.code) >= 0; }).map(function (e) {
+                var occupation = API.projectOccupationOf(project, e);
+                return occupation !== (e.occupation || '') ? Object.assign({}, e, { occupation: occupation, masterOccupation: e.occupation || '' }) : e;
+            });
+        },
+        // Does the occupation count its Default Hours in the project's attendance (the Report and
+        // both prints)? Its own tick on the Work Hours page (Pak Stef, 24-11-2026: a checklist per
+        // occupation, "yang di checklist dia lah occupation yang akan menggunakan set default");
+        // saved before that, one tick for the whole project (defaultHours.useInReport).
+        usesDefaultHours: function (project, occupation) {
+            var dh = project && project.defaultHours;
+            if (!dh) return false;
+            var rows = dh.occupations || [];
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].occupation === occupation && typeof rows[i].use === 'boolean') return rows[i].use;
+            }
+            return Boolean(dh.useInReport);
+        },
+        // Does any occupation of the project count its Default Hours?
+        anyUsesDefaultHours: function (project) {
+            var dh = project && project.defaultHours;
+            if (!dh) return false;
+            return Boolean(dh.useInReport) || (dh.occupations || []).some(function (r) { return r.use === true; });
         },
         // Settings > Manage Occupations: the project's occupations as ticked there.
         saveProjectOccupations: function (code, names) {
